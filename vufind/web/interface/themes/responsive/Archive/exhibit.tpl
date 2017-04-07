@@ -12,10 +12,12 @@
 	{/if}
 
 	<h2>
-		{$title|escape}
+		{$title}
+		{*{$title|escape} // plb 3/8/2017 not escaping because some titles use &amp; *}
 	</h2>
 
 	<div class="lead row">
+		<div class="col-tn-12">
 		{if $hasImageMap}
 			{$imageMap}
 			<script type="text/javascript">
@@ -33,6 +35,7 @@
 			{/if}
 		{/if}
 		{$description}
+		</div>
 	</div>
 
 	<div class="clear-both"></div>
@@ -111,30 +114,35 @@
 				{/if}
 			</div>
 		</div>
-		<div id="related-exhibit-images" class="
-			{if $showThumbnailsSorted && count($relatedImages) >= 18}
-				row
-			{elseif count($relatedImages) > 18}
-				results-covers home-page-browse-thumbnails
-			{elseif count($relatedImages) > 8}
-				browse-thumbnails-medium
-			{else}
-				browse-thumbnails-few
-			{/if}">
-			{foreach from=$relatedImages item=image}
-				{if $showThumbnailsSorted && count($relatedImages) >= 18}<div class="col-xs-6 col-sm-4 col-md-3">{/if}
-					<figure class="{if $showThumbnailsSorted && count($relatedImages) >= 18}browse-thumbnail-sorted{else}browse-thumbnail{/if}">
-						<a href="{$image.link}" {if $image.title}data-title="{$image.title}"{/if} onclick="return VuFind.Archive.showObjectInPopup('{$image.pid|urlencode}'{if $image.recordIndex},{$image.recordIndex}{if $page},{$page}{/if}{/if})">
-							<img src="{$image.image}" {if $image.title}alt="{$image.title}"{/if}>
-							<figcaption class="explore-more-category-title">
-								<strong>{$image.title}</strong>
-							</figcaption>
-						</a>
-					</figure>
-				{if $showThumbnailsSorted && count($relatedImages) >= 18}</div>{/if}
-			{/foreach}
-		</div>
+		{include file="Archive/archiveCollections-displayMode-toggle.tpl"}
 
+		{if $recordSet}
+			{include file="Archive/list-list.tpl"}
+		{else}
+			<div id="related-exhibit-images" class="
+				{if $showThumbnailsSorted && count($relatedImages) >= 18}
+					row
+				{elseif count($relatedImages) > 18}
+					results-covers home-page-browse-thumbnails
+				{elseif count($relatedImages) > 8}
+					browse-thumbnails-medium
+				{else}
+					browse-thumbnails-few
+				{/if}">
+				{foreach from=$relatedImages item=image}
+					{if $showThumbnailsSorted && count($relatedImages) >= 18}<div class="col-xs-6 col-sm-4 col-md-3">{/if}
+						<figure class="{if $showThumbnailsSorted && count($relatedImages) >= 18}browse-thumbnail-sorted{else}browse-thumbnail{/if}">
+							<a href="{$image.link}" {if $image.title}data-title="{$image.title}"{/if} onclick="return VuFind.Archive.showObjectInPopup('{$image.pid|urlencode}'{if $image.recordIndex},{$image.recordIndex}{if $page},{$page}{/if}{/if})">
+								<img src="{$image.image}" {if $image.title}alt="{$image.title}"{/if}>
+								<figcaption class="explore-more-category-title">
+									<strong>{$image.title}</strong>
+								</figcaption>
+							</a>
+						</figure>
+					{if $showThumbnailsSorted && count($relatedImages) >= 18}</div>{/if}
+				{/foreach}
+			</div>
+		{/if}
 		{* Show more link if we aren't seeing all the records already *}
 		<div id="nextInsertPoint">
 		{if $recordEnd < $recordCount}
@@ -168,6 +176,9 @@
 						</a>
 						<a class="btn btn-small btn-default" href="{$repositoryLink}/datastream/MODS/edit" target="_blank">
 							Edit MODS Record
+						</a>
+						<a class="btn btn-small btn-default" href="#" onclick="return VuFind.Archive.clearCache('{$pid}');" target="_blank">
+							Clear Cache
 						</a>
 					</div>
 				</div>

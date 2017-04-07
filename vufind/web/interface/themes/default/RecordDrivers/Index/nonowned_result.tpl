@@ -6,6 +6,7 @@
 	<div class="col-sm-9 col-md-9 col-lg-10">
 		<div class="row">
 			<div class="col-xs-12">
+				<span class="result-index">{$resultIndex})</span>&nbsp;
 				<span class="result-title notranslate">
 				{if !$record.title|removeTrailingPunctuation}{translate text='Title not available'}{else}{$record.title|removeTrailingPunctuation|truncate:180:"..."|highlight}{/if}
 				{if $record.volume}

@@ -10351,6 +10351,11 @@ a.browse-thumbnail-sorted.active {
   text-transform: uppercase;
   white-space: nowrap;
 }
+@media (max-width: 479px) {
+  .exploreMoreBar .exploreMoreBarLabel {
+    white-space: normal;
+  }
+}
 .exploreMoreBar .label-left {
   float: left;
   width: 40px;
@@ -10427,6 +10432,7 @@ a.browse-thumbnail-sorted.active {
 }
 #explore-more-body .jcarousel .thumbnail,
 #relatedProjectScroller .jcarousel .thumbnail,
+#relatedProjectOtherScroller .jcarousel .thumbnail,
 #relatedContentTypesContainer .jcarousel .thumbnail,
 .exploreMoreBar .jcarousel .thumbnail,
 #book-sections .jcarousel .thumbnail {
@@ -10436,11 +10442,13 @@ a.browse-thumbnail-sorted.active {
 }
 #explore-more-body .jcarousel-control-prev,
 #relatedProjectScroller .jcarousel-control-prev,
+#relatedProjectOtherScroller .jcarousel-control-prev,
 #relatedContentTypesContainer .jcarousel-control-prev,
 .exploreMoreBar .jcarousel-control-prev,
 #book-sections .jcarousel-control-prev,
 #explore-more-body .jcarousel-control-next,
 #relatedProjectScroller .jcarousel-control-next,
+#relatedProjectOtherScroller .jcarousel-control-next,
 #relatedContentTypesContainer .jcarousel-control-next,
 .exploreMoreBar .jcarousel-control-next,
 #book-sections .jcarousel-control-next {
@@ -10452,11 +10460,13 @@ a.browse-thumbnail-sorted.active {
 }
 #explore-more-body .jcarousel-control-prev:focus,
 #relatedProjectScroller .jcarousel-control-prev:focus,
+#relatedProjectOtherScroller .jcarousel-control-prev:focus,
 #relatedContentTypesContainer .jcarousel-control-prev:focus,
 .exploreMoreBar .jcarousel-control-prev:focus,
 #book-sections .jcarousel-control-prev:focus,
 #explore-more-body .jcarousel-control-next:focus,
 #relatedProjectScroller .jcarousel-control-next:focus,
+#relatedProjectOtherScroller .jcarousel-control-next:focus,
 #relatedContentTypesContainer .jcarousel-control-next:focus,
 .exploreMoreBar .jcarousel-control-next:focus,
 #book-sections .jcarousel-control-next:focus {
@@ -10464,11 +10474,13 @@ a.browse-thumbnail-sorted.active {
 }
 #explore-more-body .jcarousel-control-prev .glyphicon,
 #relatedProjectScroller .jcarousel-control-prev .glyphicon,
+#relatedProjectOtherScroller .jcarousel-control-prev .glyphicon,
 #relatedContentTypesContainer .jcarousel-control-prev .glyphicon,
 .exploreMoreBar .jcarousel-control-prev .glyphicon,
 #book-sections .jcarousel-control-prev .glyphicon,
 #explore-more-body .jcarousel-control-next .glyphicon,
 #relatedProjectScroller .jcarousel-control-next .glyphicon,
+#relatedProjectOtherScroller .jcarousel-control-next .glyphicon,
 #relatedContentTypesContainer .jcarousel-control-next .glyphicon,
 .exploreMoreBar .jcarousel-control-next .glyphicon,
 #book-sections .jcarousel-control-next .glyphicon {
@@ -10476,6 +10488,7 @@ a.browse-thumbnail-sorted.active {
 }
 #explore-more-body .jcarousel-control-prev,
 #relatedProjectScroller .jcarousel-control-prev,
+#relatedProjectOtherScroller .jcarousel-control-prev,
 #relatedContentTypesContainer .jcarousel-control-prev,
 .exploreMoreBar .jcarousel-control-prev,
 #book-sections .jcarousel-control-prev {
@@ -10483,6 +10496,7 @@ a.browse-thumbnail-sorted.active {
 }
 #explore-more-body .jcarousel-control-next,
 #relatedProjectScroller .jcarousel-control-next,
+#relatedProjectOtherScroller .jcarousel-control-next,
 #relatedContentTypesContainer .jcarousel-control-next,
 .exploreMoreBar .jcarousel-control-next,
 #book-sections .jcarousel-control-next {
@@ -10490,6 +10504,7 @@ a.browse-thumbnail-sorted.active {
 }
 #explore-more-body .panel-body,
 #relatedProjectScroller .panel-body,
+#relatedProjectOtherScroller .panel-body,
 #relatedContentTypesContainer .panel-body,
 .exploreMoreBar .panel-body,
 #book-sections .panel-body {
@@ -10568,9 +10583,6 @@ a.browse-thumbnail-sorted.active {
 }
 .archiveComponentContainer .archiveComponent {
   border: 1px solid lightgrey;
-  background-color: #00a4e3;
-  background: -webkit-linear-gradient(left, white, white 120px, #00a4e3 121px, #00a4e3);
-  background: linear-gradient(90deg, white, white 120px, #00a4e3 121px, #00a4e3);
   color: #FFF;
   font-size: 20px;
   margin: 10px;
@@ -10579,29 +10591,43 @@ a.browse-thumbnail-sorted.active {
   width: 100%;
   text-align: center;
 }
+.archiveComponentContainer .archiveComponent a .archiveComponentHeader,
+.archiveComponentContainer .archiveComponent a:visited .archiveComponentHeader {
+  color: #FFF;
+}
 .archiveComponentContainer .archiveComponent .archiveComponentBody {
-  position: relative;
-  width: 100%;
+  margin-left: 0;
+  margin-right: 0;
 }
-.archiveComponentContainer .archiveComponent .archiveComponentBody a,
-.archiveComponentContainer .archiveComponent .archiveComponentBody a:visited {
-  color: white;
-}
-.archiveComponentContainer .archiveComponent .archiveComponentBody .archiveComponentBox {
-  padding: 10px;
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  right: 0;
+.archiveComponentContainer .archiveComponent .archiveComponentBody .archiveComponentBox .archiveComponentIconContainer {
+  padding-left: 0;
+  padding-top: 4px;
+  padding-right: 0;
 }
 .archiveComponentContainer .archiveComponent .archiveComponentBody .archiveComponentBox .archiveComponentImage {
-  position: absolute;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 100%;
 }
 .archiveComponentContainer .archiveComponent .archiveComponentBody .archiveComponentBox .archiveComponentControls {
-  position: absolute;
-  left: 130px;
-  overflow: hidden;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+}
+.archiveComponentContainer .archiveComponent .archiveComponentBody .archiveComponentBox .archiveComponentControls,
+.archiveComponentContainer .archiveComponent .archiveComponentBody .archiveComponentBox .archiveComponentSearchControls {
+  color: #FFF;
+  background-color: #00a4e3;
+  padding: 10px 0;
+  min-height: 110px;
+}
+.archiveComponentContainer .archiveComponent .archiveComponentBody .archiveComponentBox .archiveComponentControls .archiveComponentHeader,
+.archiveComponentContainer .archiveComponent .archiveComponentBody .archiveComponentBox .archiveComponentSearchControls .archiveComponentHeader {
+  height: auto;
 }
 .archiveComponentContainer .archiveComponent .archiveComponentBody .archiveComponentBox #searchComponentForm {
   background-color: white;
@@ -10629,27 +10655,48 @@ a.browse-thumbnail-sorted.active {
 }
 .archiveComponentContainer .archiveComponent .archiveComponentBody .archiveComponentBox .archiveComponentRandomImage #refreshRandomImage {
   position: absolute;
-  right: 10px;
-  top: 55px;
-}
-.archiveComponentContainer .archiveComponent .archiveComponentBody:before {
-  content: "";
-  display: block;
-  padding-top: 32%;
-  /* ratio of 2:1*/
+  right: 20px;
+  top: 65px;
 }
 .archiveComponentContainer .archiveComponent.horizontalComponent {
   background-color: #00a4e3;
   background: -webkit-linear-gradient(#00a4e3, #00a4e3 45px, white 46px, white);
   background: linear-gradient(#00a4e3, #00a4e3 45px, white 46px, white);
 }
+.archiveComponentContainer .archiveComponent.horizontalComponent .archiveComponentBox {
+  padding: 10px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+}
+@media (min-width: 768px) {
+  .archiveComponentContainer .archiveComponent.horizontalComponent .archiveComponentBox {
+    padding: 20px 10px 10px;
+  }
+}
+.archiveComponentContainer .archiveComponent.horizontalComponent .archiveComponentBody {
+  min-height: 250px;
+}
 .archiveComponentContainer .archiveComponent.horizontalComponent .archiveComponentBody:before {
   content: "";
   display: block;
   padding-top: 64%;
 }
+#exhibit-map {
+  text-align: center;
+}
+#exhibit-map figcaption {
+  color: white;
+}
+#exhibit-map img {
+  width: 95%;
+  max-width: 270px;
+}
 .browseFilterContainer .archiveComponentHeader {
   padding-top: 5%;
+  padding-bottom: 5%;
   font-size: 28px;
   text-align: center;
   text-transform: uppercase;
@@ -10716,6 +10763,14 @@ a.browse-thumbnail-sorted.active {
   column-break-inside: avoid;
   break-inside: avoid;
   break-inside: avoid-column;
+}
+.lead {
+  font-weight: normal !important;
+}
+@media (max-width: 767px) {
+  .lead {
+    font-size: 18px;
+  }
 }
 .editor .panel-group .panel-body > .form-group > .controls {
   overflow-x: auto;

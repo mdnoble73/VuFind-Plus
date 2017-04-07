@@ -50,7 +50,7 @@ VuFind.Searches = (function(){
 		toggleDisplayMode : function(selectedMode){
 			var mode = this.displayModeClasses.hasOwnProperty(selectedMode) ? selectedMode : this.displayMode, // check that selected mode is a valid option
 					searchBoxView = $('input[name="view"]','#searchForm'), // display mode variable associated with the search box
-					paramString = this.replaceQueryParam('page', '', this.replaceQueryParam('view',mode)); // set view in url and unset page variable
+					paramString = VuFind.replaceQueryParam('page', '', VuFind.replaceQueryParam('view',mode)); // set view in url and unset page variable
 			this.displayMode = mode; // set the mode officially
 			this.curPage = 1; // reset js page counting
 			if (searchBoxView) searchBoxView.val(this.displayMode); // set value in search form, if present
@@ -61,21 +61,14 @@ VuFind.Searches = (function(){
 			location.replace(location.pathname + paramString); // reloads page without adding entry to history
 		},
 
-		replaceQueryParam : function (param, newValue, search) {
-			if (typeof search == 'undefined') search = location.search;
-			var regex = new RegExp("([?;&])" + param + "[^&;]*[;&]?"),
-					query = search.replace(regex, "$1").replace(/&$/, '');
-			return newValue ? (query.length > 2 ? query + "&" : "?") + param + "=" + newValue : query;
-	},
-
 		getMoreResults: function(){
 			var url = Globals.path + '/Search/AJAX',
-					params = this.replaceQueryParam('page', this.curPage+1)+'&method=getMoreSearchResults',
+					params = VuFind.replaceQueryParam('page', this.curPage+1)+'&method=getMoreSearchResults',
 					divClass = this.displayModeClasses[this.displayMode];
-			params = this.replaceQueryParam('view', this.displayMode, params); // set the view url parameter just in case.
+			params = VuFind.replaceQueryParam('view', this.displayMode, params); // set the view url parameter just in case.
 			if (params.search(/[?;&]replacementTerm=/) != -1) {
 				var searchTerm = location.search.split('replacementTerm=')[1].split('&')[0];
-				params = this.replaceQueryParam('lookfor', searchTerm, params);
+				params = VuFind.replaceQueryParam('lookfor', searchTerm, params);
 			}
 			$.getJSON(url+params, function(data){
 				if (data.success == false){

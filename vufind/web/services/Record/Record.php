@@ -88,6 +88,11 @@ abstract class Record_Record extends Action
 			$this->display('invalidRecord.tpl', 'Invalid Record');
 			die();
 		}
+		$groupedWork = $this->recordDriver->getGroupedWorkDriver();
+		if (is_null($groupedWork) || !$groupedWork->isValid()){  // initRecordDriverById itself does a validity check and returns null if not.
+			$this->display('invalidRecord.tpl', 'Invalid Record');
+			die();
+		}
 
 		if ($configArray['Catalog']['ils'] == 'Millennium' || $configArray['Catalog']['ils'] == 'Sierra'){
 			$classicId = substr($this->id, 1, strlen($this->id) -2);

@@ -525,6 +525,63 @@ class ItemAPI extends Action {
 		return array('deletedFiles' => $deletedFiles);
 	}
 
+	public function getCopyAndHoldCounts(){
+		if (!isset($_REQUEST['recordId']) || strlen($_REQUEST['recordId']) == 0){
+			return array('error' => 'Please provide a record to load data for');
+		}
+		$recordId = $_REQUEST['recordId'];
+		/** @var GroupedWorkDriver|MarcRecord|OverDriveRecordDriver|ExternalEContentDriver $driver */
+		$driver = RecordDriverFactory::initRecordDriverById($recordId);
+		if ($driver == null || !$driver->isValid()){
+			return array('error' => 'Sorry we could not find a record with that ID');
+		}else{
+			if ($driver instanceof GroupedWorkDriver) {
+				/** @var GroupedWorkDriver $driver */
+				$manifestations = $driver->getRelatedManifestations();
+				$returnData = array();
+				foreach ($manifestations as $manifestation){
+					$manifestationSummary = array(
+							'format' => $manifestation['format'],
+							'copies' => $manifestation['copies'],
+							'availableCopies' => $manifestation['availableCopies'],
+							'numHolds' => $manifestation['numHolds'],
+							'available' => $manifestation['available'],
+							'isEContent' => $manifestation['isEContent'],
+							'groupedStatus' => $manifestation['groupedStatus'],
+							'numRelatedRecords' => $manifestation['numRelatedRecords'],
+					);
+					foreach ($manifestation['relatedRecords'] as $relatedRecord){
+						$manifestationSummary['relatedRecords'][] = $relatedRecord['id'];
+					}
+					$returnData[] = $manifestationSummary;
+				}
+				return $returnData;
+			}elseif ($driver instanceof OverDriveRecordDriver){
+				/** @var OverDriveRecordDriver $driver */
+				$copies = count($driver->getItems());
+				$holds = $driver->getNumHolds();
+				return array(
+						'copies' => $copies,
+						'holds' => $holds,
+				);
+			}elseif ($driver instanceof ExternalEContentDriver || $driver instanceof HooplaRecordDriver){
+				/** @var ExternalEContentDriver $driver */
+				return array(
+						'copies' => 1,
+						'holds' => 0,
+				);
+			}else{
+				/** @var MarcRecord| $driver */
+				$copies = count($driver->getCopies());
+				$holds = $driver->getNumHolds();
+				return array(
+						'copies' => $copies,
+						'holds' => $holds,
+				);
+			}
+		}
+	}
+
 	private function loadSolrRecord($id){
 		global $configArray;
 		//Load basic information

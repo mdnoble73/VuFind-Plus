@@ -1323,6 +1323,12 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		if (printFormats.contains("SoundCassette") && printFormats.contains("SoundRecording")){
 			printFormats.remove("SoundRecording");
 		}
+		if (printFormats.contains("SoundCassette") && printFormats.contains("CompactDisc")){
+			printFormats.remove("CompactDisc");
+		}
+		if (printFormats.contains("SoundCassette") && printFormats.contains("MusicRecording")){
+			printFormats.remove("MusicRecording");
+		}
 		if (printFormats.contains("Playaway") && printFormats.contains("SoundRecording")){
 			printFormats.remove("SoundRecording");
 		}
@@ -1350,10 +1356,28 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		if (printFormats.contains("AudioCD") && printFormats.contains("CD")){
 			printFormats.remove("AudioCD");
 		}
+		if (printFormats.contains("MusicRecording") && printFormats.contains("Phonograph")){
+			printFormats.remove("MusicRecording");
+		}
+		if (printFormats.contains("Phonograph") && printFormats.contains("SoundDisc")){
+			printFormats.remove("SoundDisc");
+		}
+		if (printFormats.contains("Phonograph") && printFormats.contains("SoundRecording")){
+			printFormats.remove("SoundRecording");
+		}
 		if (printFormats.contains("MusicRecording") && printFormats.contains("CD")){
 			printFormats.remove("CD");
 		}
 		if (printFormats.contains("MusicRecording") && printFormats.contains("CompactDisc")){
+			printFormats.remove("CompactDisc");
+		}
+		if (printFormats.contains("MusicRecording") && printFormats.contains("SoundDisc")){
+			printFormats.remove("SoundDisc");
+		}
+		if (printFormats.contains("CD") && printFormats.contains("SoundDisc")){
+			printFormats.remove("CD");
+		}
+		if (printFormats.contains("CompactDisc") && printFormats.contains("SoundDisc")){
 			printFormats.remove("CompactDisc");
 		}
 		if (printFormats.contains("Kinect") || printFormats.contains("XBox360")  || printFormats.contains("Xbox360")

@@ -492,7 +492,7 @@ VuFind.Account = (function(){
 		},
 
 		changeAccountSort: function (newSort){
-			var paramString = VuFind.Searches.replaceQueryParam('accountSort', newSort);
+			var paramString = VuFind.replaceQueryParam('accountSort', newSort);
 			location.replace(location.pathname + paramString)
 		},
 
@@ -709,7 +709,7 @@ VuFind.Account = (function(){
 
 		toggleShowCovers: function(showCovers){
 			this.showCovers = showCovers;
-			var paramString = VuFind.Searches.replaceQueryParam('showCovers', this.showCovers ? 'on': 'off'); // set variable
+			var paramString = VuFind.replaceQueryParam('showCovers', this.showCovers ? 'on': 'off'); // set variable
 			if (!Globals.opac && VuFind.hasLocalStorage()) { // store setting in browser if not an opac computer
 				window.localStorage.setItem('showCovers', this.showCovers ? 'on' : 'off');
 			}

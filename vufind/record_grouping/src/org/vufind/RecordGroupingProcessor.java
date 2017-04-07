@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.sql.*;
 import java.util.*;
 import java.util.Date;
+import java.util.regex.Pattern;
 
 /**
  * Description goes here
@@ -141,6 +142,8 @@ public class RecordGroupingProcessor {
 		return subfield;
 	}
 
+	private Pattern overdrivePattern = Pattern.compile("(?i)^http://.*?lib\\.overdrive\\.com/ContentDetails\\.htm\\?id=[\\da-f]{8}-[\\da-f]{4}-[\\da-f]{4}-[\\da-f]{4}-[\\da-f]{12}$");
+	private Pattern hooplaPattern = Pattern.compile("(?i)^https://www\\.hoopladigital\\.com/title/\\d+$");
 	protected RecordIdentifier getPrimaryIdentifierFromMarcRecord(Record marcRecord, String recordType){
 		RecordIdentifier identifier = null;
 		List<VariableField> recordNumberFields = marcRecord.getVariableFields(recordNumberTag);
@@ -206,11 +209,11 @@ public class RecordGroupingProcessor {
 					if (linkField.getSubfield('u') != null) {
 						//Check the url to see if it is from OverDrive or Hoopla
 						String linkData = linkField.getSubfield('u').getData().trim();
-						if (linkData.matches("(?i)^http://.*?lib\\.overdrive\\.com/ContentDetails\\.htm\\?id=[\\da-f]{8}-[\\da-f]{4}-[\\da-f]{4}-[\\da-f]{4}-[\\da-f]{12}$")) {
+						if (overdrivePattern.matcher(linkData).matches()) {
 							identifier.setSuppressed(true);
 							identifier.setSuppressionReason("OverDrive Title");
-						} else if (linkData.matches("(?i)^https://www\\.hoopladigital\\.com/title/\\d+$")) {
-							identifier.setSuppressionReason("Hoopla Title");
+						//} else if (hooplaPattern.matcher(linkData).matches()) {
+						//	identifier.setSuppressionReason("Hoopla Title");
 						}
 					}
 				}
@@ -498,7 +501,8 @@ public class RecordGroupingProcessor {
 	private void addPrimaryIdentifierForWorkToDB(long groupedWorkId, RecordIdentifier primaryIdentifier) {
 		//Optimized to not delete and remove the primary identifier if it hasn't changed.  Just updates the grouped_work_id.
 		try {
-			//This statement will either add the primary key or update the work id if it already exits
+			//This statement will either add the primary key or update the work id if it already exists
+			//Note, we can not lower case this because we depend on the actual identifier later
 			addPrimaryIdentifierForWorkStmt.setLong(1, groupedWorkId);
 			addPrimaryIdentifierForWorkStmt.setString(2, primaryIdentifier.getType());
 			addPrimaryIdentifierForWorkStmt.setString(3, primaryIdentifier.getIdentifier());
@@ -1127,11 +1131,23 @@ public class RecordGroupingProcessor {
 			//Delete the previous primary identifiers as needed
 			removePrimaryIdentifierStmt.setString(1, primaryIdentifier.getType());
 			removePrimaryIdentifierStmt.setString(2, primaryIdentifier.getIdentifier());
-			removePrimaryIdentifierStmt.executeUpdate();
-
+			int numDeletes = removePrimaryIdentifierStmt.executeUpdate();
+			if (numDeletes != 1){
+				removePrimaryIdentifierStmt.setString(1, primaryIdentifier.getType().toLowerCase());
+				removePrimaryIdentifierStmt.setString(2, primaryIdentifier.getIdentifier().toLowerCase());
+				numDeletes = removePrimaryIdentifierStmt.executeUpdate();
+				if (numDeletes != 1){
+					logger.warn("Error removing primary identifier from grouped work " + primaryIdentifier.toString());
+				}
+			}
 			//Also remove the links to the secondary identifiers
-			removeIdentifiersForPrimaryIdentifierStmt.setLong(1, primaryIdentifier.getIdentifierId());
-			removeIdentifiersForPrimaryIdentifierStmt.executeUpdate();
+			if (primaryIdentifier.getIdentifierId() != 0) {
+				removeIdentifiersForPrimaryIdentifierStmt.setLong(1, primaryIdentifier.getIdentifierId());
+				numDeletes = removeIdentifiersForPrimaryIdentifierStmt.executeUpdate();
+				if (numDeletes != 1) {
+					logger.warn("Error removing identifiers for primary identifier " + primaryIdentifier.getIdentifierId());
+				}
+			}
 		} catch (SQLException e) {
 			logger.error("Error removing primary identifier from old grouped works " + primaryIdentifier.toString(), e);
 		}

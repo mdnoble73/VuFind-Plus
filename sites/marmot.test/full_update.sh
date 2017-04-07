@@ -73,7 +73,8 @@ rm /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
 cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 
 #Extract from ILS
-/usr/local/vufind-plus/sites/${PIKASERVER}/copySierraExport.sh >> ${OUTPUT_FILE}
+#/usr/local/vufind-plus/sites/${PIKASERVER}/copySierraExport.sh >> ${OUTPUT_FILE}
+# Moved to crontab so that cassini crontask will always have the lastest export for their processes.
 
 #Extract from Hoopla
 #cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE}
@@ -140,8 +141,7 @@ cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 
 
 #Extracts for sideloaded eContent; settings defined in config.pwd.ini [Sideload]
-#cd /usr/local/vufind-plus/vufind/cron; ./sideload.sh ${PIKASERVER}
-# No sideloads loaded via this script at this time. pascal 2-9-2017
+cd /usr/local/vufind-plus/vufind/cron; ./sideload.sh ${PIKASERVER}
 
 # Merge Learning Express Records
 /usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh learning_express/steamboatsprings >> ${OUTPUT_FILE}

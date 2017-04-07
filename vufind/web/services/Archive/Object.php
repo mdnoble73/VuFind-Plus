@@ -39,6 +39,7 @@ abstract class Archive_Object extends Action {
 		// Set Search Navigation
 		// Retrieve User Search History
 		//Get Next/Previous Links
+//		$this->initializeExhibitContextDataFromCookie();
 
 		$isExhibitContext = !empty($_SESSION['ExhibitContext']) and $this->recordDriver->getUniqueID() != $_SESSION['ExhibitContext'];
 		if ($isExhibitContext && empty($_COOKIE['exhibitNavigation'])) {
@@ -105,6 +106,8 @@ abstract class Archive_Object extends Action {
 
 		$showClaimAuthorship = $this->recordDriver->getShowClaimAuthorship();
 		$interface->assign('showClaimAuthorship', $showClaimAuthorship);
+
+//		$this->updateCookieForExhibitContextData();
 
 		parent::display($mainContentTemplate, $pageTitle);
 	}
@@ -259,7 +262,7 @@ abstract class Archive_Object extends Action {
 		$interface->assign('repositoryLink', $repositoryLink);
 
 		//Check for display restrictions
-		if ($this->recordDriver instanceof BasicImageDriver || $this->recordDriver instanceof LargeImageDriver) {
+		if ($this->recordDriver instanceof BasicImageDriver || $this->recordDriver instanceof LargeImageDriver || $this->recordDriver instanceof BookDriver || $this->recordDriver instanceof PageDriver) {
 			/** @var CollectionDriver $collection */
 			$anonymousMasterDownload = true;
 			$verifiedMasterDownload = true;
@@ -296,6 +299,11 @@ abstract class Archive_Object extends Action {
 		$_SESSION['placePid']        = null;
 		$_SESSION['placeLabel']      = null;
 		$_SESSION['dateFilter']      = null;
+
+		$_COOKIE['ExhibitContext']             = null;
+		$_COOKIE ['exhibitSearchId']           = null;
+		$_COOKIE['placePid']                   = null;
+		$_COOKIE['placeLabel']                 = null;
 		$_COOKIE['exhibitInAExhibitParentPid'] = null;
 	}
 
@@ -382,6 +390,60 @@ abstract class Archive_Object extends Action {
 		$searchObject->init($searchSource);
 		$searchObject->getNextPrevLinks();
 		$logger->log("Setting search navigation for archive search", PEAR_LOG_DEBUG);
+	}
+
+	private function initializeExhibitContextDataFromCookie() {
+		global $logger;
+		$logger->log("Initializing exhibit context from Cookie Data", PEAR_LOG_DEBUG);
+		$_SESSION['ExhibitContext']             = empty($_COOKIE['ExhibitContext'])             ? $_SESSION['ExhibitContext'] : $_COOKIE['ExhibitContext'];
+		$_SESSION['exhibitSearchId']            = empty($_COOKIE['exhibitSearchId'])            ? $_SESSION['exhibitSearchId'] : $_COOKIE['exhibitSearchId'];
+		$_SESSION['placePid']                   = empty($_COOKIE['placePid'])                   ? $_SESSION['placePid'] : $_COOKIE['placePid'];
+		$_SESSION['placeLabel']                 = empty($_COOKIE['placeLabel'])                 ? $_SESSION['placeLabel'] : $_COOKIE['placeLabel'];
+		$_SESSION['exhibitInAExhibitParentPid'] = empty($_COOKIE['exhibitInAExhibitParentPid']) ? $_SESSION['exhibitInAExhibitParentPid'] : $_COOKIE['exhibitInAExhibitParentPid'];
+//		$_SESSION['dateFilter']      = null;
+
+//		$_SESSION['ExhibitContext']             = empty($_COOKIE['ExhibitContext'])             ? null : $_COOKIE['ExhibitContext'];
+//		$_SESSION['exhibitSearchId']            = empty($_COOKIE['exhibitSearchId'])            ? null : $_COOKIE['exhibitSearchId'];
+//		$_SESSION['placePid']                   = empty($_COOKIE['placePid'])                   ? null : $_COOKIE['placePid'];
+//		$_SESSION['placeLabel']                 = empty($_COOKIE['placeLabel'])                 ? null : $_COOKIE['placeLabel'];
+//		$_SESSION['exhibitInAExhibitParentPid'] = empty($_COOKIE['exhibitInAExhibitParentPid']) ? null : $_COOKIE['exhibitInAExhibitParentPid'];
+////		$_SESSION['dateFilter']      = null;
+	}
+
+	private function updateCookieForExhibitContextData() {
+		global $logger;
+		$logger->log("Initializing exhibit context from Cookie Data", PEAR_LOG_DEBUG);
+		$_COOKIE['ExhibitContext']             = empty($_SESSION['ExhibitContext'])             ? null : $_SESSION['ExhibitContext'];
+		$_COOKIE['exhibitSearchId']            = empty($_SESSION['exhibitSearchId'])            ? null : $_SESSION['exhibitSearchId'];
+		$_COOKIE['placePid']                   = empty($_SESSION['placePid'])                   ? null : $_SESSION['placePid'];
+		$_COOKIE['placeLabel']                 = empty($_SESSION['placeLabel'])                 ? null : $_SESSION['placeLabel'];
+		$_COOKIE['exhibitInAExhibitParentPid'] = empty($_SESSION['exhibitInAExhibitParentPid']) ? null : $_SESSION['exhibitInAExhibitParentPid'];
+//		$_SESSION['dateFilter']      = null;
+
+		foreach ($_COOKIE as $cookieName => $cookieValue) {
+			setcookie($cookieName, $cookieValue, time() + 3600);
+		}
+	}
+
+	protected function archiveCollectionDisplayMode($displayMode = null) {
+		if (empty($displayMode)) {
+			global $library;
+			if (!empty($_REQUEST['archiveCollectionView'])) {
+				$displayMode = $_REQUEST['archiveCollectionView'];
+			} elseif (!empty($_SESSION['archiveCollectionDisplayMode'])) {
+				$displayMode = $_SESSION['archiveCollectionDisplayMode'];
+			} elseif (!empty($library->defaultArchiveCollectionBrowseMode)) {
+				$displayMode = $library->defaultArchiveCollectionBrowseMode;
+			} else {
+				$displayMode = 'covers'; // Pika default mode is covers
+			}
+		}
+
+		$_SESSION['archiveCollectionDisplayMode'] = $displayMode;
+
+		global $interface;
+		$interface->assign('displayMode', $displayMode);
+		return $displayMode;
 	}
 
 }

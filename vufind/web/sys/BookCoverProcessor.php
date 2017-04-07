@@ -65,6 +65,14 @@ class BookCoverProcessor{
 				return;
 			}
 		// Any Sideloaded Collection that has a cover in the 856 tag (and additional conditionals)
+		} elseif (stripos($this->type, 'bookflix') !== false){
+			if ($this->getSideLoadedCover($this->type.':'.$this->id)) {
+				return;
+			}
+		} elseif (stripos($this->type, 'boombox') !== false){
+			if ($this->getSideLoadedCover($this->type.':'.$this->id)) {
+				return;
+			}
 		} elseif (stripos($this->type, 'lynda') !== false){
 			if ($this->getSideLoadedCover($this->type.':'.$this->id)) {
 				return;
@@ -1051,6 +1059,14 @@ class BookCoverProcessor{
 					}
 				}elseif (stripos($relatedRecord['source'], 'ebrary') !== false){
 					if ($this->getEbraryCover($relatedRecord['id'])){
+						return true;
+					}
+				} elseif (stripos($relatedRecord['source'], 'bookflix') !== false){
+					if ($this->getSideLoadedCover($relatedRecord['id'])) {
+						return true;
+					}
+				} elseif (stripos($relatedRecord['source'], 'boombox') !== false){
+					if ($this->getSideLoadedCover($relatedRecord['id'])) {
 						return true;
 					}
 				} elseif (stripos($relatedRecord['source'], 'lynda') !== false){

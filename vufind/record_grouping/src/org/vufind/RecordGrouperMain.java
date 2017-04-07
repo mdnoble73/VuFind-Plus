@@ -38,13 +38,14 @@ public class RecordGrouperMain {
 	static String groupedWorkTableName = "grouped_work";
 	static String groupedWorkIdentifiersTableName = "grouped_work_identifiers";
 	static String groupedWorkIdentifiersRefTableName = "grouped_work_identifiers_ref";
-	private static String groupedWorkPrimaryIdentifiersTableName = "grouped_work_primary_identifiers";
 
 	private static HashMap<String, Long> marcRecordChecksums = new HashMap<>();
 	private static HashMap<String, Long> marcRecordFirstDetectionDates = new HashMap<>();
-	private static HashSet<String> marcRecordIdsInDatabase = new HashSet<>();
+	private static HashMap<String, Long> marcRecordIdsInDatabase = new HashMap<>();
+	private static HashMap<String, Long> primaryIdentifiersInDatabase = new HashMap<>();
 	private static PreparedStatement insertMarcRecordChecksum;
 	private static PreparedStatement removeMarcRecordChecksum;
+	private static PreparedStatement removePrimaryIdentifier;
 
 	private static Long lastGroupingTime;
 	private static Long lastGroupingTimeVariableId;
@@ -666,7 +667,8 @@ public class RecordGrouperMain {
 				clearDatabase(vufindConn, clearDatabasePriorToGrouping);
 			}
 
-			loadIlsChecksums(vufindConn);
+			loadIlsChecksums(vufindConn, indexingProfileToRun);
+			loadExistingPrimaryIdentifiers(vufindConn, indexingProfileToRun);
 
 			//Determine if we want to validateChecksumsFromDisk
 			try{
@@ -719,8 +721,8 @@ public class RecordGrouperMain {
 			}
 
 			//Remove deleted records now that we have processed all records that currently exist
-			if (indexingProfileToRun == null && !explodeMarcsOnly) {
-				removeDeletedRecords(recordGroupingProcessor);
+			if (!explodeMarcsOnly) {
+				removeDeletedRecords();
 			}
 		}
 
@@ -766,23 +768,32 @@ public class RecordGrouperMain {
 		logger.info("Elapsed Minutes " + (elapsedTime / 60000));
 	}
 
-	private static void removeDeletedRecords(RecordGroupingProcessor recordGroupingProcessor) {
+	private static void removeDeletedRecords() {
 		logger.info("Deleting " + marcRecordIdsInDatabase.size() + " record ids from the database since they are no longer in the export.");
-		for (String recordNumber : marcRecordIdsInDatabase) {
-			String[] recordNumberParts = recordNumber.split(":");
-			if (!fullRegrouping) {
-				//Remove the record from the grouped work
-				RecordIdentifier primaryIdentifier = new RecordIdentifier();
-				primaryIdentifier.setValue(recordNumberParts[0], recordNumberParts[1]);
-				recordGroupingProcessor.deletePrimaryIdentifier(primaryIdentifier);
-			}
+		for (String recordNumber : marcRecordIdsInDatabase.keySet()) {
 			//Remove the record from the ils_marc_checksums table
 			try {
-				removeMarcRecordChecksum.setString(1, recordNumberParts[0]);
-				removeMarcRecordChecksum.setString(2, recordNumberParts[1]);
-				removeMarcRecordChecksum.executeUpdate();
+				removeMarcRecordChecksum.setLong(1, marcRecordIdsInDatabase.get(recordNumber));
+				int numRemoved = removeMarcRecordChecksum.executeUpdate();
+				if (numRemoved != 1){
+					logger.warn("Could not delete " + recordNumber +  " from ils_marc_checksums table");
+				}
 			} catch (SQLException e) {
-				logger.error("Error removing ILS id " + recordNumber + " from " + " from ils_marc_checksums table", e);
+				logger.error("Error removing ILS id " + recordNumber + " from ils_marc_checksums table", e);
+			}
+		}
+
+		logger.info("Deleting " + primaryIdentifiersInDatabase.size() + " primary identifiers from the database since they are no longer in the export.");
+		for (String recordNumber : primaryIdentifiersInDatabase.keySet()) {
+			//Remove the record from the grouped_work_primary_identifiers table
+			try {
+				removePrimaryIdentifier.setLong(1, primaryIdentifiersInDatabase.get(recordNumber));
+				int numRemoved = removePrimaryIdentifier.executeUpdate();
+				if (numRemoved != 1){
+					logger.warn("Could not delete " + recordNumber +  " from grouped_work_primary_identifiers table");
+				}
+			} catch (SQLException e) {
+				logger.error("Error removing " + recordNumber + " from grouped_work_primary_identifiers table", e);
 			}
 		}
 	}
@@ -1024,30 +1035,71 @@ public class RecordGrouperMain {
 		}
 	}
 
-	private static void loadIlsChecksums(Connection vufindConn) {
+	private static void loadExistingPrimaryIdentifiers(Connection vufindConn, String indexingProfileToRun) {
 		//Load MARC Existing MARC Record checksums from VuFind
 		try{
 			insertMarcRecordChecksum = vufindConn.prepareStatement("INSERT INTO ils_marc_checksums (ilsId, source, checksum, dateFirstDetected) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE checksum = VALUES(checksum), dateFirstDetected=VALUES(dateFirstDetected), source=VALUES(source)");
-			removeMarcRecordChecksum = vufindConn.prepareStatement("DELETE FROM ils_marc_checksums WHERE ilsId = ? and source = ?");
+			removeMarcRecordChecksum = vufindConn.prepareStatement("DELETE FROM ils_marc_checksums WHERE id = ?");
 
 			//MDN 2/23/2015 - Always load checksums so we can optimize writing to the database
-			PreparedStatement loadIlsMarcChecksums = vufindConn.prepareStatement("SELECT * from ils_marc_checksums",  ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			PreparedStatement loadIlsMarcChecksums;
+			if (indexingProfileToRun == null) {
+				loadIlsMarcChecksums = vufindConn.prepareStatement("SELECT * from ils_marc_checksums", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			}else{
+				loadIlsMarcChecksums = vufindConn.prepareStatement("SELECT * from ils_marc_checksums where source like ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+				loadIlsMarcChecksums.setString(1, indexingProfileToRun);
+			}
 			ResultSet ilsMarcChecksumRS = loadIlsMarcChecksums.executeQuery();
 			while (ilsMarcChecksumRS.next()){
 				Long checksum = ilsMarcChecksumRS.getLong("checksum");
 				if (checksum == 0){
 					checksum = null;
 				}
-				marcRecordChecksums.put(ilsMarcChecksumRS.getString("source") + ":" + ilsMarcChecksumRS.getString("ilsId"), checksum);
-				marcRecordFirstDetectionDates.put(ilsMarcChecksumRS.getString("source") + ":" + ilsMarcChecksumRS.getString("ilsId"), ilsMarcChecksumRS.getLong("dateFirstDetected"));
+				String fullIdentifier = ilsMarcChecksumRS.getString("source") + ":" + ilsMarcChecksumRS.getString("ilsId").trim();
+				marcRecordChecksums.put(fullIdentifier, checksum);
+				marcRecordFirstDetectionDates.put(fullIdentifier, ilsMarcChecksumRS.getLong("dateFirstDetected"));
 				if (ilsMarcChecksumRS.wasNull()){
-					marcRecordFirstDetectionDates.put(ilsMarcChecksumRS.getString("source") + ":" + ilsMarcChecksumRS.getString("ilsId"), null);
+					marcRecordFirstDetectionDates.put(fullIdentifier, null);
 				}
-				marcRecordIdsInDatabase.add(ilsMarcChecksumRS.getString("source") + ":" + ilsMarcChecksumRS.getString("ilsId"));
+				String identifierLowerCase = fullIdentifier.toLowerCase();
+				if (marcRecordIdsInDatabase.containsKey(identifierLowerCase)){
+					logger.warn(identifierLowerCase + " was already loaded in marcRecordIdsInDatabase");
+				}else {
+					marcRecordIdsInDatabase.put(identifierLowerCase, ilsMarcChecksumRS.getLong("id"));
+				}
 			}
 			ilsMarcChecksumRS.close();
 		}catch (Exception e){
 			logger.error("Error loading marc checksums for ILS records", e);
+			System.exit(1);
+		}
+	}
+
+	private static void loadIlsChecksums(Connection vufindConn, String indexingProfileToRun) {
+		//Load Existing Primary Identifiers so we can clean up
+		try{
+			removePrimaryIdentifier = vufindConn.prepareStatement("DELETE FROM grouped_work_primary_identifiers WHERE id = ?");
+
+			PreparedStatement loadPrimaryIdentifiers;
+			if (indexingProfileToRun == null) {
+				loadPrimaryIdentifiers = vufindConn.prepareStatement("SELECT * from grouped_work_primary_identifiers", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			}else{
+				loadPrimaryIdentifiers = vufindConn.prepareStatement("SELECT * from grouped_work_primary_identifiers where type like ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+				loadPrimaryIdentifiers.setString(1, indexingProfileToRun);
+			}
+			ResultSet primaryIdentifiersRS = loadPrimaryIdentifiers.executeQuery();
+			while (primaryIdentifiersRS.next()){
+				String fullIdentifier = primaryIdentifiersRS.getString("type") + ":" + primaryIdentifiersRS.getString("identifier").trim();
+				String identifierLowerCase = fullIdentifier.toLowerCase();
+				if (primaryIdentifiersInDatabase.containsKey(identifierLowerCase)){
+					logger.warn(identifierLowerCase + " was already loaded in primaryIdentifiersInDatabase");
+				}else {
+					primaryIdentifiersInDatabase.put(identifierLowerCase, primaryIdentifiersRS.getLong("id"));
+				}
+			}
+			primaryIdentifiersRS.close();
+		}catch (Exception e){
+			logger.error("Error loading primary identifiers ", e);
 			System.exit(1);
 		}
 	}
@@ -1059,6 +1111,7 @@ public class RecordGrouperMain {
 				vufindConn.prepareStatement("TRUNCATE " + groupedWorkTableName).executeUpdate();
 				vufindConn.prepareStatement("TRUNCATE " + groupedWorkIdentifiersTableName).executeUpdate();
 				vufindConn.prepareStatement("TRUNCATE " + groupedWorkIdentifiersRefTableName).executeUpdate();
+				String groupedWorkPrimaryIdentifiersTableName = "grouped_work_primary_identifiers";
 				vufindConn.prepareStatement("TRUNCATE " + groupedWorkPrimaryIdentifiersTableName).executeUpdate();
 				vufindConn.prepareStatement("TRUNCATE grouped_work_primary_to_secondary_id_ref").executeUpdate();
 			}catch (Exception e){
@@ -1133,6 +1186,7 @@ public class RecordGrouperMain {
 										suppressedControlNumbersInExport.add(recordIdentifier.getIdentifier());
 									}else{
 										String recordNumber = recordIdentifier.getIdentifier();
+
 										boolean marcUpToDate = writeIndividualMarc(existingMarcFiles, individualMarcPath, curBib, recordNumber, curProfile.name, recordGroupingProcessor.getNumCharsInPrefix(), marcRecordsWritten, marcRecordsOverwritten);
 										recordNumbersInExport.add(recordIdentifier.toString());
 										if (!explodeMarcsOnly) {
@@ -1145,9 +1199,15 @@ public class RecordGrouperMain {
 												numRecordsProcessed++;
 											}
 											//Mark that the record was processed
-											if (!marcRecordIdsInDatabase.remove(curProfile.name + ":" + recordNumber)) {
-												//This happens for newly added records
-												//logger.warn("Did not find " + curProfile.name + ":" + recordNumber + " in marcRecordIdsInDatabase");
+											String fullId = curProfile.name + ":" + recordNumber;
+											fullId = fullId.toLowerCase().trim();
+											if (marcRecordIdsInDatabase.remove(fullId) == null) {
+												//This should only happen for newly added records
+												//logger.debug("Did not find " + fullId + " in marcRecordIdsInDatabase");
+											}
+											if (primaryIdentifiersInDatabase.remove(fullId) == null){
+												//This should only happen for newly added records
+												//logger.debug("Did not find " + fullId + " in primaryIdentifiersInDatabase");
 											}
 										}
 										lastRecordProcessed = recordNumber;
@@ -1269,12 +1329,14 @@ public class RecordGrouperMain {
 				}
 
 				recordGroupingProcessor.processRecord(primaryIdentifier, title, subtitle, author, mediaType, overDriveIdentifiers, true);
+				primaryIdentifiersInDatabase.remove(primaryIdentifier.toString().toLowerCase());
 				numRecordsProcessed++;
 			}
 			overDriveRecordRS.close();
 
+			//This is no longer needed because we do cleanup differently now (get a list of everything in the database and then cleanup anything that isn't in the API anymore
 			if (!fullRegrouping){
-				PreparedStatement deletedRecordStmt;
+				/*PreparedStatement deletedRecordStmt;
 				if (lastGroupingTime == null || fullRegroupingNoClear){
 					deletedRecordStmt = econtentConnection.prepareStatement("SELECT overdriveId FROM overdrive_api_products WHERE deleted = 1",  ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 				}else{
@@ -1287,7 +1349,7 @@ public class RecordGrouperMain {
 					String overdriveId = recordsToDelete.getString("overdriveId");
 					primaryIdentifier.setValue("overdrive", overdriveId);
 					recordGroupingProcessor.deletePrimaryIdentifier(primaryIdentifier);
-				}
+				}*/
 			}else{
 				writeExistingRecordsFile(configIni, recordNumbersInExport, "record_grouping_overdrive_records_in_export");
 			}

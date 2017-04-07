@@ -3,7 +3,8 @@
 		{* Search Navigation *}
 		{include file="Archive/search-results-navigation.tpl"}
 		<h2>
-			{$title|escape}
+			{$title}
+			{*{$title|escape} // plb 3/8/2017 not escaping because some titles use &amp; *}
 		</h2>
 		<div class="row">
 			<div id="main-content" class="col-xs-12 text-center">
@@ -57,11 +58,20 @@
 			<a class="btn btn-default" href="/Archive/{$pid}/DownloadPDF">Download Book As PDF</a>
 			<a class="btn btn-default" href="/Archive/{$activePage}/DownloadPDF" id="downloadPageAsPDF">Download Page As PDF</a>
 			*}
+			<br/>
+			{if $hasPdf && ($anonymousMasterDownload || ($user && $verifiedMasterDownload))}
+				<a class="btn btn-default" href="/Archive/{$pid}/DownloadPDF">Download PDF</a>
+			{elseif ($hasPdf && !$user && $verifiedMasterDownload)}
+				<a class="btn btn-default" onclick="return VuFind.Account.followLinkIfLoggedIn(this)" href="/Archive/{$pid}/DownloadPDF">Login to Download PDF</a>
+			{/if}
 			{if $allowRequestsForArchiveMaterials}
 				<a class="btn btn-default" href="{$path}/Archive/RequestCopy?pid={$pid}">Request Copy</a>
 			{/if}
 			{if $showClaimAuthorship}
 				<a class="btn btn-default" href="{$path}/Archive/ClaimAuthorship?pid={$pid}">Claim Authorship</a>
+			{/if}
+			{if $showFavorites == 1}
+				<a onclick="return VuFind.Archive.showSaveToListForm(this, '{$pid|escape}');" class="btn btn-default ">{translate text='Add to favorites'}</a>
 			{/if}
 		</div>
 
@@ -122,14 +132,14 @@
 		VuFind.Archive.pageDetails['{$section.pid}'] = {ldelim}
 			pid: '{$section.pid}',
 			title: "{$section.title|escape:javascript}",
-			pdf: '{$section.pdf}'
+			pdf: {if $anonymousMasterDownload || ($user && $verifiedMasterDownload)}'{$section.pdf}'{else}''{/if}
 		{rdelim};
 
 		{foreach from=$section.pages item=page}
 			VuFind.Archive.pageDetails['{$page.pid}'] = {ldelim}
 				pid: '{$page.pid}',
 				title: 'Page {$pageCounter}',
-				pdf: '{$page.pdf}',
+				pdf: {if $anonymousMasterDownload || ($user && $verifiedMasterDownload)}'{$page.pdf}'{else}''{/if},
 				jp2: '{$page.jp2}',
 				transcript: '{$page.transcript}',
 				index: '{$pageCounter}'

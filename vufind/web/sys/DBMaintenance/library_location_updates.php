@@ -1536,5 +1536,23 @@ function getLibraryLocationUpdates(){
 							') ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;',
 					)
 			),
+
+			'archive_object_filtering' => array(
+					'title' => 'Archive Object Filtering',
+					'description' => 'Allow filtering of specific objects in the archive',
+					'sql' => array(
+							'ALTER TABLE library ADD COLUMN objectsToHide MEDIUMTEXT',
+					),
+			),
+
+		'archive_collection_default_view_mode' => array(
+			'title' => 'Viewing Mode for Archive Collections',
+			'description' => 'Default Setting for the Viewing Mode of Archive Collections',
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE `library` ADD COLUMN `defaultArchiveCollectionBrowseMode` VARCHAR(25);",
+			),
+		),
+
 	);
 }

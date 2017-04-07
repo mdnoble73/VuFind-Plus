@@ -15,8 +15,6 @@ class Archive_Image extends Archive_Object{
 		$this->loadArchiveObjectData();
 		//$this->loadExploreMoreContent();
 
-		//TODO: This should be the collapsible sidebar
-		//$interface->assign('sidebar', 'Record/full-record-sidebar.tpl');
 		$interface->assign('showExploreMore', true);
 		$interface->setTemplate('image.tpl');
 

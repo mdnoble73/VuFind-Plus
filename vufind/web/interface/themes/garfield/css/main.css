@@ -10353,6 +10353,18 @@ a.browse-thumbnail-sorted.active {
   margin: 8px;
   float: left;
 }
+@media (max-width: 700px) {
+  #exhibitMainDescriptionContainer {
+    display: block;
+    clear: both;
+  }
+  .exhibit-thumbnail {
+    float: none;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
 .exploreMoreBar {
   border: solid 1px #0078AE;
   margin: 10px 5px 15px;
@@ -10641,7 +10653,7 @@ a.browse-thumbnail-sorted.active {
   color: #FFF;
   background-color: #0078AE;
   padding: 10px 0;
-  min-height: 110px;
+  min-height: 124px;
 }
 .archiveComponentContainer .archiveComponent .archiveComponentBody .archiveComponentBox .archiveComponentControls .archiveComponentHeader,
 .archiveComponentContainer .archiveComponent .archiveComponentBody .archiveComponentBox .archiveComponentSearchControls .archiveComponentHeader {
@@ -10676,31 +10688,15 @@ a.browse-thumbnail-sorted.active {
   right: 20px;
   top: 65px;
 }
-.archiveComponentContainer .archiveComponent.horizontalComponent {
+.archiveComponentContainer .archiveComponent.horizontalComponent .archiveComponentHeader {
   background-color: #0078AE;
-  background: -webkit-linear-gradient(#0078AE, #0078AE 45px, white 46px, white);
-  background: linear-gradient(#0078AE, #0078AE 45px, white 46px, white);
+  padding: 10px 10px 0;
 }
-.archiveComponentContainer .archiveComponent.horizontalComponent .archiveComponentBox {
+.archiveComponentContainer .archiveComponent.horizontalComponent .archiveComponentHeader + .row {
   padding: 10px;
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  right: 0;
-}
-@media (min-width: 768px) {
-  .archiveComponentContainer .archiveComponent.horizontalComponent .archiveComponentBox {
-    padding: 20px 10px 10px;
-  }
 }
 .archiveComponentContainer .archiveComponent.horizontalComponent .archiveComponentBody {
   min-height: 250px;
-}
-.archiveComponentContainer .archiveComponent.horizontalComponent .archiveComponentBody:before {
-  content: "";
-  display: block;
-  padding-top: 64%;
 }
 #exhibit-map {
   text-align: center;

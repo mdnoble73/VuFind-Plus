@@ -96,6 +96,11 @@ class Admin_IndexingProfiles extends ObjectEditor {
 				'text' => 'View MARC files',
 				'url' => '/Admin/IndexingProfiles?objectAction=viewMarcFiles&id=' . $existingObject->id,
 			);
+		} else {
+			$actions[] = array(
+				'text' => 'Populate as a Sideload',
+				'onclick' => "$('#indexingClass').val('SideLoadedEContent');$('#groupingClass').val('SideLoadedRecordGrouper');$('#recordDriver').val('SideLoadedRecord');$('#catalogDriver').val('na'); return false",
+			);
 		}
 
 		return $actions;

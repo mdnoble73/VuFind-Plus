@@ -3,7 +3,8 @@
 		{* Search Navigation *}
 		{include file="Archive/search-results-navigation.tpl"}
 		<h2>
-			{$title|escape}
+			{$title}
+			{*{$title|escape} // plb 3/8/2017 not escaping because some titles use &amp; *}
 		</h2>
 		<div class="row">
 			<div id="main-content" class="col-xs-12 text-center">
@@ -53,6 +54,9 @@
 			{if $showClaimAuthorship}
 				<a class="btn btn-default" href="{$path}/Archive/ClaimAuthorship?pid={$pid}">Claim Authorship</a>
 			{/if}
+			{if $showFavorites == 1}
+				<a onclick="return VuFind.Archive.showSaveToListForm(this, '{$pid|escape}');" class="btn btn-default ">{translate text='Add to favorites'}</a>
+			{/if}
 		</div>
 
 		{include file="Archive/metadata.tpl"}
@@ -68,7 +72,7 @@
 	{assign var=pageCounter value=1}
 	VuFind.Archive.pageDetails['{$page.pid}'] = {ldelim}
 		pid: '{$page.pid}',
-		pdf: '{$page.pdf}',
+		pdf: {if $anonymousMasterDownload || ($user && $verifiedMasterDownload)}'{$page.pdf}'{else}''{/if},
 		jp2: '{$page.jp2}',
 		transcript: '{$page.transcript}'
 	{rdelim};

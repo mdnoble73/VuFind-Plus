@@ -22,6 +22,47 @@ VuFind.Archive = (function(){
 		activeBookViewer: 'jp2',
 		activeBookPage: null,
 		activeBookPid: null,
+
+		// Archive Collection Display Mode (different from search)
+		displayMode: 'list', // default display Mode for collections
+		displayModeClasses: { // browse mode to css class correspondence
+			covers: 'home-page-browse-thumbnails',
+			list: ''
+		},
+
+		getPreferredDisplayMode: function(){
+			if (!Globals.opac && VuFind.hasLocalStorage()){
+				temp = window.localStorage.getItem('archiveCollectionDisplayMode');
+				if (VuFind.Archive.displayModeClasses.hasOwnProperty(temp)) {
+					VuFind.Archive.displayMode = temp; // if stored value is empty or a bad value, fall back on default setting ("null" is returned from local storage when not set)
+				}
+			}
+		},
+
+		toggleDisplayMode : function(selectedMode){
+			var mode = this.displayModeClasses.hasOwnProperty(selectedMode) ? selectedMode : this.displayMode; // check that selected mode is a valid option
+			this.displayMode = mode; // set the mode officially
+			this.curPage = 1; // reset js page counting
+			if (!Globals.opac && VuFind.hasLocalStorage() ) { // store setting in browser if not an opac computer
+				window.localStorage.setItem('archiveCollectionDisplayMode', this.displayMode);
+			}
+			if (mode == 'list') $('#hideSearchCoversSwitch').show(); else $('#hideSearchCoversSwitch').hide();
+			this.ajaxReloadCallback()
+		},
+
+		ajaxReloadCallback: function () {
+			// Placeholder for the function that will be call when the display mode is toggled.
+		},
+
+		toggleShowCovers: function(showCovers){
+			VuFind.Account.showCovers = showCovers;
+			if (!Globals.opac && VuFind.hasLocalStorage()) { // store setting in browser if not an opac computer
+				window.localStorage.setItem('showCovers', this.showCovers ? 'on' : 'off');
+			}
+			this.ajaxReloadCallback()
+		},
+
+
 		openSeadragonViewerSettings: function(){
 			return {
 				"id": "pika-openseadragon",
@@ -83,6 +124,19 @@ VuFind.Archive = (function(){
 			return this.loadPage(pagePid);
 		},
 
+		clearCache:function(id){
+			var url = Globals.path + "/Archive/AJAX?id=" + encodeURI(id) + "&method=clearCache";
+			VuFind.loadingMessage();
+			$.getJSON(url, function(data){
+				if (data.success) {
+					VuFind.showMessage("Cache Cleared Successfully", data.message, 2000); // auto-close after 2 seconds.
+				} else {
+					VuFind.showMessage("Error", data.message);
+				}
+			}).fail(VuFind.ajaxFail);
+			return false;
+		},
+
 		initializeOpenSeadragon: function(viewer){
 			viewer.addHandler("open", this.update_clip);
 			viewer.addHandler("animationfinish", this.update_clip);
@@ -97,7 +151,7 @@ VuFind.Archive = (function(){
 				$("#exhibit-results-loading").show();
 				this.curPage = 1;
 			}
-			var url = Globals.path + "/Archive/AJAX?method=getRelatedObjectsForExhibit&collectionId=" + exhibitPid + "&page=" + this.curPage + "&sort=" + this.sort;
+			var url = Globals.path + "/Archive/AJAX?method=getRelatedObjectsForExhibit&collectionId=" + exhibitPid + "&page=" + this.curPage + "&sort=" + this.sort + '&archiveCollectionView=' + this.displayMode + '&showCovers=' + VuFind.Account.showCovers;
 			url = url + "&reloadHeader=" + reloadHeader;
 
 			$.getJSON(url, function(data){
@@ -242,7 +296,7 @@ VuFind.Archive = (function(){
 		reloadMapResults: function(exhibitPid, placePid, reloadHeader){
 			$("#exhibit-results-loading").show();
 			this.curPage = 1;
-			var url = Globals.path + "/Archive/AJAX?method=getRelatedObjectsForMappedCollection&collectionId=" + exhibitPid + "&placeId=" + placePid + "&page=" + this.curPage + "&sort=" + this.sort;
+			var url = Globals.path + "/Archive/AJAX?method=getRelatedObjectsForMappedCollection&collectionId=" + exhibitPid + "&placeId=" + placePid + "&page=" + this.curPage + "&sort=" + this.sort + '&archiveCollectionView=' + this.displayMode + '&showCovers=' + VuFind.Account.showCovers;
 			$("input[name=dateFilter]:checked").each(function(){
 				url = url + "&dateFilter="+$(this).val();
 			});
@@ -263,7 +317,7 @@ VuFind.Archive = (function(){
 		reloadTimelineResults: function(exhibitPid, reloadHeader){
 			$("#exhibit-results-loading").show();
 			this.curPage = 1;
-			var url = Globals.path + "/Archive/AJAX?method=getRelatedObjectsForTimelineExhibit&collectionId=" + exhibitPid + "&page=" + this.curPage + "&sort=" + this.sort;
+			var url = Globals.path + "/Archive/AJAX?method=getRelatedObjectsForTimelineExhibit&collectionId=" + exhibitPid + "&page=" + this.curPage + "&sort=" + this.sort + '&archiveCollectionView=' + this.displayMode + '&showCovers=' + VuFind.Account.showCovers;
 			$("input[name=dateFilter]:checked").each(function(){
 				url = url + "&dateFilter="+$(this).val();
 			});
@@ -284,7 +338,7 @@ VuFind.Archive = (function(){
 		reloadScrollerResults: function(pid, reloadHeader){
 			$("#exhibit-results-loading").show();
 			this.curPage = 1;
-			var url = Globals.path + "/Archive/AJAX?method=getRelatedObjectsForScroller&pid=" + pid + "&page=" + this.curPage + "&sort=" + this.sort;
+			var url = Globals.path + "/Archive/AJAX?method=getRelatedObjectsForScroller&pid=" + pid + "&page=" + this.curPage + "&sort=" + this.sort + '&archiveCollectionView=' + this.displayMode + '&showCovers=' + VuFind.Account.showCovers;
 			url = url + "&reloadHeader=" + reloadHeader;
 
 			$.getJSON(url, function(data){
@@ -303,7 +357,7 @@ VuFind.Archive = (function(){
 			$.getJSON(Globals.path + "/Archive/AJAX?id=" + encodeURI(pid) + "&method=getExploreMoreContent", function(data){
 				if (data.success){
 					$("#explore-more-body").html(data.exploreMore);
-					VuFind.initCarousels("#explore-more-body .jcarousel");
+					VuFind.initCarousels("#explore-more-body .panel-collapse.in .jcarousel"); // Only initialize browse categories in open accordions
 				}
 			}).fail(VuFind.ajaxFail);
 		},
@@ -399,15 +453,23 @@ VuFind.Archive = (function(){
 				//VuFind.Archive.openSeaDragonViewer.viewport.fitVertically(true);
 			}
 			if (pageChanged && this.multiPage){
+				var imageOnlyShown = true;
 				if (this.pageDetails[pid]['transcript'] == ''){
 					$('#view-toggle-transcription').parent().hide();
 				}else{
 					$('#view-toggle-transcription').parent().show();
+					imageOnlyShown = false;
 				}
 				if (this.pageDetails[pid]['pdf'] == ''){
 					$('#view-toggle-pdf').parent().hide();
 				}else{
 					$('#view-toggle-pdf').parent().show();
+					imageOnlyShown = false;
+				}
+				if (imageOnlyShown){
+					$('#view-toggle-image').parent().hide();
+				}else{
+					$('#view-toggle-image').parent().show();
 				}
 
 				this.loadMetadata(this.activeBookPid, pid);
@@ -611,7 +673,5 @@ VuFind.Archive = (function(){
 		},
 
 	}
-
-
 
 }(VuFind.Archive || {}));

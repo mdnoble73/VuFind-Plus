@@ -105,13 +105,13 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 		}
 	}
 
-	private HashMap<String, HashSet<RelevantLoanRule>> cachedRelevantLoanRules = new HashMap<>();
-	private HashSet<RelevantLoanRule> getRelevantLoanRules(String iType, String locationCode, HashSet<Long> pTypesToCheck){
+	private HashMap<String, HashMap<RelevantLoanRule, LoanRuleDeterminer>> cachedRelevantLoanRules = new HashMap<>();
+	private HashMap<RelevantLoanRule, LoanRuleDeterminer> getRelevantLoanRules(String iType, String locationCode, HashSet<Long> pTypesToCheck){
 		//Look for ac cached value
 		String key = iType + locationCode + pTypesToCheck.toString();
-		HashSet<RelevantLoanRule> relevantLoanRules = cachedRelevantLoanRules.get(key);
+		HashMap<RelevantLoanRule, LoanRuleDeterminer> relevantLoanRules = cachedRelevantLoanRules.get(key);
 		if (relevantLoanRules == null){
-			relevantLoanRules = new HashSet<>();
+			relevantLoanRules = new HashMap<>();
 		}else{
 			return relevantLoanRules;
 		}
@@ -130,7 +130,7 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 						if (hasDefaultPType || curDeterminer.getPatronType().equals("999") || isPTypeValid(curDeterminer.getPatronTypes(), pTypesNotAccountedFor)) {
 							//logger.debug("    " + curDeterminer.getRowNumber() + " matches pType");
 							LoanRule loanRule = loanRules.get(curDeterminer.getLoanRuleId());
-							relevantLoanRules.add(new RelevantLoanRule(loanRule, curDeterminer.getPatronTypes()));
+							relevantLoanRules.put(new RelevantLoanRule(loanRule, curDeterminer.getPatronTypes()), curDeterminer);
 
 							//Stop once we have accounted for all ptypes
 							if (curDeterminer.getPatronType().equals("999")) {
@@ -193,12 +193,12 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 				String key = new StringBuilder(curScope.getScopeName()).append(locationCode).append(itemIType).toString();
 				HoldabilityInformation cachedInfo = holdabilityCache.get(key);
 				if (cachedInfo == null){
-					HashSet<RelevantLoanRule> relevantLoanRules = getRelevantLoanRules(itemIType, locationCode, curScope.getRelatedNumericPTypes());
+					HashMap<RelevantLoanRule, LoanRuleDeterminer> relevantLoanRules = getRelevantLoanRules(itemIType, locationCode, curScope.getRelatedNumericPTypes());
 					HashSet<Long> holdablePTypes = new HashSet<>();
 
 					//Set back to false and then prove true
 					boolean holdable = false;
-					for (RelevantLoanRule loanRule : relevantLoanRules) {
+					for (RelevantLoanRule loanRule : relevantLoanRules.keySet()) {
 						if (loanRule.getLoanRule().getHoldable()) {
 							holdablePTypes.addAll(loanRule.getPatronTypes());
 							holdable = true;
@@ -230,10 +230,10 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 
 		String key = new StringBuilder(curScope.getScopeName()).append("-").append(locationCode).append("-").append(itemIType).toString();
 		if (!bookabilityCache.containsKey(key)) {
-			HashSet<RelevantLoanRule> relevantLoanRules = getRelevantLoanRules(itemIType, locationCode, curScope.getRelatedNumericPTypes());
+			HashMap<RelevantLoanRule, LoanRuleDeterminer> relevantLoanRules = getRelevantLoanRules(itemIType, locationCode, curScope.getRelatedNumericPTypes());
 			HashSet<Long> bookablePTypes = new HashSet<>();
 			boolean isBookable = false;
-			for (RelevantLoanRule loanRule : relevantLoanRules) {
+			for (RelevantLoanRule loanRule : relevantLoanRules.keySet()) {
 				if (loanRule.getLoanRule().getBookable()) {
 					bookablePTypes.addAll(loanRule.getPatronTypes());
 					isBookable = true;

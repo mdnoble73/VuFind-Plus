@@ -1148,11 +1148,18 @@ class SearchObject_Islandora extends SearchObject_Base
 			// and each value currently used for that field
 			$translate = in_array($field, $this->translatedFacets);
 			$lookupPid = in_array($field, $this->pidFacets);
+			$namespaceLookup = $field == 'namespace_s';
 			foreach ($values as $value) {
 				// Add to the list unless it's in the list of fields to skip:
 				if (!in_array($field, $skipList)) {
 					$facetLabel = $this->getFacetLabel($field);
-					if ($lookupPid) {
+					if ($namespaceLookup){
+						$tmpLibrary = new Library();
+						$tmpLibrary->archiveNamespace = $value;
+						if ($tmpLibrary->find(true)){
+							$display = $tmpLibrary->displayName;
+						}
+					}elseif ($lookupPid) {
 						$pid = str_replace('info:fedora/', '', $value);
 						$display = $fedoraUtils->getObjectLabel($pid);
 						if ($display == 'Invalid Object'){
@@ -1227,13 +1234,20 @@ class SearchObject_Islandora extends SearchObject_Base
 			// Should we translate values for the current facet?
 			$translate = in_array($field, $this->translatedFacets);
 			$lookupPid = in_array($field, $this->pidFacets);
+			$namespaceLookup = $field == 'namespace_s';
 
 			// Loop through values:
 			foreach ($data as $facet) {
 				// Initialize the array of data about the current facet:
 				$currentSettings = array();
 				$currentSettings['value'] = $facet[0];
-				if ($lookupPid) {
+				if ($namespaceLookup){
+					$tmpLibrary = new Library();
+					$tmpLibrary->archiveNamespace = $facet[0];
+					if ($tmpLibrary->find(true)){
+						$currentSettings['display'] = $tmpLibrary->displayName;
+					}
+				}elseif ($lookupPid) {
 					$pid = str_replace('info:fedora/', '', $facet[0]);
 					$currentSettings['display'] = $fedoraUtils->getObjectLabel($pid);
 					if ($currentSettings['display'] == 'Invalid Object'){
@@ -1541,19 +1555,39 @@ class SearchObject_Islandora extends SearchObject_Base
 				if (strlen($filter) > 0){
 					$filter .= ' AND ';
 				}
-				$filter .= "!RELS_EXT_isMemberOfCollection_uri_ms:\"info:fedora/{$collection}\"";
+				$filter .= "!ancestors_ms:\"{$collection}\"";
 			}
 			$filters[] = $filter;
 		}
-		$filters[] = "!PID:islandora\\:*";
+		if ($library->objectsToHide){
+			$objectsToHide = explode("\r\n", $library->objectsToHide);
+			$filter = '';
+			foreach ($objectsToHide as $objectPID){
+				if (strlen($filter) > 0){
+					$filter .= ' AND ';
+				}
+				$filter .= "!PID:\"$objectPID\"";
+			}
+			$filters[] = $filter;
+		}
+		if ($library->archiveNamespace != 'islandora'){
+			$filters[] = "!PID:islandora\\:*";
+		}
 		$filters[] = "!PID:demo\\:*";
 		$filters[] = "!PID:testCollection\\:*";
 		$filters[] = "!PID:marmot\\:*";
 		$filters[] = "!PID:ssb\\:*";
 		$filters[] = "!PID:mandala\\:*";
+		$filters[] = "!RELS_EXT_hasModel_uri_s:info\\:fedora/islandora\\:newspaperIssueCModel";
+		$filters[] = "!RELS_EXT_hasModel_uri_s:info\\:fedora/ir\\:thesisCModel";
 		$filters[] = "!RELS_EXT_hasModel_uri_s:info\\:fedora/ir\\:citationCModel";
 
-		$filters[] = "!mods_extension_marmotLocal_pikaOptions_includeInPika_ms:no";
+		global $configArray;
+		if ($configArray['Site']['isProduction']) {
+			$filters[] = "!mods_extension_marmotLocal_pikaOptions_includeInPika_ms:(no OR testOnly)";
+		}else{
+			$filters[] = "!mods_extension_marmotLocal_pikaOptions_includeInPika_ms:no";
+		}
 		return $filters;
 	}
 

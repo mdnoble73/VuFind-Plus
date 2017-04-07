@@ -16,6 +16,7 @@ class GroupedWorkDriver extends RecordInterface{
 	protected $fields;
 	protected $scopingEnabled = true;
 	public $isValid = true;
+
 	/**
 	 * These are captions corresponding with Solr fields for use when displaying
 	 * snippets.
@@ -55,6 +56,7 @@ class GroupedWorkDriver extends RecordInterface{
 	{
 		if (is_string($indexFields)){
 			$id = $indexFields;
+			$id = str_replace('groupedWork:', '', $id);
 			//Just got a record id, let's load the full record from Solr
 			// Setup Search Engine Connection
 			$searchObject = SearchObjectFactory::initSearchObject();
@@ -83,6 +85,10 @@ class GroupedWorkDriver extends RecordInterface{
 			$this->snippet = $configArray['Index']['enableSnippets'];
 			$this->snippetCaptions = isset($searchSettings['Snippet_Captions']) && is_array($searchSettings['Snippet_Captions']) ? $searchSettings['Snippet_Captions'] : array();
 		}
+	}
+
+	public function isValid(){
+		return $this->isValid;
 	}
 
 	public function getSolrField($fieldName){
@@ -1329,14 +1335,15 @@ class GroupedWorkDriver extends RecordInterface{
 			require_once ROOT_DIR . '/sys/Grouping/GroupedWork.php';
 			$groupedWork = new GroupedWork();
 			$groupedWork->permanent_id = $this->getUniqueID();
-			$groupedWork->find(true);
-
-			//Generate record information based on the information we have in the index
 			$relatedRecords = array();
-			foreach ($recordsFromIndex as $recordDetails){
-				$relatedRecord = $this->setupRelatedRecordDetails($recordDetails, $groupedWork, $timer, $scopingInfo, $activePTypes, $searchLocation, $library);
-				$relatedRecords[$relatedRecord['id']] = $relatedRecord;
-				$memoryWatcher->logMemory("Setup related record details for " . $relatedRecord['id']);
+			//This will be false if the record is old
+			if ($groupedWork->find(true)){
+				//Generate record information based on the information we have in the index
+				foreach ($recordsFromIndex as $recordDetails){
+					$relatedRecord = $this->setupRelatedRecordDetails($recordDetails, $groupedWork, $timer, $scopingInfo, $activePTypes, $searchLocation, $library);
+					$relatedRecords[$relatedRecord['id']] = $relatedRecord;
+					$memoryWatcher->logMemory("Setup related record details for " . $relatedRecord['id']);
+				}
 			}
 
 			//Sort the records based on format and then edition

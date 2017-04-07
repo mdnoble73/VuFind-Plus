@@ -3,7 +3,8 @@
 		{* Search Navigation *}
 		{include file="Archive/search-results-navigation.tpl"}
 		<h2>
-			{$title|escape}
+			{$title}
+			{*{$title|escape} // plb 3/8/2017 not escaping because some titles use &amp; *}
 		</h2>
 		<div class="row">
 			<div class="col-xs-4 col-sm-5 col-md-4 col-lg-3 text-center">

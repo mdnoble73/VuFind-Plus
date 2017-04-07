@@ -12,15 +12,6 @@ var VuFind = (function(){
 
 		$("#modalDialog").modal({show:false});
 
-		//var panels = $('.panel');
-		//panels.on('show.bs.collapse', function () {
-		//	$(this).addClass('active');
-		//});
-		//
-		//panels.on('hide.bs.collapse', function () {
-		//	$(this).removeClass('active');
-		//});
-
 		$('.panel')
 				.on('show.bs.collapse', function () {
 					$(this).addClass('active');
@@ -79,6 +70,7 @@ var VuFind = (function(){
 			carouselClass = carouselClass || '.jcarousel';
 			var jcarousel = $(carouselClass),
 					wrapper   = jcarousel.parents('.jcarousel-wrapper');
+			// console.log('init Carousels called for ', jcarousel);
 
 			jcarousel.on('jcarousel:reload jcarousel:create', function() {
 
@@ -87,9 +79,11 @@ var VuFind = (function(){
 						numCategories  = Carousel.jcarousel('items').length || 1,
 						numItemsToShow = 1;
 
+				// console.log('carousel reload or create event called for ', Carousel);
+
 				// Adjust Browse Category Carousels
 				if (jcarousel.is('#browse-category-carousel')){
-					
+
 					// set the number of categories to show; if there aren't enough categories, show all the categories instead
 					if (width > 1000) {
 						numItemsToShow = Math.min(5, numCategories);
@@ -130,8 +124,8 @@ var VuFind = (function(){
 
 				//console.log(Carousel, 'num to show', numItemsToShow, 'width', width);
 				if (numItemsToShow >= numCategories){
-					$('.jcarousel-control-prev', wrapper).hide();
-					$('.jcarousel-control-next', wrapper).hide();
+					$(this).offsetParent().children('.jcarousel-control-prev').hide();
+					$(this).offsetParent().children('.jcarousel-control-next').hide();
 				}
 
 			})
@@ -208,6 +202,13 @@ var VuFind = (function(){
 		//getQueryParameterValue: function (parameterName) {
 		//	return location.search.split(parameterName + '=')[1].split('&')[0]
 		//},
+
+		replaceQueryParam : function (param, newValue, search) {
+			if (typeof search == 'undefined') search = location.search;
+			var regex = new RegExp("([?;&])" + param + "[^&;]*[;&]?"),
+					query = search.replace(regex, "$1").replace(/&$/, '');
+			return newValue ? (query.length > 2 ? query + "&" : "?") + param + "=" + newValue : query;
+		},
 
 		getSelectedTitles: function(){
 			var selectedTitles = $("input.titleSelect:checked ").map(function() {

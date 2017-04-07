@@ -387,26 +387,34 @@ class Archive_Exhibit extends Archive_Object{
 				$_SESSION['exhibitSearchId'] = $lastExhibitObjectsSearch;
 				$logger->log("Setting exhibit search id to $lastExhibitObjectsSearch", PEAR_LOG_DEBUG);
 
-				//Load related objects
-				$allObjectsAreCollections = true;
-				foreach ($response['response']['docs'] as $objectInCollection){
-					/** @var IslandoraDriver $firstObjectDriver */
-					$firstObjectDriver = RecordDriverFactory::initRecordDriver($objectInCollection);
-					$relatedImages[$firstObjectDriver->getUniqueID()] = array(
+				$displayMode = $this->archiveCollectionDisplayMode();
+				$this->setShowCovers();
+				if ($displayMode == 'list') {
+					$recordSet = $searchObject->getResultRecordHTML();
+					$interface->assign('recordSet', $recordSet);
+
+				} else {
+					//Load related objects
+					$allObjectsAreCollections = true;
+					foreach ($response['response']['docs'] as $objectInCollection) {
+						/** @var IslandoraDriver $firstObjectDriver */
+						$firstObjectDriver                                = RecordDriverFactory::initRecordDriver($objectInCollection);
+						$relatedImages[$firstObjectDriver->getUniqueID()] = array(
 							'pid' => $firstObjectDriver->getUniqueID(),
 							'title' => $firstObjectDriver->getTitle(),
 							'description' => $firstObjectDriver->getDescription(),
 							'image' => $firstObjectDriver->getBookcoverUrl('medium'),
 							'link' => $firstObjectDriver->getRecordUrl(),
 							'recordIndex' => $recordIndex++
-					);
+						);
 
-					if (!($firstObjectDriver instanceof CollectionDriver)){
-						$allObjectsAreCollections = false;
+						if (!($firstObjectDriver instanceof CollectionDriver)) {
+							$allObjectsAreCollections = false;
+						}
+						$timer->logTime('Loaded related object');
 					}
-					$timer->logTime('Loaded related object');
+					$interface->assign('showWidgetView', $allObjectsAreCollections);
 				}
-				$interface->assign('showWidgetView', $allObjectsAreCollections);
 //				$summary = $searchObject->getResultSummary();
 				$interface->assign('recordCount', $summary['resultTotal']);
 				$interface->assign('recordStart', $summary['startRecord']);

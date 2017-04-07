@@ -42,7 +42,7 @@
 								{elseif $displayType == 'scroller'}
 									VuFind.Archive.reloadScrollerResults('{$exhibitPid|urlencode}', 1);
 								{elseif $displayType == 'basic'}
-												VuFind.Archive.getMoreExhibitResults('{$exhibitPid|urlencode}', 1);
+									VuFind.Archive.getMoreExhibitResults('{$exhibitPid|urlencode}', 1);
 								{/if}
 								" class="form-control">
 					<option value="title" {if $sort=='title'}selected="selected"{/if}>{translate text='Sort by ' }Title</option>
@@ -62,7 +62,7 @@
 			</div>
 		</div>
 
-		{if $displayType != 'basic' && ($recordEnd < $recordCount || $updateTimeLine)}
+		{if $displayType != 'basic' && $displayType != 'scroller' && ($recordEnd < $recordCount || $updateTimeLine)}
 			{* Display selection of date ranges *}
 			<div class="row">
 				<div class="col-xs-12">
@@ -99,15 +99,23 @@
 			</div>
 		{/if}
 
+		{include file="Archive/archiveCollections-displayMode-toggle.tpl"}
+
 		<div class="clearer"></div>
 		<div id="results">
+
+
 	{/if}
 
 	{if $solrError}
 		<div class="alert alert-danger">{$solrError}</div>
 		<a href="{$solrLink}">Link to solr query</a>
 	{/if}
-	<div class="{if $showThumbnailsSorted}row{else}results-covers home-page-browse-thumbnails{/if}">
+
+	{if $recordSet}
+		{include file="Archive/list-list.tpl"}
+	{else}
+		<div id="related-exhibit-images" class="{if $showThumbnailsSorted}row{else}results-covers home-page-browse-thumbnails{/if}">
 		{foreach from=$relatedObjects item=image}
 			{if $showThumbnailsSorted}<div class="col-xs-6 col-sm-4 col-md-3">{/if}
 				<figure class="{if $showThumbnailsSorted}browse-thumbnail-sorted{else}browse-thumbnail{/if}">
@@ -121,6 +129,7 @@
 			{if $showThumbnailsSorted}</div>{/if}
 		{/foreach}
 	</div>
+	{/if}
 
 	<div id="nextInsertPoint">
 	{if $displayType == 'map'}

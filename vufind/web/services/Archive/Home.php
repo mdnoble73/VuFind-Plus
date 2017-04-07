@@ -17,63 +17,36 @@ class Archive_Home extends Action{
 		global $timer;
 		global $library;
 
-		//Get a list of all available projects
+		$relatedProjects = $this->loadRelatedProjects(true);
+		$interface->assign('relatedProjectsLibrary', $relatedProjects);
+
+		if (!$library->hideAllCollectionsFromOtherLibraries) {
+			$relatedProjects = $this->loadRelatedProjects(false);
+			$interface->assign('relatedProjectsOther', $relatedProjects);
+		}
+
+		$archiveName = $library->displayName;
+		//Get the archive name from islnadora
 		/** @var SearchObject_Islandora $searchObject */
 		$searchObject = SearchObjectFactory::initSearchObject('Islandora');
 		$searchObject->init();
 		$searchObject->setDebugging(false, false);
+		$searchObject->clearFacets();
+		$searchObject->clearFilters();
 		$searchObject->clearHiddenFilters();
-		$searchObject->addHiddenFilter('fedora_datastreams_ms', 'MODS');
-		$searchObject->addHiddenFilter('RELS_EXT_hasModel_uri_s', '*collectionCModel');
-		$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
-		$searchObject->addHiddenFilter('!mods_extension_marmotLocal_pikaOptions_includeInPika_ms', "no");
-		$searchObject->addHiddenFilter('!mods_extension_marmotLocal_pikaOptions_showInSearchResults_ms', "no");
-		$searchObject->addHiddenFilter('mods_extension_marmotLocal_pikaOptions_showOnPikaArchiveHomepage_ms', "yes");
-		$searchObject->addHiddenFilter('RELS_EXT_isMemberOfCollection_uri_ms', "info\\:fedora/{$library->archiveNamespace}\\:*");
-		$searchObject->setLimit(50);
-		$searchObject->setSort('fgs_label_s');
-		$timer->logTime('Setup Search');
-
-		$response = $searchObject->processSearch(true, true);
-		if (PEAR_Singleton::isError($response)) {
-			PEAR_Singleton::raiseError($response->getMessage());
+		$searchObject->setBasicQuery("RELS_EXT_isMemberOfCollection_uri_ms:\"info:fedora/islandora:root\" AND PID:{$library->archiveNamespace}*");
+		$searchObject->setApplyStandardFilters(false);
+		$response = $searchObject->processSearch(true, false, true);
+		if ($response && isset($response['response']) && $response['response']['numFound'] > 0){
+			$firstObject = reset($response['response']['docs']);
+			$archiveName = $firstObject['fgs_label_s'];
 		}
-		$timer->logTime('Process Search for collections');
-
-		$relatedProjects = array();
-		if ($response && isset($response['response'])){
-			//Get information about each project
-			if ($searchObject->getResultTotal() > 0){
-				$summary = $searchObject->getResultSummary();
-				$interface->assign('recordCount', $summary['resultTotal']);
-				$interface->assign('recordStart', $summary['startRecord']);
-				$interface->assign('recordEnd',   $summary['endRecord']);
-
-				foreach ($response['response']['docs'] as $objectInCollection){
-					$firstObjectDriver = RecordDriverFactory::initRecordDriver($objectInCollection);
-					$relatedProjects[] = array(
-						'title' => $firstObjectDriver->getTitle(),
-						'description' => $firstObjectDriver->getDescription(),
-						'image' => $firstObjectDriver->getBookcoverUrl('small'),
-						'dateCreated' => $firstObjectDriver->getDateCreated(),
-						'link' => $firstObjectDriver->getRecordUrl(),
-						'pid' => $firstObjectDriver->getUniqueID()
-					);
-					$timer->logTime('Loaded related object');
-				}
-			}
-		}
-		$interface->assign('relatedProjects', $relatedProjects);
+		$interface->assign('archiveName', $archiveName);
 
 		//Get a list of content types and count the number of objects per content type
 		$searchObject = SearchObjectFactory::initSearchObject('Islandora');
 		$searchObject->init();
 		$searchObject->setDebugging(false, false);
-		$searchObject->clearHiddenFilters();
-		$searchObject->addHiddenFilter('fedora_datastreams_ms', 'MODS');
-		$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
-		$searchObject->addHiddenFilter('!mods_extension_marmotLocal_pikaOptions_includeInPika_ms', "no");
-		$searchObject->addHiddenFilter('!mods_extension_marmotLocal_pikaOptions_showInSearchResults_ms', "no");
 		$searchObject->addFacet('mods_genre_s');
 		$searchObject->setLimit(1);
 		$searchObject->setSort('fgs_label_s');
@@ -96,10 +69,6 @@ class Archive_Home extends Action{
 				$searchObject2 = SearchObjectFactory::initSearchObject('Islandora');
 				$searchObject2->init();
 				$searchObject2->setDebugging(false, false);
-				$searchObject2->clearHiddenFilters();
-				$searchObject2->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
-				$searchObject2->addHiddenFilter('!mods_extension_marmotLocal_pikaOptions_includeInPika_ms', "no");
-				$searchObject2->addHiddenFilter('!mods_extension_marmotLocal_pikaOptions_showInSearchResults_ms', "no");
 				$searchObject2->clearFilters();
 				$searchObject2->addFilter("mods_genre_s:{$genre[0]}");
 				$response2 = $searchObject2->processSearch(true, false);
@@ -141,6 +110,71 @@ class Archive_Home extends Action{
 		$_SESSION['exhibitSearchId'] = null;
 		$_SESSION['placePid']        = null;
 		$_SESSION['dateFilter']      = null;
+	}
+
+	/**
+	 * @param boolean $libraryProjects
+	 * @return array
+	 */
+	public function loadRelatedProjects($libraryProjects)
+	{
+		global $interface;
+		/** @var Timer $timer */
+		global $timer;
+		global $library;
+
+		//Get a list of all available projects
+		/** @var SearchObject_Islandora $searchObject */
+		$searchObject = SearchObjectFactory::initSearchObject('Islandora');
+		$searchObject->init();
+		$searchObject->setDebugging(false, false);
+		$searchObject->addFilter('mods_extension_marmotLocal_pikaOptions_showOnPikaArchiveHomepage_ms:yes');
+		if ($libraryProjects){
+			$searchObject->addFilter("RELS_EXT_isMemberOfCollection_uri_ms:info\\:fedora/{$library->archiveNamespace}\\:*");
+		}else{
+			$searchObject->addFilter("!RELS_EXT_isMemberOfCollection_uri_ms:info\\:fedora/{$library->archiveNamespace}\\:*");
+		}
+
+		$searchObject->setLimit(50);
+		$searchObject->setSort('fgs_label_s');
+		$timer->logTime('Setup Search');
+
+		$response = $searchObject->processSearch(true, true);
+		if (PEAR_Singleton::isError($response)) {
+			PEAR_Singleton::raiseError($response->getMessage());
+		}
+		$timer->logTime('Process Search for collections');
+
+		if ($libraryProjects){
+			$interface->assign('libraryProjectsUrl', $searchObject->renderSearchUrl());
+		}else{
+			$interface->assign('otherProjectsUrl', $searchObject->renderSearchUrl());
+		}
+
+		$relatedProjects = array();
+		if ($response && isset($response['response'])) {
+			//Get information about each project
+			if ($searchObject->getResultTotal() > 0) {
+				$summary = $searchObject->getResultSummary();
+				$interface->assign('recordCount', $summary['resultTotal']);
+				$interface->assign('recordStart', $summary['startRecord']);
+				$interface->assign('recordEnd', $summary['endRecord']);
+
+				foreach ($response['response']['docs'] as $objectInCollection) {
+					$firstObjectDriver = RecordDriverFactory::initRecordDriver($objectInCollection);
+					$relatedProjects[] = array(
+							'title' => $firstObjectDriver->getTitle(),
+							'description' => $firstObjectDriver->getDescription(),
+							'image' => $firstObjectDriver->getBookcoverUrl('small'),
+							'dateCreated' => $firstObjectDriver->getDateCreated(),
+							'link' => $firstObjectDriver->getRecordUrl(),
+							'pid' => $firstObjectDriver->getUniqueID()
+					);
+					$timer->logTime('Loaded related object');
+				}
+			}
+		}
+		return $relatedProjects;
 	}
 
 }

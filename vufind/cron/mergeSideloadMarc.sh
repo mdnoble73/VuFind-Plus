@@ -13,24 +13,24 @@ else
 	LOG="logger -t $0"
 	if [ -d "$SIDELOADDIR/" ]; then
 		if [ -d "$SIDELOADDIR/merge/marc" ]; then
-			if [ "$(ls -A $SIDELOADDIR/merge/marc)" ]; then #TODO: check for deletes also
+			if [ "$(ls -A $SIDELOADDIR/merge/marc)" ] || [ "$(ls -A $SIDELOADDIR/deletes/marc)" ]; then
 				if [ -r "$SIDELOADDIR/mergeConfig.ini" ]; then
 					cd /usr/local/marcMergeUtility
 					java -jar MarcMergeUtility.jar "$SIDELOADDIR/mergeConfig.ini"
 				else
-					echo    "Merge configuration file not readable: $SIDELOADDIR/mergeConfig.ini"
-					$LOG "~~ Merge configuration file not readable: $SIDELOADDIR/mergeConfig.ini"
+					echo    "$1: Merge configuration file not readable: $SIDELOADDIR/mergeConfig.ini"
+					$LOG "~~ $1: Merge configuration file not readable: $SIDELOADDIR/mergeConfig.ini"
 				fi
 			else
-				echo    "There are no files to merge"
-				$LOG "~~ There are no files to merge"
+				echo    "$1: There are no files to merge"
+				$LOG "~~ $1: There are no files to merge"
 			fi
 		else
-			echo    "Merge directory not found: $SIDELOADDIR/merge/marc"
-			$LOG "~~ Merge directory not found: $SIDELOADDIR/merge/marc"
+			echo    "$1: Merge directory not found: $SIDELOADDIR/merge/marc"
+			$LOG "~~ $1: Merge directory not found: $SIDELOADDIR/merge/marc"
 		fi
 	else
-		echo    "Specified directory not found: $SIDELOADDIR"
-		$LOG "~~ Specified directory not found: $SIDELOADDIR"
+		echo    "$1: Specified directory not found: $SIDELOADDIR"
+		$LOG "~~ $1: Specified directory not found: $SIDELOADDIR"
 	fi
 fi

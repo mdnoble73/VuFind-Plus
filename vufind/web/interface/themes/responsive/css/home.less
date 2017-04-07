@@ -331,13 +331,13 @@
 //}
 // New Version, markup is a > div.header-button
 //TODO: Move the layout.less with other styling for .header-button ?
-.header-login-button-mixin(@background-color: rgba(51,51,51,0.6)) {
+.header-login-button-mixin(@background-color: rgba(51,51,51,0.6); @color: #fff; @margin-top: 20px) {
   .header-button{
     border: 0;
     border-radius:  0.5em;
-    color: #fff !important;
+    color: @color !important;
     background-color: @background-color;
-    margin-top: 20px;
+    margin-top: @margin-top;
     //height: 60px !important;
     line-height: 60px !important;
     text-shadow: none;

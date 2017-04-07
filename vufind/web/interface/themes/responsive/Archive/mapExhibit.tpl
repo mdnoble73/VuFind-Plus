@@ -12,7 +12,8 @@
 	{/if}
 
 	<h2>
-		{$title|escape}
+		{$title}
+		{*{$title|escape} // plb 3/8/2017 not escaping because some titles use &amp; *}
 	</h2>
 
 	<div class="lead row">
@@ -139,6 +140,9 @@
 						</a>
 						<a class="btn btn-small btn-default" href="{$repositoryLink}/datastream/MODS/edit" target="_blank">
 							Edit MODS Record
+						</a>
+						<a class="btn btn-small btn-default" href="#" onclick="return VuFind.Archive.clearCache('{$pid}');" target="_blank">
+							Clear Cache
 						</a>
 					</div>
 				</div>

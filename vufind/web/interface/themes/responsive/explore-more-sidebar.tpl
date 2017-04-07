@@ -40,8 +40,8 @@
 							<li class="relatedTitle">
 								<a href="{$title.link}">
 									<figure class="thumbnail">
-										<img src="{$title.image}" alt="{$title.label|removeTrailingPunctuation|truncate:80:"..."}">
-										<figcaption>{$title.label|removeTrailingPunctuation|truncate:80:"..."}</figcaption>
+										<img src="{$title.image}" alt="{$title.label|removeTrailingPunctuation|truncate:40:"..."}">
+										<figcaption>{$title.label|removeTrailingPunctuation|truncate:40:"..."}</figcaption>
 									</figure>
 								</a>
 							</li>
@@ -74,8 +74,8 @@
 							<li class="relatedTitle">
 								<a href="{$title.link}">
 									<figure class="thumbnail">
-										<img src="{$title.image}" alt="{$title.label|removeTrailingPunctuation|truncate:80:"..."}">
-										<figcaption>{$title.label|removeTrailingPunctuation|truncate:80:"..."}</figcaption>
+										<img src="{$title.image}" alt="{$title.label|removeTrailingPunctuation|truncate:40:"..."}">
+										<figcaption>{$title.label|removeTrailingPunctuation|truncate:40:"..."}</figcaption>
 									</figure>
 								</a>
 							</li>
@@ -176,12 +176,16 @@
 *}
 {literal}
 <script type="application/javascript">
-	$('.panel')
+	$('#explore-more-menu .panel')
 			.on('show.bs.collapse', function () {
-				$(this).addClass('active');
+				$(this).addClass('active')
 			})
 			.on('hide.bs.collapse', function () {
 				$(this).removeClass('active');
-			});
+			})
+			.one('shown.bs.collapse', function () {
+		VuFind.initCarousels( $(this).children('.panel-collapse.in').find('.jcarousel') );
+	});
+
 </script>
 {/literal}

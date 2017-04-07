@@ -368,10 +368,6 @@ class ExploreMore {
 					'lookfor' => $searchTerm,
 					'index' => 'IslandoraKeyword'
 				));
-				$searchObject->clearHiddenFilters();
-				$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
-				$searchObject->addHiddenFilter('!mods_extension_marmotLocal_pikaOptions_includeInPika_ms', "no");
-				$searchObject->addHiddenFilter('!mods_extension_marmotLocal_pikaOptions_showInSearchResults_ms', "no");
 				$searchObject->clearFilters();
 				$searchObject->addFacet('mods_genre_s', 'Format');
 				$searchObject->addFacet('RELS_EXT_isMemberOfCollection_uri_ms', 'Collection');

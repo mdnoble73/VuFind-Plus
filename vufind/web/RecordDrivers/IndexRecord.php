@@ -1815,12 +1815,15 @@ class IndexRecord extends RecordInterface
 	/**
 	 * Load Record actions when we don't have detailed information about the record yet
 	 */
-	public function getRecordActionsFromIndex(){
+	public function getRecordActionsFromIndex()
+	{
 		$groupedWork = $this->getGroupedWorkDriver();
-		$relatedRecords = $groupedWork->getRelatedRecords();
-		foreach ($relatedRecords as $relatedRecord){
-			if ($relatedRecord['id'] == $this->getIdWithSource()){
-				return $relatedRecord['actions'];
+		if ($groupedWork != null) {
+			$relatedRecords = $groupedWork->getRelatedRecords();
+			foreach ($relatedRecords as $relatedRecord) {
+				if ($relatedRecord['id'] == $this->getIdWithSource()) {
+					return $relatedRecord['actions'];
+				}
 			}
 		}
 		return array();

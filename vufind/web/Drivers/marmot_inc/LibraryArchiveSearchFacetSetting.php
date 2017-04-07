@@ -21,6 +21,8 @@ class LibraryArchiveSearchFacetSetting extends FacetSetting {
 		'mods_extension_marmotLocal_relatedEntity_event_entityTitle_ms' => 'Related Events',
 		'mods_extension_marmotLocal_describedEntity_entityTitle_ms' => 'Described Entity',
 		'mods_extension_marmotLocal_picturedEntity_entityTitle_ms' => 'Pictured Entity',
+		'namespace_s' => 'Contributing Library',
+		//'ancestors_ms' => "Included In"
 	);
 
 	static function getObjectStructure(){
