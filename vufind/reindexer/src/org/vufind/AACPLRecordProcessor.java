@@ -33,11 +33,50 @@ public class AACPLRecordProcessor extends IlsRecordProcessor {
 		}
 	}
 
+	protected boolean isItemSuppressed(DataField curItem) {
+		if (statusSubfieldIndicator != ' ') {
+			Subfield statusSubfield = curItem.getSubfield(statusSubfieldIndicator);
+			//For Anne Arundel, the status is blank if the item is on shelf
+			if (statusSubfield != null) {
+				if (statusSubfield.getData().matches(statusesToSuppress)) {
+					return true;
+				}
+			}
+		}
+		Subfield locationSubfield = curItem.getSubfield(locationSubfieldIndicator);
+		if (locationSubfield == null){
+			return true;
+		}else{
+			if (locationSubfield.getData().trim().matches(locationsToSuppress)){
+				return true;
+			}
+		}
+		if (collectionSubfield != ' '){
+			Subfield collectionSubfieldValue = curItem.getSubfield(collectionSubfield);
+			if (collectionSubfieldValue == null){
+				return true;
+			}else{
+				if (collectionSubfieldValue.getData().trim().matches(collectionsToSuppress)){
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	protected String getItemStatus(DataField itemField){
+		String subfieldData = getItemSubfieldData(statusSubfieldIndicator, itemField);
+		if (subfieldData == null){
+			subfieldData = "ONSHELF";
+		}
+		return subfieldData;
+	}
+
 	Pattern availableStati = Pattern.compile("^(y)$");
 	@Override
 	protected boolean isItemAvailable(ItemInfo itemInfo) {
 		boolean available = false;
-		if (itemInfo.getStatusCode() == null) {
+		if (itemInfo.getStatusCode().equals("ONSHELF")) {
 			available = true;
 		}
 		return available;
