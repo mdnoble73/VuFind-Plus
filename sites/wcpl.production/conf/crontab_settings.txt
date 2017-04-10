@@ -43,7 +43,7 @@
 ###############
 @reboot cd /usr/local/vufind-plus/sites/wcpl.production; ./wcpl.production.sh start
 # restart continuous re-indexing on reboot.
-@reboot cd /usr/local/vufind-plus/sites/wcpl.production; ./continuous_partial_reindex.sh
+@reboot sleep 300 && /usr/local/vufind-plus/sites/wcpl.production/continuous_partial_reindex.sh
 
 #######################
 # VuFind-Plus Cleanup #

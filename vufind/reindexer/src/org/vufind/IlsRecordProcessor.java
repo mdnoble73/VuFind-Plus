@@ -1285,8 +1285,16 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 		filterPrintFormats(printFormats);
 
+		if (printFormats.size() > 1){
+			String formatsString = Util.getCsvSeparatedString(printFormats);
+			if (!formatsToFilter.contains(formatsString)){
+				formatsToFilter.add(formatsString);
+				logger.warn("Found more than 1 format for " + recordInfo.getFullIdentifier() + " - " + formatsString);
+			}
+		}
 		return printFormats;
 	}
+	private HashSet<String> formatsToFilter = new HashSet<>();
 
 	private void getFormatFromDigitalFileCharacteristics(Record record, LinkedHashSet<String> printFormats) {
 		Set<String> fields = getFieldList(record, "347b");
@@ -1305,10 +1313,39 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			printFormats.add("Archival Materials");
 			return;
 		}
+		if (printFormats.contains("SoundCassette") && printFormats.contains("MusicRecording")){
+			printFormats.clear();
+			printFormats.add("MusicCassette");
+		}
+		if (printFormats.contains("Thesis")){
+			printFormats.clear();
+			printFormats.add("Thesis");
+		}
+		if (printFormats.contains("Phonograph")){
+			printFormats.clear();
+			printFormats.add("Phonograph");
+			return;
+		}
+		if (printFormats.contains("MusicRecording") && (printFormats.contains("CD") || printFormats.contains("CompactDisc") || printFormats.contains("SoundDisc"))){
+			printFormats.clear();
+			printFormats.add("MusicCD");
+			return;
+		}
+		if (printFormats.contains("Playaway")){
+			printFormats.clear();
+			printFormats.add("Playaway");
+			return;
+		}
 		if (printFormats.contains("Video") && printFormats.contains("DVD")){
 			printFormats.remove("Video");
 		}
+		if (printFormats.contains("VideoDisc") && printFormats.contains("DVD")){
+			printFormats.remove("VideoDisc");
+		}
 		if (printFormats.contains("Video") && printFormats.contains("VideoDisc")){
+			printFormats.remove("Video");
+		}
+		if (printFormats.contains("Video") && printFormats.contains("VideoCassette")){
 			printFormats.remove("Video");
 		}
 		if (printFormats.contains("Blu-ray") && printFormats.contains("VideoDisc")){
@@ -1326,15 +1363,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		if (printFormats.contains("SoundCassette") && printFormats.contains("CompactDisc")){
 			printFormats.remove("CompactDisc");
 		}
-		if (printFormats.contains("SoundCassette") && printFormats.contains("MusicRecording")){
-			printFormats.remove("MusicRecording");
-		}
-		if (printFormats.contains("Playaway") && printFormats.contains("SoundRecording")){
-			printFormats.remove("SoundRecording");
-		}
-		if (printFormats.contains("Playaway") && printFormats.contains("Video")){
-			printFormats.remove("Video");
-		}
+
 		if (printFormats.contains("Book") && printFormats.contains("LargePrint")){
 			printFormats.remove("Book");
 		}
@@ -1356,29 +1385,24 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		if (printFormats.contains("AudioCD") && printFormats.contains("CD")){
 			printFormats.remove("AudioCD");
 		}
-		if (printFormats.contains("MusicRecording") && printFormats.contains("Phonograph")){
-			printFormats.remove("MusicRecording");
-		}
-		if (printFormats.contains("Phonograph") && printFormats.contains("SoundDisc")){
-			printFormats.remove("SoundDisc");
-		}
-		if (printFormats.contains("Phonograph") && printFormats.contains("SoundRecording")){
-			printFormats.remove("SoundRecording");
-		}
-		if (printFormats.contains("MusicRecording") && printFormats.contains("CD")){
-			printFormats.remove("CD");
-		}
-		if (printFormats.contains("MusicRecording") && printFormats.contains("CompactDisc")){
-			printFormats.remove("CompactDisc");
-		}
-		if (printFormats.contains("MusicRecording") && printFormats.contains("SoundDisc")){
-			printFormats.remove("SoundDisc");
-		}
+
 		if (printFormats.contains("CD") && printFormats.contains("SoundDisc")){
 			printFormats.remove("CD");
 		}
 		if (printFormats.contains("CompactDisc") && printFormats.contains("SoundDisc")){
 			printFormats.remove("CompactDisc");
+		}
+		if (printFormats.contains("CompactDisc") && printFormats.contains("SoundRecording")){
+			printFormats.remove("SoundRecording");
+		}
+		if (printFormats.contains("GraphicNovel") && printFormats.contains("Serial")){
+			printFormats.remove("Serial");
+		}
+		if (printFormats.contains("Atlas") && printFormats.contains("Map")){
+			printFormats.remove("Atlas");
+		}
+		if (printFormats.contains("LargePrint") && printFormats.contains("Manuscript")){
+			printFormats.remove("Manuscript");
 		}
 		if (printFormats.contains("Kinect") || printFormats.contains("XBox360")  || printFormats.contains("Xbox360")
 				|| printFormats.contains("XBoxOne") || printFormats.contains("PlayStation")
@@ -1553,6 +1577,17 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				String noteValue = noteField.getSubfield('a').getData().toLowerCase();
 				if (noteValue.contains("vertical file")) {
 					result.add("VerticalFile");
+				}
+			}
+		}
+
+		// Check for formats in the 502 tag
+		DataField dissertaionNoteField = (DataField) record.getVariableField("502");
+		if (dissertaionNoteField != null) {
+			if (dissertaionNoteField.getSubfield('a') != null) {
+				String noteValue = dissertaionNoteField.getSubfield('a').getData().toLowerCase();
+				if (noteValue.contains("thesis")) {
+					result.add("Thesis");
 				}
 			}
 		}

@@ -88,12 +88,17 @@ if [ $# = 1 ];then
 #  # Probably centos 7/mariadb setups only
 #  ln -s $WD/install/my.cnf /etc/my.cnf.d/my.cnf
 #  #-----------------
+  #-----------------
+  echo "Copying mysql credentials file to ~/.my.cnf (NOTE: this file will need manual editing.)"
+  # Probably centos 7/mariadb setups only
+  cp $WD/install/.my.cnf ~/.my.cnf
+  #-----------------
   echo "Installing Solr Files for $HOST"
   $WD/data_dir_setup/update_solr_files.sh $HOST
   #-----------------
   echo "Creating pika system service for $HOST"
 #  cat $WD/sites/default/pika_startup.sh |sed -r 's/\{servername\}/$HOST/' > /etc/init.d/pika.sh
-  cat $WD/sites/default/pika_startup.sh |sed -r "s/\{servername\}/$HOST/'|sed -r 's/mysqld/mariadb/" > /etc/init.d/pika.sh
+  cat $WD/sites/default/pika_startup.sh |sed -r "s/\{servername\}/$HOST/"|sed -r "/mysqld/mariadb/" > /etc/init.d/pika.sh
   chmod u+x /etc/init.d/pika.sh
 #  CentOS7 version that uses mariadb instead
 
