@@ -36,14 +36,13 @@
 							{/if}
 						</div>
 						<div class="col-tn-9 col-xs-8 col-md-5 col-lg-6">
-							{include file='GroupedWork/statusIndicator.tpl' statusInformation=$relatedManifestation}
+							{include file='GroupedWork/statusIndicator.tpl' statusInformation=$relatedManifestation viewingIndividualRecord=0}
 
 							{if $relatedManifestation.numRelatedRecords == 1}
 								{include file='GroupedWork/copySummary.tpl' summary=$relatedManifestation.itemSummary totalCopies=$relatedManifestation.copies itemSummaryId=$id recordViewUrl=$relatedManifestation.url}
 							{else}
 								{include file='GroupedWork/copySummary.tpl' summary=$relatedManifestation.itemSummary totalCopies=$relatedManifestation.copies itemSummaryId=$id}
 							{/if}
-
 						</div>
 						<div class="col-tn-9 col-tn-offset-3 col-xs-8 col-xs-offset-4 col-md-4 col-md-offset-0 col-lg-3 manifestation-actions">
 							<div class="btn-toolbar">

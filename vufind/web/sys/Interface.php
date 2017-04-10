@@ -387,6 +387,7 @@ class UInterface extends Smarty
 				$this->assign('displaySidebarMenu', false);
 			}
 			$this->assign('sidebarMenuButtonText', $library->sidebarMenuButtonText);
+			$this->assign('showGroupedHoldCopiesCount', $library->showGroupedHoldCopiesCount);
 		}else{
 			$this->assign('showLoginButton', 1);
 			$this->assign('showAdvancedSearchbox', 1);
@@ -408,6 +409,7 @@ class UInterface extends Smarty
 			$this->assign('showPikaLogo', 1);
 			$this->assign('allowMasqueradeMode', 0);
 			$this->assign('allowReadingHistoryDisplayInMasqueradeMode', 0);
+			$this->assign('showGroupedHoldCopiesCount', 1);
 		}
 		if (isset($library) && $location != null){ // library and location
 			$this->assign('showFavorites', $location->showFavorites && $library->showFavorites);
