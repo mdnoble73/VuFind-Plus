@@ -131,7 +131,6 @@ cd /data/vufind-plus/accelerated_reader; curl --remote-name --remote-time --sile
 
 #Zinio Marc Updates
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh flatirons_sideload/zinio/shared zinio >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh flatirons_sideload/zinio/longmont zinio/longmont >> ${OUTPUT_FILE}
 
 #OneClick Digital Marc Updates
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh flatirons_sideload/oneclickdigital/longmont oneclickdigital/longmont >> ${OUTPUT_FILE}

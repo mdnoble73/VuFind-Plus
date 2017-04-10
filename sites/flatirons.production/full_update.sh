@@ -14,7 +14,7 @@ PIKASERVER=flatirons.production
 PIKADBNAME=pika
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
 
-MINFILE1SIZE=$((1000000000))
+MINFILE1SIZE=$((1400000000))
 
 # Check for conflicting processes currently running
 function checkConflictingProcesses() {
@@ -102,10 +102,9 @@ cd /data/vufind-plus/accelerated_reader; curl --remote-name --remote-time --sile
 
 #Zinio Marc Updates
 scp flatirons_sideload@ftp1.marmot.org:/ftp/flatirons_sideload/zinio/shared/*.mrc /data/vufind-plus/zinio/boulderBroomfield/marc/ >> ${OUTPUT_FILE}
-scp flatirons_sideload@ftp1.marmot.org:/ftp/flatirons_sideload/zinio/longmont/*.mrc /data/vufind-plus/zinio/longmont/marc/ >> ${OUTPUT_FILE}
 
 #Ebrary Marc Updates
-scp flatirons_sideload@ftp1.marmot.org:/ftp/flatirons_sideload/ebrary/boulder/*.mrc /data/vufind-plus/ebrary/bpl/marc/ >> ${OUTPUT_FILE}
+scp flatirons_sideload@ftp1.marmot.org:/ftp/flatirons_sideload/ebrary/boulder/*.mrc /data/vufind-plus/ebrary/bpl/marc/merge >> ${OUTPUT_FILE}
 scp flatirons_sideload@ftp1.marmot.org:/ftp/flatirons_sideload/ebrary/boulder/deletes.*.mrc /data/vufind-plus/ebrary/bpl/deletes/marc/ >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh ebrary/bpl >> ${OUTPUT_FILE}
 

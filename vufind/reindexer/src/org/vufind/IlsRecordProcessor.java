@@ -1323,6 +1323,12 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		if (printFormats.contains("SoundCassette") && printFormats.contains("SoundRecording")){
 			printFormats.remove("SoundRecording");
 		}
+		if (printFormats.contains("SoundCassette") && printFormats.contains("CompactDisc")){
+			printFormats.remove("CompactDisc");
+		}
+		if (printFormats.contains("SoundCassette") && printFormats.contains("MusicRecording")){
+			printFormats.remove("MusicRecording");
+		}
 		if (printFormats.contains("Playaway") && printFormats.contains("SoundRecording")){
 			printFormats.remove("SoundRecording");
 		}
@@ -1353,8 +1359,11 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		if (printFormats.contains("MusicRecording") && printFormats.contains("Phonograph")){
 			printFormats.remove("MusicRecording");
 		}
-		if (printFormats.contains("SoundDisc") && printFormats.contains("Phonograph")){
+		if (printFormats.contains("Phonograph") && printFormats.contains("SoundDisc")){
 			printFormats.remove("SoundDisc");
+		}
+		if (printFormats.contains("Phonograph") && printFormats.contains("SoundRecording")){
+			printFormats.remove("SoundRecording");
 		}
 		if (printFormats.contains("MusicRecording") && printFormats.contains("CD")){
 			printFormats.remove("CD");
