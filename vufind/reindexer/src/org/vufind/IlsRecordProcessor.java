@@ -1317,6 +1317,10 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			printFormats.clear();
 			printFormats.add("MusicCassette");
 		}
+		if (printFormats.contains("Thesis")){
+			printFormats.clear();
+			printFormats.add("Thesis");
+		}
 		if (printFormats.contains("Phonograph")){
 			printFormats.clear();
 			printFormats.add("Phonograph");
@@ -1396,6 +1400,9 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		}
 		if (printFormats.contains("Atlas") && printFormats.contains("Map")){
 			printFormats.remove("Atlas");
+		}
+		if (printFormats.contains("LargePrint") && printFormats.contains("Manuscript")){
+			printFormats.remove("Manuscript");
 		}
 		if (printFormats.contains("Kinect") || printFormats.contains("XBox360")  || printFormats.contains("Xbox360")
 				|| printFormats.contains("XBoxOne") || printFormats.contains("PlayStation")
@@ -1570,6 +1577,17 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				String noteValue = noteField.getSubfield('a').getData().toLowerCase();
 				if (noteValue.contains("vertical file")) {
 					result.add("VerticalFile");
+				}
+			}
+		}
+
+		// Check for formats in the 502 tag
+		DataField dissertaionNoteField = (DataField) record.getVariableField("502");
+		if (dissertaionNoteField != null) {
+			if (dissertaionNoteField.getSubfield('a') != null) {
+				String noteValue = dissertaionNoteField.getSubfield('a').getData().toLowerCase();
+				if (noteValue.contains("thesis")) {
+					result.add("Thesis");
 				}
 			}
 		}
