@@ -36,15 +36,14 @@ else
 				if [ -n "$FILE1" ]; then
 					$LOG "~~ Copy fullexport marc file(s)."
 					$LOG "~~ cp $FILE1 /data/vufind-plus/$DESTINATION/marc/fullexport.mrc"
-					echo "cp $FILE1 /data/vufind-plus/$DESTINATION/marc/fullexport.mrc"
 					cp "$FILE1" /data/vufind-plus/$DESTINATION/marc/fullexport.mrc
 
 					if [ $? -ne 0 ]; then
-						$LOG "~~ Copying $LOCAL/$SOURCE/$FILE1 file failed."
-						echo "Copying $LOCAL/$SOURCE/$FILE1 file failed."
+						$LOG "~~ Copying $FILE1 file failed."
+						echo "Copying $FILE1 file failed."
 					else
-						$LOG "~~ $LOCAL/$SOURCE/$FILE1 file was copied."
-						echo "$LOCAL/$SOURCE/$FILE1 file was copied."
+						$LOG "~~ $FILE1 file was copied."
+						echo "$FILE1 file was copied."
 					fi
 #				else
 #					echo "No File was found in $SOURCE"
