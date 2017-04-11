@@ -15,6 +15,7 @@ abstract class SymphonyAPI extends HorizonAPI {
 
 	public function getWebServiceResponse($url, $params = null, $session = null){
 		global $configArray;
+		global $logger;
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $url);
 		$headers = array(
@@ -34,12 +35,12 @@ abstract class SymphonyAPI extends HorizonAPI {
 			curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($params));
 		}
 		$json = curl_exec($ch);
+		$logger->log("Web service response\r\n$json", PEAR_LOG_INFO);
 		curl_close($ch);
 
 		if ($json !== false && $json !== 'false'){
 			return json_decode($json);
 		}else{
-			global $logger;
 			$logger->log('Curl problem in getWebServiceResponse', PEAR_LOG_WARNING);
 			return false;
 		}
@@ -48,6 +49,7 @@ abstract class SymphonyAPI extends HorizonAPI {
 	public function patronLogin($username, $password, $validatedViaSSO){
 		global $timer;
 		global $configArray;
+		global $logger;
 
 		//Remove any spaces from the barcode
 		$username = trim($username);
@@ -55,11 +57,13 @@ abstract class SymphonyAPI extends HorizonAPI {
 
 		//Authenticate the user via WebService
 		//First call loginUser
+		$logger->log("Logging in through Symphony APIs", PEAR_LOG_INFO);
 		list($userValid, $sessionToken, $userID) = $this->loginViaWebService($username, $password);
 		if ($validatedViaSSO){
 			$userValid = true;
 		}
 		if ($userValid){
+			$logger->log("User is valid in symphony", PEAR_LOG_INFO);
 			if (!empty($this->accountProfile->patronApiUrl)) {
 				$webServiceURL = $this->accountProfile->patronApiUrl;
 			} elseif (!empty($configArray['Catalog']['webServiceUrl'])) {
