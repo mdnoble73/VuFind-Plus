@@ -1,7 +1,7 @@
 <?php
 /**
  *
- * Copyright (C) Villanova University 2007.
+ * Copyright (C) Marmot Library Network 2017.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2,
@@ -18,11 +18,9 @@
  *
  */
 
-require_once 'DriverInterface.php';
-require_once ROOT_DIR . '/Drivers/HorizonAPI3_23.php';
+require_once ROOT_DIR . '/Drivers/SymphonyAPI.php';
 
-class AACPL extends HorizonAPI3_23
-{
+class AACPL extends SymphonyAPI {
 
 	function translateFineMessageType($code){
 		switch ($code){
