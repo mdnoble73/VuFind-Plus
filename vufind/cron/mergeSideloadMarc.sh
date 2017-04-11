@@ -15,7 +15,7 @@ else
 		if [ -d "$SIDELOADDIR/merge/marc" ]; then
 			if [ "$(ls -A $SIDELOADDIR/merge/marc)" ] || [ "$(ls -A $SIDELOADDIR/deletes/marc)" ]; then
 				if [ -r "$SIDELOADDIR/mergeConfig.ini" ]; then
-					cd /usr/local/marcMergeUtility
+					cd /usr/local/vufind-plus/vufind/marcMergeUtility
 					java -jar MarcMergeUtility.jar "$SIDELOADDIR/mergeConfig.ini"
 				else
 					echo    "$1: Merge configuration file not readable: $SIDELOADDIR/mergeConfig.ini"

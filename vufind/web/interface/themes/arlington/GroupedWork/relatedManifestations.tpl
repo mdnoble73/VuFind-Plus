@@ -32,7 +32,7 @@
 							{/if}
 						</div>
 						<div class="col-tn-9 col-xs-8 col-md-5 col-lg-6">
-							{include file='GroupedWork/statusIndicator.tpl' statusInformation=$relatedManifestation}
+							{include file='GroupedWork/statusIndicator.tpl' statusInformation=$relatedManifestation viewingIndividualRecord=0}
 
 							{if $relatedManifestation.numRelatedRecords == 1}
 								{include file='GroupedWork/copySummary.tpl' summary=$relatedManifestation.itemSummary totalCopies=$relatedManifestation.copies itemSummaryId=$id format=$relatedManifestation.format recordViewUrl=$relatedManifestation.url}
