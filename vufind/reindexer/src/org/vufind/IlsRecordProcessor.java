@@ -1289,7 +1289,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			String formatsString = Util.getCsvSeparatedString(printFormats);
 			if (!formatsToFilter.contains(formatsString)){
 				formatsToFilter.add(formatsString);
-				logger.warn("Found more than 1 format for " + recordInfo.getFullIdentifier() + " - " + formatsString);
+				logger.debug("Found more than 1 format for " + recordInfo.getFullIdentifier() + " - " + formatsString);
 			}
 		}
 		return printFormats;
