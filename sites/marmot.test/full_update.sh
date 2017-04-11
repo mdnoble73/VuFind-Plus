@@ -135,9 +135,10 @@ cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh cmc/filmsondemand filmsondemand/cmc >> ${OUTPUT_FILE}
 
 # Lynda.com Marc Updates (received on marmot ftp server)
-/usr/local/vufind-plus/sites/marmot.test/moveSideloadAdds.sh lynda.com/evld lynda/evld/merge
-/usr/local/vufind-plus/sites/marmot.test/moveSideloadAdds.sh lynda.com/vail lynda/vail/merge
-/usr/local/vufind-plus/sites/marmot.test/moveSideloadAdds.sh lynda.com/telluride lynda/telluride/merge
+/usr/local/vufind-plus/sites/marmot.test/moveSideloadAdds.sh lynda.com/evld lynda/evld/merge >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/marmot.test/moveSideloadAdds.sh lynda.com/vail lynda/vail/merge >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/marmot.test/moveSideloadAdds.sh lynda.com/telluride lynda/telluride/merge >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/marmot.test/moveSideloadAdds.sh lynda.com/grand lynda/grand/merge >> ${OUTPUT_FILE}
 
 #Extracts for sideloaded eContent; settings defined in config.pwd.ini [Sideload]
 cd /usr/local/vufind-plus/vufind/cron; ./sideload.sh ${PIKASERVER}
@@ -150,6 +151,7 @@ cd /usr/local/vufind-plus/vufind/cron; ./sideload.sh ${PIKASERVER}
 /usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh lynda/evld >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh lynda/vail >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh lynda/telluride >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh lynda/grand >> ${OUTPUT_FILE}
 
 #Merge EBSCO records
 /usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh ebsco/fortlewis >> ${OUTPUT_FILE}
