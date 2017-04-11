@@ -1102,6 +1102,8 @@ class GroupedWorkDriver extends RecordInterface{
 				$searchObject->disableLogging();
 				$searchObject->setDebugging(false, false);
 				$searchObject->setBasicQuery("mods_extension_marmotLocal_externalLink_samePika_link_s:*" . $groupedWorkId);
+				//Clear existing filters so search filters don't apply to this query
+				$searchObject->clearFilters();
 				$searchObject->clearFacets();
 
 				$searchObject->setLimit(1);
