@@ -131,6 +131,20 @@ class Archive_Exhibit extends Archive_Object{
 
 					$collectionObjects = $collectionDriver->getChildren();
 					$collectionTitles = array();
+
+					//Check the MODS for the collection to see if it has information about ordering
+					// Likely used for Exhibits that have 1 page.
+					// Might be for Exhibit of Exhibits
+					$sortingInfo = $collectionDriver->getModsValue('collectionOrder', 'marmot');
+					if ($sortingInfo){
+						$sortingInfo = explode("&#xD;\n", $sortingInfo);
+						$existingPids = array_flip($collectionObjects);
+						foreach ($sortingInfo as $pid){
+							if (!array_key_exists($pid, $existingPids)){
+								$collectionObjects[] = $pid;
+							}
+						}
+					}
 					foreach ($collectionObjects as $childPid){
 						$childObject = RecordDriverFactory::initRecordDriver($fedoraUtils->getObject($childPid));
 						$collectionTitle = array(
@@ -153,9 +167,7 @@ class Archive_Exhibit extends Archive_Object{
 					//Check the MODS for the collection to see if it has information about ordering
 					// Likely used for Exhibits that have 1 page.
 					// Might be for Exhibit of Exhibits
-					$sortingInfo = $collectionDriver->getModsValue('collectionOrder', 'marmot');
 					if ($sortingInfo){
-						$sortingInfo = explode("&#xD;\n", $sortingInfo);
 						$sortedImages = array();
 						foreach ($sortingInfo as $sortingPid){
 							if (array_key_exists($sortingPid, $collectionTitles)){
