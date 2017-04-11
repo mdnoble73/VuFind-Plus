@@ -1363,6 +1363,10 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		if (printFormats.contains("SoundCassette") && printFormats.contains("CompactDisc")){
 			printFormats.remove("CompactDisc");
 		}
+		if (printFormats.contains("SoundRecording") && printFormats.contains("CDROM")){
+			printFormats.clear();
+			printFormats.add("Sound Disc");
+		}
 
 		if (printFormats.contains("Book") && printFormats.contains("LargePrint")){
 			printFormats.remove("Book");
