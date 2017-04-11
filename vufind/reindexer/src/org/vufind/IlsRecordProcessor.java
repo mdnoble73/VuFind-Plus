@@ -1336,6 +1336,11 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			printFormats.add("Playaway");
 			return;
 		}
+		if (printFormats.contains("GoReader")){
+			printFormats.clear();
+			printFormats.add("GoReader");
+			return;
+		}
 		if (printFormats.contains("Video") && printFormats.contains("DVD")){
 			printFormats.remove("Video");
 		}
@@ -1493,6 +1498,8 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 						.toLowerCase();
 				if (sysDetailsValue.contains("playaway")) {
 					result.add("Playaway");
+				}else if (sysDetailsValue.contains("go reader")) {
+					result.add("GoReader");
 				}
 			}
 		}
@@ -1507,6 +1514,8 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				String editionData = edition.getSubfield('a').getData().toLowerCase();
 				if (editionData.contains("large type") || editionData.contains("large print")) {
 					result.add("LargePrint");
+				}else if (editionData.contains("go reader")) {
+						result.add("GoReader");
 				}else {
 					String gameFormat = getGameFormatFromValue(editionData);
 					if (gameFormat != null) {
