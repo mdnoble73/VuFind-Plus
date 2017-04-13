@@ -1550,7 +1550,7 @@ class GroupedWorkDriver extends RecordInterface{
 				}else if (!$manifestation['availableLocally'] && !$isSuperScope){
 					$manifestation['hideByDefault'] = true;
 				}
-			}elseif($selectedAvailability == 'Entire Collection' && (!$manifestation['hasLocalItem'] && !$manifestation['isEContent'])){
+			}elseif($selectedAvailability == 'Entire Collection' && !$isSuperScope && (!$manifestation['hasLocalItem'] && !$manifestation['isEContent'])){
 				$manifestation['hideByDefault'] = true;
 			}
 			if ($selectedDetailedAvailability){
