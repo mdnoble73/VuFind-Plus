@@ -253,7 +253,7 @@ body {
   font-size: 14px;
   line-height: 1.42857143;
   color: #000;
-  background-color: #fff;
+  background-color: #fffcfa;
 }
 input,
 button,
@@ -291,7 +291,7 @@ img {
 .img-thumbnail {
   padding: 4px;
   line-height: 1.42857143;
-  background-color: #fff;
+  background-color: #fffcfa;
   border: 1px solid #ddd;
   border-radius: 4px;
   -webkit-transition: all 0.2s ease-in-out;
@@ -1543,7 +1543,7 @@ th {
   border-top: 2px solid #ddd;
 }
 .table .table {
-  background-color: #fff;
+  background-color: #fffcfa;
 }
 .table-condensed > thead > tr > th,
 .table-condensed > tbody > tr > th,
@@ -3579,7 +3579,7 @@ textarea.input-group-sm > .input-group-btn > .btn {
 .nav-tabs > li.active > a:hover,
 .nav-tabs > li.active > a:focus {
   color: #555555;
-  background-color: #fff;
+  background-color: #fffcfa;
   border: 1px solid #ddd;
   border-bottom-color: transparent;
   cursor: default;
@@ -3625,7 +3625,7 @@ textarea.input-group-sm > .input-group-btn > .btn {
   .nav-tabs.nav-justified > .active > a,
   .nav-tabs.nav-justified > .active > a:hover,
   .nav-tabs.nav-justified > .active > a:focus {
-    border-bottom-color: #fff;
+    border-bottom-color: #fffcfa;
   }
 }
 .nav-pills > li {
@@ -3693,7 +3693,7 @@ textarea.input-group-sm > .input-group-btn > .btn {
   .nav-tabs-justified > .active > a,
   .nav-tabs-justified > .active > a:hover,
   .nav-tabs-justified > .active > a:focus {
-    border-bottom-color: #fff;
+    border-bottom-color: #fffcfa;
   }
 }
 .tab-content > .tab-pane {
@@ -4213,7 +4213,7 @@ textarea.input-group-sm > .input-group-btn > .btn {
   padding: 8px 15px;
   margin-bottom: 20px;
   list-style: none;
-  background-color: #fff;
+  background-color: #fffcfa;
   border-radius: 4px;
 }
 .breadcrumb > li {
@@ -4515,7 +4515,7 @@ a.list-group-item.active > .badge,
   padding: 4px;
   margin-bottom: 20px;
   line-height: 1.42857143;
-  background-color: #fff;
+  background-color: #fffcfa;
   border: 1px solid #ddd;
   border-radius: 4px;
   -webkit-transition: all 0.2s ease-in-out;
@@ -6881,7 +6881,7 @@ body {
   background-color: #45BCD2;
 }
 body > .container {
-  background-color: #fff;
+  background-color: #fffcfa;
 }
 .noBreak {
   white-space: nowrap;
@@ -8410,7 +8410,7 @@ hr.menu {
   border-top: 1px solid #d3d3d3;
 }
 .breadcrumbs {
-  background-color: #fff;
+  background-color: #fffcfa;
   padding: 3px;
 }
 .breadcrumb {
@@ -8573,12 +8573,12 @@ hr.menu {
   padding-left: 0;
   padding-right: 0;
   margin-top: 2px;
-  border-right: 3px solid #fff;
+  border-right: 3px solid #fffcfa;
 }
 #vertical-menu-bar .menu-bar-option {
   width: 100%;
   padding-top: 6px;
-  border-top: 3px solid #fff;
+  border-top: 3px solid #fffcfa;
   position: relative;
 }
 #vertical-menu-bar .menu-bar-option.menu-icon-selected {
@@ -8970,12 +8970,12 @@ hr.menu {
   left: auto;
 }
 #home-page-browse-header {
-  background-color: #fff;
+  background-color: #fffcfa;
   padding-bottom: 15px;
 }
 #home-page-browse-content {
   padding: 15px;
-  background-color: #fff;
+  background-color: #fffcfa;
 }
 #browse-label {
   height: 5px;
@@ -8986,7 +8986,7 @@ hr.menu {
   z-index: -1;
 }
 .browse-label-text {
-  background-color: #fff;
+  background-color: #fffcfa;
   font-size: 22px;
   color: #000000;
   line-height: 5px;
@@ -8997,7 +8997,7 @@ hr.menu {
 }
 #browse-category-picker .jcarousel-control-prev,
 #browse-category-picker .jcarousel-control-next {
-  background-color: #fff;
+  background-color: #fffcfa;
   color: #45BCD2;
   font-size: 50px;
 }
@@ -9048,64 +9048,64 @@ hr.menu {
   text-decoration: underline;
 }
 .browse-category.selected {
-  border: 2px solid #fff;
+  border: 2px solid #fffcfa;
   font-size: 23px;
 }
 .browse-category.category0 {
-  background-color: #fff;
-  background: -webkit-linear-gradient(top, #fff, #fff 82%, #fff 83%, #fff 84%, #fff 88%, #fff 89%, #fff 90%, #fff);
-  background: linear-gradient(to bottom, #fff, #fff 82%, #fff 83%, #fff 84%, #fff 88%, #fff 89%, #fff 90%, #fff);
+  background-color: #fffcfa;
+  background: -webkit-linear-gradient(top, #fffcfa, #fffcfa 82%, #fffcfa 83%, #fffcfa 84%, #fffcfa 88%, #fffcfa 89%, #fffcfa 90%, #fffcfa);
+  background: linear-gradient(to bottom, #fffcfa, #fffcfa 82%, #fffcfa 83%, #fffcfa 84%, #fffcfa 88%, #fffcfa 89%, #fffcfa 90%, #fffcfa);
 }
 .browse-category.category1 {
-  background-color: #fff;
-  background: -webkit-linear-gradient(top, #fff, #fff 82%, #fff 83%, #fff 84%, #fff 88%, #fff 89%, #fff 90%, #fff);
-  background: linear-gradient(to bottom, #fff, #fff 82%, #fff 83%, #fff 84%, #fff 88%, #fff 89%, #fff 90%, #fff);
+  background-color: #fffcfa;
+  background: -webkit-linear-gradient(top, #fffcfa, #fffcfa 82%, #fffcfa 83%, #fffcfa 84%, #fffcfa 88%, #fffcfa 89%, #fffcfa 90%, #fffcfa);
+  background: linear-gradient(to bottom, #fffcfa, #fffcfa 82%, #fffcfa 83%, #fffcfa 84%, #fffcfa 88%, #fffcfa 89%, #fffcfa 90%, #fffcfa);
 }
 .browse-category.category2 {
-  background-color: #fff;
-  background: -webkit-linear-gradient(top, #fff, #fff 82%, #fff 83%, #fff 84%, #fff 88%, #fff 89%, #fff 90%, #fff);
-  background: linear-gradient(to bottom, #fff, #fff 82%, #fff 83%, #fff 84%, #fff 88%, #fff 89%, #fff 90%, #fff);
+  background-color: #fffcfa;
+  background: -webkit-linear-gradient(top, #fffcfa, #fffcfa 82%, #fffcfa 83%, #fffcfa 84%, #fffcfa 88%, #fffcfa 89%, #fffcfa 90%, #fffcfa);
+  background: linear-gradient(to bottom, #fffcfa, #fffcfa 82%, #fffcfa 83%, #fffcfa 84%, #fffcfa 88%, #fffcfa 89%, #fffcfa 90%, #fffcfa);
 }
 .browse-category.category3 {
-  background-color: #fff;
-  background: -webkit-linear-gradient(top, #fff, #fff 82%, #fff 83%, #fff 84%, #fff 88%, #fff 89%, #fff 90%, #fff);
-  background: linear-gradient(to bottom, #fff, #fff 82%, #fff 83%, #fff 84%, #fff 88%, #fff 89%, #fff 90%, #fff);
+  background-color: #fffcfa;
+  background: -webkit-linear-gradient(top, #fffcfa, #fffcfa 82%, #fffcfa 83%, #fffcfa 84%, #fffcfa 88%, #fffcfa 89%, #fffcfa 90%, #fffcfa);
+  background: linear-gradient(to bottom, #fffcfa, #fffcfa 82%, #fffcfa 83%, #fffcfa 84%, #fffcfa 88%, #fffcfa 89%, #fffcfa 90%, #fffcfa);
 }
 .browse-category.category4 {
-  background-color: #fff;
-  background: -webkit-linear-gradient(top, #fff, #fff 82%, #fff 83%, #fff 84%, #fff 88%, #fff 89%, #fff 90%, #fff);
-  background: linear-gradient(to bottom, #fff, #fff 82%, #fff 83%, #fff 84%, #fff 88%, #fff 89%, #fff 90%, #fff);
+  background-color: #fffcfa;
+  background: -webkit-linear-gradient(top, #fffcfa, #fffcfa 82%, #fffcfa 83%, #fffcfa 84%, #fffcfa 88%, #fffcfa 89%, #fffcfa 90%, #fffcfa);
+  background: linear-gradient(to bottom, #fffcfa, #fffcfa 82%, #fffcfa 83%, #fffcfa 84%, #fffcfa 88%, #fffcfa 89%, #fffcfa 90%, #fffcfa);
 }
 .browse-category.category5 {
-  background-color: #fff;
-  background: -webkit-linear-gradient(top, #fff, #fff 82%, #fff 83%, #fff 84%, #fff 88%, #fff 89%, #fff 90%, #fff);
-  background: linear-gradient(to bottom, #fff, #fff 82%, #fff 83%, #fff 84%, #fff 88%, #fff 89%, #fff 90%, #fff);
+  background-color: #fffcfa;
+  background: -webkit-linear-gradient(top, #fffcfa, #fffcfa 82%, #fffcfa 83%, #fffcfa 84%, #fffcfa 88%, #fffcfa 89%, #fffcfa 90%, #fffcfa);
+  background: linear-gradient(to bottom, #fffcfa, #fffcfa 82%, #fffcfa 83%, #fffcfa 84%, #fffcfa 88%, #fffcfa 89%, #fffcfa 90%, #fffcfa);
 }
 .browse-category.category6 {
-  background-color: #fff;
-  background: -webkit-linear-gradient(top, #fff, #fff 82%, #fff 83%, #fff 84%, #fff 88%, #fff 89%, #fff 90%, #fff);
-  background: linear-gradient(to bottom, #fff, #fff 82%, #fff 83%, #fff 84%, #fff 88%, #fff 89%, #fff 90%, #fff);
+  background-color: #fffcfa;
+  background: -webkit-linear-gradient(top, #fffcfa, #fffcfa 82%, #fffcfa 83%, #fffcfa 84%, #fffcfa 88%, #fffcfa 89%, #fffcfa 90%, #fffcfa);
+  background: linear-gradient(to bottom, #fffcfa, #fffcfa 82%, #fffcfa 83%, #fffcfa 84%, #fffcfa 88%, #fffcfa 89%, #fffcfa 90%, #fffcfa);
 }
 .browse-category.category7 {
-  background-color: #fff;
-  background: -webkit-linear-gradient(top, #fff, #fff 82%, #fff 83%, #fff 84%, #fff 88%, #fff 89%, #fff 90%, #fff);
-  background: linear-gradient(to bottom, #fff, #fff 82%, #fff 83%, #fff 84%, #fff 88%, #fff 89%, #fff 90%, #fff);
+  background-color: #fffcfa;
+  background: -webkit-linear-gradient(top, #fffcfa, #fffcfa 82%, #fffcfa 83%, #fffcfa 84%, #fffcfa 88%, #fffcfa 89%, #fffcfa 90%, #fffcfa);
+  background: linear-gradient(to bottom, #fffcfa, #fffcfa 82%, #fffcfa 83%, #fffcfa 84%, #fffcfa 88%, #fffcfa 89%, #fffcfa 90%, #fffcfa);
 }
 .browse-category.category8 {
-  background-color: #fff;
-  background: -webkit-linear-gradient(top, #fff, #fff 82%, #fff 83%, #fff 84%, #fff 88%, #fff 89%, #fff 90%, #fff);
-  background: linear-gradient(to bottom, #fff, #fff 82%, #fff 83%, #fff 84%, #fff 88%, #fff 89%, #fff 90%, #fff);
+  background-color: #fffcfa;
+  background: -webkit-linear-gradient(top, #fffcfa, #fffcfa 82%, #fffcfa 83%, #fffcfa 84%, #fffcfa 88%, #fffcfa 89%, #fffcfa 90%, #fffcfa);
+  background: linear-gradient(to bottom, #fffcfa, #fffcfa 82%, #fffcfa 83%, #fffcfa 84%, #fffcfa 88%, #fffcfa 89%, #fffcfa 90%, #fffcfa);
 }
 #selected-browse-label {
-  background-color: #fff;
-  background: -webkit-linear-gradient(top, #fff, #fff 44%, #45BCD2 45%, #45BCD2 55%, #fff 56%);
-  background: linear-gradient(to bottom, #fff, #fff 44%, #45BCD2 45%, #45BCD2 55%, #fff 56%);
+  background-color: #fffcfa;
+  background: -webkit-linear-gradient(top, #fffcfa, #fffcfa 44%, #45BCD2 45%, #45BCD2 55%, #fffcfa 56%);
+  background: linear-gradient(to bottom, #fffcfa, #fffcfa 44%, #45BCD2 45%, #45BCD2 55%, #fffcfa 56%);
   margin-bottom: 5px;
 }
 #selected-browse-label > div.btn-group {
   margin-right: 20px;
   float: right;
-  background-color: #fff;
+  background-color: #fffcfa;
   padding: 0 8px;
 }
 #selected-browse-label > div.btn-group span.thumbnail-icon {
@@ -9170,7 +9170,7 @@ hr.menu {
   vertical-align: top;
   margin-left: 20px;
   float: left;
-  background-color: #fff;
+  background-color: #fffcfa;
   padding: 0 8px;
 }
 .selected-browse-label-search a {
@@ -9327,7 +9327,7 @@ hr.menu {
   padding: 4px;
   margin-bottom: 20px;
   line-height: 1.42857143;
-  background-color: #fff;
+  background-color: #fffcfa;
   border: 1px solid #ddd;
   border-radius: 4px;
   -webkit-transition: all 0.2s ease-in-out;
@@ -9363,7 +9363,7 @@ a.browse-thumbnail.active {
   padding: 4px;
   margin-bottom: 20px;
   line-height: 1.42857143;
-  background-color: #fff;
+  background-color: #fffcfa;
   border: 1px solid #ddd;
   border-radius: 4px;
   -webkit-transition: all 0.2s ease-in-out;
@@ -9404,7 +9404,7 @@ a.browse-thumbnail-sorted.active {
 .browse-list img {
   padding: 4px;
   line-height: 1.42857143;
-  background-color: #fff;
+  background-color: #fffcfa;
   border: 1px solid #ddd;
   border-radius: 4px;
   -webkit-transition: all 0.2s ease-in-out;
@@ -9950,8 +9950,8 @@ a.browse-thumbnail-sorted.active {
   color: #0d8ec6;
 }
 .result-head #selected-browse-label {
-  background: -webkit-linear-gradient(top, #fff, #fff 44%, #d5d6da 45%, #d5d6da 55%, #fff 56%);
-  background: linear-gradient(to bottom, #fff, #fff 44%, #d5d6da 45%, #d5d6da 55%, #fff 56%);
+  background: -webkit-linear-gradient(top, #fffcfa, #fffcfa 44%, #d5d6da 45%, #d5d6da 55%, #fffcfa 56%);
+  background: linear-gradient(to bottom, #fffcfa, #fffcfa 44%, #d5d6da 45%, #d5d6da 55%, #fffcfa 56%);
 }
 #replacement-search-info {
   font-size: 16px;
@@ -10911,8 +10911,8 @@ fieldset[disabled] .btn-masquerade.active {
   border: none;
   background-color: #45BCD2;
   background: #45BCD2;
-  background: -webkit-linear-gradient(top, #45BCD2 0%, #45BCD2 75%, #fff 75%, #fff 80%, #CCCCCC 80%, #fff 100%);
-  background: linear-gradient(to bottom, #45BCD2 0%, #45BCD2 75%, #fff 75%, #fff 80%, #CCCCCC 80%, #fff 100%);
+  background: -webkit-linear-gradient(top, #45BCD2 0%, #45BCD2 75%, #fffcfa 75%, #fffcfa 80%, #CCCCCC 80%, #fffcfa 100%);
+  background: linear-gradient(to bottom, #45BCD2 0%, #45BCD2 75%, #fffcfa 75%, #fffcfa 80%, #CCCCCC 80%, #fffcfa 100%);
 }
 .browse-category.selected div {
   color: #fff;
@@ -10979,4 +10979,7 @@ fieldset[disabled] .btn-masquerade.active {
   background-color: transparent;
   border: 1px solid #c5c5c5;
   border-top: none;
+}
+#system-message-header ~ .breadcrumbs {
+  background-color: #FFFAF0;
 }
