@@ -18,11 +18,12 @@ abstract class SymphonyAPI extends HorizonAPI {
 		global $logger;
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $url);
+		$clientId = $configArray['Catalog']['clientId'];
 		$headers = array(
 				'Accept: application/json',
 				'Content-Type: application/json',
 				'SD-Originating-App-Id: Pika',
-				'x-sirs-clientID: ' . $configArray['Catalog']['clientId'],
+				'x-sirs-clientID: ' . $clientId,
 		);
 		if ($session != null){
 			$headers[] = 'x-sirs-sessionToken: ' . $session;
@@ -46,6 +47,19 @@ abstract class SymphonyAPI extends HorizonAPI {
 		}
 	}
 
+	public function getWebServiceURL(){
+		$webServiceURL = null;
+		if (!empty($this->accountProfile->patronApiUrl)) {
+			$webServiceURL = $this->accountProfile->patronApiUrl;
+		} elseif (!empty($configArray['Catalog']['webServiceUrl'])) {
+			$webServiceURL = $configArray['Catalog']['webServiceUrl'];
+		} else {
+			global $logger;
+			$logger->log('No Web Service URL defined in Horizon API Driver', PEAR_LOG_CRIT);
+		}
+		return $webServiceURL;
+	}
+
 	public function patronLogin($username, $password, $validatedViaSSO){
 		global $timer;
 		global $configArray;
@@ -64,23 +78,21 @@ abstract class SymphonyAPI extends HorizonAPI {
 		}
 		if ($userValid){
 			$logger->log("User is valid in symphony", PEAR_LOG_INFO);
-			if (!empty($this->accountProfile->patronApiUrl)) {
-				$webServiceURL = $this->accountProfile->patronApiUrl;
-			} elseif (!empty($configArray['Catalog']['webServiceUrl'])) {
-				$webServiceURL = $configArray['Catalog']['webServiceUrl'];
-			} else {
-				global $logger;
-				$logger->log('No Web Service URL defined in Horizon API Driver', PEAR_LOG_CRIT);
-				return null;
-			}
+			$webServiceURL = $this->getWebServiceURL();
 
-			$lookupMyAccountInfoResponse = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/describe', null, $sessionToken);
-			$lookupMyAccountInfoResponse = $this->getWebServiceResponse($webServiceURL . '/v1/user/patronStatusInfo/describe', null, $sessionToken);
-			$lookupMyAccountInfoResponse = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/key/' . $userID . '?includeFields=firstName,lastName,displayName,patronStatusInfo,preferredAddress,address1,address2,address3', null, $sessionToken);
+			//$userDescribeResponse = $this->getWebServiceResponse($webServiceURL . '/v1/user/describe', null, $sessionToken);
+			$patronDescribeResponse = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/describe', null, $sessionToken);
+			$patronStatusInfoDescribeResponse = $this->getWebServiceResponse($webServiceURL . '/v1/user/patronStatusInfo/describe', null, $sessionToken);
+			$lookupMyAccountInfoResponse = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/key/' . $userID . '?includeFields=firstName,lastName,displayName,privilegeExpiresDate,estimatedOverdueAmount,patronStatusInfo,preferredAddress,address1,address2,address3,primaryPhone,patronstatus', null, $sessionToken);
 			if ($lookupMyAccountInfoResponse){
-				$fullName = $lookupMyAccountInfoResponse->fields->displayName;
 				$lastName = $lookupMyAccountInfoResponse->fields->lastName;
 				$firstName = $lookupMyAccountInfoResponse->fields->firstName;
+
+				if (isset($lookupMyAccountInfoResponse->fields->displayName)){
+					$fullName = $lookupMyAccountInfoResponse->fields->displayName;
+				}else{
+					$fullName = $lastName . ', ' . $firstName;
+				}
 
 				$userExistsInDB = false;
 				/** @var User $user */
@@ -140,8 +152,8 @@ abstract class SymphonyAPI extends HorizonAPI {
 				}
 
 				//Get additional information about the patron's home branch for display.
-				if (isset($lookupMyAccountInfoResponse->library->key)){
-					$homeBranchCode = strtolower(trim($lookupMyAccountInfoResponse->library->key));
+				if (isset($lookupMyAccountInfoResponse->fields->library->key)){
+					$homeBranchCode = strtolower(trim($lookupMyAccountInfoResponse->fields->library->key));
 					//Translate home branch to plain text
 					/** @var \Location $location */
 					$location = new Location();
@@ -202,11 +214,10 @@ abstract class SymphonyAPI extends HorizonAPI {
 					$user->homeLocation     = $location->displayName;
 				}
 
-
 				//TODO: See if we can get information about card expiration date
 				$expireClose = 0;
-				if (isset($lookupMyAccountInfoResponse->privilegeExpiresDate)){
-					$user->expires = $lookupMyAccountInfoResponse->privilegeExpiresDate;
+				if (isset($lookupMyAccountInfoResponse->fields->privilegeExpiresDate)){
+					$user->expires = $lookupMyAccountInfoResponse->fields->privilegeExpiresDate;
 					list ($monthExp, $dayExp, $yearExp) = explode("-",$user->expires);
 					$timeExpire = strtotime($monthExp . "/" . $dayExp . "/" . $yearExp);
 					$timeNow = time();
@@ -219,12 +230,16 @@ abstract class SymphonyAPI extends HorizonAPI {
 					}
 				}
 
+				//Get additional information about fines, etc
+				$patronStatusResponse = $this->getWebServiceResponse($webServiceURL . '/v1/user/patronStatusInfo/key/' . $userID, null, $sessionToken);
+
 				$finesVal = 0;
 				if (isset($lookupMyAccountInfoResponse->blockList)){
 					foreach ($lookupMyAccountInfoResponse->blockList as $block){
 						// $block is a simplexml object with attribute info about currency, type casting as below seems to work for adding up. plb 3-27-2015
 						$fineAmount = (float) $block->balance;
 						$finesVal += $fineAmount;
+
 					}
 				}
 
@@ -301,5 +316,106 @@ abstract class SymphonyAPI extends HorizonAPI {
 				return array(false, false, false);
 			}
 		}
+	}
+
+	/**
+	 * Get Patron Holds
+	 *
+	 * This is responsible for retrieving all holds for a specific patron.
+	 *
+	 * @param User $patron    The user to load transactions for
+	 *
+	 * @return array          Array of the patron's holds
+	 * @access public
+	 */
+	public function getMyHolds($patron){
+		global $configArray;
+
+		$availableHolds = array();
+		$unavailableHolds = array();
+		$holds = array(
+				'available'   => $availableHolds,
+				'unavailable' => $unavailableHolds
+		);
+
+		//Get the session token for the user
+		if (isset(SymphonyAPI::$sessionIdsForUsers[$patron->id])){
+			$sessionToken = SymphonyAPI::$sessionIdsForUsers[$patron->id];
+		}else{
+			//Log the user in
+			list($userValid, $sessionToken) = $this->loginViaWebService($patron->cat_username, $patron->cat_password);
+			if (!$userValid){
+				return $holds;
+			}
+		}
+
+		//Now that we have the session token, get holds information
+		$webServiceURL = $this->getWebServiceURL();
+		$holdRecord = $this->getWebServiceResponse($webServiceURL . "/v1/circulation/holdRecord/describe", null, $sessionToken);
+		$patronHolds = $this->getWebServiceResponse($webServiceURL . "/v1/circulation/holdRecord/patron{key}={$patron->username}", null, $sessionToken);
+		if (isset($patronHolds->HoldInfo)){
+			require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
+			foreach ($patronHolds->HoldInfo as $hold){
+				$curHold = array();
+				$bibId          = (string) $hold->titleKey;
+				$expireDate     = (string) $hold->expireDate;
+				$reactivateDate = (string) $hold->reactivateDate;
+				$curHold['user']               = $patron->getNameAndLibraryLabel(); //TODO: Likely not needed, because Done in Catalog Connection
+				$curHold['id']                 = $bibId;
+				$curHold['holdSource']         = 'ILS';
+				$curHold['itemId']             = (string)$hold->itemKey;
+				$curHold['cancelId']           = (string)$hold->holdKey;
+				$curHold['position']           = (string)$hold->queuePosition;
+				$curHold['recordId']           = $bibId;
+				$curHold['shortId']            = $bibId;
+				$curHold['title']              = (string)$hold->title;
+				$curHold['sortTitle']          = (string)$hold->title;
+				$curHold['author']             = (string)$hold->author;
+				$curHold['location']           = (string)$hold->pickupLocDescription;
+				$curHold['locationUpdateable'] = true;
+				$curHold['currentPickupName']  = $curHold['location'];
+				$curHold['status']             = ucfirst(strtolower((string)$hold->status));
+				$curHold['expire']             = strtotime($expireDate);
+				$curHold['reactivate']         = $reactivateDate;
+				$curHold['reactivateTime']     = strtotime($reactivateDate);
+				$curHold['cancelable']         = strcasecmp($curHold['status'], 'Suspended') != 0;
+				$curHold['frozen']             = strcasecmp($curHold['status'], 'Suspended') == 0;
+				if ($curHold['frozen']){
+					$curHold['reactivateTime']   = (int)$hold->reactivateDate;
+				}
+				$curHold['freezeable'] = true;
+				if (strcasecmp($curHold['status'], 'Transit') == 0) {
+					$curHold['freezeable'] = false;
+				}
+
+				$recordDriver = new MarcRecord($bibId);
+				if ($recordDriver->isValid()){
+					$curHold['sortTitle']       = $recordDriver->getSortableTitle();
+					$curHold['format']          = $recordDriver->getFormat();
+					$curHold['isbn']            = $recordDriver->getCleanISBN();
+					$curHold['upc']             = $recordDriver->getCleanUPC();
+					$curHold['format_category'] = $recordDriver->getFormatCategory();
+					$curHold['coverUrl']        = $recordDriver->getBookcoverUrl();
+					$curHold['link']            = $recordDriver->getRecordUrl();
+
+					//Load rating information
+					$curHold['ratingData']      = $recordDriver->getRatingData();
+
+					if (empty($curHold['title'])){
+						$curHold['title'] = $recordDriver->getTitle();
+					}
+					if (empty($curHold['author'])){
+						$curHold['author'] = $recordDriver->getPrimaryAuthor();
+					}
+				}
+
+				if (!isset($curHold['status']) || strcasecmp($curHold['status'], "filled") != 0){
+					$holds['unavailable'][] = $curHold;
+				}else{
+					$holds['available'][]   = $curHold;
+				}
+			}
+		}
+		return $holds;
 	}
 }
