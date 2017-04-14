@@ -14,6 +14,7 @@ VuFind.Archive = (function(){
 		archive_info_window: null,
 		curPage: 1,
 		markers: [],
+		geomarkers: [],
 		sort: 'title',
 		openSeaDragonViewer: null,
 		pageDetails: [],
@@ -205,6 +206,10 @@ VuFind.Archive = (function(){
 					$("#nextInsertPoint").replaceWith(data.relatedObjects);
 				}
 			});
+		},
+
+		handleObjectMapClick: function(markerIndex, exhibitPid, placePid, label, redirect){
+
 		},
 
 		handleMapClick: function(markerIndex, exhibitPid, placePid, label, redirect){

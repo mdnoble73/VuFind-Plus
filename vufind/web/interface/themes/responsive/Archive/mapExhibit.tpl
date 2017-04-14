@@ -76,6 +76,19 @@
 								{/if}
 							{/if}
 						{/foreach}
+						{foreach from=$geolocatedObjects item=geolocatedObject name=geolocatedObjects}
+							var geomarker{$smarty.foreach.geolocatedObjects.index} = new google.maps.Marker({ldelim}
+								position: {ldelim}lat: {$geolocatedObject.latitude}, lng: {$geolocatedObject.longitude}{rdelim},
+								map: VuFind.Archive.archive_map,
+								title: '{$geolocatedObject.label}',
+								{rdelim});
+
+							VuFind.Archive.geomarkers[{$smarty.foreach.geolocatedObjects.index}] = geomarker{$smarty.foreach.geolocatedObjects.index};
+							geomarker{$smarty.foreach.geolocatedObjects.index}.addListener('click', function(){ldelim}
+								VuFind.Archive.handleObjectMapClick({$smarty.foreach.geolocatedObjects.index}, '{$pid|urlencode}', '{$geolocatedObject.pid|urlencode}', '{$geolocatedObject.label}');
+								{rdelim});
+
+						{/foreach}
 						{foreach from=$unmappedPlaces item=place}
 							{if $selectedPlace == $place.pid}
 								{* Click the first marker so we show images by default *}
@@ -91,7 +104,10 @@
 
 	<div id="related-objects-header" class="row">
 		<div class="col-sm-8">
-			Showing {$mappedPlaces|@count} locations.  Click any location to view more information about that location.
+			{if $totalMappedLocations}
+				Showing {$totalMappedLocations} locations.  Click any location to view more information about that location.
+			{/if}
+
 		</div>
 		{if count($unmappedPlaces) > 0}
 			<div class="col-sm-4">
@@ -113,7 +129,7 @@
 	</div>
 
 	<div id="related-objects-for-exhibit">
-		<div id="exhibit-results-loading" class="row">
+		<div id="exhibit-results-loading" class="row" style="display:none">
 			<div class="alert alert-info">
 				Updating results, please wait.
 			</div>

@@ -1373,6 +1373,50 @@ abstract class IslandoraDriver extends RecordInterface {
 		return $this->relatedPlaces;
 	}
 
+	private $geolocatedObjects = null;
+	public function getGeolocatedObjects(){
+		if ($this->geolocatedObjects == null) {
+			$this->geolocatedObjects = array(
+					'numFound' => 0,
+					'objects' => array()
+			);
+
+			//Get all objects that are linked to this object which have a valid latitude/longitude
+
+			/** @var SearchObject_Islandora $searchObject */
+			$searchObject = SearchObjectFactory::initSearchObject('islandora');
+			$searchObject->init();
+			$searchObject->clearFilters();
+			$searchObject->setBasicQuery('"' . $this->pid . '"', 'ancestors_ms');
+			$searchObject->addHiddenFilter('mods_extension_marmotLocal_relatedPlace_generalPlace_latitude_s', '*');
+			$searchObject->addHiddenFilter('mods_extension_marmotLocal_relatedPlace_generalPlace_longitude_s', '*');
+			$searchObject->addFieldsToReturn(array('mods_extension_marmotLocal_relatedPlace_generalPlace_latitude_s', 'mods_extension_marmotLocal_relatedPlace_generalPlace_longitude_s'));
+			$searchObject->setLimit(2500);
+			$response = $searchObject->processSearch(true, false, true);
+			if ($response && $response['response']['numFound'] > 0) {
+				foreach ($response['response']['docs'] as $doc) {
+					//$entityDriver = RecordDriverFactory::initRecordDriver($doc);
+					$objectInfo = array(
+							'pid' => $doc['PID'],
+							'label' => $doc['fgs_label_s'],
+							'latitude' => $doc['mods_extension_marmotLocal_relatedPlace_generalPlace_latitude_s'],
+							'longitude' => $doc['mods_extension_marmotLocal_relatedPlace_generalPlace_longitude_s'],
+							'count' => 1
+					);
+					if (array_key_exists("{$objectInfo['latitude']}-{$objectInfo['longitude']}", $this->geolocatedObjects)){
+						$this->geolocatedObjects['objects']["{$objectInfo['latitude']}-{$objectInfo['longitude']}"]['count'] += 1;
+					}else{
+						$this->geolocatedObjects['objects']["{$objectInfo['latitude']}-{$objectInfo['longitude']}"] = $objectInfo;
+						$this->geolocatedObjects['numFound']++;
+					}
+				}
+			}
+			$searchObject = null;
+			unset ($searchObject);
+		}
+		return $this->geolocatedObjects;
+	}
+
 	public function getRelatedOrganizations(){
 		if ($this->relatedOrganizations == null){
 			$this->loadRelatedEntities();
