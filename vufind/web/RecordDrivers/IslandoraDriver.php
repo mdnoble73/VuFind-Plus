@@ -1384,7 +1384,7 @@ abstract class IslandoraDriver extends RecordInterface {
 			//Get all objects that are linked to this object which have a valid latitude/longitude
 
 			/** @var SearchObject_Islandora $searchObject */
-			$searchObject = SearchObjectFactory::initSearchObject('islandora');
+			$searchObject = SearchObjectFactory::initSearchObject('Islandora');
 			$searchObject->init();
 			$searchObject->clearFilters();
 			$searchObject->setBasicQuery('"' . $this->pid . '"', 'ancestors_ms');
