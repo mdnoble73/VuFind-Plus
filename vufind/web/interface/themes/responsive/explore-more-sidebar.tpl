@@ -175,7 +175,7 @@
 {* Initialize accordion heading styling (Required due to being loaded via AJAX) *}
 
 <script type="application/javascript">
-	{if !empty($exploreMoreSections) && !empty($relatedArticles)}
+	{if empty($exploreMoreSections) && empty($relatedArticles)}
 		$('#sidebar-menu-option-explore-more,#explore-more-header,#explore-more-body').fadeOut().empty().remove();
 		VuFind.Menu.collapseSideBar();
 	{else}
