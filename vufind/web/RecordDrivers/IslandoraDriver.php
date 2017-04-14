@@ -1224,6 +1224,16 @@ abstract class IslandoraDriver extends RecordInterface {
 					$this->addRelatedEntityToArrays($entityPid, $entityTitle, 'event', $relationshipNote, $entityRole);
 				}
 
+				$entities = $this->getModsValues('samePlaceAs', 'marmot', null, true);
+				foreach ($entities as $entity){
+					$entityPid = $this->getModsValue('entityPid', 'marmot', $entity);
+					if (strlen($entityPid) == 0) {
+						continue;
+					}
+					$entityTitle = $this->getModsValue('entityTitle', 'marmot', $entity);
+					$this->addRelatedEntityToArrays($entityPid, $entityTitle, 'place', '', 'same place');
+				}
+
 				$entities = $this->getModsValues('relatedPlace', 'marmot', null, true);
 				foreach ($entities as $entity){
 					$entityPid = $this->getModsValue('entityPid', 'marmot', $entity);
@@ -1316,6 +1326,9 @@ abstract class IslandoraDriver extends RecordInterface {
 					);
 					$significance = $this->getModsValue('significance', 'marmot', $entity);
 					if ($significance){
+						$entityInfo['role'] = ucfirst($significance);
+					}else{
+						$significance = $this->getModsValue('role', 'marmot', $entity);
 						$entityInfo['role'] = ucfirst($significance);
 					}
 					$this->addRelatedEntityToArrays($entityPid, $entityTitle, 'place', '', $significance);
@@ -2380,6 +2393,13 @@ abstract class IslandoraDriver extends RecordInterface {
 			$notes[] = array(
 					'label' => 'Notes',
 					'body' => $personNotes
+			);
+		}
+		$placeNotes = $this->getModsValue('placeNotes', 'marmot');
+		if (strlen($placeNotes) > 0){
+			$notes[] = array(
+					'label' => 'Notes',
+					'body' => $placeNotes
 			);
 		}
 		$citationNotes = $this->getModsValue('citationNotes', 'marmot');
