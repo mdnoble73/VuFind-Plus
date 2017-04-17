@@ -85,7 +85,7 @@
 
 							VuFind.Archive.geomarkers[{$smarty.foreach.geolocatedObjects.index}] = geomarker{$smarty.foreach.geolocatedObjects.index};
 							geomarker{$smarty.foreach.geolocatedObjects.index}.addListener('click', function(){ldelim}
-								VuFind.Archive.handleObjectMapClick({$smarty.foreach.geolocatedObjects.index}, '{$pid|urlencode}', '{$geolocatedObject.pid|urlencode}', '{$geolocatedObject.label}');
+								VuFind.Archive.showObjectInPopup('{$geolocatedObject.pid|urlencode}', {$smarty.foreach.geolocatedObjects.index}, 1);
 								{rdelim});
 
 						{/foreach}

@@ -208,10 +208,6 @@ VuFind.Archive = (function(){
 			});
 		},
 
-		handleObjectMapClick: function(markerIndex, exhibitPid, placePid, label, redirect){
-
-		},
-
 		handleMapClick: function(markerIndex, exhibitPid, placePid, label, redirect){
 			$("#exhibit-results-loading").show();
 			this.archive_info_window.setContent(label);
