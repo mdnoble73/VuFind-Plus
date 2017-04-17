@@ -137,8 +137,8 @@ cd /data/vufind-plus/accelerated_reader; curl --remote-name --remote-time --sile
 /usr/local/vufind-plus/sites/flatirons.test/moveFullExport.sh flatirons_sideload/oneclickdigital/loveland oneclickdigital/loveland >> ${OUTPUT_FILE}
 
 #Ebrary Marc Updates
-/usr/local/vufind-plus/sites/flatirons.test/moveFullExport.sh flatirons_sideload/ebrary/boulder ebrary/bpl >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/sites/flatirons.test/moveFullExport.sh flatirons_sideload/ebrary/boulder/deletes ebrary/bpl/deletes >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/flatirons.test/moveSideloadAdds.sh flatirons_sideload/ebrary/boulder ebrary/bpl/merge >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/flatirons.test/moveSideloadAdds.sh flatirons_sideload/ebrary/boulder/deletes ebrary/bpl/deletes >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh ebrary/bpl >> ${OUTPUT_FILE}
 
 /usr/local/vufind-plus/sites/flatirons.test/moveFullExport.sh flatirons_sideload/ebrary/broomfield ebrary/mde >> ${OUTPUT_FILE}
