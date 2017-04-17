@@ -3,7 +3,7 @@
 	{if $showMoreLikeThisInExplore}
 		{include file="GroupedWork/exploreMoreLikeThis.tpl"}
 	{/if}
-{if $exploreMoreSections}
+{if !empty($exploreMoreSections)}
 <div id="explore-more-menu" class="sidebar-links">
 	<div class="panel-group{* accordion*}" id="explore-more-accordion">
 		{foreach from=$exploreMoreSettings item=exploreMoreSection}
@@ -146,7 +146,7 @@
 
 
 	{* Related Articles Widget *}
-	{if $relatedArticles}
+	{if !empty($relatedArticles)}
 		<div class="sectionHeader">Articles and More</div>
 		<div class="section">
 			{foreach from=$relatedArticles item=section}
@@ -172,10 +172,14 @@
 		</div>
 	{/foreach}
 {/strip}
-{* Initialize accordion heading styling (Required due to being loaded via AJAX)
-*}
-{literal}
+{* Initialize accordion heading styling (Required due to being loaded via AJAX) *}
+
 <script type="application/javascript">
+	{if empty($exploreMoreSections) && empty($relatedArticles)}
+		$('#sidebar-menu-option-explore-more,#explore-more-header,#explore-more-body').fadeOut().empty().remove();
+		VuFind.Menu.collapseSideBar();
+	{else}
+	{literal}
 	$('#explore-more-menu .panel')
 			.on('show.bs.collapse', function () {
 				$(this).addClass('active')
@@ -184,8 +188,8 @@
 				$(this).removeClass('active');
 			})
 			.one('shown.bs.collapse', function () {
-		VuFind.initCarousels( $(this).children('.panel-collapse.in').find('.jcarousel') );
-	});
-
+				VuFind.initCarousels( $(this).children('.panel-collapse.in').find('.jcarousel') );
+			});
+	{/literal}
+	{/if}
 </script>
-{/literal}

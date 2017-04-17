@@ -61,11 +61,20 @@
 					</div>
 				{/if}
 
-				{if strlen($startDate) || strlen($endDate)}
+				{if strlen($placeStartDate)}
 					<div class="row">
-						<div class="result-label col-sm-4">Dates: </div>
+						<div class="result-label col-sm-4">Founded: </div>
 						<div class="result-value col-sm-8">
-							{$startDate}{if $endDate} to {/if}{$endDate}
+							{$placeStartDate}
+						</div>
+					</div>
+				{/if}
+
+				{if strlen($placeEndDate)}
+					<div class="row">
+						<div class="result-label col-sm-4">Dissolved: </div>
+						<div class="result-value col-sm-8">
+							{$placeEndDate}
 						</div>
 					</div>
 				{/if}

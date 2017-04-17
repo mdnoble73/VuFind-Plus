@@ -2,7 +2,7 @@
 
 # This script is for moving marc files that are adds or deletes from on the ftp server to data directory on the pika server
 
-if [[ $# -ne 2 ] && [ $# -ne 3 ]]; then
+if [[ $# -ne 2 && $# -ne 3 ]]; then
 	echo "To use, add the ftp source directory for the first parameter, the data directory destination as the second parameter, optional third parameter -n to use new ftp server."
 	echo "$0 source destination"
 	echo "eg: $0 hoopla hoopla"
@@ -15,7 +15,7 @@ else
 	LOG="logger -t $0"
 	# tag logging with script name and command line options
 
-	if [[ $# eq 3] && [ $3 eq '-n' ]]; then
+	if [[ $# == 3 && $3 == '-n' ]]; then
 		REMOTE="10.1.2.7:/ftp"
 	else
 		REMOTE="10.1.2.6:/ftp"
@@ -36,8 +36,8 @@ else
 				cp $LOCAL/$SOURCE/*.mrc /data/vufind-plus/$DESTINATION/marc/
 
 				if [ $? -ne 0 ]; then
-					$LOG "~~ Moving $SOURCE marc files failed."
-					echo "Moving $SOURCE marc files failed."
+					$LOG "~~ Copying $SOURCE marc files failed."
+					echo "Copying $SOURCE marc files failed."
 				else
 					$LOG "~~ $SOURCE marc files were copied."
 					echo "$SOURCE marc files were copied."

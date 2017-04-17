@@ -100,6 +100,7 @@ class Archive_Exhibit extends Archive_Object{
 			// Set Exhibit Navigation
 			$this->startExhibitContext();
 			$this->recordDriver->getRelatedPlaces();
+
 			$this->display('mapExhibit.tpl');
 		} else if ($displayType == 'custom'){
 //			$this->endExhibitContext();
@@ -131,6 +132,20 @@ class Archive_Exhibit extends Archive_Object{
 
 					$collectionObjects = $collectionDriver->getChildren();
 					$collectionTitles = array();
+
+					//Check the MODS for the collection to see if it has information about ordering
+					// Likely used for Exhibits that have 1 page.
+					// Might be for Exhibit of Exhibits
+					$sortingInfo = $collectionDriver->getModsValue('collectionOrder', 'marmot');
+					if ($sortingInfo){
+						$sortingInfo = explode("&#xD;\n", $sortingInfo);
+						$existingPids = array_flip($collectionObjects);
+						foreach ($sortingInfo as $pid){
+							if (!array_key_exists($pid, $existingPids)){
+								$collectionObjects[] = $pid;
+							}
+						}
+					}
 					foreach ($collectionObjects as $childPid){
 						$childObject = RecordDriverFactory::initRecordDriver($fedoraUtils->getObject($childPid));
 						$collectionTitle = array(
@@ -153,9 +168,7 @@ class Archive_Exhibit extends Archive_Object{
 					//Check the MODS for the collection to see if it has information about ordering
 					// Likely used for Exhibits that have 1 page.
 					// Might be for Exhibit of Exhibits
-					$sortingInfo = $collectionDriver->getModsValue('collectionOrder', 'marmot');
 					if ($sortingInfo){
-						$sortingInfo = explode("&#xD;\n", $sortingInfo);
 						$sortedImages = array();
 						foreach ($sortingInfo as $sortingPid){
 							if (array_key_exists($sortingPid, $collectionTitles)){
@@ -368,6 +381,35 @@ class Archive_Exhibit extends Archive_Object{
 						}
 					}
 				}
+
+				if (isset($_REQUEST['placePid'])){
+					$interface->assign('selectedPlace', urldecode($_REQUEST['placePid']));
+					$_SESSION['placePid'] = $_REQUEST['placePid'];
+				}
+				$interface->assign('mappedPlaces', $mappedPlaces);
+				$interface->assign('unmappedPlaces', $unmappedPlaces);
+
+				$geolocatedObjects = $this->recordDriver->getGeolocatedObjects();
+				$totalMappedLocations = count($mappedPlaces) +  $geolocatedObjects['numFound'];
+				$interface->assign('geolocatedObjects', $geolocatedObjects['objects']);
+				foreach ($geolocatedObjects['objects'] as $object){
+					$geometricMeanLat += $object['latitude'] * $object['count'];
+					$geometricMeanLong += $object['longitude'] * $object['count'];
+					$numPoints += $object['count'];
+
+					if ($minLat == null || $object['latitude'] < $minLat) {
+						$minLat = $object['latitude'];
+					}
+					if ($maxLat == null || $object['latitude'] > $maxLat) {
+						$maxLat = $object['latitude'];
+					}
+					if ($minLong == null || $object['longitude'] < $minLong) {
+						$minLong = $object['longitude'];
+					}
+					if ($maxLong == null || $object['longitude'] > $maxLong) {
+						$maxLong = $object['longitude'];
+					}
+				}
 				$interface->assign('minLat', $minLat);
 				$interface->assign('maxLat', $maxLat);
 				$interface->assign('minLong', $minLong);
@@ -376,13 +418,7 @@ class Archive_Exhibit extends Archive_Object{
 					$interface->assign('mapCenterLat', $geometricMeanLat / $numPoints);
 					$interface->assign('mapCenterLong', $geometricMeanLong / $numPoints);
 				}
-
-				if (isset($_REQUEST['placePid'])){
-					$interface->assign('selectedPlace', urldecode($_REQUEST['placePid']));
-					$_SESSION['placePid'] = $_REQUEST['placePid'];
-				}
-				$interface->assign('mappedPlaces', $mappedPlaces);
-				$interface->assign('unmappedPlaces', $unmappedPlaces);
+				$interface->assign('totalMappedLocations', $totalMappedLocations);
 			}else{
 				$_SESSION['exhibitSearchId'] = $lastExhibitObjectsSearch;
 				$logger->log("Setting exhibit search id to $lastExhibitObjectsSearch", PEAR_LOG_DEBUG);

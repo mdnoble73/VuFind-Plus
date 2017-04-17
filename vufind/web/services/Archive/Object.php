@@ -221,32 +221,50 @@ abstract class Archive_Object extends Action {
 		//Load information about dates
 		$startDate = $this->recordDriver->getModsValue('placeDateStart', 'marmot');
 		if ($startDate) {
-			$interface->assign('startDate', $startDate);
-		} else {
-			$startDate = $this->recordDriver->getModsValue('eventStartDate', 'marmot');
-			if ($startDate) {
-				$interface->assign('startDate', $startDate);
-			} else {
-				$startDate = $this->recordDriver->getModsValue('dateEstablished', 'marmot');
-				if ($startDate) {
-					$interface->assign('startDate', $startDate);
-				}
+			$interface->assign('placeStartDate', $startDate);
+		}
+		$startDate = $this->recordDriver->getModsValue('dateEstablished', 'marmot');
+		if ($startDate) {
+			$interface->assign('organizationStartDate', $startDate);
+		}
+		$startDate = $this->recordDriver->getModsValue('eventStartDate', 'marmot');
+		if ($startDate) {
+			$interface->assign('eventStartDate', $startDate);
+		}
+		$startDate = $this->recordDriver->getModsValue('startDate', 'marmot');
+		if ($startDate){
+			if ($this->recordDriver instanceof PlaceDriver){
+				$interface->assign('placeStartDate', $startDate);
+			}elseif ($this->recordDriver instanceof EventDriver){
+				$interface->assign('eventStartDate', $startDate);
+			}elseif ($this->recordDriver instanceof OrganizationDriver){
+				$interface->assign('organizationStartDate', $startDate);
 			}
 		}
+
 		$endDate = $this->recordDriver->getModsValue('placeDateEnd', 'marmot');
 		if ($endDate) {
-			$interface->assign('endDate', $endDate);
-		} else {
-			$endDate = $this->recordDriver->getModsValue('eventEndDate', 'marmot');
-			if ($endDate) {
-				$interface->assign('endDate', $endDate);
-			} else {
-				$endDate = $this->recordDriver->getModsValue('dateDisbanded', 'marmot');
-				if ($endDate) {
-					$interface->assign('endDate', $endDate);
-				}
+			$interface->assign('placeEndDate', $endDate);
+		}
+		$endDate = $this->recordDriver->getModsValue('eventEndDate', 'marmot');
+		if ($endDate) {
+			$interface->assign('eventEndDate', $endDate);
+		}
+		$endDate = $this->recordDriver->getModsValue('dateDisbanded', 'marmot');
+		if ($endDate) {
+			$interface->assign('organizationEndDate', $endDate);
+		}
+		$endDate = $this->recordDriver->getModsValue('endDate', 'marmot');
+		if ($endDate){
+			if ($this->recordDriver instanceof PlaceDriver){
+				$interface->assign('placeEndDate', $endDate);
+			}elseif ($this->recordDriver instanceof EventDriver){
+				$interface->assign('eventEndDate', $endDate);
+			}elseif ($this->recordDriver instanceof OrganizationDriver){
+				$interface->assign('organizationEndDate', $endDate);
 			}
 		}
+
 
 		$title = $this->recordDriver->getFullTitle();
 

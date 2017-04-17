@@ -1102,6 +1102,8 @@ class GroupedWorkDriver extends RecordInterface{
 				$searchObject->disableLogging();
 				$searchObject->setDebugging(false, false);
 				$searchObject->setBasicQuery("mods_extension_marmotLocal_externalLink_samePika_link_s:*" . $groupedWorkId);
+				//Clear existing filters so search filters don't apply to this query
+				$searchObject->clearFilters();
 				$searchObject->clearFacets();
 
 				$searchObject->setLimit(1);
@@ -1499,6 +1501,12 @@ class GroupedWorkDriver extends RecordInterface{
 		//Check to see what we need to do for actions, and determine if the record should be hidden by default
 		$searchLibrary = Library::getSearchLibrary();
 		$searchLocation = Location::getSearchLocation();
+		$isSuperScope = false;
+		if ($searchLocation){
+			$isSuperScope = !$searchLocation->restrictSearchByLocation;
+		}elseif ($searchLibrary){
+			$isSuperScope = !$searchLibrary->restrictSearchByLibrary;
+		}
 		foreach ($relatedManifestations as $key => $manifestation) {
 			$manifestation['numRelatedRecords'] = count($manifestation['relatedRecords']);
 			if (count($manifestation['relatedRecords']) == 1) {
@@ -1539,10 +1547,10 @@ class GroupedWorkDriver extends RecordInterface{
 					if (!$addOnline){
 						$manifestation['hideByDefault'] = true;
 					}
-				}else {
-					$manifestation['hideByDefault'] = !$manifestation['availableLocally'];
+				}else if (!$manifestation['availableLocally'] && !$isSuperScope){
+					$manifestation['hideByDefault'] = true;
 				}
-			}elseif($selectedAvailability == 'Entire Collection' && (!($manifestation['hasLocalItem']) && !$manifestation['isEContent'])){
+			}elseif($selectedAvailability == 'Entire Collection' && !$isSuperScope && (!$manifestation['hasLocalItem'] && !$manifestation['isEContent'])){
 				$manifestation['hideByDefault'] = true;
 			}
 			if ($selectedDetailedAvailability){

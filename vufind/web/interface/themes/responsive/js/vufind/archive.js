@@ -14,6 +14,7 @@ VuFind.Archive = (function(){
 		archive_info_window: null,
 		curPage: 1,
 		markers: [],
+		geomarkers: [],
 		sort: 'title',
 		openSeaDragonViewer: null,
 		pageDetails: [],

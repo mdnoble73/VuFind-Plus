@@ -59,14 +59,16 @@
 		</div>
 	</div>
 
-	<div class="row">
-		<div class="result-label col-sm-4">Collection PID: </div>
-		<div class="result-value col-sm-8">
-			{foreach from=$collectionInfo item="collection"}
-				<a href="{$collection.link}">{$collection.pid}</a> ({$collection.label})<br/>
-			{/foreach}
+	{if $collectionInfo}
+		<div class="row">
+			<div class="result-label col-sm-4">Collection PID: </div>
+			<div class="result-value col-sm-8">
+				{foreach from=$collectionInfo item="collection"}
+					<a href="{$collection.link}">{$collection.pid}</a> ({$collection.label})<br/>
+				{/foreach}
+			</div>
 		</div>
-	</div>
+	{/if}
 
 	{* Migration inforamation *}
 	{if $migratedFileName}

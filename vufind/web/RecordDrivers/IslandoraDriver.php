@@ -1224,6 +1224,16 @@ abstract class IslandoraDriver extends RecordInterface {
 					$this->addRelatedEntityToArrays($entityPid, $entityTitle, 'event', $relationshipNote, $entityRole);
 				}
 
+				$entities = $this->getModsValues('samePlaceAs', 'marmot', null, true);
+				foreach ($entities as $entity){
+					$entityPid = $this->getModsValue('entityPid', 'marmot', $entity);
+					if (strlen($entityPid) == 0) {
+						continue;
+					}
+					$entityTitle = $this->getModsValue('entityTitle', 'marmot', $entity);
+					$this->addRelatedEntityToArrays($entityPid, $entityTitle, 'place', '', 'same place');
+				}
+
 				$entities = $this->getModsValues('relatedPlace', 'marmot', null, true);
 				foreach ($entities as $entity){
 					$entityPid = $this->getModsValue('entityPid', 'marmot', $entity);
@@ -1317,6 +1327,9 @@ abstract class IslandoraDriver extends RecordInterface {
 					$significance = $this->getModsValue('significance', 'marmot', $entity);
 					if ($significance){
 						$entityInfo['role'] = ucfirst($significance);
+					}else{
+						$significance = $this->getModsValue('role', 'marmot', $entity);
+						$entityInfo['role'] = ucfirst($significance);
 					}
 					$this->addRelatedEntityToArrays($entityPid, $entityTitle, 'place', '', $significance);
 				}
@@ -1358,6 +1371,50 @@ abstract class IslandoraDriver extends RecordInterface {
 			$this->loadRelatedEntities();
 		}
 		return $this->relatedPlaces;
+	}
+
+	private $geolocatedObjects = null;
+	public function getGeolocatedObjects(){
+		if ($this->geolocatedObjects == null) {
+			$this->geolocatedObjects = array(
+					'numFound' => 0,
+					'objects' => array()
+			);
+
+			//Get all objects that are linked to this object which have a valid latitude/longitude
+
+			/** @var SearchObject_Islandora $searchObject */
+			$searchObject = SearchObjectFactory::initSearchObject('Islandora');
+			$searchObject->init();
+			$searchObject->clearFilters();
+			$searchObject->setBasicQuery('"' . $this->pid . '"', 'ancestors_ms');
+			$searchObject->addHiddenFilter('mods_extension_marmotLocal_relatedPlace_generalPlace_latitude_s', '*');
+			$searchObject->addHiddenFilter('mods_extension_marmotLocal_relatedPlace_generalPlace_longitude_s', '*');
+			$searchObject->addFieldsToReturn(array('mods_extension_marmotLocal_relatedPlace_generalPlace_latitude_s', 'mods_extension_marmotLocal_relatedPlace_generalPlace_longitude_s'));
+			$searchObject->setLimit(2500);
+			$response = $searchObject->processSearch(true, false, true);
+			if ($response && $response['response']['numFound'] > 0) {
+				foreach ($response['response']['docs'] as $doc) {
+					//$entityDriver = RecordDriverFactory::initRecordDriver($doc);
+					$objectInfo = array(
+							'pid' => $doc['PID'],
+							'label' => $doc['fgs_label_s'],
+							'latitude' => $doc['mods_extension_marmotLocal_relatedPlace_generalPlace_latitude_s'],
+							'longitude' => $doc['mods_extension_marmotLocal_relatedPlace_generalPlace_longitude_s'],
+							'count' => 1
+					);
+					if (array_key_exists("{$objectInfo['latitude']}-{$objectInfo['longitude']}", $this->geolocatedObjects)){
+						$this->geolocatedObjects['objects']["{$objectInfo['latitude']}-{$objectInfo['longitude']}"]['count'] += 1;
+					}else{
+						$this->geolocatedObjects['objects']["{$objectInfo['latitude']}-{$objectInfo['longitude']}"] = $objectInfo;
+						$this->geolocatedObjects['numFound']++;
+					}
+				}
+			}
+			$searchObject = null;
+			unset ($searchObject);
+		}
+		return $this->geolocatedObjects;
 	}
 
 	public function getRelatedOrganizations(){
@@ -2380,6 +2437,13 @@ abstract class IslandoraDriver extends RecordInterface {
 			$notes[] = array(
 					'label' => 'Notes',
 					'body' => $personNotes
+			);
+		}
+		$placeNotes = $this->getModsValue('placeNotes', 'marmot');
+		if (strlen($placeNotes) > 0){
+			$notes[] = array(
+					'label' => 'Notes',
+					'body' => $placeNotes
 			);
 		}
 		$citationNotes = $this->getModsValue('citationNotes', 'marmot');

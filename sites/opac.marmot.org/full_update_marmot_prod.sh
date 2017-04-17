@@ -96,9 +96,10 @@ cd /usr/local/vufind-plus/vufind/cron;./GetHooplaFromMarmot.sh >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh cologovdocs colorado_gov_docs >> ${OUTPUT_FILE}
 
 # Lynda.com Marc Updates (recieved on marmot ftp server)
-/usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh lynda.com/evld lynda/evld/merge
-/usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh lynda.com/vail lynda/vail/merge
-/usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh lynda.com/telluride lynda/telluride/merge
+/usr/local/vufind-plus/sites/opac.marmot.org/moveSideloadAdds.sh lynda.com/evld lynda/evld/merge
+/usr/local/vufind-plus/sites/opac.marmot.org/moveSideloadAdds.sh lynda.com/vail lynda/vail/merge
+/usr/local/vufind-plus/sites/opac.marmot.org/moveSideloadAdds.sh lynda.com/telluride lynda/telluride/merge
+/usr/local/vufind-plus/sites/opac.marmot.org/moveSideloadAdds.sh lynda.com/grand lynda/grand/merge
 
 #Extracts for sideloaded eContent; settings defined in config.pwd.ini [Sideload]
 cd /usr/local/vufind-plus/vufind/cron; ./sideload.sh ${PIKASERVER}
@@ -111,12 +112,19 @@ cd /usr/local/vufind-plus/vufind/cron; ./sideload.sh ${PIKASERVER}
 /usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh lynda/evld >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh lynda/vail >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh lynda/telluride >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh lynda/grand >> ${OUTPUT_FILE}
 
 # Merge OneClick digital Records
 /usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh oneclickdigital/englewood >> ${OUTPUT_FILE}
 
 #Merge EBSCO records
 /usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh ebsco/fortlewis >> ${OUTPUT_FILE}
+
+#Films On Demand
+/usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh cmc/filmsondemand filmsondemand/cmc >> ${OUTPUT_FILE}
+
+#Colorado State Goverment Documents Updates
+curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/colorado_gov_docs/marc/fullexport.mrc http://cassini.marmot.org/colorado_state_docs.mrc
 
 #Extract Lexile Data
 cd /data/vufind-plus/; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/lexileTitles.txt http://cassini.marmot.org/lexileTitles.txt

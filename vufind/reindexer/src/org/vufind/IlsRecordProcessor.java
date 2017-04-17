@@ -1269,10 +1269,22 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		getFormatFromEdition(record, printFormats);
 		getFormatFromPhysicalDescription(record, printFormats);
 		getFormatFromSubjects(record, printFormats);
-		getFormatFrom007(record, printFormats);
 		getFormatFromTitle(record, printFormats);
 		getFormatFromDigitalFileCharacteristics(record, printFormats);
-		getFormatFromLeader(printFormats, leader, fixedField);
+		if (printFormats.size() == 0) {
+			//Only get from fixed field information if we don't have anything yet since the catalogging of
+			//fixed fields is not kept up to date reliably.  #D-87
+			getFormatFrom007(record, printFormats);
+			if (printFormats.size() > 1){
+				logger.info("Found more than 1 format for " + recordInfo.getFullIdentifier() + " looking at just 007");
+			}
+			if (printFormats.size() == 0) {
+				getFormatFromLeader(printFormats, leader, fixedField);
+				if (printFormats.size() > 1){
+					logger.info("Found more than 1 format for " + recordInfo.getFullIdentifier() + " looking at just the leader");
+				}
+			}
+		}
 
 		if (printFormats.size() == 0){
 			logger.debug("Did not get any formats for print record " + recordInfo.getFullIdentifier() + ", assuming it is a book ");
@@ -1289,7 +1301,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			String formatsString = Util.getCsvSeparatedString(printFormats);
 			if (!formatsToFilter.contains(formatsString)){
 				formatsToFilter.add(formatsString);
-				logger.warn("Found more than 1 format for " + recordInfo.getFullIdentifier() + " - " + formatsString);
+				logger.info("Found more than 1 format for " + recordInfo.getFullIdentifier() + " - " + formatsString);
 			}
 		}
 		return printFormats;
@@ -1336,6 +1348,11 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			printFormats.add("Playaway");
 			return;
 		}
+		if (printFormats.contains("GoReader")){
+			printFormats.clear();
+			printFormats.add("GoReader");
+			return;
+		}
 		if (printFormats.contains("Video") && printFormats.contains("DVD")){
 			printFormats.remove("Video");
 		}
@@ -1362,6 +1379,10 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		}
 		if (printFormats.contains("SoundCassette") && printFormats.contains("CompactDisc")){
 			printFormats.remove("CompactDisc");
+		}
+		if (printFormats.contains("SoundRecording") && printFormats.contains("CDROM")){
+			printFormats.clear();
+			printFormats.add("SoundDisc");
 		}
 
 		if (printFormats.contains("Book") && printFormats.contains("LargePrint")){
@@ -1489,6 +1510,8 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 						.toLowerCase();
 				if (sysDetailsValue.contains("playaway")) {
 					result.add("Playaway");
+				}else if (sysDetailsValue.contains("go reader")) {
+					result.add("GoReader");
 				}
 			}
 		}
@@ -1503,6 +1526,8 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				String editionData = edition.getSubfield('a').getData().toLowerCase();
 				if (editionData.contains("large type") || editionData.contains("large print")) {
 					result.add("LargePrint");
+				}else if (editionData.contains("go reader")) {
+						result.add("GoReader");
 				}else {
 					String gameFormat = getGameFormatFromValue(editionData);
 					if (gameFormat != null) {
