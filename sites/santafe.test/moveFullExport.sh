@@ -37,21 +37,10 @@ else
 					$LOG "~~ $SOURCE marc files were copied."
 					echo "$SOURCE marc files were copied."
 				fi
-
-#				TODO: Implement Old Marc File check. Need to change initial parameter test
-#				if [[ -z $3 ]]; then
-#					# Check that the Marc File(s) are newer than $3 days
-#					OLDMARC=$(find /data/vufind-plus/$DESTINATION/marc/ -name "*.mrc" -mtime +$3)
-#					if [ -n "$OLDMARC" ]; then
-#						echo "There are Marc files older than $3 days : "
-#						echo "$OLDMARC"
-#					fi
-#				fi
 			fi
 		else
 			echo "Path /data/vufind-plus/$DESTINATION/marc/ doesn't exist."
 		fi
-
 	else
 		echo "Path $LOCAL/$SOURCE/ doesn't exist."
 	fi

@@ -1,9 +1,9 @@
 #!/bin/sh
 
-# This script is for moving a marc full export file from on the ftp server to data directory on the pika server
+# This script is for moving marc files that are adds or deletes from on the ftp server to data directory on the pika server
 
-if [[ $# -ne 2 ]]; then
-	echo "To use, add the ftp source directory for the first parameter, the data directory destination as the second parameter."
+if [[ $# -ne 2 && $# -ne 3 ]]; then
+	echo "To use, add the ftp source directory for the first parameter, the data directory destination as the second parameter, optional third parameter -n to use new ftp server."
 	echo "$0 source destination"
 	echo "eg: $0 hoopla hoopla"
 else
@@ -15,7 +15,12 @@ else
 	LOG="logger -t $0"
 	# tag logging with script name and command line options
 
-	REMOTE="10.1.2.6:/ftp"
+	if [[ $# == 3 && $3 == '-n' ]]; then
+		REMOTE="10.1.2.7:/ftp"
+	else
+		REMOTE="10.1.2.6:/ftp"
+	fi
+
 	LOCAL="/mnt/ftp"
 
 	$LOG "~~ mount $REMOTE $LOCAL"
@@ -26,21 +31,32 @@ else
 			if [ $(ls -1A "$LOCAL/$SOURCE/" | grep .mrc | wc -l) -gt 0 ] ; then
 			# only do copy command if there are files present to move
 
-				$LOG "~~ Copy fullexport marc file(s)."
+				$LOG "~~ Copy sideload adds/deletes marc file(s)."
 				$LOG "~~ cp $LOCAL/$SOURCE/*.mrc /data/vufind-plus/$DESTINATION/marc/"
 				cp $LOCAL/$SOURCE/*.mrc /data/vufind-plus/$DESTINATION/marc/
 
 				if [ $? -ne 0 ]; then
-					$LOG "~~ Moving $SOURCE marc files failed."
-					echo "Moving $SOURCE marc files failed."
+					$LOG "~~ Copying $SOURCE marc files failed."
+					echo "Copying $SOURCE marc files failed."
 				else
 					$LOG "~~ $SOURCE marc files were copied."
 					echo "$SOURCE marc files were copied."
 				fi
+
+#				TODO: Implement Old Marc File check. Need to change initial parameter test
+#				if [[ -z $3 ]]; then
+#					# Check that the Marc File(s) are newer than $3 days
+#					OLDMARC=$(find /data/vufind-plus/$DESTINATION/marc/ -name "*.mrc" -mtime +$3)
+#					if [ -n "$OLDMARC" ]; then
+#						echo "There are Marc files older than $3 days : "
+#						echo "$OLDMARC"
+#					fi
+#				fi
 			fi
 		else
 			echo "Path /data/vufind-plus/$DESTINATION/marc/ doesn't exist."
 		fi
+
 	else
 		echo "Path $LOCAL/$SOURCE/ doesn't exist."
 	fi

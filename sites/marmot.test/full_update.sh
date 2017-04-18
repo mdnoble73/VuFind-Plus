@@ -119,14 +119,10 @@ cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE
 /usr/local/vufind-plus/sites/marmot.test/moveSideloadAdds.sh budwerner/learning_express/deletes learning_express/steamboatsprings/deletes >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/sites/marmot.test/moveSideloadAdds.sh garfield/learning_express learning_express/garfield/merge >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/sites/marmot.test/moveSideloadAdds.sh garfield/learning_express/deletes learning_express/garfield/deletes >> ${OUTPUT_FILE}
-
 /usr/local/vufind-plus/sites/marmot.test/moveSideloadAdds.sh mesa/learning_express learning_express/mesa/merge -n >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/sites/marmot.test/moveSideloadAdds.sh mesa/learning_express/deletes learning_express/mesa/deletes -n >> ${OUTPUT_FILE}
-#TODO: get from sftp.marmot.org
-
-# TODO: set up actual ftp update paths
-#/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh {ftpdir} learning_express/garfield >> ${OUTPUT_FILE}
-#/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh {ftpdir} learning_express/vail >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/marmot.test/moveSideloadAdds.sh vail/learning_express learning_express/vail/merge >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/marmot.test/moveSideloadAdds.sh vail/learning_express/deletes learning_express/vail/deletes >> ${OUTPUT_FILE}
 
 # Colorado State Gov Docs Marc Updates
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh cologovdocs colorado_gov_docs >> ${OUTPUT_FILE}
@@ -146,6 +142,8 @@ cd /usr/local/vufind-plus/vufind/cron; ./sideload.sh ${PIKASERVER}
 # Merge Learning Express Records
 /usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh learning_express/steamboatsprings >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh learning_express/garfield >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh learning_express/mesa >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh learning_express/vail >> ${OUTPUT_FILE}
 
 # Merge Lynda.com Records
 /usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh lynda/evld >> ${OUTPUT_FILE}
