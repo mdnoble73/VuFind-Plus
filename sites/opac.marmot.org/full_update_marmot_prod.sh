@@ -96,10 +96,10 @@ cd /usr/local/vufind-plus/vufind/cron;./GetHooplaFromMarmot.sh >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh cologovdocs colorado_gov_docs >> ${OUTPUT_FILE}
 
 # Lynda.com Marc Updates (recieved on marmot ftp server)
-/usr/local/vufind-plus/sites/opac.marmot.org/moveSideloadAdds.sh lynda.com/evld lynda/evld/merge
-/usr/local/vufind-plus/sites/opac.marmot.org/moveSideloadAdds.sh lynda.com/vail lynda/vail/merge
-/usr/local/vufind-plus/sites/opac.marmot.org/moveSideloadAdds.sh lynda.com/telluride lynda/telluride/merge
-/usr/local/vufind-plus/sites/opac.marmot.org/moveSideloadAdds.sh lynda.com/grand lynda/grand/merge
+/usr/local/vufind-plus/sites/opac.marmot.org/moveSideloadAdds.sh lynda.com/evld lynda/evld/merge >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/opac.marmot.org/moveSideloadAdds.sh lynda.com/vail lynda/vail/merge >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/opac.marmot.org/moveSideloadAdds.sh lynda.com/telluride lynda/telluride/merge >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/opac.marmot.org/moveSideloadAdds.sh lynda.com/grand lynda/grand/merge >> ${OUTPUT_FILE}
 
 #Extracts for sideloaded eContent; settings defined in config.pwd.ini [Sideload]
 cd /usr/local/vufind-plus/vufind/cron; ./sideload.sh ${PIKASERVER}
@@ -107,6 +107,12 @@ cd /usr/local/vufind-plus/vufind/cron; ./sideload.sh ${PIKASERVER}
 # Merge Learning Express Records
 /usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh learning_express/steamboatsprings >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh learning_express/garfield >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh learning_express/mesa >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh learning_express/vail >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/opac.marmot.org/moveSideloadAdds.sh mesa/learning_express learning_express/mesa/merge -n >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/opac.marmot.org/moveSideloadAdds.sh mesa/learning_express/deletes learning_express/mesa/deletes -n >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/opac.marmot.org/moveSideloadAdds.sh vail/learning_express learning_express/vail/merge >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/opac.marmot.org/moveSideloadAdds.sh vail/learning_express/deletes learning_express/vail/deletes >> ${OUTPUT_FILE}
 
 # Merge Lynda.com Records
 /usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh lynda/evld >> ${OUTPUT_FILE}
