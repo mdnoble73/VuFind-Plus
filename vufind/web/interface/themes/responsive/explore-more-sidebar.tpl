@@ -177,7 +177,9 @@
 <script type="application/javascript">
 	{if empty($exploreMoreSections) && empty($relatedArticles)}
 		$('#sidebar-menu-option-explore-more,#explore-more-header,#explore-more-body').fadeOut().empty().remove();
-		VuFind.Menu.collapseSideBar();
+		{if $displaySidebarMenu}
+			VuFind.Menu.collapseSideBar();
+		{/if}
 	{else}
 	{literal}
 	$('#explore-more-menu .panel')
