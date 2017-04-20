@@ -21,7 +21,7 @@
 						<img src="{$image.image}" {if $image.label}alt="{$image.label|urlencode}"{/if}>
 					</a>
 					<figcaption class="explore-more-category-title">
-						<strong>{$image.label}</strong>
+						<strong>{$image.label|removeTrailingPunctuation|truncate:60:"..."}</strong>
 						{if $image.role}
 							&nbsp; ({$image.role})
 						{/if}
