@@ -75,6 +75,15 @@
 					</div>
 				{/if}
 
+				{if $eventStartDate || $eventEndDate}
+					<div class="row">
+						<div class="result-label col-sm-4">Date: </div>
+						<div class="result-value col-sm-8">
+							{$eventStartDate} {if $eventEndDate} to {$eventEndDate}{/if}
+						</div>
+					</div>
+				{/if}
+
 				{if $relatedPlaces && $recordDriver->getType() == 'event'}
 					<div class="row">
 						<div class="result-label col-sm-4">Took place at: </div>

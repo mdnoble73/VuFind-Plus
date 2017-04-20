@@ -28,4 +28,25 @@ class EventDriver extends IslandoraDriver {
 	public function getFormat(){
 		return 'Event';
 	}
+
+	public function getMoreDetailsOptions() {
+		//Load more details options
+		global $interface;
+		$moreDetailsOptions = $this->getBaseMoreDetailsOptions();
+		}
+		if ((count($interface->getVariable('creators')) > 0)
+				|| $this->hasDetails
+				|| (count($interface->getVariable('marriages')) > 0)
+				|| (count($this->unlinkedEntities) > 0)){
+			$moreDetailsOptions['details'] = array(
+					'label' => 'Details',
+					'body' => $interface->fetch('Archive/detailsSection.tpl'),
+					'hideByDefault' => false
+			);
+		}else{
+			unset($moreDetailsOptions['details']);
+		}
+
+		return $this->filterAndSortMoreDetailsOptions($moreDetailsOptions);
+	}
 }

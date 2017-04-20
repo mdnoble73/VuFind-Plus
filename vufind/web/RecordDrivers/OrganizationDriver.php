@@ -32,15 +32,11 @@ class OrganizationDriver extends IslandoraDriver {
 		//Load more details options
 		global $interface;
 		$moreDetailsOptions = $this->getBaseMoreDetailsOptions();
-		unset($moreDetailsOptions['relatedPlaces']);
-		unset($moreDetailsOptions['relatedPeople']);
 
 		$relatedPlaces = $this->getRelatedPlaces();
 		$unlinkedEntities = $this->unlinkedEntities;
 		$linkedAddresses = array();
 		$unlinkedAddresses = array();
-		$linkedMilitaryAddresses = array();
-		$unlinkedMilitaryAddresses = array();
 		foreach ($unlinkedEntities as $key => $tmpEntity){
 			if ($tmpEntity['type'] == 'place'){
 				if (strcasecmp($tmpEntity['role'], 'address') === 0){
@@ -56,7 +52,9 @@ class OrganizationDriver extends IslandoraDriver {
 				unset($this->relatedPlaces[$key]);
 				$interface->assign('relatedPlaces', $this->relatedPlaces);
 			}
-
+		}
+		if (count($this->relatedPlaces) == 0){
+			unset($moreDetailsOptions['relatedPlaces']);
 		}
 		$interface->assign('unlinkedAddresses', $unlinkedAddresses);
 		$interface->assign('linkedAddresses', $linkedAddresses);
