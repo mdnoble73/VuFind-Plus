@@ -2451,13 +2451,16 @@ abstract class IslandoraDriver extends RecordInterface {
 				}
 				if ($employerData){
 					$academicRecord['academicPosition']['employer'] = $employerData;
+					$hasEducationInfo = true;
 				}
 				$startDate = FedoraUtils::cleanValue($this->getModsValue('positionStartDate', 'marmot', $academicPosition));
 				$endDate = FedoraUtils::cleanValue($this->getModsValue('positionEndDate', 'marmot', $academicPosition));
-				$academicRecord['academicPosition']['startDate'] = $startDate;
-				$academicRecord['academicPosition']['endDate'] = $endDate;
+				if ($startDate || $endDate){
+					$academicRecord['academicPosition']['startDate'] = $startDate;
+					$academicRecord['academicPosition']['endDate'] = $endDate;
 
-				$hasEducationInfo = true;
+					$hasEducationInfo = true;
+				}
 			}
 
 			$researchInterestsRaw = $this->getModsValues('researchInterests', 'marmot', $academicRecordSection);
@@ -2468,10 +2471,16 @@ abstract class IslandoraDriver extends RecordInterface {
 					$researchInterests[] = $researchInterest;
 				}
 			}
-			$academicRecord['researchInterests'] = $researchInterests;
+			if (count($researchInterests) > 0){
+				$academicRecord['researchInterests'] = $researchInterests;
+				$hasEducationInfo = true;
+			}
 
 			$cvLink = $this->getModsValue('cvLink', 'marmot', $academicRecordSection);
-			$academicRecord['cvLink'] = $cvLink;
+			if ($cvLink){
+				$academicRecord['cvLink'] = $cvLink;
+				$hasEducationInfo = true;
+			}
 
 			$honorsAwardsRaw = $this->getModsValues('honorsAwards', 'marmot', $academicRecordSection);
 			$honorsAwards = array();
@@ -2481,7 +2490,10 @@ abstract class IslandoraDriver extends RecordInterface {
 					$honorsAwards[] = $honorsAward;
 				}
 			}
-			$academicRecord['honorsAwards'] =  $honorsAwards;
+			if (count($honorsAwards) > 0){
+				$academicRecord['honorsAwards'] =  $honorsAwards;
+				$hasEducationInfo = true;
+			}
 
 			$educationSections = $this->getModsValues('education', 'marmot', $academicRecordSection);
 			if ($educationSections){
@@ -2501,6 +2513,7 @@ abstract class IslandoraDriver extends RecordInterface {
 					}
 
 					$degreeGrantorRaw = $this->getModsValue('relatedPersonOrg', 'marmot', $educationSection);
+					$degreeGrantor = null;
 					if ($degreeGrantorRaw) {
 						$personPid = $this->getModsValue('entityPid', 'marmot', $degreeGrantorRaw);
 						$role = ucwords($this->getModsValue('role', 'marmot', $degreeGrantorRaw));
@@ -2527,9 +2540,9 @@ abstract class IslandoraDriver extends RecordInterface {
 								);
 							}
 						}
-						$hasEducationInfo = true;
 						if ($degreeGrantor){
 							$educationRecord['degreeGrantor'] = $degreeGrantor;
+							$hasEducationInfo = true;
 						}
 					}
 					$academicRecord['education'][] = $educationRecord;
@@ -2562,7 +2575,10 @@ abstract class IslandoraDriver extends RecordInterface {
 					}
 				}
 			}
-			$academicRecord['publications'] = $publications;
+			if (count($publications) > 0){
+				$academicRecord['publications'] = $publications;
+				$hasEducationInfo = true;
+			}
 
 			$academicRecords[] = $academicRecord;
 		}
