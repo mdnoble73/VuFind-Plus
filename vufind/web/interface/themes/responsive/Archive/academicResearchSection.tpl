@@ -107,5 +107,6 @@
 				</div>
 			</div>
 		{/if}
+		<br/>
 	{/foreach}
 {/strip}

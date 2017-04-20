@@ -2453,8 +2453,8 @@ abstract class IslandoraDriver extends RecordInterface {
 					$academicRecord['academicPosition']['employer'] = $employerData;
 					$hasEducationInfo = true;
 				}
-				$startDate = FedoraUtils::cleanValue($this->getModsValue('positionStartDate', 'marmot', $academicPosition));
-				$endDate = FedoraUtils::cleanValue($this->getModsValue('positionEndDate', 'marmot', $academicPosition));
+				$startDate = $this->loadFormattedDateFromMods('positionStartDate', 'marmot', $academicPosition);
+				$endDate = $this->loadFormattedDateFromMods('positionEndDate', 'marmot', $academicPosition);
 				if ($startDate || $endDate){
 					$academicRecord['academicPosition']['startDate'] = $startDate;
 					$academicRecord['academicPosition']['endDate'] = $endDate;
@@ -2545,7 +2545,9 @@ abstract class IslandoraDriver extends RecordInterface {
 							$hasEducationInfo = true;
 						}
 					}
-					$academicRecord['education'][] = $educationRecord;
+					if (count($educationRecord) > 0) {
+						$academicRecord['education'][] = $educationRecord;
+					}
 				}
 			}
 
