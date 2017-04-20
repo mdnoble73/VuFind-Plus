@@ -1611,7 +1611,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		if (dissertaionNoteField != null) {
 			if (dissertaionNoteField.getSubfield('a') != null) {
 				String noteValue = dissertaionNoteField.getSubfield('a').getData().toLowerCase();
-				if (noteValue.contains("thesis")) {
+				if (noteValue.contains("thesis (m.a.)")) {
 					result.add("Thesis");
 				}
 			}
