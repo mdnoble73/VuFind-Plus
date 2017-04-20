@@ -33,6 +33,41 @@ class EventDriver extends IslandoraDriver {
 		//Load more details options
 		global $interface;
 		$moreDetailsOptions = $this->getBaseMoreDetailsOptions();
+
+		$relatedPlaces = $this->getRelatedPlaces();
+		$unlinkedEntities = $this->unlinkedEntities;
+		$linkedAddresses = array();
+		$unlinkedAddresses = array();
+		foreach ($unlinkedEntities as $key => $tmpEntity){
+			if ($tmpEntity['type'] == 'place'){
+				if (strcasecmp($tmpEntity['role'], 'address') === 0 || $tmpEntity['role'] == ''){
+					$tmpEntity['role'] = 'Address';
+					$unlinkedAddresses[] = $tmpEntity;
+					unset($this->unlinkedEntities[$key]);
+					$interface->assign('unlinkedEntities', $this->unlinkedEntities);
+				}
+			}
+		}
+		foreach ($relatedPlaces as $key => $tmpEntity){
+			if (strcasecmp($tmpEntity['role'], 'address') === 0 || $tmpEntity['role'] == ''){
+				$tmpEntity['role'] = 'Address';
+				$linkedAddresses[] = $tmpEntity;
+				unset($this->relatedPlaces[$key]);
+				$interface->assign('relatedPlaces', $this->relatedPlaces);
+			}
+
+		}
+		$interface->assign('unlinkedAddresses', $unlinkedAddresses);
+		$interface->assign('linkedAddresses', $linkedAddresses);
+		if (count($linkedAddresses) || count($unlinkedAddresses)) {
+			$moreDetailsOptions['addresses'] = array(
+					'label' => 'Addresses',
+					'body' => $interface->fetch('Archive/addressSection.tpl'),
+					'hideByDefault' => false,
+			);
+		}
+		if (count($this->relatedPlaces) == 0){
+			unset($moreDetailsOptions['relatedPlaces']);
 		}
 		if ((count($interface->getVariable('creators')) > 0)
 				|| $this->hasDetails
