@@ -1271,8 +1271,8 @@ abstract class IslandoraDriver extends RecordInterface {
 					}
 
 					//Use the dates (if any) as the note
-					$addressStartDate = $this->getModsValue('addressStartDate', 'marmot', $entity);
-					$addressEndDate = $this->getModsValue('addressEndDate', 'marmot', $entity);
+					$addressStartDate = $this->loadFormattedDateFromMods('addressStartDate', 'marmot', $entity);
+					$addressEndDate = $this->loadFormattedDateFromMods('addressEndDate', 'marmot', $entity);
 					$note = '';
 					if ($addressStartDate){
 						$note .= 'From ' . $addressStartDate;
@@ -2143,7 +2143,7 @@ abstract class IslandoraDriver extends RecordInterface {
 				$interface->assign('degreeDiscipline', $degreeDiscipline);
 			}
 
-			$defenceDate = FedoraUtils::cleanValue($this->getModsValue('defenceDate', 'marmot', $academicResearchSection));
+			$defenceDate = FedoraUtils::cleanValue($this->loadFormattedDateFromMods('defenceDate', 'marmot', $academicResearchSection));
 			if (strlen($defenceDate)) {
 				$hasAcademicResearchData = true;
 				$formattedDate = DateTime::createFromFormat('Y-m-d', $defenceDate);
@@ -2153,7 +2153,7 @@ abstract class IslandoraDriver extends RecordInterface {
 				$pubInfo['defenceDate'] = $defenceDate;
 			}
 
-			$acceptedDate = FedoraUtils::cleanValue($this->getModsValue('acceptedDate', 'marmot', $academicResearchSection));
+			$acceptedDate = FedoraUtils::cleanValue($this->loadFormattedDateFromMods('acceptedDate', 'marmot', $academicResearchSection));
 			if (strlen($acceptedDate)) {
 				$hasAcademicResearchData = true;
 				$formattedDate = DateTime::createFromFormat('Y-m-d', $acceptedDate);
@@ -2204,7 +2204,7 @@ abstract class IslandoraDriver extends RecordInterface {
 					$pubInfo['conferenceName'] = $conferenceName;
 				}
 				$conferencePresentationDate = FedoraUtils::cleanValue($this->getModsValue('conferencePresentationDate', 'marmot', $publicationPresentationData));
-				if (strlen($articleLastPage)) {
+				if (strlen($conferencePresentationDate)) {
 					$hasAcademicResearchData = true;
 					$formattedDate = DateTime::createFromFormat('Y-m-d', $conferencePresentationDate);
 					if ($formattedDate != false) {
@@ -2585,8 +2585,8 @@ abstract class IslandoraDriver extends RecordInterface {
 				/** @var SimpleXMLElement $record */
 				$militaryBranch = $this->getModsValue('militaryBranch', 'marmot', $militaryServiceRecord);
 				$militaryConflict = $this->getModsValue('militaryConflict', 'marmot', $militaryServiceRecord);
-				$serviceDateStart = $this->getModsValue('serviceDateStart', 'marmot', $militaryServiceRecord);
-				$serviceDateEnd = $this->getModsValue('serviceDateEnd', 'marmot', $militaryServiceRecord);
+				$serviceDateStart = $this->loadFormattedDateFromMods('serviceDateStart', 'marmot', $militaryServiceRecord);
+				$serviceDateEnd = $this->loadFormattedDateFromMods('serviceDateEnd', 'marmot', $militaryServiceRecord);
 				$rank = $this->getModsValue('militaryRank', 'marmot', $militaryServiceRecord);
 				$prisonerOfWar = $this->getModsValue('prisonerOfWar', 'marmot', $militaryServiceRecord);
 				if ($militaryBranch != 'none' || $militaryConflict != 'none') {
@@ -2703,11 +2703,7 @@ abstract class IslandoraDriver extends RecordInterface {
 			$datesCreated = $this->getModsValues('dateCreated', 'mods', $originInfo, true);
 			$dateCreated = '';
 			foreach ($datesCreated as $dateCreatedTag){
-				$dateCreatedValue = $this->getModsValue('dateCreated', 'mods', $dateCreatedTag);
-				$formattedDate = DateTime::createFromFormat('Y-m-d', $dateCreatedValue);
-				if ($formattedDate != false) {
-					$dateCreatedValue = $formattedDate->format('m/d/Y');
-				}
+				$dateCreatedValue = $this->loadFormattedDateFromMods($dateCreatedTag);
 				if ($dateCreatedValue){
 					$point = $this->getModsAttribute('point', $dateCreatedTag);
 					$qualifier = $this->getModsAttribute('qualifier', $dateCreatedTag);
@@ -2734,11 +2730,7 @@ abstract class IslandoraDriver extends RecordInterface {
 			$dateIssuedTag = $this->getModsValue('dateIssued', 'mods', $originInfo, true);
 			$dateIssued = '';
 			if ($dateIssuedTag){
-				$dateIssuedValue = $this->getModsValue('dateIssued', 'mods', $dateIssuedTag);
-				$formattedDate = DateTime::createFromFormat('Y-m-d', $dateIssuedValue);
-				if ($formattedDate != false) {
-					$dateIssuedValue = $formattedDate->format('m/d/Y');
-				}
+				$dateIssuedValue = $this->loadFormattedDateFromMods('dateIssued', 'mods', $dateIssuedTag);
 				$qualifier = $this->getModsAttribute('qualifier', $dateIssuedTag);
 				$dateIssued = $dateIssuedValue;
 				if ($qualifier){
@@ -2827,7 +2819,7 @@ abstract class IslandoraDriver extends RecordInterface {
 				$alternateNames[] = $alternateName;
 			}
 		}
-		$interface->assign('alternateName', $alternateNames);
+		$interface->assign('alternateNames', $alternateNames);
 
 		return true;
 	}
@@ -2846,18 +2838,10 @@ abstract class IslandoraDriver extends RecordInterface {
 
 		$interface->assignAppendUniqueToExisting('rightsStatements', $rightsStatements);
 
-		$rightsEffectiveDate = $this->getModsValue('rightsEffectiveDate', 'marmot');
-		$formattedDate = DateTime::createFromFormat('Y-m-d', $rightsEffectiveDate);
-		if ($formattedDate != false) {
-			$rightsEffectiveDate = $formattedDate->format('m/d/Y');
-		}
+		$rightsEffectiveDate = $this->loadFormattedDateFromMods('rightsEffectiveDate', 'marmot');
 		$interface->assign('rightsEffectiveDate', $rightsEffectiveDate);
 
-		$rightsExpirationDate = $this->getModsValue('rightsExpirationDate', 'marmot');
-		$formattedDate = DateTime::createFromFormat('Y-m-d', $rightsExpirationDate);
-		if ($formattedDate != false) {
-			$rightsExpirationDate = $formattedDate->format('m/d/Y');
-		}
+		$rightsExpirationDate = $this->loadFormattedDateFromMods('rightsExpirationDate', 'marmot');
 		$interface->assign('rightsExpirationDate', $rightsExpirationDate);
 
 		$rightsHolders = $this->getModsValues('rightsHolder', 'marmot');
@@ -3279,5 +3263,20 @@ abstract class IslandoraDriver extends RecordInterface {
 		}//End art section
 
 		return $hasArtInformation;
+	}
+
+	/**
+	 * @param $dateCreatedTag
+	 * @return string
+	 */
+	private function loadFormattedDateFromMods($tag, $namespace = null, $snippet = null, $includeTag = false)
+	{
+		$dateCreatedValue = $this->getModsValue($tag, $namespace, $snippet, $includeTag);
+		$formattedDate = DateTime::createFromFormat('Y-m-d', $dateCreatedValue);
+		if ($formattedDate != false) {
+			$dateCreatedValue = $formattedDate->format('m/d/Y');
+			return $dateCreatedValue;
+		}
+		return $dateCreatedValue;
 	}
 }

@@ -27,7 +27,7 @@
 			{/if}
 			{if $academicRecord.cvLink}
 				<div class="row">
-					<div class="result-value col-sm-8 col-sm-offset-4">
+					<div class="result-value col-sm-8">
 						<a href="{$academicRecord.cvLink}">Curriculum Vitae</a>
 					</div>
 				</div>
