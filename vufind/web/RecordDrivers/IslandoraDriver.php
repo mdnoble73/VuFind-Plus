@@ -1644,6 +1644,8 @@ abstract class IslandoraDriver extends RecordInterface {
 										//Reverse roles as appropriate
 										if ($role == 'child'){
 											$role = 'parent';
+										}elseif ($role == 'parent'){
+											$role = 'child';
 										}
 									}
 								}
@@ -1733,14 +1735,18 @@ abstract class IslandoraDriver extends RecordInterface {
 				$entityInfo['link']= '/Archive/' . $pid . '/Person';
 				if ($isCreator) {
 					if (array_key_exists($pid, $this->creators)){
-						$this->creators[$pid]['role'] .= ', ' . $entityInfo['role'];
+						if (strpos($this->creators[$pid]['role'], $entityInfo['role']) === FALSE){
+							$this->creators[$pid]['role'] .= ', ' . $entityInfo['role'];
+						}
 					}else{
 						$this->creators[$pid] = $entityInfo;
 					}
 				}
 				if (strlen($role) > 0 && !in_array(strtolower($role), IslandoraDriver::$nonProductionTeamRoles)) {
 					if (array_key_exists($pid, $this->productionTeam)) {
-						$this->productionTeam[$pid]['role'] .= ', ' . $entityInfo['role'];
+						if (strpos($this->productionTeam[$pid]['role'], $entityInfo['role']) === FALSE) {
+							$this->productionTeam[$pid]['role'] .= ', ' . $entityInfo['role'];
+						}
 					} else {
 						$this->productionTeam[$pid] = $entityInfo;
 					}
@@ -1759,13 +1765,17 @@ abstract class IslandoraDriver extends RecordInterface {
 						$entityInfo['sortIndex'] = 4;
 					}
 					if (array_key_exists($pid, $this->brandingEntities)){
-						$this->brandingEntities[$pid]['role'] .= ', ' . $entityInfo['role'];
+						if (strpos($this->brandingEntities[$pid]['role'], $entityInfo['role']) === FALSE) {
+							$this->brandingEntities[$pid]['role'] .= ', ' . $entityInfo['role'];
+						}
 					}else{
 						$this->brandingEntities[$pid] = $entityInfo;
 					}
 				}else{
 					if (array_key_exists($pid, $this->relatedPeople)){
-						$this->relatedPeople[$pid]['role'] .= ', ' . $entityInfo['role'];
+						if (strpos($this->relatedPeople[$pid]['role'], $entityInfo['role']) === FALSE) {
+							$this->relatedPeople[$pid]['role'] .= ', ' . $entityInfo['role'];
+						}
 					}else{
 						$this->relatedPeople[$pid] = $entityInfo;
 					}
@@ -1774,14 +1784,18 @@ abstract class IslandoraDriver extends RecordInterface {
 			}elseif ($entityType == 'place'){
 				$entityInfo['link']= '/Archive/' . $pid . '/Place';
 				if (array_key_exists($pid, $this->relatedPlaces)){
-					$this->relatedPlaces[$pid]['role'] .= ', ' . $entityInfo['role'];
+					if (strpos($this->relatedPlaces[$pid]['role'], $entityInfo['role']) === FALSE) {
+						$this->relatedPlaces[$pid]['role'] .= ', ' . $entityInfo['role'];
+					}
 				}else{
 					$this->relatedPlaces[$pid] = $entityInfo;
 				}
 			}elseif ($entityType == 'event'){
 				$entityInfo['link']= '/Archive/' . $pid . '/Event';
 				if (array_key_exists($pid, $this->relatedEvents)){
-					$this->relatedEvents[$pid]['role'] .= ', ' . $entityInfo['role'];
+					if (strpos($this->relatedEvents[$pid]['role'], $entityInfo['role']) === FALSE) {
+						$this->relatedEvents[$pid]['role'] .= ', ' . $entityInfo['role'];
+					}
 				}else{
 					$this->relatedEvents[$pid] = $entityInfo;
 				}
@@ -1789,7 +1803,9 @@ abstract class IslandoraDriver extends RecordInterface {
 				$entityInfo['link']= '/Archive/' . $pid . '/Organization';
 				if ($isCreator) {
 					if (array_key_exists($pid, $this->creators)){
-						$this->creators[$pid]['role'] .= ', ' . $entityInfo['role'];
+						if (strpos($this->creators[$pid]['role'], $entityInfo['role']) === FALSE) {
+							$this->creators[$pid]['role'] .= ', ' . $entityInfo['role'];
+						}
 					}else{
 						$this->creators[$pid] = $entityInfo;
 					}
@@ -1809,13 +1825,17 @@ abstract class IslandoraDriver extends RecordInterface {
 						$entityInfo['sortIndex'] = 4;
 					}
 					if (array_key_exists($pid, $this->brandingEntities)){
-						$this->brandingEntities[$pid]['role'] .= ', ' . $entityInfo['role'];
+						if (strpos($this->brandingEntities[$pid]['role'], $entityInfo['role']) === FALSE) {
+							$this->brandingEntities[$pid]['role'] .= ', ' . $entityInfo['role'];
+						}
 					}else{
 						$this->brandingEntities[$pid] = $entityInfo;
 					}
 				}else{
 					if (array_key_exists($pid, $this->relatedOrganizations)){
-						$this->relatedOrganizations[$pid]['role'] .= ', ' . $entityInfo['role'];
+						if (strpos($this->relatedOrganizations[$pid]['role'], $entityInfo['role']) === FALSE) {
+							$this->relatedOrganizations[$pid]['role'] .= ', ' . $entityInfo['role'];
+						}
 					}else{
 						$this->relatedOrganizations[$pid] = $entityInfo;
 					}
