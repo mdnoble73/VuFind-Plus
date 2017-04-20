@@ -151,12 +151,15 @@ abstract class HorizonAPI3_23 extends HorizonAPI
 					return $result;
 				}
 			} else {
+				// Check if barcode is in ILS but never logged into to Pika
+
 				return array(
+					'error' => 'The circulation system does not have an email associated with this card number. Please contact your library to reset your pin.'
 				);
 			}
 		} else {
 			return array(
-				'error' => 'Sorry, we did not find the card number you entered.'
+				'error' => 'Sorry, we did not find the card number you entered, or you have not logged in previously.  Please contact your library to reset your pin.'
 			);
 		}
 	}
