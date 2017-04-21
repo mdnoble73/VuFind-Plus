@@ -35,8 +35,8 @@ else
 				# Get only the latest file
 				if [ -n "$FILE1" ]; then
 					$LOG "~~ Copy fullexport marc file(s)."
-					$LOG "~~ cp $FILE1 /data/vufind-plus/$DESTINATION/marc/fullexport.mrc"
-					cp "$FILE1" /data/vufind-plus/$DESTINATION/marc/fullexport.mrc
+					$LOG "~~ cp --update $FILE1 /data/vufind-plus/$DESTINATION/marc/fullexport.mrc"
+					cp --update "$FILE1" /data/vufind-plus/$DESTINATION/marc/fullexport.mrc
 
 					if [ $? -ne 0 ]; then
 						$LOG "~~ Copying $FILE1 file failed."
