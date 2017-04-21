@@ -46,7 +46,7 @@ rm /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
 cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 
 # Copy Export from ILS
-/root/cron/copyAspencatExport.sh >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/${PIKASERVER}/copyExport.sh >> ${OUTPUT_FILE}
 # merge files together after the export is copied
 cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar ${PIKASERVER} MergeMarcUpdatesAndDeletes
 
@@ -68,10 +68,9 @@ fi
 
 #Note, no need to extract from Accelerated Reader for this server since it is done by Marmot production extract
 
-FILE=$(find  /data/vufind-plus/aspencat.production/marc/ -name fullexport.mrc -mtime -1 | sort -n | tail -1)
+FILE=$(find  /data/vufind-plus/${PIKASERVER}/marc/ -name fullexport.mrc -mtime -1 | sort -n | tail -1)
 
-if [ -n "$FILE" ]
-then
+if [ -n "$FILE" ]; then
   #check file size
 	FILE1SIZE=$(wc -c <"$FILE")
 	if [ $FILE1SIZE -ge $MINFILE1SIZE ]; then

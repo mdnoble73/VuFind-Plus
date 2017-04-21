@@ -5,18 +5,19 @@
 # 19 Dec 14 sml expanded script to copy updated & deleted marc files from
 #               ftp server and added variable/constants declarations
 # 20 Dec 14 sml added output to track progression of the script as it runs
+# 07 Apr 15 plb adjusted for use of production server
 #-------------------------------------------------------------------------
 # declare variables and constants
 #-------------------------------------------------------------------------
 REMOTE="10.1.2.6:/ftp"
 LOCAL="/mnt/ftp"
-DEST="/data/vufind-plus/aspencat.test/marc"
+DEST="/data/vufind-plus/aspencat.production/marc"
 DATE=`date +%Y%m%d --date="yesterday"`
-LOG="logger -t copyExport "
+LOG="logger -t copyAspencatExport "
 
 #-------------------------------------------------------------------------
 
-$LOG "~> starting copyExport.sh"
+$LOG "~> starting copyAspencatExport.sh"
 
 $LOG "~~ remove old deleted and updated marc record files"
 rm -f $DEST/ascc-catalog-deleted.* $DEST/ascc-catalog-updated.*
@@ -46,7 +47,6 @@ $LOG "~~ umount $LOCAL"
 umount $LOCAL
 $LOG "~~ exit code " $?
 
-$LOG "~> finished copyExport.sh"
+$LOG "~> finished copyAspencatExport.sh"
 
 #-------------------------------------------------------------------------
-#-- eof --
