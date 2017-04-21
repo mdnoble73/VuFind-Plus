@@ -1248,6 +1248,9 @@ abstract class IslandoraDriver extends RecordInterface {
 					$entityTitle = $this->getModsValue('entityTitle', 'marmot', $entity);
 					$relationshipNote = $this->getModsValue('entityRelationshipNote', 'marmot', $entity);
 					$entityRole = $this->getModsAttribute('role', $entity);
+					if (empty($entityRole)){
+						$entityRole = $this->getModsValue('type', 'marmot', $entity);
+					}
 					$this->addRelatedEntityToArrays($entityPid, $entityTitle, 'event', $relationshipNote, $entityRole);
 				}
 
