@@ -1734,22 +1734,10 @@ abstract class IslandoraDriver extends RecordInterface {
 			if ($entityType == 'person'){
 				$entityInfo['link']= '/Archive/' . $pid . '/Person';
 				if ($isCreator) {
-					if (array_key_exists($pid, $this->creators)){
-						if (strpos($this->creators[$pid]['role'], $entityInfo['role']) === FALSE){
-							$this->creators[$pid]['role'] .= ', ' . $entityInfo['role'];
-						}
-					}else{
-						$this->creators[$pid] = $entityInfo;
-					}
+					$this->addEntityToArray($pid, $entityInfo, $this->creators);
 				}
 				if (strlen($role) > 0 && !in_array(strtolower($role), IslandoraDriver::$nonProductionTeamRoles)) {
-					if (array_key_exists($pid, $this->productionTeam)) {
-						if (strpos($this->productionTeam[$pid]['role'], $entityInfo['role']) === FALSE) {
-							$this->productionTeam[$pid]['role'] .= ', ' . $entityInfo['role'];
-						}
-					} else {
-						$this->productionTeam[$pid] = $entityInfo;
-					}
+					$this->addEntityToArray($pid, $entityInfo, $this->productionTeam);
 				}elseif (strlen($role) > 0 && in_array(strtolower($role), IslandoraDriver::$brandingRoles)){
 					if ($role == 'owner'){
 						$entityInfo['sortIndex'] = 1;
@@ -1764,51 +1752,21 @@ abstract class IslandoraDriver extends RecordInterface {
 						$entityInfo['label'] = '';
 						$entityInfo['sortIndex'] = 4;
 					}
-					if (array_key_exists($pid, $this->brandingEntities)){
-						if (strpos($this->brandingEntities[$pid]['role'], $entityInfo['role']) === FALSE) {
-							$this->brandingEntities[$pid]['role'] .= ', ' . $entityInfo['role'];
-						}
-					}else{
-						$this->brandingEntities[$pid] = $entityInfo;
-					}
+					$this->addEntityToArray($pid, $entityInfo, $this->brandingEntities);
 				}else{
-					if (array_key_exists($pid, $this->relatedPeople)){
-						if (strpos($this->relatedPeople[$pid]['role'], $entityInfo['role']) === FALSE) {
-							$this->relatedPeople[$pid]['role'] .= ', ' . $entityInfo['role'];
-						}
-					}else{
-						$this->relatedPeople[$pid] = $entityInfo;
-					}
+					$this->addEntityToArray($pid, $entityInfo, $this->relatedPeople);
 				}
 
 			}elseif ($entityType == 'place'){
 				$entityInfo['link']= '/Archive/' . $pid . '/Place';
-				if (array_key_exists($pid, $this->relatedPlaces)){
-					if (strpos($this->relatedPlaces[$pid]['role'], $entityInfo['role']) === FALSE) {
-						$this->relatedPlaces[$pid]['role'] .= ', ' . $entityInfo['role'];
-					}
-				}else{
-					$this->relatedPlaces[$pid] = $entityInfo;
-				}
+				$this->addEntityToArray($pid, $entityInfo, $this->relatedPlaces);
 			}elseif ($entityType == 'event'){
 				$entityInfo['link']= '/Archive/' . $pid . '/Event';
-				if (array_key_exists($pid, $this->relatedEvents)){
-					if (strpos($this->relatedEvents[$pid]['role'], $entityInfo['role']) === FALSE) {
-						$this->relatedEvents[$pid]['role'] .= ', ' . $entityInfo['role'];
-					}
-				}else{
-					$this->relatedEvents[$pid] = $entityInfo;
-				}
+				$this->addEntityToArray($pid, $entityInfo, $this->relatedEvents);
 			}elseif ($entityType == 'organization'){
 				$entityInfo['link']= '/Archive/' . $pid . '/Organization';
 				if ($isCreator) {
-					if (array_key_exists($pid, $this->creators)){
-						if (strpos($this->creators[$pid]['role'], $entityInfo['role']) === FALSE) {
-							$this->creators[$pid]['role'] .= ', ' . $entityInfo['role'];
-						}
-					}else{
-						$this->creators[$pid] = $entityInfo;
-					}
+					$this->addEntityToArray($pid, $entityInfo, $this->creators);
 				}
 				if (strlen($role) > 0 && in_array(strtolower($role), IslandoraDriver::$brandingRoles)){
 					if ($role == 'owner'){
@@ -1824,21 +1782,9 @@ abstract class IslandoraDriver extends RecordInterface {
 						$entityInfo['label'] = '';
 						$entityInfo['sortIndex'] = 4;
 					}
-					if (array_key_exists($pid, $this->brandingEntities)){
-						if (strpos($this->brandingEntities[$pid]['role'], $entityInfo['role']) === FALSE) {
-							$this->brandingEntities[$pid]['role'] .= ', ' . $entityInfo['role'];
-						}
-					}else{
-						$this->brandingEntities[$pid] = $entityInfo;
-					}
+					$this->addEntityToArray($pid, $entityInfo, $this->brandingEntities);
 				}else{
-					if (array_key_exists($pid, $this->relatedOrganizations)){
-						if (strpos($this->relatedOrganizations[$pid]['role'], $entityInfo['role']) === FALSE) {
-							$this->relatedOrganizations[$pid]['role'] .= ', ' . $entityInfo['role'];
-						}
-					}else{
-						$this->relatedOrganizations[$pid] = $entityInfo;
-					}
+					$this->addEntityToArray($pid, $entityInfo, $this->relatedOrganizations);
 				}
 			}
 		}
@@ -3316,5 +3262,25 @@ abstract class IslandoraDriver extends RecordInterface {
 			return $dateCreatedValue;
 		}
 		return $dateCreatedValue;
+	}
+
+	/**
+	 * @param string $pid
+	 * @param array $entityInfo
+	 * @param array &$array
+	 */
+	private function addEntityToArray($pid, $entityInfo, &$array)
+	{
+		if (array_key_exists($pid, $array)) {
+			if (strlen($entityInfo['role']) > 0) {
+				if (empty($array[$pid]['role'])) {
+					$array[$pid]['role'] = $entityInfo['role'];
+				} elseif (strpos($array[$pid]['role'], $entityInfo['role']) === FALSE) {
+					$array[$pid]['role'] .= ', ' . $entityInfo['role'];
+				}
+			}
+		} else {
+			$array[$pid] = $entityInfo;
+		}
 	}
 }
