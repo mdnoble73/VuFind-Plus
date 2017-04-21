@@ -2741,7 +2741,7 @@ abstract class IslandoraDriver extends RecordInterface {
 			$datesCreated = $this->getModsValues('dateCreated', 'mods', $originInfo, true);
 			$dateCreated = '';
 			foreach ($datesCreated as $dateCreatedTag){
-				$dateCreatedValue = $this->loadFormattedDateFromMods($dateCreatedTag);
+				$dateCreatedValue = $this->loadFormattedDateFromMods('dateCreated', 'mods', $dateCreatedTag);
 				if ($dateCreatedValue){
 					$point = $this->getModsAttribute('point', $dateCreatedTag);
 					$qualifier = $this->getModsAttribute('qualifier', $dateCreatedTag);

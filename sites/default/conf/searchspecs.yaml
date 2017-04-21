@@ -758,6 +758,8 @@ IslandoraKeyword:
       - [exact, ~]
     - mods_extension_marmotLocal_art_techniqueSet_aatID_ms:
       - [exact, ~]
+    - catch_all_fields_mt:
+      - [onephrase, ~]
 
 IslandoraKeywordProper:
   QueryFields:
@@ -868,6 +870,8 @@ IslandoraKeywordProper:
       - [exact, ~]
     - mods_extension_marmotLocal_art_techniqueSet_aatID_ms:
       - [exact, ~]
+    - catch_all_fields_mt:
+      - [onephrase, ~]
 
 IslandoraSubject:
   QueryFields:
