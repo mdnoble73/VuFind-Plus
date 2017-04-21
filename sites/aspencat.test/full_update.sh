@@ -77,7 +77,8 @@ cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 # Copy Export from ILS
 /usr/local/vufind-plus/sites/${PIKASERVER}/copyExport.sh >> ${OUTPUT_FILE}
 # merge files together after the export is copied
-cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar aspencat.test MergeMarcUpdatesAndDeletes
+cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar aspencat.test MergeMarcUpdatesAndDeletes >> ${OUTPUT_FILE}
+#TODO Output needed?
 
 #Extract from Hoopla
 # No Aspencat libraries use hoopla, no need to copy them
@@ -101,8 +102,8 @@ then
 	nice -n -10 java -server -XX:+UseG1GC -jar overdrive_extract.jar ${PIKASERVER} fullReload >> ${OUTPUT_FILE}
 fi
 
-FILE=$(find  /data/vufind-plus/${PIKASERVER}/marc/ -name fullexport.mrc -mtime -1 | sort -n | tail -1)
-if [ -n "$FILE" ]
+FILE=$(find /data/vufind-plus/${PIKASERVER}/marc/ -name fullexport.mrc -mtime -1 | sort -n | tail -1)
+if [ -n "$FILE" ]; then
   #check file size
 	FILE1SIZE=$(wc -c <"$FILE")
 	if [ $FILE1SIZE -ge $MINFILE1SIZE ]; then

@@ -48,7 +48,7 @@ cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 # Copy Export from ILS
 /usr/local/vufind-plus/sites/${PIKASERVER}/copyExport.sh >> ${OUTPUT_FILE}
 # merge files together after the export is copied
-cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar ${PIKASERVER} MergeMarcUpdatesAndDeletes
+cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar ${PIKASERVER} MergeMarcUpdatesAndDeletes >> ${OUTPUT_FILE}
 
 
 #Extract from Hoopla
