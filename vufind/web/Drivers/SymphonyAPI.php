@@ -81,9 +81,11 @@ abstract class SymphonyAPI extends HorizonAPI {
 			$webServiceURL = $this->getWebServiceURL();
 
 			//$userDescribeResponse = $this->getWebServiceResponse($webServiceURL . '/v1/user/describe', null, $sessionToken);
-			$patronDescribeResponse = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/describe', null, $sessionToken);
-			$patronStatusInfoDescribeResponse = $this->getWebServiceResponse($webServiceURL . '/v1/user/patronStatusInfo/describe', null, $sessionToken);
-			$lookupMyAccountInfoResponse = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/key/' . $userID . '?includeFields=firstName,lastName,displayName,privilegeExpiresDate,estimatedOverdueAmount,patronStatusInfo,preferredAddress,address1,address2,address3,primaryPhone,patronstatus', null, $sessionToken);
+			$patronDescribeResponse = $this->getWebServiceResponse($webServiceURL . '/ws/user/patron/describe', null, $sessionToken);
+			$patronStatusInfoDescribeResponse = $this->getWebServiceResponse($webServiceURL . '/ws/user/patronStatusInfo/describe', null, $sessionToken);
+			$userProfileDescribeResponse = $this->getWebServiceResponse($webServiceURL . '/ws/policy/profile/describe', null, $sessionToken);
+			//$lookupMyAccountInfoResponse = $this->getWebServiceResponse($webServiceURL . '/ws/user/patron/key/' . $userID . '?includeFields=firstName,lastName,displayName,privilegeExpiresDate,estimatedOverdueAmount,patronStatusInfo,preferredAddress,address1,address2,address3,primaryPhone,patronstatus,checkoutLocation,library', null, $sessionToken);
+			$lookupMyAccountInfoResponse = $this->getWebServiceResponse($webServiceURL . '/ws/user/patron/key/' . $userID , null, $sessionToken);
 			if ($lookupMyAccountInfoResponse){
 				$lastName = $lookupMyAccountInfoResponse->fields->lastName;
 				$firstName = $lookupMyAccountInfoResponse->fields->firstName;
@@ -231,11 +233,12 @@ abstract class SymphonyAPI extends HorizonAPI {
 				}
 
 				//Get additional information about fines, etc
-				$patronStatusResponse = $this->getWebServiceResponse($webServiceURL . '/v1/user/patronStatusInfo/key/' . $userID, null, $sessionToken);
+				$patronStatusResponse = $this->getWebServiceResponse($webServiceURL . '/ws/user/patronStatusInfo/key/' . $userID, null, $sessionToken);
+				$patronStatusResponse2 = $this->getWebServiceResponse($webServiceURL . '/ws/user/patron/key/' . $userID . '?includeFields=patronStatusInfo,circRecordList,estimatedOverdueAmount,blockList,holdRecordList' , null, $sessionToken);
 
 				$finesVal = 0;
-				if (isset($lookupMyAccountInfoResponse->blockList)){
-					foreach ($lookupMyAccountInfoResponse->blockList as $block){
+				if (isset($patronStatusResponse2->fields->blockList)){
+					foreach ($patronStatusResponse2->fields->blockList as $block){
 						// $block is a simplexml object with attribute info about currency, type casting as below seems to work for adding up. plb 3-27-2015
 						$fineAmount = (float) $block->balance;
 						$finesVal += $fineAmount;
@@ -245,9 +248,10 @@ abstract class SymphonyAPI extends HorizonAPI {
 
 				$numHoldsAvailable = 0;
 				$numHoldsRequested = 0;
-				if (isset($lookupMyAccountInfoResponse->holdRecordList)){
-					foreach ($lookupMyAccountInfoResponse->holdRecordList as $hold){
-						if ($hold->status == 'FILLED'){
+				if (isset($patronStatusResponse2->fields->holdRecordList)){
+					foreach ($patronStatusResponse2->fields->holdRecordList as $hold){
+						$holdInfo = $this->getWebServiceResponse($webServiceURL . '/ws/circulation/holdRecord/key/' . $hold->key, null, $sessionToken);
+						if ($holdInfo->fields->status == 'BEING_HELD'){
 							$numHoldsAvailable++;
 						}else{
 							$numHoldsRequested++;
@@ -351,44 +355,43 @@ abstract class SymphonyAPI extends HorizonAPI {
 
 		//Now that we have the session token, get holds information
 		$webServiceURL = $this->getWebServiceURL();
-		$holdRecord = $this->getWebServiceResponse($webServiceURL . "/v1/circulation/holdRecord/describe", null, $sessionToken);
-		$patronHolds = $this->getWebServiceResponse($webServiceURL . "/v1/circulation/holdRecord/patron{key}={$patron->username}", null, $sessionToken);
-		if (isset($patronHolds->HoldInfo)){
+		//Get a list of holds for the user
+		$patronHolds = $this->getWebServiceResponse($webServiceURL . '/ws/user/patron/key/' . $patron->username . '?includeFields=holdRecordList' , null, $sessionToken);
+		$holdRecord = $this->getWebServiceResponse($webServiceURL . "/ws/circulation/holdRecord/describe", null, $sessionToken);
+		if ($patronHolds){
 			require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
-			foreach ($patronHolds->HoldInfo as $hold){
+			foreach ($patronHolds->fields->holdRecordList as $hold){
+				$holdInfo = $this->getWebServiceResponse($webServiceURL . '/ws/circulation/holdRecord/key/' . $hold->key, null, $sessionToken);
 				$curHold = array();
-				$bibId          = (string) $hold->titleKey;
-				$expireDate     = (string) $hold->expireDate;
-				$reactivateDate = (string) $hold->reactivateDate;
+				$bibId                         = $holdInfo->fields->bib->key;
+				$expireDate                    = $holdInfo->fields->expirationDate;
+				$reactivateDate                = $holdInfo->fields->suspendEndDate;
 				$curHold['user']               = $patron->getNameAndLibraryLabel(); //TODO: Likely not needed, because Done in Catalog Connection
-				$curHold['id']                 = $bibId;
+				$curHold['id']                 = $hold->key;
 				$curHold['holdSource']         = 'ILS';
-				$curHold['itemId']             = (string)$hold->itemKey;
-				$curHold['cancelId']           = (string)$hold->holdKey;
-				$curHold['position']           = (string)$hold->queuePosition;
+				$curHold['itemId']             = $holdInfo->fields->item->key;
+				$curHold['cancelId']           = $hold->key;
+				$curHold['position']           = $holdInfo->fields->queuePosition;
 				$curHold['recordId']           = $bibId;
 				$curHold['shortId']            = $bibId;
-				$curHold['title']              = (string)$hold->title;
-				$curHold['sortTitle']          = (string)$hold->title;
-				$curHold['author']             = (string)$hold->author;
-				$curHold['location']           = (string)$hold->pickupLocDescription;
+				//$curHold['title']              = (string)$hold->title;
+				//$curHold['sortTitle']          = (string)$hold->title;
+				//$curHold['author']             = (string)$hold->author;
+				$curHold['location']           = $holdInfo->fields->pickupLibrary->key;
 				$curHold['locationUpdateable'] = true;
 				$curHold['currentPickupName']  = $curHold['location'];
-				$curHold['status']             = ucfirst(strtolower((string)$hold->status));
+				$curHold['status']             = ucfirst(strtolower($holdInfo->fields->status));
 				$curHold['expire']             = strtotime($expireDate);
 				$curHold['reactivate']         = $reactivateDate;
 				$curHold['reactivateTime']     = strtotime($reactivateDate);
 				$curHold['cancelable']         = strcasecmp($curHold['status'], 'Suspended') != 0;
 				$curHold['frozen']             = strcasecmp($curHold['status'], 'Suspended') == 0;
-				if ($curHold['frozen']){
-					$curHold['reactivateTime']   = (int)$hold->reactivateDate;
-				}
 				$curHold['freezeable'] = true;
 				if (strcasecmp($curHold['status'], 'Transit') == 0) {
 					$curHold['freezeable'] = false;
 				}
 
-				$recordDriver = new MarcRecord($bibId);
+				$recordDriver = new MarcRecord('a' . $bibId);
 				if ($recordDriver->isValid()){
 					$curHold['sortTitle']       = $recordDriver->getSortableTitle();
 					$curHold['format']          = $recordDriver->getFormat();
@@ -409,7 +412,7 @@ abstract class SymphonyAPI extends HorizonAPI {
 					}
 				}
 
-				if (!isset($curHold['status']) || strcasecmp($curHold['status'], "filled") != 0){
+				if (!isset($curHold['status']) || strcasecmp($curHold['status'], "being_held") != 0){
 					$holds['unavailable'][] = $curHold;
 				}else{
 					$holds['available'][]   = $curHold;
