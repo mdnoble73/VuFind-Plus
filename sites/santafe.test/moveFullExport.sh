@@ -2,8 +2,8 @@
 
 # This script is for moving a marc full export file from on the ftp server to data directory on the pika server
 
-if [[ $# -ne 2 ]]; then
-	echo "To use, add the ftp source directory for the first parameter, the data directory destination as the second parameter."
+if [[ $# -ne 2 && $# -ne 3 ]]; then
+	echo "To use, add the ftp source directory for the first parameter, the data directory destination as the second parameter, optional third parameter -n to use new ftp server."
 	echo "$0 source destination"
 	echo "eg: $0 hoopla hoopla"
 else
@@ -15,7 +15,12 @@ else
 	LOG="logger -t $0"
 	# tag logging with script name and command line options
 
-	REMOTE="10.1.2.6:/ftp"
+	if [[ $# == 3 && $3 == "-n" ]]; then
+		REMOTE="10.1.2.7:/ftp"
+	else
+		REMOTE="10.1.2.6:/ftp"
+	fi
+
 	LOCAL="/mnt/ftp"
 
 	$LOG "~~ mount $REMOTE $LOCAL"
@@ -23,19 +28,33 @@ else
 
 	if [ -d "$LOCAL/$SOURCE/" ]; then
 		if [ -d "/data/vufind-plus/$DESTINATION/marc/" ]; then
-			if [ $(ls -1A "$LOCAL/$SOURCE/" | grep .mrc | wc -l) -gt 0 ] ; then
-			# only do copy command if there are files present to move
+			if [ $(ls -1A "$LOCAL/$SOURCE/" | grep .mrc | wc -l) -gt 0 ]; then
+				# only do copy command if there are files present to move
 
-				$LOG "~~ Copy fullexport marc file(s)."
-				$LOG "~~ cp $LOCAL/$SOURCE/*.mrc /data/vufind-plus/$DESTINATION/marc/"
-				cp $LOCAL/$SOURCE/*.mrc /data/vufind-plus/$DESTINATION/marc/
+				FILE1=$(ls -rt $LOCAL/$SOURCE/*.mrc|tail -1)
+				# Get only the latest file
+				if [ -n "$FILE1" ]; then
+					$LOG "~~ Copy fullexport marc file(s)."
+					$LOG "~~ cp --update $FILE1 /data/vufind-plus/$DESTINATION/marc/fullexport.mrc"
+					cp --update "$FILE1" /data/vufind-plus/$DESTINATION/marc/fullexport.mrc
 
-				if [ $? -ne 0 ]; then
-					$LOG "~~ Moving $SOURCE marc files failed."
-					echo "Moving $SOURCE marc files failed."
-				else
-					$LOG "~~ $SOURCE marc files were copied."
-					echo "$SOURCE marc files were copied."
+					if [ $? -ne 0 ]; then
+						$LOG "~~ Copying $FILE1 file failed."
+						echo "Copying $FILE1 file failed."
+					else
+						$LOG "~~ $FILE1 file was copied."
+						echo "$FILE1 file was copied."
+
+#						#Production ONLY
+#						if [ ! -d "$LOCAL/$SOURCE/processed/" ]; then
+#							mkdir $LOCAL/$SOURCE/processed/
+#						fi
+#						echo "Moving $FILE1 on ftp server to processed directory."
+#						mv "$FILE1" $LOCAL/$SOURCE/processed/
+
+					fi
+#				else
+#					echo "No File was found in $SOURCE"
 				fi
 			fi
 		else
