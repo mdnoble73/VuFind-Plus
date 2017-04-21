@@ -2662,6 +2662,13 @@ abstract class IslandoraDriver extends RecordInterface {
 					'body' => $citationNotes
 			);
 		}
+		$organizationNotes = $this->getModsValue('organizationNotes', 'marmot');
+		if (strlen($organizationNotes) > 0){
+			$notes[] = array(
+					'label' => 'Notes',
+					'body' => $organizationNotes
+			);
+		}
 
 		$interface->assignAppendToExisting('notes', $notes);
 	}
