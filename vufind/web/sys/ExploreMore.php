@@ -420,15 +420,7 @@ class ExploreMore {
 					foreach ($response['facet_counts']['facet_fields']['RELS_EXT_isMemberOfCollection_uri_ms'] as $collectionInfo) {
 						$archiveObject = $fedoraUtils->getObject($collectionInfo[0]);
 						if ($archiveObject != null) {
-							//Check the mods data to see if it should be suppressed in Pika
-							$mods = $fedoraUtils->getModsData($archiveObject);
-							if ($mods == null){
-								$okToAdd = false;
-							}elseif ($fedoraUtils->getModsValue('includeInPika', 'marmot', $mods) != 'no'){
-								$okToAdd = true;
-							}else{
-								$okToAdd = false;
-							}
+							$okToAdd = $fedoraUtils->isObjectValidForPika($archiveObject);
 
 							if ($okToAdd){
 								$exploreMoreOptions[] = array(
