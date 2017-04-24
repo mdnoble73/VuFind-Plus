@@ -106,7 +106,8 @@ if [ -n "$FILE" ]; then
 		echo $FILE " size " $FILE1SIZE "is less than minimum size :" $MINFILE1SIZE "; Export was not moved to data directory, Full Regrouping & Full Reindexing skipped." >> ${OUTPUT_FILE}
 	fi
 else
-	echo "Did not find a export file from the last 24 hours, Full Regrouping & Full Reindexing skipped." >> ${OUTPUT_FILE}
+	echo "The full export file has not been updated in the last 24 hours, meaning the full export file or the add/deletes files were not delivered. Full Regrouping & Full Reindexing skipped." >> ${OUTPUT_FILE}
+	echo "The full export is delivered Saturday Mornings. The adds/deletes are delivered every night except Friday night."
 fi
 
 # Only needed once on mercury
