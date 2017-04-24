@@ -180,6 +180,14 @@ class WikipediaParser {
 		$pattern = array();
 		$replacement = array();
 
+		//Strip out taxobox
+		$pattern[] = '/{{Taxobox.*}}\n\n/Us';
+		$replacement[] = "";
+
+		//Strip out anything like {{!}}
+		$pattern[] = '/{{!}}/Us';
+		$replacement[] = "";
+
 		// Convert wikipedia links
 		$pattern[] = '/(\x5b\x5b)([^\x5d|]*)(\x5d\x5d)/Us';
 		$replacement[] = '<a href="' . $configArray['Site']['path'] . '/Search/Results?lookfor=%22$2%22&amp;type=Keyword">$2</a>';

@@ -35,8 +35,11 @@
 #####################
 # Daily full update #
 #####################
-10 01 * * * cd /usr/local/vufind-plus/sites/aspencat.test; ./full_update.sh
 # avoid 6pm - 11pm for AspenCat PLB  (PK-288)
+10 01 * * 0-5 cd /usr/local/vufind-plus/sites/aspencat.test; ./full_update.sh
+# start full update early, expecting to use the same full export file
+30 03 * * 6 cd /usr/local/vufind-plus/sites/aspencat.test; ./full_update.sh
+# start full update saturday morning after the new full export has arrived
 
 ######################
 # MySQL Nightly Dump #

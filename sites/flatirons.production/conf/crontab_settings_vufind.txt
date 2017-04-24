@@ -50,7 +50,7 @@
 ###################
 # Pika Cron Jobs  #
 ###################
-7 20 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar flatirons.production UpdateReadingHistory
+7 20 * * * cd /usr/local/vufind-plus/vufind/cron/; java -Dhttps.protocols="TLSv1.1,TLSv1.2" -jar cron.jar flatirons.production UpdateReadingHistory
 20 0 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar flatirons.production DatabaseCleanup
 
 #############################################

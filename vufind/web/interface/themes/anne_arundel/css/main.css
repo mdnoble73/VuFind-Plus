@@ -10596,7 +10596,7 @@ a.browse-thumbnail-sorted.active {
 .archiveComponentContainer .archiveComponent {
   border: 1px solid lightgrey;
   color: #FFF;
-  font-size: 30px;
+  font-size: 20px;
   margin: 10px;
 }
 .archiveComponentContainer .archiveComponent .archiveComponentHeader {

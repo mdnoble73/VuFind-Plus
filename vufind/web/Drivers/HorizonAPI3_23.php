@@ -119,37 +119,47 @@ abstract class HorizonAPI3_23 extends HorizonAPI
 			global $configArray;
 			$userID = $patron->id;
 
-			//email the pin to the user
-			$resetPinAPIUrl = $this->getBaseWebServiceUrl() . '/hzws/v1/user/patron/resetMyPin';
-			$jsonPOST       = array(
-				'login'       => $barcode,
-				'resetPinUrl' => $configArray['Site']['url'] . '/MyAccount/ResetPin?resetToken=<RESET_PIN_TOKEN>&uid=' . $userID
-			);
+			if (!empty($patron->email)) { // check that the patron has an email on file
 
-			$resetPinResponse = $this->getWebServiceResponseUpdated($resetPinAPIUrl, $jsonPOST);
-			// Reset Pin Response is empty JSON on success.
 
-			if ($resetPinResponse === array() && !isset($resetPinResponse['messageList'])) {
-				return array(
-					'success' => true,
+				//email the pin to the user
+				$resetPinAPIUrl = $this->getBaseWebServiceUrl() . '/hzws/v1/user/patron/resetMyPin';
+				$jsonPOST       = array(
+					'login' => $barcode,
+					'resetPinUrl' => $configArray['Site']['url'] . '/MyAccount/ResetPin?resetToken=<RESET_PIN_TOKEN>&uid=' . $userID
 				);
-			} else {
-				$result = array(
-					'error' => "Sorry, we could not e-mail your pin to you.  Please visit the library to reset your pin."
-				);
-				if (isset($resetPinResponse['messageList'])) {
-					$errors = '';
-					foreach ($resetPinResponse['messageList'] as $errorMessage) {
-						$errors .= $errorMessage['message'] . ';';
+
+				$resetPinResponse = $this->getWebServiceResponseUpdated($resetPinAPIUrl, $jsonPOST);
+				// Reset Pin Response is empty JSON on success.
+
+				if ($resetPinResponse === array() && !isset($resetPinResponse['messageList'])) {
+					return array(
+						'success' => true,
+					);
+				} else {
+					$result = array(
+						'error' => "Sorry, we could not e-mail your pin to you.  Please visit the library to reset your pin."
+					);
+					if (isset($resetPinResponse['messageList'])) {
+						$errors = '';
+						foreach ($resetPinResponse['messageList'] as $errorMessage) {
+							$errors .= $errorMessage['message'] . ';';
+						}
+						global $logger;
+						$logger->log('WCPL Driver error updating user\'s Pin :' . $errors, PEAR_LOG_ERR);
 					}
-					global $logger;
-					$logger->log('WCPL Driver error updating user\'s Pin :' . $errors, PEAR_LOG_ERR);
+					return $result;
 				}
-				return $result;
+			} else {
+				// Check if barcode is in ILS but never logged into to Pika
+
+				return array(
+					'error' => 'The circulation system does not have an email associated with this card number. Please contact your library to reset your pin.'
+				);
 			}
 		} else {
 			return array(
-				'error' => 'Sorry, we did not find the card number you entered.'
+				'error' => 'Sorry, we did not find the card number you entered, or you have not logged in previously.  Please contact your library to reset your pin.'
 			);
 		}
 	}

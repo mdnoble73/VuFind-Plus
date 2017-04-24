@@ -46,9 +46,9 @@ rm /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
 cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 
 # Copy Export from ILS
-/root/cron/copyAspencatExport.sh >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/${PIKASERVER}/copyExport.sh >> ${OUTPUT_FILE}
 # merge files together after the export is copied
-cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar ${PIKASERVER} MergeMarcUpdatesAndDeletes
+cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar ${PIKASERVER} MergeMarcUpdatesAndDeletes >> ${OUTPUT_FILE}
 
 
 #Extract from Hoopla
@@ -68,10 +68,9 @@ fi
 
 #Note, no need to extract from Accelerated Reader for this server since it is done by Marmot production extract
 
-FILE=$(find  /data/vufind-plus/aspencat.production/marc/ -name fullexport.mrc -mtime -1 | sort -n | tail -1)
+FILE=$(find  /data/vufind-plus/${PIKASERVER}/marc/ -name fullexport.mrc -mtime -1 | sort -n | tail -1)
 
-if [ -n "$FILE" ]
-then
+if [ -n "$FILE" ]; then
   #check file size
 	FILE1SIZE=$(wc -c <"$FILE")
 	if [ $FILE1SIZE -ge $MINFILE1SIZE ]; then
@@ -91,6 +90,9 @@ then
 
 		#Full Reindex
 		cd /usr/local/vufind-plus/vufind/reindexer; nice -n -3 java -server -XX:+UseG1GC -jar reindexer.jar ${PIKASERVER} fullReindex >> ${OUTPUT_FILE}
+
+			# Delete any exports over 7 days
+			find /data/vufind-plus/${PIKASERVER}/marc_backup/ -mindepth 1 -maxdepth 1 -name *.marc -type f -mtime +7 -delete
 
 	else
 		echo $FILE " size " $FILE1SIZE "is less than minimum size :" $MINFILE1SIZE "; Export was not moved to data directory, Full Regrouping & Full Reindexing skipped." >> ${OUTPUT_FILE}

@@ -232,6 +232,10 @@ abstract class Archive_Object extends Action {
 			$interface->assign('eventStartDate', $startDate);
 		}
 		$startDate = $this->recordDriver->getModsValue('startDate', 'marmot');
+		$formattedDate = DateTime::createFromFormat('Y-m-d', $startDate);
+		if ($formattedDate != false) {
+			$startDate = $formattedDate->format('m/d/Y');
+		}
 		if ($startDate){
 			if ($this->recordDriver instanceof PlaceDriver){
 				$interface->assign('placeStartDate', $startDate);
@@ -239,6 +243,8 @@ abstract class Archive_Object extends Action {
 				$interface->assign('eventStartDate', $startDate);
 			}elseif ($this->recordDriver instanceof OrganizationDriver){
 				$interface->assign('organizationStartDate', $startDate);
+			}elseif ($this->recordDriver instanceof PersonDriver){
+				$interface->assign('birthDate', $startDate);
 			}
 		}
 
@@ -255,6 +261,10 @@ abstract class Archive_Object extends Action {
 			$interface->assign('organizationEndDate', $endDate);
 		}
 		$endDate = $this->recordDriver->getModsValue('endDate', 'marmot');
+		$formattedDate = DateTime::createFromFormat('Y-m-d', $endDate);
+		if ($formattedDate != false) {
+			$endDate = $formattedDate->format('m/d/Y');
+		}
 		if ($endDate){
 			if ($this->recordDriver instanceof PlaceDriver){
 				$interface->assign('placeEndDate', $endDate);
@@ -262,6 +272,8 @@ abstract class Archive_Object extends Action {
 				$interface->assign('eventEndDate', $endDate);
 			}elseif ($this->recordDriver instanceof OrganizationDriver){
 				$interface->assign('organizationEndDate', $endDate);
+			}elseif ($this->recordDriver instanceof PersonDriver){
+				$interface->assign('deathDate', $endDate);
 			}
 		}
 

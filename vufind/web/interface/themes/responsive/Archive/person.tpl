@@ -36,14 +36,6 @@
 						<div class='personDetail'><span class='result-label'>Cause of Death: </span><span class='personDetailValue'>{$genealogyData->causeOfDeath|escape}</span></div>
 					{/if}
 				{/if}
-				{if $wikipediaData}
-					{$wikipediaData.description}
-					<div class="row smallText">
-						<div class="col-xs-12">
-							<a href="http://{$wiki_lang}.wikipedia.org/wiki/{$wikipediaData.name|escape:"url"}" rel="external" onclick="window.open (this.href, 'child'); return false"><span class="note">{translate text='wiki_link'}</span></a>
-						</div>
-					</div>
-				{/if}
 			</div>
 		</div>
 

@@ -35,8 +35,8 @@ else
 				# Get only the latest file
 				if [ -n "$FILE1" ]; then
 					$LOG "~~ Copy fullexport marc file(s)."
-					$LOG "~~ cp $FILE1 /data/vufind-plus/$DESTINATION/marc/fullexport.mrc"
-					cp "$FILE1" /data/vufind-plus/$DESTINATION/marc/fullexport.mrc
+					$LOG "~~ cp --update $FILE1 /data/vufind-plus/$DESTINATION/marc/fullexport.mrc"
+					cp --update "$FILE1" /data/vufind-plus/$DESTINATION/marc/fullexport.mrc
 
 					if [ $? -ne 0 ]; then
 						$LOG "~~ Copying $FILE1 file failed."
@@ -44,6 +44,13 @@ else
 					else
 						$LOG "~~ $FILE1 file was copied."
 						echo "$FILE1 file was copied."
+#						#Production ONLY
+#						if [ ! -d "$LOCAL/$SOURCE/processed/" ]; then
+#							mkdir $LOCAL/$SOURCE/processed/
+#						fi
+#						echo "Moving $FILE1 on ftp server to processed directory."
+#						mv "$FILE1" $LOCAL/$SOURCE/processed/
+
 					fi
 #				else
 #					echo "No File was found in $SOURCE"
