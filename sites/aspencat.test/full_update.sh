@@ -110,10 +110,10 @@ if [ -n "$FILE" ]; then
 		YESTERDAY=`date +%Y%m%d --date="yesterday"`
 		UPDATEFILE=/data/vufind-plus/${PIKASERVER}/marc_backup/ascc-catalog-deleted.$YESTERDAY.marc
 		DELETEFILE=/data/vufind-plus/${PIKASERVER}/marc_backup/ascc-catalog-updated.$YESTERDAY.marc
-		if [! -f $UPDATEFILE ]; then
+		if [ ! -f $UPDATEFILE ]; then
 		 echo "Update File $UPDATEFILE was not found."
 		fi
-		if [! -f $DELETEFILE ]; then
+		if [ ! -f $DELETEFILE ]; then
 		 echo "Delete File $DELETEFILE was not found."
 		fi
 

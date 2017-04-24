@@ -68,14 +68,22 @@ fi
 
 #Note, no need to extract from Accelerated Reader for this server since it is done by Marmot production extract
 
-FILE=$(find  /data/vufind-plus/${PIKASERVER}/marc/ -name fullexport.mrc -mtime -1 | sort -n | tail -1)
-
+FILE=$(find /data/vufind-plus/${PIKASERVER}/marc/ -name fullexport.mrc -mtime -1 | sort -n | tail -1)
 if [ -n "$FILE" ]; then
   #check file size
 	FILE1SIZE=$(wc -c <"$FILE")
 	if [ $FILE1SIZE -ge $MINFILE1SIZE ]; then
+		YESTERDAY=`date +%Y%m%d --date="yesterday"`
+		UPDATEFILE=/data/vufind-plus/${PIKASERVER}/marc_backup/ascc-catalog-deleted.$YESTERDAY.marc
+		DELETEFILE=/data/vufind-plus/${PIKASERVER}/marc_backup/ascc-catalog-updated.$YESTERDAY.marc
+		if [ ! -f $UPDATEFILE ]; then
+		 echo "Update File $UPDATEFILE was not found."
+		fi
+		if [ ! -f $DELETEFILE ]; then
+		 echo "Delete File $DELETEFILE was not found."
+		fi
 
-		echo "Latest export file is " $FILE >> ${OUTPUT_FILE}
+		echo "Latest full export file is " $FILE >> ${OUTPUT_FILE}
 		DIFF=$(($FILE1SIZE - $MINFILE1SIZE))
 		PERCENTABOVE=$((100 * $DIFF / $MINFILE1SIZE))
 		echo "The export file is $PERCENTABOVE (%) larger than the minimum size check." >> ${OUTPUT_FILE}
