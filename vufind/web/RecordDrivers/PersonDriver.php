@@ -33,7 +33,6 @@ class PersonDriver extends IslandoraDriver {
 		global $interface;
 		$moreDetailsOptions = $this->getBaseMoreDetailsOptions();
 		unset($moreDetailsOptions['relatedPlaces']);
-		unset($moreDetailsOptions['relatedPeople']);
 
 		$relatedPlaces = $this->getRelatedPlaces();
 		$unlinkedEntities = $this->unlinkedEntities;
@@ -90,6 +89,7 @@ class PersonDriver extends IslandoraDriver {
 					'body' => $interface->fetch('Archive/relatedPeopleSection.tpl'),
 					'hideByDefault' => false,
 			);
+			unset($moreDetailsOptions['relatedPeople']);
 		}
 
 		return $this->filterAndSortMoreDetailsOptions($moreDetailsOptions);
