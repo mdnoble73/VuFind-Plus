@@ -10,20 +10,6 @@
 		</div>
 	{/if}
 
-	{* Physical Description *}
-	{if !empty($physicalExtents)}
-		<div class="row">
-			<div class="result-label col-sm-4">Physical Description: </div>
-			<div class="result-value col-sm-8">
-				{foreach from=$physicalExtents item=extent}
-					{if $extent}
-						<div>{$extent}</div>
-					{/if}
-				{/foreach}
-			</div>
-		</div>
-	{/if}
-
 	{* Physical Location *}
 	{if !empty($physicalLocation)}
 		<div class="row">

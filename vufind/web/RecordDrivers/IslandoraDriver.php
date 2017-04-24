@@ -815,6 +815,7 @@ abstract class IslandoraDriver extends RecordInterface {
 			if ((count($interface->getVariable('creators')) > 0)
 					|| $this->hasDetails
 					|| (count($interface->getVariable('marriages')) > 0)
+					|| (count($interface->getVariable('physicalExtents')) > 0)
 					|| (count($this->unlinkedEntities) > 0)){
 				$moreDetailsOptions['details'] = array(
 						'label' => 'Details',
