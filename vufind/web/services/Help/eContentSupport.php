@@ -51,6 +51,9 @@ class eContentSupport extends Action
 			$subject = 'eContent Support Request from ' . $name;
 			$from = $_REQUEST['email'];
 
+			$interface->assign('name', $name);
+			$interface->assign('email', $from);
+
 			$body = $interface->fetch('Help/eContentSupportEmail.tpl');
 			if ($mail->send($to, $configArray['Site']['email'], $subject, $body, $from)){
 				$analytics->addEvent("Emails", "eContent Support Succeeded", $_REQUEST['device'], $_REQUEST['format'], $_REQUEST['operatingSystem']);
@@ -69,7 +72,8 @@ class eContentSupport extends Action
 			if (isset($_REQUEST['lightbox'])){
 				$interface->assign('lightbox', true);
 				if ($user){
-					$interface->assign('name', $user->cat_username);
+					$name = $user->firstname .' '. $user->lastname;
+					$interface->assign('name', $name);
 					$interface->assign('email', $user->email);
 				}
 				$result = array(
@@ -80,12 +84,9 @@ class eContentSupport extends Action
 				echo json_encode($result);
 			}else{
 				$interface->assign('lightbox', false);
-				$interface->setTemplate('eContentSupport.tpl');
-				$interface->assign('sidebar', 'Search/home-sidebar.tpl');
-				$interface->display('layout.tpl');
+				$this->display('eContentSupport.tpl', 'eContent Support');
 			}
 		}
 	}
 }
 
-?>
