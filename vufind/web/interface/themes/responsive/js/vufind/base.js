@@ -76,10 +76,10 @@ var VuFind = (function(){
 
 				var Carousel       = $(this),
 						width          = Carousel.innerWidth(),
+						leftMargin     = +Carousel.find('li').css('margin-left').replace('px', ''),
+						rightMargin    = +Carousel.find('li').css('margin-right').replace('px', ''),
 						numCategories  = Carousel.jcarousel('items').length || 1,
 						numItemsToShow = 1;
-
-				// console.log('carousel reload or create event called for ', Carousel);
 
 				// Adjust Browse Category Carousels
 				if (jcarousel.is('#browse-category-carousel')){
@@ -119,10 +119,9 @@ var VuFind = (function(){
 				}
 
 				// Set the width of each item in the carousel
-				width /= numItemsToShow;
-				Carousel.jcarousel('items').css('width', Math.floor(width) + 'px');// Set Width
+				var calcWidth = (width - numItemsToShow*(leftMargin + rightMargin))/numItemsToShow;
+				Carousel.jcarousel('items').css('width', Math.floor(calcWidth) + 'px');// Set Width
 
-				//console.log(Carousel, 'num to show', numItemsToShow, 'width', width);
 				if (numItemsToShow >= numCategories){
 					$(this).offsetParent().children('.jcarousel-control-prev').hide();
 					$(this).offsetParent().children('.jcarousel-control-next').hide();
