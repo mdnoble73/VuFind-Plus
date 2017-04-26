@@ -36,11 +36,17 @@ class eContentSupport extends Action
 			require_once ROOT_DIR . '/sys/Mailer.php';
 			$mail = new VuFindMailer();
 			$userLibrary = Library::getPatronHomeLibrary();
-			if ($userLibrary == null){
-				$to = $configArray['Site']['email'];
-			}else{
+			if (!empty($userLibrary->eContentSupportAddress)){
 				$to = $userLibrary->eContentSupportAddress;
+			}elseif (!empty($configArray['Site']['email'])){
+				$to = $configArray['Site']['email'];
+			} else {
+				echo(json_encode(array(
+					'title' => "Support Request Not Sent",
+					'message' => "<p>We're sorry, but your request could not be submitted because we do not have a support email address on file.</p><p>Please contact your local library.</p>"
+				)));
 			}
+
 			$name = $_REQUEST['name'];
 			$interface->assign('bookAuthor', $_REQUEST['bookAuthor']);
 			$interface->assign('device', $_REQUEST['device']);
@@ -55,11 +61,14 @@ class eContentSupport extends Action
 			$interface->assign('email', $from);
 
 			$body = $interface->fetch('Help/eContentSupportEmail.tpl');
-			if ($mail->send($to, $configArray['Site']['email'], $subject, $body, $from)){
+			//TODO: possibly remove $from as the Reply-To to prevent getting intercepted by spam blockers
+//			if ($mail->send($to, $to, $subject, $body, $from)){
+			if ($mail->send($to, $to, $subject, $body)){
 				$analytics->addEvent("Emails", "eContent Support Succeeded", $_REQUEST['device'], $_REQUEST['format'], $_REQUEST['operatingSystem']);
 				echo(json_encode(array(
 					'title' => "Support Request Sent",
 					'message' => "<p>Your request was sent to our support team.  We will respond to your request as quickly as possible.</p><p>Thank you for using the catalog.</p>"
+				  ,'body' => $body //TODO: remove this
 				)));
 			}else{
 				$analytics->addEvent("Emails", "eContent Support Failed", $_REQUEST['device'], $_REQUEST['format'], $_REQUEST['operatingSystem']);
