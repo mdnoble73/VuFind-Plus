@@ -57,7 +57,7 @@ class MyAccount_Holds extends MyAccount{
 //		$showPlacedColumn = true;
 		$showPlacedColumn = false;
 		$interface->assign('showPlacedColumn', $showPlacedColumn);
-		$showDateWhenSuspending = ($ils == 'Horizon' || $ils == 'CarlX');
+		$showDateWhenSuspending = ($ils == 'Horizon' || $ils == 'CarlX' || $ils == 'Symphony');
 		$interface->assign('showDateWhenSuspending', $showDateWhenSuspending);
 
 		$interface->assign('showPosition', $showPosition);

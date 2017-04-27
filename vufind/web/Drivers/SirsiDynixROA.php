@@ -299,6 +299,7 @@ abstract class SirsiDynixROA extends HorizonAPI {
 
 	protected function loginViaWebService($username, $password) {
 		global $configArray;
+		$loginDescribeResponse = $this->getWebServiceResponse($configArray['Catalog']['webServiceUrl'] . '/user/patron/login/describe');
 		$loginUserUrl = $configArray['Catalog']['webServiceUrl'] . '/user/patron/login';
 		$params = array(
 				'login' => $username,
@@ -333,8 +334,6 @@ abstract class SirsiDynixROA extends HorizonAPI {
 	 * @access public
 	 */
 	public function getMyHolds($patron){
-		global $configArray;
-
 		$availableHolds = array();
 		$unavailableHolds = array();
 		$holds = array(
