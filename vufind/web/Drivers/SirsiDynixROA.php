@@ -376,7 +376,14 @@ abstract class SirsiDynixROA extends HorizonAPI {
 				//$curHold['title']              = (string)$hold->title;
 				//$curHold['sortTitle']          = (string)$hold->title;
 				//$curHold['author']             = (string)$hold->author;
-				$curHold['location']           = $holdInfo->fields->pickupLibrary->key;
+				$curPickupBranch = new Location();
+				$curPickupBranch->code = $holdInfo->fields->pickupLibrary->key;
+				if ($curPickupBranch->find(true)) {
+					$curPickupBranch->fetch();
+					$curHold['currentPickupId'] = $curPickupBranch->locationId;
+					$curHold['currentPickupName'] = $curPickupBranch->displayName;
+					$curHold['location'] = $curPickupBranch->displayName;
+				}
 				$curHold['locationUpdateable'] = true;
 				$curHold['currentPickupName']  = $curHold['location'];
 				$curHold['status']             = ucfirst(strtolower($holdInfo->fields->status));
