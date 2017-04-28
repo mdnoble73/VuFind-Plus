@@ -2,7 +2,7 @@
 /**
  * Creates a report for all patrons of a particular location including
  *
- * @category VuFind-Plus 
+ * @category VuFind-Plus
  * @author Mark Noble <mark@marmot.org>
  * Date: 8/8/13
  * Time: 10:24 AM
@@ -244,6 +244,8 @@ class Report_PatronStatus extends Action{
 	 * @return int
 	 */
 	private function writePatronInfo($excel, $patronInfo, $itemInfo, $firstItem, $sheetIndex, $curRow) {
+		ini_set('memory_limit','32M');
+		set_time_limit(720);
 		$curSheet = $excel->setActiveSheetIndex($sheetIndex);
 		$moneyOwned = 0;
 		$pCode1 = '';
