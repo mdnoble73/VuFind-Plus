@@ -46,6 +46,12 @@ class eContentSupport extends Action
 					'message' => "<p>We're sorry, but your request could not be submitted because we do not have a support email address on file.</p><p>Please contact your local library.</p>"
 				)));
 			}
+			$multipleEmailAddresses = preg_split('/[;,]/', $to, null, PREG_SPLIT_NO_EMPTY);
+			if (!empty($multipleEmailAddresses)) {
+				$sendingAddress = $multipleEmailAddresses[0];
+			} else {
+				$sendingAddress = $to;
+			}
 
 			$name = $_REQUEST['name'];
 			$interface->assign('bookAuthor', $_REQUEST['bookAuthor']);
@@ -55,15 +61,19 @@ class eContentSupport extends Action
 			$interface->assign('problem', $_REQUEST['problem']);
 
 			$subject = 'eContent Support Request from ' . $name;
-			$from = $_REQUEST['email'];
+			$patronEmail = $_REQUEST['email'];
 
 			$interface->assign('name', $name);
-			$interface->assign('email', $from);
+			$interface->assign('email', $patronEmail);
 
 			$body = $interface->fetch('Help/eContentSupportEmail.tpl');
-			//TODO: possibly remove $from as the Reply-To to prevent getting intercepted by spam blockers
-//			if ($mail->send($to, $to, $subject, $body, $from)){
-			if ($mail->send($to, $to, $subject, $body)){
+			$emailResult = $mail->send($to, $sendingAddress, $subject, $body, $patronEmail);
+			if (PEAR::isError($emailResult)) {
+				echo(json_encode(array(
+					'title' => "Support Request Not Sent",
+					'message' => "<p>We're sorry, an error occurred while submitting your request.</p>". $emailResult->getMessage()
+				)));
+			} elseif ($emailResult){
 				$analytics->addEvent("Emails", "eContent Support Succeeded", $_REQUEST['device'], $_REQUEST['format'], $_REQUEST['operatingSystem']);
 				echo(json_encode(array(
 					'title' => "Support Request Sent",
