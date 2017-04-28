@@ -234,57 +234,6 @@ abstract class Record_Record extends Action
 				$interface->assign('mpaaRating', $this->getSubfieldData($mpaaField, 'a'));
 			}
 
-			/** @var File_MARC_Data_Field[] $linkFields */
-			$linkFields = $marcRecord->getFields('856') ;
-			if ($linkFields){
-				$internetLinks = array();
-				$purchaseLinks = array();
-				$field856Index = 0;
-				foreach ($linkFields as $marcField){
-					$field856Index++;
-					//Get the link
-					if ($marcField->getSubfield('u')){
-						$link = $marcField->getSubfield('u')->getData();
-						if ($marcField->getSubfield('3')){
-							$linkText = $marcField->getSubfield('3')->getData();
-						}elseif ($marcField->getSubfield('y')){
-							$linkText = $marcField->getSubfield('y')->getData();
-						}elseif ($marcField->getSubfield('z')){
-							$linkText = $marcField->getSubfield('z')->getData();
-						}else{
-							$linkText = $link;
-						}
-						$showLink = true;
-						//Process some links differently so we can either hide them
-						//or show them in different areas of the catalog.
-						if (preg_match('/purchase|buy/i', $linkText) ||
-								preg_match('/barnesandnoble|tatteredcover|amazon|smashwords\.com/i', $link)){
-							$showLink = false;
-						}
-						$isBookLink = preg_match('/acs\.dcl\.lan|vufind\.douglascountylibraries\.org|catalog\.douglascountylibraries\.org/i', $link);
-						if ($isBookLink == 1){
-							//e-book link, don't show
-							$showLink = false;
-						}
-
-						if ($showLink){
-							//Rewrite the link so we can track usage
-							$link = $configArray['Site']['path'] . '/Record/' . $this->id . '/Link?index=' . $field856Index;
-							$internetLinks[] = array(
-									'link' => $link,
-									'linkText' => $linkText,
-							);
-						}
-					}
-				}
-				if (count($internetLinks) > 0){
-					$interface->assign('internetLinks', $internetLinks);
-				}
-			}
-			if (isset($purchaseLinks) && count($purchaseLinks) > 0){
-				$interface->assign('purchaseLinks', $purchaseLinks);
-			}
-
 			$format = $this->recordDriver->getFormat();
 			$interface->assign('recordFormat', $format);
 			$format_category = $format = $this->recordDriver->getFormatCategory();
