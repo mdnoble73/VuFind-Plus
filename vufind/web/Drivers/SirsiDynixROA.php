@@ -357,7 +357,7 @@ abstract class SirsiDynixROA extends HorizonAPI {
 		//Get a list of holds for the user
 		$patronHolds = $this->getWebServiceResponse($webServiceURL . '/ws/user/patron/key/' . $patron->username . '?includeFields=holdRecordList' , null, $sessionToken);
 		$holdRecord = $this->getWebServiceResponse($webServiceURL . "/ws/circulation/holdRecord/describe", null, $sessionToken);
-		if ($patronHolds){
+		if ($patronHolds && isset($patronHolds->fields)){
 			require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
 			foreach ($patronHolds->fields->holdRecordList as $hold){
 				$holdInfo = $this->getWebServiceResponse($webServiceURL . '/ws/circulation/holdRecord/key/' . $hold->key, null, $sessionToken);
