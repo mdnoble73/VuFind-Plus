@@ -244,7 +244,7 @@ class Report_PatronStatus extends Action{
 	 * @return int
 	 */
 	private function writePatronInfo($excel, $patronInfo, $itemInfo, $firstItem, $sheetIndex, $curRow) {
-		ini_set('memory_limit','32M');
+		ini_set('memory_limit','256M');
 		set_time_limit(720);
 		$curSheet = $excel->setActiveSheetIndex($sheetIndex);
 		$moneyOwned = 0;
