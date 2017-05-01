@@ -36,11 +36,23 @@ class eContentSupport extends Action
 			require_once ROOT_DIR . '/sys/Mailer.php';
 			$mail = new VuFindMailer();
 			$userLibrary = Library::getPatronHomeLibrary();
-			if ($userLibrary == null){
-				$to = $configArray['Site']['email'];
-			}else{
+			if (!empty($userLibrary->eContentSupportAddress)){
 				$to = $userLibrary->eContentSupportAddress;
+			}elseif (!empty($configArray['Site']['email'])){
+				$to = $configArray['Site']['email'];
+			} else {
+				echo(json_encode(array(
+					'title' => "Support Request Not Sent",
+					'message' => "<p>We're sorry, but your request could not be submitted because we do not have a support email address on file.</p><p>Please contact your local library.</p>"
+				)));
 			}
+			$multipleEmailAddresses = preg_split('/[;,]/', $to, null, PREG_SPLIT_NO_EMPTY);
+			if (!empty($multipleEmailAddresses)) {
+				$sendingAddress = $multipleEmailAddresses[0];
+			} else {
+				$sendingAddress = $to;
+			}
+
 			$name = $_REQUEST['name'];
 			$interface->assign('bookAuthor', $_REQUEST['bookAuthor']);
 			$interface->assign('device', $_REQUEST['device']);
@@ -49,14 +61,24 @@ class eContentSupport extends Action
 			$interface->assign('problem', $_REQUEST['problem']);
 
 			$subject = 'eContent Support Request from ' . $name;
-			$from = $_REQUEST['email'];
+			$patronEmail = $_REQUEST['email'];
+
+			$interface->assign('name', $name);
+			$interface->assign('email', $patronEmail);
 
 			$body = $interface->fetch('Help/eContentSupportEmail.tpl');
-			if ($mail->send($to, $configArray['Site']['email'], $subject, $body, $from)){
+			$emailResult = $mail->send($to, $sendingAddress, $subject, $body, $patronEmail);
+			if (PEAR::isError($emailResult)) {
+				echo(json_encode(array(
+					'title' => "Support Request Not Sent",
+					'message' => "<p>We're sorry, an error occurred while submitting your request.</p>". $emailResult->getMessage()
+				)));
+			} elseif ($emailResult){
 				$analytics->addEvent("Emails", "eContent Support Succeeded", $_REQUEST['device'], $_REQUEST['format'], $_REQUEST['operatingSystem']);
 				echo(json_encode(array(
 					'title' => "Support Request Sent",
 					'message' => "<p>Your request was sent to our support team.  We will respond to your request as quickly as possible.</p><p>Thank you for using the catalog.</p>"
+				  ,'body' => $body //TODO: remove this
 				)));
 			}else{
 				$analytics->addEvent("Emails", "eContent Support Failed", $_REQUEST['device'], $_REQUEST['format'], $_REQUEST['operatingSystem']);
@@ -69,7 +91,8 @@ class eContentSupport extends Action
 			if (isset($_REQUEST['lightbox'])){
 				$interface->assign('lightbox', true);
 				if ($user){
-					$interface->assign('name', $user->cat_username);
+					$name = $user->firstname .' '. $user->lastname;
+					$interface->assign('name', $name);
 					$interface->assign('email', $user->email);
 				}
 				$result = array(
@@ -80,12 +103,9 @@ class eContentSupport extends Action
 				echo json_encode($result);
 			}else{
 				$interface->assign('lightbox', false);
-				$interface->setTemplate('eContentSupport.tpl');
-				$interface->assign('sidebar', 'Search/home-sidebar.tpl');
-				$interface->display('layout.tpl');
+				$this->display('eContentSupport.tpl', 'eContent Support');
 			}
 		}
 	}
 }
 
-?>

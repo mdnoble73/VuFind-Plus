@@ -68,14 +68,22 @@ fi
 
 #Note, no need to extract from Accelerated Reader for this server since it is done by Marmot production extract
 
-FILE=$(find  /data/vufind-plus/${PIKASERVER}/marc/ -name fullexport.mrc -mtime -1 | sort -n | tail -1)
-
+FILE=$(find /data/vufind-plus/${PIKASERVER}/marc/ -name fullexport.mrc -mtime -1 | sort -n | tail -1)
 if [ -n "$FILE" ]; then
   #check file size
 	FILE1SIZE=$(wc -c <"$FILE")
 	if [ $FILE1SIZE -ge $MINFILE1SIZE ]; then
+		YESTERDAY=`date +%Y%m%d --date="yesterday"`
+		UPDATEFILE=/data/vufind-plus/${PIKASERVER}/marc_backup/ascc-catalog-deleted.$YESTERDAY.marc
+		DELETEFILE=/data/vufind-plus/${PIKASERVER}/marc_backup/ascc-catalog-updated.$YESTERDAY.marc
+		if [ ! -f $UPDATEFILE ]; then
+		 echo "Update File $UPDATEFILE was not found."
+		fi
+		if [ ! -f $DELETEFILE ]; then
+		 echo "Delete File $DELETEFILE was not found."
+		fi
 
-		echo "Latest export file is " $FILE >> ${OUTPUT_FILE}
+		echo "Latest full export file is " $FILE >> ${OUTPUT_FILE}
 		DIFF=$(($FILE1SIZE - $MINFILE1SIZE))
 		PERCENTABOVE=$((100 * $DIFF / $MINFILE1SIZE))
 		echo "The export file is $PERCENTABOVE (%) larger than the minimum size check." >> ${OUTPUT_FILE}
@@ -98,7 +106,8 @@ if [ -n "$FILE" ]; then
 		echo $FILE " size " $FILE1SIZE "is less than minimum size :" $MINFILE1SIZE "; Export was not moved to data directory, Full Regrouping & Full Reindexing skipped." >> ${OUTPUT_FILE}
 	fi
 else
-	echo "Did not find a export file from the last 24 hours, Full Regrouping & Full Reindexing skipped." >> ${OUTPUT_FILE}
+	echo "The full export file has not been updated in the last 24 hours, meaning the full export file or the add/deletes files were not delivered. Full Regrouping & Full Reindexing skipped." >> ${OUTPUT_FILE}
+	echo "The full export is delivered Saturday Mornings. The adds/deletes are delivered every night except Friday night."
 fi
 
 # Only needed once on mercury

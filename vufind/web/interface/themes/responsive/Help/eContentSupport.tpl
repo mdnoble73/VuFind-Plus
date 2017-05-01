@@ -6,14 +6,14 @@
 		<input type="hidden" name="submit" value="submitted"/>
 		{if !$user}
 			<div class='form-group'>
-				<label for='libraryCardNumber' class='control-label'>Library Card Number: *</label><input type="text" name="libraryCardNumber" id="libraryCardNumber" class="required form-control" maxlength="20" size="20"/>
+				<label for='libraryCardNumber' class='control-label'>Library Card Number:  <span class="requiredIndicator">*</span></label><input type="text" name="libraryCardNumber" id="libraryCardNumber" class="required form-control" maxlength="20" size="20"/>
 			</div>
 		{/if}
 		<div class='form-group'>
-			<label for='name' class='control-label'>Name:</label><input type="text" name="name" id="name" class="required form-control" maxlength="120" size="60" value="{$name}"/>
+			<label for='name' class='control-label'>Name: <span class="requiredIndicator">*</span></label><input type="text" name="name" id="name" class="required form-control" maxlength="120" size="60" value="{$name}"/>
 		</div>
 		<div class='form-group'>
-			<label for='email' class='control-label'>E-mail:</label><input type="text" name="email" id="email" class="required email form-control" maxlength="120" size="60" value="{$email}"/>
+			<label for='email' class='control-label'>E-mail: <span class="requiredIndicator">*</span></label><input type="text" name="email" id="email" class="required email form-control" maxlength="120" size="60" value="{$email}"/>
 		</div>
 		<div class='form-group'>
 			<label for='bookAuthor' class='control-label'>Book Title/Author:</label><input type="text" name="bookAuthor" id="bookAuthor" maxlength="120" size="60" class="form-control"/>
@@ -37,8 +37,10 @@
 			<label for='operatingSystem' class='control-label'>Operating System:</label>
 			<select name="operatingSystem" id="operatingSystem" class="form-control">
 				<option value="">-Select an Operating System-</option>
+				<option value="Win-10">Windows 10</option>
 				<option value="XP">Windows XP</option>
 				<option value="Vista">Windows Vista</option>
+				<option value="Win-8">Windows 8</option>
 				<option value="Win-7">Windows 7</option>
 				<option value="Mac">Max OS X 10.?</option>
 				<option value="kindle">Kindle</option>

@@ -9,7 +9,7 @@
 require_once ROOT_DIR . '/Drivers/HorizonAPI.php';
 require_once ROOT_DIR . '/sys/Account/User.php';
 
-abstract class SymphonyAPI extends HorizonAPI {
+abstract class SirsiDynixROA extends HorizonAPI {
 	//TODO: Additional caching of sessionIds by patron
 	private static $sessionIdsForUsers = array();
 
@@ -166,7 +166,7 @@ abstract class SymphonyAPI extends HorizonAPI {
 					}
 				} else {
 					global $logger;
-					$logger->log('SymphonyAPI Driver: No Home Library Location or Hold location found in account look-up. User : '.$user->id, PEAR_LOG_ERR);
+					$logger->log('SirsiDynixROA Driver: No Home Library Location or Hold location found in account look-up. User : '.$user->id, PEAR_LOG_ERR);
 					// The code below will attempt to find a location for the library anyway if the homeLocation is already set
 				}
 
@@ -299,6 +299,7 @@ abstract class SymphonyAPI extends HorizonAPI {
 
 	protected function loginViaWebService($username, $password) {
 		global $configArray;
+		$loginDescribeResponse = $this->getWebServiceResponse($configArray['Catalog']['webServiceUrl'] . '/user/patron/login/describe');
 		$loginUserUrl = $configArray['Catalog']['webServiceUrl'] . '/user/patron/login';
 		$params = array(
 				'login' => $username,
@@ -314,7 +315,7 @@ abstract class SymphonyAPI extends HorizonAPI {
 			if (isset($loginUserResponse->sessionToken)){
 				$userID = $loginUserResponse->patronKey;
 				$sessionToken = $loginUserResponse->sessionToken;
-				SymphonyAPI::$sessionIdsForUsers[$userID] = $sessionToken;
+				SirsiDynixROA::$sessionIdsForUsers[$userID] = $sessionToken;
 				return array(true, $sessionToken, $userID);
 			}else{
 				return array(false, false, false);
@@ -333,8 +334,6 @@ abstract class SymphonyAPI extends HorizonAPI {
 	 * @access public
 	 */
 	public function getMyHolds($patron){
-		global $configArray;
-
 		$availableHolds = array();
 		$unavailableHolds = array();
 		$holds = array(
@@ -343,8 +342,8 @@ abstract class SymphonyAPI extends HorizonAPI {
 		);
 
 		//Get the session token for the user
-		if (isset(SymphonyAPI::$sessionIdsForUsers[$patron->id])){
-			$sessionToken = SymphonyAPI::$sessionIdsForUsers[$patron->id];
+		if (isset(SirsiDynixROA::$sessionIdsForUsers[$patron->id])){
+			$sessionToken = SirsiDynixROA::$sessionIdsForUsers[$patron->id];
 		}else{
 			//Log the user in
 			list($userValid, $sessionToken) = $this->loginViaWebService($patron->cat_username, $patron->cat_password);
@@ -358,7 +357,7 @@ abstract class SymphonyAPI extends HorizonAPI {
 		//Get a list of holds for the user
 		$patronHolds = $this->getWebServiceResponse($webServiceURL . '/ws/user/patron/key/' . $patron->username . '?includeFields=holdRecordList' , null, $sessionToken);
 		$holdRecord = $this->getWebServiceResponse($webServiceURL . "/ws/circulation/holdRecord/describe", null, $sessionToken);
-		if ($patronHolds){
+		if ($patronHolds && isset($patronHolds->fields)){
 			require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
 			foreach ($patronHolds->fields->holdRecordList as $hold){
 				$holdInfo = $this->getWebServiceResponse($webServiceURL . '/ws/circulation/holdRecord/key/' . $hold->key, null, $sessionToken);
@@ -377,7 +376,14 @@ abstract class SymphonyAPI extends HorizonAPI {
 				//$curHold['title']              = (string)$hold->title;
 				//$curHold['sortTitle']          = (string)$hold->title;
 				//$curHold['author']             = (string)$hold->author;
-				$curHold['location']           = $holdInfo->fields->pickupLibrary->key;
+				$curPickupBranch = new Location();
+				$curPickupBranch->code = $holdInfo->fields->pickupLibrary->key;
+				if ($curPickupBranch->find(true)) {
+					$curPickupBranch->fetch();
+					$curHold['currentPickupId'] = $curPickupBranch->locationId;
+					$curHold['currentPickupName'] = $curPickupBranch->displayName;
+					$curHold['location'] = $curPickupBranch->displayName;
+				}
 				$curHold['locationUpdateable'] = true;
 				$curHold['currentPickupName']  = $curHold['location'];
 				$curHold['status']             = ucfirst(strtolower($holdInfo->fields->status));
@@ -420,5 +426,136 @@ abstract class SymphonyAPI extends HorizonAPI {
 			}
 		}
 		return $holds;
+	}
+
+	/**
+	 * Place Item Hold
+	 *
+	 * This is responsible for both placing item level holds.
+	 *
+	 * @param   User    $patron     The User to place a hold for
+	 * @param   string  $recordId   The id of the bib record
+	 * @param   string  $itemId     The id of the item to hold
+	 * @param   string  $comment    Any comment regarding the hold or recall
+	 * @param   string  $type       Whether to place a hold or recall
+	 * @return  mixed               True if successful, false if unsuccessful
+	 *                              If an error occurs, return a PEAR_Error
+	 * @access  public
+	 */
+	function placeItemHold($patron, $recordId, $itemId, $comment = '', $type = 'request') {
+		global $configArray;
+
+		$userId = $patron->id;
+
+		//Get the session token for the user
+		if (isset(SirsiDynixROA::$sessionIdsForUsers[$userId])){
+			$sessionToken = SirsiDynixROA::$sessionIdsForUsers[$userId];
+		}else{
+			//Log the user in
+			list($userValid, $sessionToken) = $this->loginViaWebService($patron->cat_username, $patron->cat_password);
+			if (!$userValid){
+				return array(
+						'success' => false,
+						'message' => 'Sorry, it does not look like you are logged in currently.  Please login and try again');
+			}
+		}
+
+		// Retrieve Full Marc Record
+		require_once ROOT_DIR . '/RecordDrivers/Factory.php';
+		$record = RecordDriverFactory::initRecordDriverById('ils:' . $recordId);
+		if (!$record) {
+			$title = null;
+		}else{
+			$title = $record->getTitle();
+		}
+
+		if ($configArray['Catalog']['offline']){
+			require_once ROOT_DIR . '/sys/OfflineHold.php';
+			$offlineHold = new OfflineHold();
+			$offlineHold->bibId = $recordId;
+			$offlineHold->patronBarcode = $patron->getBarcode();
+			$offlineHold->patronId = $patron->id;
+			$offlineHold->timeEntered = time();
+			$offlineHold->status = 'Not Processed';
+			if ($offlineHold->insert()){
+				//TODO: use bib or bid ??
+				return array(
+						'title'   => $title,
+						'bib'     => $recordId,
+						'success' => true,
+						'message' => 'The circulation system is currently offline.  This hold will be entered for you automatically when the circulation system is online.');
+			}else{
+				return array(
+						'title'   => $title,
+						'bib'     => $recordId,
+						'success' => false,
+						'message' => 'The circulation system is currently offline and we could not place this hold.  Please try again later.');
+			}
+
+		}else{
+			if ($type == 'cancel' || $type == 'recall' || $type == 'update') {
+				$result = $this->updateHold($patron, $recordId, $type/*, $title*/);
+				$result['title'] = $title;
+				$result['bid']   = $recordId;
+				return $result;
+
+			} else {
+				if (isset($_REQUEST['campus'])){
+					$campus=trim($_REQUEST['campus']);
+				}else{
+					$campus = $patron->homeLocationId;
+				}
+				//create the hold using the web service
+				$webServiceURL = $this->getWebServiceURL();
+
+				$holdData = array(
+						'patronBarcode' => $patron->getBarcode(),
+						'pickupLibrary' => array(
+								'resource' => '/policy/library',
+								'key' => strtoupper($campus)
+						),
+				);
+				if ($itemId){
+					$holdData['itemBarcode'] = $itemId;
+					$holdData['holdType'] = 'COPY';
+				}else{
+					$shortRecordId = str_replace('a', '', $recordId);
+					$holdData['bib'] = array(
+							'resource' => '/catalog/bib',
+							'key' => $shortRecordId
+					);
+					$holdData['holdType'] = 'TITLE';
+				}
+
+				$holdRecord = $this->getWebServiceResponse($webServiceURL . "/ws/circulation/holdRecord/placeHold/describe", null, $sessionToken);
+				$createHoldResponse = $this->getWebServiceResponse($webServiceURL . "/ws/circulation/holdRecord/placeHold", $holdData, $sessionToken);
+
+				$hold_result = array();
+				if (isset($createHoldResponse->messageList)){
+					$hold_result['success'] = false;
+					$hold_result['message'] = 'Your hold could not be placed. ';
+					if (isset($createHoldResponse->messageList)){
+						$hold_result['message'] .= (string)$createHoldResponse->messageList[0]->message;
+					}
+				}else{
+					$hold_result['success'] = true;
+					$hold_result['message'] = 'Your hold was placed successfully.';
+				}
+
+				$hold_result['title']  = $title;
+				$hold_result['bid']    = $recordId;
+				global $analytics;
+				if ($analytics){
+					if ($hold_result['success'] == true){
+						$analytics->addEvent('ILS Integration', 'Successful Hold', $title);
+					}else{
+						$analytics->addEvent('ILS Integration', 'Failed Hold', $hold_result['message'] . ' - ' . $title);
+					}
+				}
+				//Clear the patron profile
+				return $hold_result;
+
+			}
+		}
 	}
 }

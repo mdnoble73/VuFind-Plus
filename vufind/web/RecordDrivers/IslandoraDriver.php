@@ -815,6 +815,7 @@ abstract class IslandoraDriver extends RecordInterface {
 			if ((count($interface->getVariable('creators')) > 0)
 					|| $this->hasDetails
 					|| (count($interface->getVariable('marriages')) > 0)
+					|| (count($interface->getVariable('physicalExtents')) > 0)
 					|| (count($this->unlinkedEntities) > 0)){
 				$moreDetailsOptions['details'] = array(
 						'label' => 'Details',
@@ -3266,10 +3267,17 @@ abstract class IslandoraDriver extends RecordInterface {
 	private function loadFormattedDateFromMods($tag, $namespace = null, $snippet = null, $includeTag = false)
 	{
 		$dateCreatedValue = $this->getModsValue($tag, $namespace, $snippet, $includeTag);
+		if (strlen($dateCreatedValue) == 0) return $dateCreatedValue;
 		$formattedDate = DateTime::createFromFormat('Y-m-d', $dateCreatedValue);
 		if ($formattedDate != false) {
 			$dateCreatedValue = $formattedDate->format('m/d/Y');
 			return $dateCreatedValue;
+		}else{
+			$formattedDate = DateTime::createFromFormat('Y-m', $dateCreatedValue);
+			if ($formattedDate != false) {
+				$dateCreatedValue = $formattedDate->format('F Y');
+				return $dateCreatedValue;
+			}
 		}
 		return $dateCreatedValue;
 	}

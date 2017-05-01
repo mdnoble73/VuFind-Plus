@@ -74,12 +74,6 @@ rm /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
 #Restart Solr
 cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 
-# Copy Export from ILS
-/usr/local/vufind-plus/sites/${PIKASERVER}/copyExport.sh >> ${OUTPUT_FILE}
-# merge files together after the export is copied
-cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar aspencat.test MergeMarcUpdatesAndDeletes >> ${OUTPUT_FILE}
-#TODO Output needed?
-
 #Extract from Hoopla
 # No Aspencat libraries use hoopla, no need to copy them
 #cd /usr/local/vufind-plus/vufind/cron;./GetHooplaFromMarmot.sh >> ${OUTPUT_FILE}
@@ -101,19 +95,35 @@ then
 	cd /usr/local/vufind-plus/vufind/overdrive_api_extract/
 	nice -n -10 java -server -XX:+UseG1GC -jar overdrive_extract.jar ${PIKASERVER} fullReload >> ${OUTPUT_FILE}
 fi
+# Copy Export from ILS
+/usr/local/vufind-plus/sites/${PIKASERVER}/copyExport.sh >> ${OUTPUT_FILE}
+YESTERDAY=`date +%Y%m%d --date="yesterday"`
+UPDATEFILE=/data/vufind-plus/${PIKASERVER}/marc_backup/ascc-catalog-deleted.$YESTERDAY.marc
+DELETEFILE=/data/vufind-plus/${PIKASERVER}/marc_backup/ascc-catalog-updated.$YESTERDAY.marc
 
+if [ -f $UPDATEFILE && -f $DELETEFILE ]; then
+	# if the update and delete files are found, merge them into the fullexport file.
+	cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar aspencat.test MergeMarcUpdatesAndDeletes >> ${OUTPUT_FILE}
+else
+		if [ ! -f $UPDATEFILE ]; then
+		 echo "Update File $UPDATEFILE was not found."
+		fi
+		if [ ! -f $DELETEFILE ]; then
+		 echo "Delete File $DELETEFILE was not found."
+		fi
+fi
+
+# if the update/delete files aren't found merging won't occur, which would have updated the timestamp on the fullexport file.
+# therefore the next if block, is a good check for everyday of the week.
 FILE=$(find /data/vufind-plus/${PIKASERVER}/marc/ -name fullexport.mrc -mtime -1 | sort -n | tail -1)
 if [ -n "$FILE" ]; then
   #check file size
 	FILE1SIZE=$(wc -c <"$FILE")
 	if [ $FILE1SIZE -ge $MINFILE1SIZE ]; then
-		YESTERDAY=`date +%Y%m%d --date="yesterday"`
-		UPDATEFILE=/data/vufind-plus/${PIKASERVER}/marc_backup/ascc-catalog-deleted.$YESTERDAY.marc
-		DELETEFILE=/data/vufind-plus/${PIKASERVER}/marc_backup/ascc-catalog-updated.$YESTERDAY.marc
-		if [! -f $UPDATEFILE ]; then
+		if [ ! -f $UPDATEFILE ]; then
 		 echo "Update File $UPDATEFILE was not found."
 		fi
-		if [! -f $DELETEFILE ]; then
+		if [ ! -f $DELETEFILE ]; then
 		 echo "Delete File $DELETEFILE was not found."
 		fi
 
@@ -140,7 +150,8 @@ if [ -n "$FILE" ]; then
 		echo $FILE " size " $FILE1SIZE "is less than minimum size :" $MINFILE1SIZE "; Export was not moved to data directory, Full Regrouping & Full Reindexing skipped." >> ${OUTPUT_FILE}
 	fi
 else
-	echo "Did not find a export file from the last 24 hours, Full Regrouping & Full Reindexing skipped." >> ${OUTPUT_FILE}
+	echo "The full export file has not been updated in the last 24 hours, meaning the full export file or the add/deletes files were not delivered. Full Regrouping & Full Reindexing skipped." >> ${OUTPUT_FILE}
+	echo "The full export is delivered Saturday Mornings. The adds/deletes are delivered every night except Friday night."
 fi
 
 # Clean-up Solr Logs

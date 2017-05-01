@@ -18,9 +18,9 @@
  *
  */
 
-require_once ROOT_DIR . '/Drivers/SymphonyAPI.php';
+require_once ROOT_DIR . '/Drivers/SirsiDynixROA.php';
 
-class AACPL extends SymphonyAPI {
+class AACPL extends SirsiDynixROA {
 
 	function translateFineMessageType($code){
 		switch ($code){

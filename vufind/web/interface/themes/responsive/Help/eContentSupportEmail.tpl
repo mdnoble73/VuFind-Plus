@@ -1,3 +1,6 @@
+From: {$name}
+Email: {$email}
+
 Book Title/Author: {$bookAuthor}
 Device: {$device}
 Format: {$format}
