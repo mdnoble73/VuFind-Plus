@@ -103,6 +103,7 @@ DELETEFILE=/data/vufind-plus/${PIKASERVER}/marc_backup/ascc-catalog-updated.$YES
 
 if [ -f $UPDATEFILE && -f $DELETEFILE ]; then
 	# if the update and delete files are found, merge them into the fullexport file.
+	echo "Merging updates and deletes."
 	cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar aspencat.test MergeMarcUpdatesAndDeletes >> ${OUTPUT_FILE}
 else
 		if [ ! -f $UPDATEFILE ]; then
@@ -111,6 +112,7 @@ else
 		if [ ! -f $DELETEFILE ]; then
 		 echo "Delete File $DELETEFILE was not found."
 		fi
+	echo "Not merging updates and deletes."
 fi
 
 # if the update/delete files aren't found merging won't occur, which would have updated the timestamp on the fullexport file.
