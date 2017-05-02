@@ -101,7 +101,7 @@ YESTERDAY=`date +%Y%m%d --date="yesterday"`
 UPDATEFILE=/data/vufind-plus/${PIKASERVER}/marc_backup/ascc-catalog-deleted.$YESTERDAY.marc
 DELETEFILE=/data/vufind-plus/${PIKASERVER}/marc_backup/ascc-catalog-updated.$YESTERDAY.marc
 
-if [ -f $UPDATEFILE && -f $DELETEFILE ]; then
+if [[ -f $UPDATEFILE && -f $DELETEFILE ]]; then
 	# if the update and delete files are found, merge them into the fullexport file.
 	echo "Merging updates and deletes."
 	cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar aspencat.test MergeMarcUpdatesAndDeletes >> ${OUTPUT_FILE}
