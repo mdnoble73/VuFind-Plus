@@ -39,9 +39,8 @@
 #####################
 # Daily full update #
 #####################
-# Export lands about 11:40pm.  Set the start for right after that.
-# Set the start for just before midnight
-56 23 * * * cd /usr/local/vufind-plus/sites/opac.marmot.org; ./full_update_marmot_prod.sh
+# Export lands on ftp server at 00:10am.  Set the start for right after that.
+20 0 * * * cd /usr/local/vufind-plus/sites/opac.marmot.org; ./full_update_marmot_prod.sh
 
 #Aspencat
 # avoid 6pm - 11pm for AspenCat PLB  (PK-288)
