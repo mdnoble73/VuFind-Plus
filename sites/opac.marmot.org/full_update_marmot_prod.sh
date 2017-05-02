@@ -119,10 +119,10 @@ cd /usr/local/vufind-plus/vufind/cron; ./sideload.sh ${PIKASERVER}
 /usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh ebsco/fortlewis >> ${OUTPUT_FILE}
 
 #Extract Lexile Data
-cd /data/vufind-plus/; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/lexileTitles.txt http://cassini.marmot.org/lexileTitles.txt
+cd /data/vufind-plus/; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/lexileTitles.txt https://cassini.marmot.org/lexileTitles.txt
 
 #Extract AR Data
-cd /data/vufind-plus/accelerated_reader; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/accelerated_reader/RLI-ARDataTAB.txt http://cassini.marmot.org/RLI-ARDataTAB.txt
+cd /data/vufind-plus/accelerated_reader; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/accelerated_reader/RLI-ARDataTAB.txt https://cassini.marmot.org/RLI-ARDataTAB.txt
 
 #Do a full extract from OverDrive just once a week to catch anything that doesn't
 #get caught in the regular extract
