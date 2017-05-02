@@ -77,6 +77,7 @@
 # Process Offline Circs
 29 21 * * * cd /usr/local/vufind-plus/vufind/cron; java -jar cron.jar opac.marmot.org OfflineCirculation
 
+
 # AspenCat
 # All the default cron run does is Reading History update, do that once a day early in the morning after the index completes
 14 5 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar aspencat.production
@@ -93,5 +94,11 @@
 
 # Check Apache Solr process and website that it has not stalled.
 */10 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./solrTest.sh
+
+#################
+# Let's Encrypt #
+#################
+#update catalog.aspencat.info certificate twice daily
+43 3,10 * * * /root/cron/certbot-auto renew
 
 #final end of line character needed for crontab to be read
