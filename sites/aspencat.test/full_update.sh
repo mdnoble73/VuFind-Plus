@@ -102,18 +102,21 @@ YESTERDAY=`date +%Y%m%d --date="yesterday"`
 UPDATEFILE=/data/vufind-plus/${PIKASERVER}/marc_backup/ascc-catalog-deleted.$YESTERDAY.marc
 DELETEFILE=/data/vufind-plus/${PIKASERVER}/marc_backup/ascc-catalog-updated.$YESTERDAY.marc
 
+echo "Looking for ${UPDATEFILE} and ${DELETEFILE}"  >> ${OUTPUT_FILE}
+#TODO: above line for debugging only
+
 if [[ -f $UPDATEFILE && -f $DELETEFILE ]]; then
 	# if the update and delete files are found, merge them into the fullexport file.
-	echo "Merging updates and deletes."
+	echo "Merging updates and deletes." >> ${OUTPUT_FILE}
 	cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar aspencat.test MergeMarcUpdatesAndDeletes >> ${OUTPUT_FILE}
 else
 		if [ ! -f $UPDATEFILE ]; then
-		 echo "Update File $UPDATEFILE was not found."
+		 echo "Update File $UPDATEFILE was not found." >> ${OUTPUT_FILE}
 		fi
 		if [ ! -f $DELETEFILE ]; then
-		 echo "Delete File $DELETEFILE was not found."
+		 echo "Delete File $DELETEFILE was not found." >> ${OUTPUT_FILE}
 		fi
-	echo "Not merging updates and deletes."
+	echo "Not merging updates and deletes." >> ${OUTPUT_FILE}
 fi
 
 # if the update/delete files aren't found merging won't occur, which would have updated the timestamp on the fullexport file.
@@ -123,12 +126,12 @@ if [ -n "$FILE" ]; then
   #check file size
 	FILE1SIZE=$(wc -c <"$FILE")
 	if [ $FILE1SIZE -ge $MINFILE1SIZE ]; then
-		if [ ! -f $UPDATEFILE ]; then
-		 echo "Update File $UPDATEFILE was not found."
-		fi
-		if [ ! -f $DELETEFILE ]; then
-		 echo "Delete File $DELETEFILE was not found."
-		fi
+#		if [ ! -f $UPDATEFILE ]; then
+#		 echo "Update File $UPDATEFILE was not found." >> ${OUTPUT_FILE}
+#		fi
+#		if [ ! -f $DELETEFILE ]; then
+#		 echo "Delete File $DELETEFILE was not found." >> ${OUTPUT_FILE}
+#		fi
 
 		echo "Latest full export file is " $FILE >> ${OUTPUT_FILE}
 		DIFF=$(($FILE1SIZE - $MINFILE1SIZE))
