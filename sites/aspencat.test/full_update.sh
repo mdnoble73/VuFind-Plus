@@ -99,8 +99,8 @@ fi
 # Copy Export from ILS
 /usr/local/vufind-plus/sites/${PIKASERVER}/copyExport.sh >> ${OUTPUT_FILE}
 YESTERDAY=`date +%Y%m%d --date="yesterday"`
-UPDATEFILE=/data/vufind-plus/${PIKASERVER}/marc_backup/ascc-catalog-deleted.$YESTERDAY.marc
-DELETEFILE=/data/vufind-plus/${PIKASERVER}/marc_backup/ascc-catalog-updated.$YESTERDAY.marc
+UPDATEFILE=/data/vufind-plus/${PIKASERVER}/marc/ascc-catalog-deleted.$YESTERDAY.marc
+DELETEFILE=/data/vufind-plus/${PIKASERVER}/marc/ascc-catalog-updated.$YESTERDAY.marc
 
 echo "Looking for ${UPDATEFILE} and ${DELETEFILE}"  >> ${OUTPUT_FILE}
 #TODO: above line for debugging only
@@ -126,12 +126,6 @@ if [ -n "$FILE" ]; then
   #check file size
 	FILE1SIZE=$(wc -c <"$FILE")
 	if [ $FILE1SIZE -ge $MINFILE1SIZE ]; then
-#		if [ ! -f $UPDATEFILE ]; then
-#		 echo "Update File $UPDATEFILE was not found." >> ${OUTPUT_FILE}
-#		fi
-#		if [ ! -f $DELETEFILE ]; then
-#		 echo "Delete File $DELETEFILE was not found." >> ${OUTPUT_FILE}
-#		fi
 
 		echo "Latest full export file is " $FILE >> ${OUTPUT_FILE}
 		DIFF=$(($FILE1SIZE - $MINFILE1SIZE))
@@ -149,8 +143,8 @@ if [ -n "$FILE" ]; then
 		#Full Reindex
 		cd /usr/local/vufind-plus/vufind/reindexer; nice -n -3 java -server -XX:+UseG1GC -jar reindexer.jar ${PIKASERVER} fullReindex >> ${OUTPUT_FILE}
 
-			# Delete any exports over 7 days
-			find /data/vufind-plus/${PIKASERVER}/marc_backup/ -mindepth 1 -maxdepth 1 -name *.marc -type f -mtime +7 -delete
+		# Delete any exports over 7 days
+		find /data/vufind-plus/${PIKASERVER}/marc_backup/ -mindepth 1 -maxdepth 1 -name *.marc -type f -mtime +7 -delete
 
 	else
 		echo $FILE " size " $FILE1SIZE "is less than minimum size :" $MINFILE1SIZE "; Export was not moved to data directory, Full Regrouping & Full Reindexing skipped." >> ${OUTPUT_FILE}
