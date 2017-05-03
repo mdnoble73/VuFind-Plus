@@ -43,10 +43,11 @@
 #--------------------------------------------------------------
 # delete previous days /ftp/sierra/fullexport.marc
 00 23 * * * rm -f /ftp/sierra/fullexport.marc
+#TODO: delete this task once confirmed not needed.
 
 #--------------------------------------------------------------
 # copy and split marmot full export
-01 00 * * * cp /ftp/sierra/fullexport.marc /data/vufind-plus/marmot.ftp/marc/fullexport.mrc;cd /usr/local/vufind-plus/vufind/cron; java -jar cron.jar marmot.ftp SplitMarcExport
+17 00 * * * cp /ftp/sierra/fullexport.marc /data/vufind-plus/marmot.ftp/marc/fullexport.mrc;cd /usr/local/vufind-plus/vufind/cron; java -jar cron.jar marmot.ftp SplitMarcExport
 
 #--------------------------------------------------------------
 # kick off back off backup at 12:15am everday
