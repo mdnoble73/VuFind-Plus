@@ -151,7 +151,7 @@ if [ -n "$FILE" ]; then
 	fi
 else
 	echo "The full export file has not been updated in the last 24 hours, meaning the full export file or the add/deletes files were not delivered. Full Regrouping & Full Reindexing skipped." >> ${OUTPUT_FILE}
-	echo "The full export is delivered Saturday Mornings. The adds/deletes are delivered every night except Friday night."
+	echo "The full export is delivered Saturday Mornings. The adds/deletes are delivered every night except Friday night." >> ${OUTPUT_FILE}
 fi
 
 # Clean-up Solr Logs
