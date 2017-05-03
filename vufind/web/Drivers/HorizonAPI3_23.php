@@ -119,29 +119,25 @@ abstract class HorizonAPI3_23 extends HorizonAPI
 			global $configArray;
 			$userID = $patron->id;
 
-			if (!empty($patron->email)) { // check that the patron has an email on file
+			// If possible, check if Horizon has an email address for the patron
+			if (!empty($patron->cat_password)) {
+				list($userValid, $sessionToken, $userID) = $this->loginViaWebService($barcode, $patron->cat_password);
+				if ($userValid) {
+					// Yay! We were able to login with the pin Pika has!
 
-				// If possible, check if Horizon has an email address for the patron
-				if (!empty($patron->cat_password)) {
-					list($userValid, $sessionToken, $userID) = $this->loginViaWebService($barcode, $patron->cat_password);
-					if ($userValid) {
-						// Yay! We were able to login with the pin Pika has!
-
-						//Now check for an email address
-						$lookupMyAccountInfoResponse = $this->getWebServiceResponse( $configArray['Catalog']['webServiceUrl']  . '/standard/lookupMyAccountInfo?clientID=' . $configArray['Catalog']['clientId'] . '&sessionToken=' . $sessionToken . '&includeAddressInfo=true');
-						if ($lookupMyAccountInfoResponse) {
-							if (isset($lookupMyAccountInfoResponse->AddressInfo)){
-								if (empty($lookupMyAccountInfoResponse->AddressInfo->email)){
-									// return an error message because horizon doesn't have an email.
-									return array(
-										'error' => 'The circulation system does not have an email associated with this card number. Please contact your library to reset your pin.'
-									);
-								}
+					//Now check for an email address
+					$lookupMyAccountInfoResponse = $this->getWebServiceResponse( $configArray['Catalog']['webServiceUrl']  . '/standard/lookupMyAccountInfo?clientID=' . $configArray['Catalog']['clientId'] . '&sessionToken=' . $sessionToken . '&includeAddressInfo=true');
+					if ($lookupMyAccountInfoResponse) {
+						if (isset($lookupMyAccountInfoResponse->AddressInfo)){
+							if (empty($lookupMyAccountInfoResponse->AddressInfo->email)){
+								// return an error message because horizon doesn't have an email.
+								return array(
+									'error' => 'The circulation system does not have an email associated with this card number. Please contact your library to reset your pin.'
+								);
 							}
 						}
 					}
 				}
-
 			}
 
 			// email the pin to the user
