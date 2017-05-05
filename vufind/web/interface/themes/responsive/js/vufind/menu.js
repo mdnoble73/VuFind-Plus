@@ -34,6 +34,9 @@ VuFind.Menu = (function(){
 					if ($('#vertical-menu-bar').length) { // Sidebar Menu is in use
 						//console.log('SideBar Menu is on');
 
+						//Always show horizontal search bar if it being used when not in mobile menu
+						$('#horizontal-search-box').show();
+
 						// Un-select any sidebar option previously selected
 						$('.menu-bar-option').removeClass('menu-icon-selected'); // Remove from any selected
 
@@ -163,11 +166,13 @@ VuFind.Menu = (function(){
 		collapseSideBar: function(){
 			$('#side-bar,#vertical-menu-bar-container').addClass('collapsedSidebar');
 			$('#main-content-with-sidebar').addClass('mainContentWhenSiderbarCollapsed');
+			$('#main-content-with-sidebar .jcarousel').jcarousel('reload'); // resize carousels in the main content sections
 		},
 
 		openSideBar: function(){
 			$('#main-content-with-sidebar').removeClass('mainContentWhenSiderbarCollapsed');
 			$('#side-bar,#vertical-menu-bar-container').removeClass('collapsedSidebar');
+			$('#main-content-with-sidebar .jcarousel').jcarousel('reload'); // resize carousels in the main content sections
 		},
 
 		reloadRelatedTitles: function() {

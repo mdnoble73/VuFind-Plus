@@ -26,6 +26,7 @@ import org.apache.log4j.Logger;
  */
 public class GroupedWorkIndexer {
 	private Ini configIni;
+	private String baseLogPath;
 	private String serverName;
 	private String solrPort;
 	private Logger logger;
@@ -74,6 +75,7 @@ public class GroupedWorkIndexer {
 
 		availableAtLocationBoostValue = Integer.parseInt(configIni.get("Reindex", "availableAtLocationBoostValue"));
 		ownedByLocationBoostValue = Integer.parseInt(configIni.get("Reindex", "ownedByLocationBoostValue"));
+		baseLogPath = Util.cleanIniValue(configIni.get("Site", "baseLogPath"));
 
 		String maxWorksToProcessStr = Util.cleanIniValue(configIni.get("Reindex", "maxWorksToProcess"));
 		if (maxWorksToProcessStr != null && maxWorksToProcessStr.length() > 0){
@@ -223,6 +225,9 @@ public class GroupedWorkIndexer {
 							break;
 						case "SantaFe":
 							ilsRecordProcessors.put(curIdentifier, new SantaFeRecordProcessor(this, vufindConn, configIni, indexingProfileRS, logger, fullReindex));
+							break;
+						case "AACPL":
+							ilsRecordProcessors.put(curIdentifier, new AACPLRecordProcessor(this, vufindConn, configIni, indexingProfileRS, logger, fullReindex));
 							break;
 						case "SideLoadedEContent":
 							ilsRecordProcessors.put(curIdentifier, new SideLoadedEContentProcessor(this, vufindConn, configIni, indexingProfileRS, logger, fullReindex));
@@ -793,7 +798,7 @@ public class GroupedWorkIndexer {
 
 	private void writeWorksWithInvalidLiteraryForms() {
 		logger.info("Writing works with invalid literary forms");
-		File worksWithInvalidLiteraryFormsFile = new File ("/var/log/vufind-plus/" + serverName + "/worksWithInvalidLiteraryForms.txt");
+		File worksWithInvalidLiteraryFormsFile = new File (baseLogPath + "/" + serverName + "/worksWithInvalidLiteraryForms.txt");
 		try {
 			if (worksWithInvalidLiteraryForms.size() > 0) {
 				FileWriter writer = new FileWriter(worksWithInvalidLiteraryFormsFile, false);

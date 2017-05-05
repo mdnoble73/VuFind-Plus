@@ -1540,6 +1540,8 @@ class SearchObject_Islandora extends SearchObject_Base
 	private function getStandardFilters() {
 		$filters = array();
 		global $library;
+		//Make sure we have MODS data
+		$filters[] = "fedora_datastreams_ms:MODS";
 		if ($library->hideAllCollectionsFromOtherLibraries && $library->archiveNamespace){
 			$filters[] = "RELS_EXT_isMemberOfCollection_uri_ms:info\\:fedora/{$library->archiveNamespace}\\:*
 			  OR RELS_EXT_isMemberOfCollection_uri_ms:info\\:fedora/marmot\\:events

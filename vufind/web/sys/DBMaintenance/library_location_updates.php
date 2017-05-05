@@ -1545,14 +1545,23 @@ function getLibraryLocationUpdates(){
 					),
 			),
 
-		'archive_collection_default_view_mode' => array(
-			'title' => 'Viewing Mode for Archive Collections',
-			'description' => 'Default Setting for the Viewing Mode of Archive Collections',
-			'continueOnError' => true,
-			'sql' => array(
-				"ALTER TABLE `library` ADD COLUMN `defaultArchiveCollectionBrowseMode` VARCHAR(25);",
+			'archive_collection_default_view_mode' => array(
+				'title' => 'Viewing Mode for Archive Collections',
+				'description' => 'Default Setting for the Viewing Mode of Archive Collections',
+				'continueOnError' => true,
+				'sql' => array(
+					"ALTER TABLE `library` ADD COLUMN `defaultArchiveCollectionBrowseMode` VARCHAR(25);",
+				),
 			),
-		),
+
+			'show_grouped_hold_copies_count' => array(
+					'title' => 'Show Grouped Hold and Copies Counts',
+					'description' => 'Whether or not the hold count and copies counts should be visible for grouped works when summarizing formats',
+					'continueOnError' => true,
+					'sql' => array(
+							"ALTER TABLE `library` ADD COLUMN `showGroupedHoldCopiesCount` TINYINT(1) DEFAULT 1;",
+					),
+			),
 
 	);
 }

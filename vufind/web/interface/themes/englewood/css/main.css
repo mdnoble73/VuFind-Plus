@@ -8837,6 +8837,10 @@ hr.menu {
   padding: 3px 0;
   margin-bottom: 15px;
 }
+#home-page-hours-locations,
+#home-page-home-button {
+  text-transform: uppercase;
+}
 .sidebar-links .panel-group .panel + .panel {
   margin-top: 0;
 }
@@ -10893,4 +10897,7 @@ fieldset[disabled] .btn-masquerade.active {
 }
 .header-button:hover {
   box-shadow: 2px 2px 5px darkgrey;
+}
+#home-page-hours-locations {
+  text-transform: none;
 }

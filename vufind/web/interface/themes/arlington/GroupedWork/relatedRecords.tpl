@@ -48,7 +48,7 @@
 					<td>{implode subject=$relatedRecord.language glue=","}</td>
 				{/display_if_inconsistent}
 				<td>
-					{include file='GroupedWork/statusIndicator.tpl' statusInformation=$relatedRecord}
+					{include file='GroupedWork/statusIndicator.tpl' statusInformation=$relatedRecord viewingIndividualRecord=1}
 
 					{include file='GroupedWork/copySummary.tpl' summary=$relatedRecord.itemSummary totalCopies=$relatedRecord.copies itemSummaryId=$relatedRecord.id format=$relatedManifestation.format recordViewUrl=$relatedRecord.url}
 

@@ -368,12 +368,12 @@ class ExploreMore {
 					'lookfor' => $searchTerm,
 					'index' => 'IslandoraKeyword'
 				));
-				$searchObject->clearFilters();
 				$searchObject->addFacet('mods_genre_s', 'Format');
 				$searchObject->addFacet('RELS_EXT_isMemberOfCollection_uri_ms', 'Collection');
 				$searchObject->addFacet('mods_extension_marmotLocal_relatedEntity_person_entityPid_ms', 'People');
 				$searchObject->addFacet('mods_extension_marmotLocal_relatedEntity_place_entityPid_ms', 'Places');
 				$searchObject->addFacet('mods_extension_marmotLocal_relatedEntity_event_entityPid_ms', 'Events');
+				$searchObject->addHiddenFilter('!mods_extension_marmotLocal_pikaOptions_showInSearchResults_ms', "no");
 
 				$response = $searchObject->processSearch(true, false);
 				if ($response && $response['response']['numFound'] > 0) {
@@ -387,10 +387,8 @@ class ExploreMore {
 								'lookfor' => $searchTerm,
 								'index' => 'IslandoraKeyword'
 						));
-						$searchObject2->clearHiddenFilters();
-						$searchObject2->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
-						$searchObject2->clearFilters();
 						$searchObject2->addFilter("mods_genre_s:{$relatedContentType[0]}");
+						$searchObject2->addHiddenFilter('!mods_extension_marmotLocal_pikaOptions_showInSearchResults_ms', "no");
 						$response2 = $searchObject2->processSearch(true, false);
 						if ($response2 && $response2['response']['numFound'] > 0) {
 							$firstObject = reset($response2['response']['docs']);
@@ -420,15 +418,7 @@ class ExploreMore {
 					foreach ($response['facet_counts']['facet_fields']['RELS_EXT_isMemberOfCollection_uri_ms'] as $collectionInfo) {
 						$archiveObject = $fedoraUtils->getObject($collectionInfo[0]);
 						if ($archiveObject != null) {
-							//Check the mods data to see if it should be suppressed in Pika
-							$mods = $fedoraUtils->getModsData($archiveObject);
-							if ($mods == null){
-								$okToAdd = false;
-							}elseif ($fedoraUtils->getModsValue('includeInPika', 'marmot', $mods) != 'no'){
-								$okToAdd = true;
-							}else{
-								$okToAdd = false;
-							}
+							$okToAdd = $fedoraUtils->isObjectValidForPika($archiveObject);
 
 							if ($okToAdd){
 								$exploreMoreOptions[] = array(

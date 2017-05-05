@@ -212,5 +212,14 @@ function getGroupedWorkUpdates(){
 				"ALTER TABLE grouped_work_primary_identifiers CHANGE `type` `type` VARCHAR(50) NOT NULL",
 			),
 		),
+
+		'increase_ilsID_size_for_ils_marc_checksums' => array(
+			'title' => 'Expand ilsId Size',
+			'description' => 'Increase the column size of the ilsId in the ils_marc_checksums table to accomodate larger Sideload Ids.',
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE `ils_marc_checksums` CHANGE COLUMN `ilsId` `ilsId` VARCHAR(50) NOT NULL ;",
+			),
+		),
 	);
 }

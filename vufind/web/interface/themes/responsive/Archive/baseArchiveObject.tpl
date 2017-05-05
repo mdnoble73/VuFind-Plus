@@ -15,7 +15,7 @@
 				</div>
 
 				{* Display map if it exists *}
-				{if $mapsKey && $addressInfo.latitude && $addressInfo.longitude}
+				{* if $mapsKey && $addressInfo.latitude && $addressInfo.longitude}
 					<iframe width="100%" height="" frameborder="0" style="border:0" src="https://www.google.com/maps/embed/v1/place?q={$addressInfo.latitude|escape}%2C%20{$addressInfo.longitude|escape}&key={$mapsKey}" allowfullscreen></iframe>
 					{if $addressInfo.latitude && $addressInfo.longitude}
 						<div class="row">
@@ -25,7 +25,7 @@
 							</div>
 						</div>
 					{/if}
-				{/if}
+				{/if *}
 			</div>
 			<div id="main-content" class="col-xs-8 col-sm-7 col-md-8 col-lg-9">
 				{if count($alternateNames) > 0}
@@ -38,34 +38,48 @@
 						</div>
 					</div>
 				{/if}
-				{if $addressInfo && $addressInfo.hasDetailedAddress}
+
+				{if strlen($placeStartDate)}
 					<div class="row">
-						<div class="result-label col-sm-4">Address: </div>
+						<div class="result-label col-sm-4">Founded: </div>
 						<div class="result-value col-sm-8">
-							{if $addressInfo.addressStreetNumber || $addressInfo.addressStreet}
-								{$addressInfo.addressStreetNumber} {$addressInfo.addressStreet}<br/>
-							{/if}
-							{if $addressInfo.address2}
-								{$addressInfo.address2}<br/>
-							{/if}
-							{if $addressInfo.addressCity || $addressInfo.addressState || $addressInfo.addressZipCode}
-								{$addressInfo.addressCity}{if $addressInfo.addressCity && $addressInfo.addressState}, {/if}{$addressInfo.addressState} {$addressInfo.addressZipCode}<br/>
-							{/if}
-							{if $addressInfo.addressCounty}
-								{$addressInfo.addressCounty} County<br/>
-							{/if}
-							{if $addressInfo.addressCountry}
-								{$addressInfo.addressCountry}
-							{/if}
+							{$placeStartDate}
 						</div>
 					</div>
 				{/if}
 
-				{if strlen($startDate) || strlen($endDate)}
+				{if strlen($placeEndDate)}
 					<div class="row">
-						<div class="result-label col-sm-4">Dates: </div>
+						<div class="result-label col-sm-4">Dissolved: </div>
 						<div class="result-value col-sm-8">
-							{$startDate}{if $endDate} to {/if}{$endDate}
+							{$placeEndDate}
+						</div>
+					</div>
+				{/if}
+
+				{if strlen($organizationStartDate)}
+					<div class="row">
+						<div class="result-label col-sm-4">Established: </div>
+						<div class="result-value col-sm-8">
+							{$organizationStartDate}
+						</div>
+					</div>
+				{/if}
+
+				{if strlen($organizationEndDate)}
+					<div class="row">
+						<div class="result-label col-sm-4">Dissolved: </div>
+						<div class="result-value col-sm-8">
+							{$organizationEndDate}
+						</div>
+					</div>
+				{/if}
+
+				{if $eventStartDate || $eventEndDate}
+					<div class="row">
+						<div class="result-label col-sm-4">Date: </div>
+						<div class="result-value col-sm-8">
+							{$eventStartDate} {if $eventEndDate} to {$eventEndDate}{/if}
 						</div>
 					</div>
 				{/if}

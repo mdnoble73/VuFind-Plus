@@ -204,13 +204,19 @@ class FedoraUtils {
 		global $memCache;
 		global $timer;
 		$isValid = $memCache->get('islandora_object_valid_in_pika_' . $archiveObject->id);
-		if ($isValid !== FALSE){
+		if ($isValid !== FALSE && !isset($_REQUEST['reload'])){
 			return $isValid == 1;
 		}else{
 			$mods = FedoraUtils::getInstance()->getModsData($archiveObject);
 			if (strlen($mods) > 0) {
 				$includeInPika = $this->getModsValue('includeInPika', 'marmot', $mods);
 				$okToAdd = $includeInPika != 'no';
+				global $configArray;
+				if ($configArray['Site']['isProduction']) {
+					$okToAdd = ($includeInPika != 'no' && $includeInPika != 'testOnly');
+				}else{
+					$okToAdd = $includeInPika != 'no';
+				}
 			} else {
 				//If we don't get mods, exclude from the display
 				$okToAdd = false;

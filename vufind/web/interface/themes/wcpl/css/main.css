@@ -8837,6 +8837,10 @@ hr.menu {
   padding: 3px 0;
   margin-bottom: 15px;
 }
+#home-page-hours-locations,
+#home-page-home-button {
+  text-transform: uppercase;
+}
 .sidebar-links .panel-group .panel + .panel {
   margin-top: 0;
 }
@@ -10901,4 +10905,44 @@ fieldset[disabled] .btn-masquerade.active {
   text-decoration: underline;
   border-bottom: 0;
   box-shadow: 2px 2px 5px #fff;
+}
+#browse-category-carousel {
+  overflow: visible;
+  left: 0;
+  width: 95%;
+  margin-left: 5%;
+}
+#browse-category-carousel ul {
+  position: static;
+  width: 100%;
+}
+#browse-category-carousel li {
+  width: 23% !important;
+  float: left;
+}
+@media (max-width: 991px) {
+  #browse-category-carousel li {
+    width: 31% !important;
+  }
+}
+@media (max-width: 767px) {
+  #browse-category-carousel li {
+    width: 48% !important;
+  }
+}
+@media (max-width: 479px) {
+  #browse-category-carousel li {
+    width: 98% !important;
+  }
+}
+#browse-category-picker .jcarousel-control-prev,
+#browse-category-picker .jcarousel-control-next,
+#browse-category-picker .jcarousel-pagination {
+  display: none;
+}
+.browse-category.selected {
+  background-color: #2fb6f1;
+  background: -webkit-linear-gradient(top, #2fb6f1, #2fb6f1 82%, #64b7d8 83%, #89cae5 84%, #89cae5 88%, #64b7d8 89%, #2fb6f1 90%, #2fb6f1);
+  background: linear-gradient(to bottom, #2fb6f1, #2fb6f1 82%, #64b7d8 83%, #89cae5 84%, #89cae5 88%, #64b7d8 89%, #2fb6f1 90%, #2fb6f1);
+  font-size: 22px;
 }

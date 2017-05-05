@@ -881,7 +881,12 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		String totalCheckoutsField = getItemSubfieldData(totalCheckoutSubfield, itemField);
 		int totalCheckouts = 0;
 		if (totalCheckoutsField != null){
-			totalCheckouts = Integer.parseInt(totalCheckoutsField);
+			try{
+				totalCheckouts = Integer.parseInt(totalCheckoutsField);
+			}catch (NumberFormatException e){
+				logger.warn("Did not get a number for total checkouts. Got " + totalCheckoutsField);
+			}
+
 		}
 		String ytdCheckoutsField = getItemSubfieldData(ytdCheckoutSubfield, itemField);
 		int ytdCheckouts = 0;
@@ -1269,10 +1274,22 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		getFormatFromEdition(record, printFormats);
 		getFormatFromPhysicalDescription(record, printFormats);
 		getFormatFromSubjects(record, printFormats);
-		getFormatFrom007(record, printFormats);
 		getFormatFromTitle(record, printFormats);
 		getFormatFromDigitalFileCharacteristics(record, printFormats);
-		getFormatFromLeader(printFormats, leader, fixedField);
+		if (printFormats.size() == 0) {
+			//Only get from fixed field information if we don't have anything yet since the catalogging of
+			//fixed fields is not kept up to date reliably.  #D-87
+			getFormatFrom007(record, printFormats);
+			if (printFormats.size() > 1){
+				logger.info("Found more than 1 format for " + recordInfo.getFullIdentifier() + " looking at just 007");
+			}
+			if (printFormats.size() == 0) {
+				getFormatFromLeader(printFormats, leader, fixedField);
+				if (printFormats.size() > 1){
+					logger.info("Found more than 1 format for " + recordInfo.getFullIdentifier() + " looking at just the leader");
+				}
+			}
+		}
 
 		if (printFormats.size() == 0){
 			logger.debug("Did not get any formats for print record " + recordInfo.getFullIdentifier() + ", assuming it is a book ");
@@ -1285,8 +1302,16 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 		filterPrintFormats(printFormats);
 
+		if (printFormats.size() > 1){
+			String formatsString = Util.getCsvSeparatedString(printFormats);
+			if (!formatsToFilter.contains(formatsString)){
+				formatsToFilter.add(formatsString);
+				logger.info("Found more than 1 format for " + recordInfo.getFullIdentifier() + " - " + formatsString);
+			}
+		}
 		return printFormats;
 	}
+	private HashSet<String> formatsToFilter = new HashSet<>();
 
 	private void getFormatFromDigitalFileCharacteristics(Record record, LinkedHashSet<String> printFormats) {
 		Set<String> fields = getFieldList(record, "347b");
@@ -1305,10 +1330,44 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			printFormats.add("Archival Materials");
 			return;
 		}
+		if (printFormats.contains("SoundCassette") && printFormats.contains("MusicRecording")){
+			printFormats.clear();
+			printFormats.add("MusicCassette");
+		}
+		if (printFormats.contains("Thesis")){
+			printFormats.clear();
+			printFormats.add("Thesis");
+		}
+		if (printFormats.contains("Phonograph")){
+			printFormats.clear();
+			printFormats.add("Phonograph");
+			return;
+		}
+		if (printFormats.contains("MusicRecording") && (printFormats.contains("CD") || printFormats.contains("CompactDisc") || printFormats.contains("SoundDisc"))){
+			printFormats.clear();
+			printFormats.add("MusicCD");
+			return;
+		}
+		if (printFormats.contains("Playaway")){
+			printFormats.clear();
+			printFormats.add("Playaway");
+			return;
+		}
+		if (printFormats.contains("GoReader")){
+			printFormats.clear();
+			printFormats.add("GoReader");
+			return;
+		}
 		if (printFormats.contains("Video") && printFormats.contains("DVD")){
 			printFormats.remove("Video");
 		}
+		if (printFormats.contains("VideoDisc") && printFormats.contains("DVD")){
+			printFormats.remove("VideoDisc");
+		}
 		if (printFormats.contains("Video") && printFormats.contains("VideoDisc")){
+			printFormats.remove("Video");
+		}
+		if (printFormats.contains("Video") && printFormats.contains("VideoCassette")){
 			printFormats.remove("Video");
 		}
 		if (printFormats.contains("Blu-ray") && printFormats.contains("VideoDisc")){
@@ -1326,15 +1385,11 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		if (printFormats.contains("SoundCassette") && printFormats.contains("CompactDisc")){
 			printFormats.remove("CompactDisc");
 		}
-		if (printFormats.contains("SoundCassette") && printFormats.contains("MusicRecording")){
-			printFormats.remove("MusicRecording");
+		if (printFormats.contains("SoundRecording") && printFormats.contains("CDROM")){
+			printFormats.clear();
+			printFormats.add("SoundDisc");
 		}
-		if (printFormats.contains("Playaway") && printFormats.contains("SoundRecording")){
-			printFormats.remove("SoundRecording");
-		}
-		if (printFormats.contains("Playaway") && printFormats.contains("Video")){
-			printFormats.remove("Video");
-		}
+
 		if (printFormats.contains("Book") && printFormats.contains("LargePrint")){
 			printFormats.remove("Book");
 		}
@@ -1356,29 +1411,24 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		if (printFormats.contains("AudioCD") && printFormats.contains("CD")){
 			printFormats.remove("AudioCD");
 		}
-		if (printFormats.contains("MusicRecording") && printFormats.contains("Phonograph")){
-			printFormats.remove("MusicRecording");
-		}
-		if (printFormats.contains("Phonograph") && printFormats.contains("SoundDisc")){
-			printFormats.remove("SoundDisc");
-		}
-		if (printFormats.contains("Phonograph") && printFormats.contains("SoundRecording")){
-			printFormats.remove("SoundRecording");
-		}
-		if (printFormats.contains("MusicRecording") && printFormats.contains("CD")){
-			printFormats.remove("CD");
-		}
-		if (printFormats.contains("MusicRecording") && printFormats.contains("CompactDisc")){
-			printFormats.remove("CompactDisc");
-		}
-		if (printFormats.contains("MusicRecording") && printFormats.contains("SoundDisc")){
-			printFormats.remove("SoundDisc");
-		}
+
 		if (printFormats.contains("CD") && printFormats.contains("SoundDisc")){
 			printFormats.remove("CD");
 		}
 		if (printFormats.contains("CompactDisc") && printFormats.contains("SoundDisc")){
 			printFormats.remove("CompactDisc");
+		}
+		if (printFormats.contains("CompactDisc") && printFormats.contains("SoundRecording")){
+			printFormats.remove("SoundRecording");
+		}
+		if (printFormats.contains("GraphicNovel") && printFormats.contains("Serial")){
+			printFormats.remove("Serial");
+		}
+		if (printFormats.contains("Atlas") && printFormats.contains("Map")){
+			printFormats.remove("Atlas");
+		}
+		if (printFormats.contains("LargePrint") && printFormats.contains("Manuscript")){
+			printFormats.remove("Manuscript");
 		}
 		if (printFormats.contains("Kinect") || printFormats.contains("XBox360")  || printFormats.contains("Xbox360")
 				|| printFormats.contains("XBoxOne") || printFormats.contains("PlayStation")
@@ -1465,6 +1515,8 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 						.toLowerCase();
 				if (sysDetailsValue.contains("playaway")) {
 					result.add("Playaway");
+				}else if (sysDetailsValue.contains("go reader")) {
+					result.add("GoReader");
 				}
 			}
 		}
@@ -1479,6 +1531,8 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				String editionData = edition.getSubfield('a').getData().toLowerCase();
 				if (editionData.contains("large type") || editionData.contains("large print")) {
 					result.add("LargePrint");
+				}else if (editionData.contains("go reader")) {
+						result.add("GoReader");
 				}else {
 					String gameFormat = getGameFormatFromValue(editionData);
 					if (gameFormat != null) {
@@ -1553,6 +1607,17 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				String noteValue = noteField.getSubfield('a').getData().toLowerCase();
 				if (noteValue.contains("vertical file")) {
 					result.add("VerticalFile");
+				}
+			}
+		}
+
+		// Check for formats in the 502 tag
+		DataField dissertaionNoteField = (DataField) record.getVariableField("502");
+		if (dissertaionNoteField != null) {
+			if (dissertaionNoteField.getSubfield('a') != null) {
+				String noteValue = dissertaionNoteField.getSubfield('a').getData().toLowerCase();
+				if (noteValue.contains("thesis (m.a.)")) {
+					result.add("Thesis");
 				}
 			}
 		}
@@ -1900,6 +1965,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			}
 		}
 	}
+
 
 	private void getFormatFromLeader(Set<String> result, String leader, ControlField fixedField) {
 		char leaderBit;

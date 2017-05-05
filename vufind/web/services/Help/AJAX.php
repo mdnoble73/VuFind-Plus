@@ -43,14 +43,14 @@ class Help_AJAX extends Action {
 	// Presets for the form to be filled out with
 		$interface->assign('lightbox', true);
 		if ($user){
-			$interface->assign('name', $user->cat_username);
+			$name = $user->firstname .' '. $user->lastname;
+			$interface->assign('name', $name);
 			$interface->assign('email', $user->email);
 		}
 
 		$results = array(
 			'title' => 'eContent Support Request',
 			'modalBody' => $interface->fetch('Help/eContentSupport.tpl'),
-//		'modalButtons' => "<span class='tool btn btn-primary' onclick='$(\"#eContentSupport\").submit(); return false;'>Submit</span>" // does not complete action. plb 10-2-2014
 			'modalButtons' => '<span class="tool btn btn-primary" onclick="VuFind.EContent.submitHelpForm();">Submit</span>'
 		);
 		return json_encode($results);

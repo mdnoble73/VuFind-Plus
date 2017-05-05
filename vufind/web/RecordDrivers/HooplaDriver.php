@@ -27,6 +27,22 @@ class HooplaRecordDriver extends MarcRecord {
 			$this->id = $record;
 
 			$this->valid = MarcLoader::marcExistsForHooplaId($record);
+
+			// Code block taken from MarcRecord.php, to set the indexing profile so that method getAbsoluteURL() works correctly. pascal 4-27-2017
+			global $indexingProfiles;
+			if (array_key_exists($this->profileType, $indexingProfiles)) {
+				$this->indexingProfile = $indexingProfiles[$this->profileType];
+			} else {
+//				//Try to infer the indexing profile from the module
+//				global $activeRecordProfile;
+//				if ($activeRecordProfile) {
+//					$this->indexingProfile = $activeRecordProfile;
+//				} else {
+//					$this->indexingProfile = $indexingProfiles['ils'];
+//				}
+			}
+
+
 		}else{
 			// Call the parent's constructor...
 			parent::__construct($record, $groupedWork);

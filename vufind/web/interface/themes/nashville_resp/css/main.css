@@ -8839,6 +8839,10 @@ hr.menu {
   padding: 3px 0;
   margin-bottom: 15px;
 }
+#home-page-hours-locations,
+#home-page-home-button {
+  text-transform: uppercase;
+}
 .sidebar-links .panel-group .panel + .panel {
   margin-top: 0;
 }

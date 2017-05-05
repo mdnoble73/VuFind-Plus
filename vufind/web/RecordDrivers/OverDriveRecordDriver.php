@@ -93,6 +93,13 @@ class OverDriveRecordDriver extends RecordInterface {
 		}
 	}
 
+	function getAbsoluteUrl(){
+		global $configArray;
+		$recordId = $this->getUniqueID();
+
+		return $configArray['Site']['url'] . '/' . $this->getModule() . '/' . $recordId;
+	}
+
 	public function getPermanentId(){
 		return $this->getGroupedWorkId();
 	}

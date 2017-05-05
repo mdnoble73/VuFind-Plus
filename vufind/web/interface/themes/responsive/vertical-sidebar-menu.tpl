@@ -33,7 +33,7 @@
 					</a>
 				</div>
 				{if $showExploreMore}
-					<div class="menu-bar-option">
+					<div id="sidebar-menu-option-explore-more" class="menu-bar-option">
 						<a href="#" onclick="VuFind.Menu.SideBar.showExploreMore(this)" class="menu-icon" title="{translate text='Explore More'}">
 							<img src="{img filename='/interface/themes/responsive/images/ExploreMore.png'}" alt="{translate text='Explore More'}">
 							<div class="menu-bar-label rotated-text">

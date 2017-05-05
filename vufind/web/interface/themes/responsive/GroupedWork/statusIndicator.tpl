@@ -42,7 +42,7 @@
 		{if $statusInformation.groupedStatus}{$statusInformation.groupedStatus}{else}Withdrawn/Unavailable{/if}
 	</div>
 {/if}
-{if $statusInformation.numHolds > 0 || $statusInformation.onOrderCopies > 0}
+{if ($statusInformation.numHolds > 0 || $statusInformation.onOrderCopies > 0) && ($showGroupedHoldCopiesCount || $viewingIndividualRecord == 1)}
 	<div class="smallText">
 		{if $statusInformation.numHolds > 0}
 			{$statusInformation.copies} {if $statusInformation.copies == 1}copy{else}copies{/if}, {$statusInformation.numHolds} {if $statusInformation.numHolds == 1}person is{else}people are{/if} on the wait list.

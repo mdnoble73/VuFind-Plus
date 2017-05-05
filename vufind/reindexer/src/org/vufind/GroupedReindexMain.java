@@ -28,6 +28,7 @@ public class GroupedReindexMain {
 	private static boolean fullReindex = false;
 	private static String individualWorkToProcess;
 	private static Ini configIni;
+	private static String baseLogPath;
 	private static String solrPort;
 	private static String solrDir;
 	
@@ -280,14 +281,14 @@ public class GroupedReindexMain {
 
 	private static void initializeReindex() {
 		// Delete the existing reindex.log file
-		File solrMarcLog = new File("/var/log/vufind-plus/" + serverName + "/logs/grouped_reindex.log");
+		File solrMarcLog = new File(baseLogPath + "/" + serverName + "/logs/grouped_reindex.log");
 		if (solrMarcLog.exists()){
 			if (!solrMarcLog.delete()){
 				logger.warn("Could not remove " + solrMarcLog.toString());
 			}
 		}
 		for (int i = 1; i <= 10; i++){
-			solrMarcLog = new File("/var/log/vufind-plus/" + serverName + "/logs/grouped_reindex.log." + i);
+			solrMarcLog = new File(baseLogPath + "/" + serverName + "/logs/grouped_reindex.log." + i);
 			if (solrMarcLog.exists()){
 				if (!solrMarcLog.delete()){
 					logger.warn("Could not remove " + solrMarcLog.toString());
@@ -323,6 +324,7 @@ public class GroupedReindexMain {
 		// Parse the configuration file
 		configIni = loadConfigFile();
 
+		baseLogPath = configIni.get("Site", "baseLogPath");
 		solrPort = configIni.get("Reindex", "solrPort");
 		if (solrPort == null || solrPort.length() == 0) {
 			logger.error("You must provide the port where the solr index is loaded in the import configuration file");

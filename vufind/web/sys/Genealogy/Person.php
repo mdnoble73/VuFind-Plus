@@ -53,7 +53,7 @@ class Person extends SolrDataObject
 	public $ledgerYear;
 	public $ledgerEntry;
 
-	//Revision history information 
+	//Revision history information
 	public $addedBy;
 	public $dateAdded;
 	public $modifiedBy;
@@ -396,6 +396,23 @@ class Person extends SolrDataObject
 		if ($year > 0){
 			if (strlen($formattedDate) > 0 && $day > 0) $formattedDate .= ', ';
 			$formattedDate .= ' ' . $year;
+		}
+		return $formattedDate;
+	}
+
+	function formatPartialDateForArchive($day, $month, $year){
+		$formattedDate = '';
+		if ($month > 0){
+			$formattedDate = str_pad($month, 2, '0', STR_PAD_LEFT);
+		}
+		if ($day > 0){
+			if (strlen($formattedDate) > 0) $formattedDate .= '/';
+			$formattedDate .= $day;
+
+		}
+		if ($year > 0){
+			if (strlen($formattedDate) > 0) $formattedDate .= '/';
+			$formattedDate .= $year;
 		}
 		return $formattedDate;
 	}

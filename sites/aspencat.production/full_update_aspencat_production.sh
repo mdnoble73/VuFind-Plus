@@ -45,15 +45,13 @@ rm /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
 #Restart Solr
 cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 
-# Copy Export from ILS
-/root/cron/copyAspencatExport.sh >> ${OUTPUT_FILE}
-# merge files together after the export is copied
-cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar ${PIKASERVER} MergeMarcUpdatesAndDeletes
-
-
 #Extract from Hoopla
 # No Aspencat libraries use hoopla, no need to copy them
 # cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE}
+
+#Note, no need to extract from Lexile for this server since it is done by Marmot production extract
+
+#Note, no need to extract from Accelerated Reader for this server since it is done by Marmot production extract
 
 #Do a full extract from OverDrive just once a week to catch anything that doesn't
 #get caught in the regular extract
@@ -61,22 +59,38 @@ DAYOFWEEK=$(date +"%u")
 if [ "${DAYOFWEEK}" -eq 6 ];
 then
 	cd /usr/local/vufind-plus/vufind/overdrive_api_extract/
-	nice -n -10 java -jar overdrive_extract.jar ${PIKASERVER} fullReload >> ${OUTPUT_FILE}
+	nice -n -10 java -server -XX:+UseG1GC -jar overdrive_extract.jar ${PIKASERVER} fullReload >> ${OUTPUT_FILE}
 fi
 
-#Note, no need to extract from Lexile for this server since it is done by Marmot production extract
+# Copy Export from ILS
+/usr/local/vufind-plus/sites/${PIKASERVER}/copyExport.sh >> ${OUTPUT_FILE}
+YESTERDAY=`date +%Y%m%d --date="yesterday"`
+UPDATEFILE=/data/vufind-plus/${PIKASERVER}/marc/ascc-catalog-deleted.$YESTERDAY.marc
+DELETEFILE=/data/vufind-plus/${PIKASERVER}/marc/ascc-catalog-updated.$YESTERDAY.marc
 
-#Note, no need to extract from Accelerated Reader for this server since it is done by Marmot production extract
+if [[ -f $UPDATEFILE && -f $DELETEFILE ]]; then
+	# if the update and delete files are found, merge them into the fullexport file.
+	echo "Merging updates and deletes." >> ${OUTPUT_FILE}
+	cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar aspencat.test MergeMarcUpdatesAndDeletes >> ${OUTPUT_FILE}
+else
+		if [ ! -f $UPDATEFILE ]; then
+		 echo "Update File $UPDATEFILE was not found." >> ${OUTPUT_FILE}
+		fi
+		if [ ! -f $DELETEFILE ]; then
+		 echo "Delete File $DELETEFILE was not found." >> ${OUTPUT_FILE}
+		fi
+	echo "Not merging updates and deletes." >> ${OUTPUT_FILE}
+fi
 
-FILE=$(find  /data/vufind-plus/aspencat.production/marc/ -name fullexport.mrc -mtime -1 | sort -n | tail -1)
-
-if [ -n "$FILE" ]
-then
+# if the update/delete files aren't found merging won't occur, which would have updated the timestamp on the fullexport file.
+# therefore the next if block, is a good check for everyday of the week.
+FILE=$(find /data/vufind-plus/${PIKASERVER}/marc/ -name fullexport.mrc -mtime -1 | sort -n | tail -1)
+if [ -n "$FILE" ]; then
   #check file size
 	FILE1SIZE=$(wc -c <"$FILE")
 	if [ $FILE1SIZE -ge $MINFILE1SIZE ]; then
 
-		echo "Latest export file is " $FILE >> ${OUTPUT_FILE}
+		echo "Latest full export file is " $FILE >> ${OUTPUT_FILE}
 		DIFF=$(($FILE1SIZE - $MINFILE1SIZE))
 		PERCENTABOVE=$((100 * $DIFF / $MINFILE1SIZE))
 		echo "The export file is $PERCENTABOVE (%) larger than the minimum size check." >> ${OUTPUT_FILE}
@@ -92,11 +106,15 @@ then
 		#Full Reindex
 		cd /usr/local/vufind-plus/vufind/reindexer; nice -n -3 java -server -XX:+UseG1GC -jar reindexer.jar ${PIKASERVER} fullReindex >> ${OUTPUT_FILE}
 
+		# Delete any exports over 7 days
+		find /data/vufind-plus/${PIKASERVER}/marc_backup/ -mindepth 1 -maxdepth 1 -name *.marc -type f -mtime +7 -delete
+
 	else
 		echo $FILE " size " $FILE1SIZE "is less than minimum size :" $MINFILE1SIZE "; Export was not moved to data directory, Full Regrouping & Full Reindexing skipped." >> ${OUTPUT_FILE}
 	fi
 else
-	echo "Did not find a export file from the last 24 hours, Full Regrouping & Full Reindexing skipped." >> ${OUTPUT_FILE}
+	echo "The full export file has not been updated in the last 24 hours, meaning the full export file or the add/deletes files were not delivered. Full Regrouping & Full Reindexing skipped." >> ${OUTPUT_FILE}
+	echo "The full export is delivered Saturday Mornings. The adds/deletes are delivered every night except Friday night." >> ${OUTPUT_FILE}
 fi
 
 # Only needed once on mercury

@@ -44,17 +44,11 @@
 # backup to backup server at 11:25pm daily
 25 23 * * * /root/cron/backup 2>&1 >/dev/null
 
-###################################
-# Daily fetch of marc full export #
-###################################
-1  0  * * * /usr/local/vufind-plus/sites/marmot.test/copySierraExport.sh
-
 #####################
 # Daily full update #
 #####################
-# Export lands about 11:50pm.  Set the start for right after that.
-# Set the start for just before midnight
-# Now setting in the morning toavoid interference with the splitter & marc exports. plb 3-17-2016
+# Export lands on ftp server at 00:10am..  Set the start for right after that.
+# Now setting in the morning to avoid interference with the splitter & marc exports. plb 3-17-2016
 00 08 * * * cd /usr/local/vufind-plus/sites/marmot.test; ./full_update.sh
 
 ################
@@ -95,3 +89,6 @@
 
 # Check Apache Solr process and website that it has not stalled.
 */3 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./solrTest.sh
+
+# Check for semaphore errors
+0 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./apacheSemaphoreCleanup.sh root@marmot.org
