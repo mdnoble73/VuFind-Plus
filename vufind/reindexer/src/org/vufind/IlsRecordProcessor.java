@@ -881,7 +881,12 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		String totalCheckoutsField = getItemSubfieldData(totalCheckoutSubfield, itemField);
 		int totalCheckouts = 0;
 		if (totalCheckoutsField != null){
-			totalCheckouts = Integer.parseInt(totalCheckoutsField);
+			try{
+				totalCheckouts = Integer.parseInt(totalCheckoutsField);
+			}catch (NumberFormatException e){
+				logger.warn("Did not get a number for total checkouts. Got " + totalCheckoutsField);
+			}
+
 		}
 		String ytdCheckoutsField = getItemSubfieldData(ytdCheckoutSubfield, itemField);
 		int ytdCheckouts = 0;
@@ -1960,6 +1965,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			}
 		}
 	}
+
 
 	private void getFormatFromLeader(Set<String> result, String leader, ControlField fixedField) {
 		char leaderBit;

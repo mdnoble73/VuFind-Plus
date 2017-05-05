@@ -82,10 +82,11 @@ cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/colorado_gov_docs/marc/fullexport.mrc http://cassini.marmot.org/colorado_state_docs.mrc
 
 #Extract Lexile Data
-cd /data/vufind-plus/; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/lexileTitles.txt http://cassini.marmot.org/lexileTitles.txt
+cd /data/vufind-plus/; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/lexileTitles.txt https://cassini.marmot.org/lexileTitles.txt
 
 #Extract AR Data
-cd /data/vufind-plus/accelerated_reader; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/accelerated_reader/RLI-ARDataTAB.txt http://cassini.marmot.org/RLI-ARDataTAB.txt
+#cd /data/vufind-plus/accelerated_reader; wget -N --no-verbose https://cassini.marmot.org/RLI-ARDataTAB.txt
+cd /data/vufind-plus/accelerated_reader; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/accelerated_reader/RLI-ARDataTAB.txt https://cassini.marmot.org/RLI-ARDataTAB.txt
 
 #Do a full extract from OverDrive just once a week to catch anything that doesn't
 #get caught in the regular extract
@@ -95,22 +96,25 @@ then
 	cd /usr/local/vufind-plus/vufind/overdrive_api_extract/
 	nice -n -10 java -server -XX:+UseG1GC -jar overdrive_extract.jar ${PIKASERVER} fullReload >> ${OUTPUT_FILE}
 fi
+
 # Copy Export from ILS
 /usr/local/vufind-plus/sites/${PIKASERVER}/copyExport.sh >> ${OUTPUT_FILE}
 YESTERDAY=`date +%Y%m%d --date="yesterday"`
-UPDATEFILE=/data/vufind-plus/${PIKASERVER}/marc_backup/ascc-catalog-deleted.$YESTERDAY.marc
-DELETEFILE=/data/vufind-plus/${PIKASERVER}/marc_backup/ascc-catalog-updated.$YESTERDAY.marc
+UPDATEFILE=/data/vufind-plus/${PIKASERVER}/marc/ascc-catalog-deleted.$YESTERDAY.marc
+DELETEFILE=/data/vufind-plus/${PIKASERVER}/marc/ascc-catalog-updated.$YESTERDAY.marc
 
-if [ -f $UPDATEFILE && -f $DELETEFILE ]; then
+if [[ -f $UPDATEFILE && -f $DELETEFILE ]]; then
 	# if the update and delete files are found, merge them into the fullexport file.
+	echo "Merging updates and deletes." >> ${OUTPUT_FILE}
 	cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar aspencat.test MergeMarcUpdatesAndDeletes >> ${OUTPUT_FILE}
 else
 		if [ ! -f $UPDATEFILE ]; then
-		 echo "Update File $UPDATEFILE was not found."
+		 echo "Update File $UPDATEFILE was not found." >> ${OUTPUT_FILE}
 		fi
 		if [ ! -f $DELETEFILE ]; then
-		 echo "Delete File $DELETEFILE was not found."
+		 echo "Delete File $DELETEFILE was not found." >> ${OUTPUT_FILE}
 		fi
+	echo "Not merging updates and deletes." >> ${OUTPUT_FILE}
 fi
 
 # if the update/delete files aren't found merging won't occur, which would have updated the timestamp on the fullexport file.
@@ -120,12 +124,6 @@ if [ -n "$FILE" ]; then
   #check file size
 	FILE1SIZE=$(wc -c <"$FILE")
 	if [ $FILE1SIZE -ge $MINFILE1SIZE ]; then
-		if [ ! -f $UPDATEFILE ]; then
-		 echo "Update File $UPDATEFILE was not found."
-		fi
-		if [ ! -f $DELETEFILE ]; then
-		 echo "Delete File $DELETEFILE was not found."
-		fi
 
 		echo "Latest full export file is " $FILE >> ${OUTPUT_FILE}
 		DIFF=$(($FILE1SIZE - $MINFILE1SIZE))
@@ -143,15 +141,15 @@ if [ -n "$FILE" ]; then
 		#Full Reindex
 		cd /usr/local/vufind-plus/vufind/reindexer; nice -n -3 java -server -XX:+UseG1GC -jar reindexer.jar ${PIKASERVER} fullReindex >> ${OUTPUT_FILE}
 
-			# Delete any exports over 7 days
-			find /data/vufind-plus/${PIKASERVER}/marc_backup/ -mindepth 1 -maxdepth 1 -name *.marc -type f -mtime +7 -delete
+		# Delete any exports over 7 days
+		find /data/vufind-plus/${PIKASERVER}/marc_backup/ -mindepth 1 -maxdepth 1 -name *.marc -type f -mtime +7 -delete
 
 	else
 		echo $FILE " size " $FILE1SIZE "is less than minimum size :" $MINFILE1SIZE "; Export was not moved to data directory, Full Regrouping & Full Reindexing skipped." >> ${OUTPUT_FILE}
 	fi
 else
 	echo "The full export file has not been updated in the last 24 hours, meaning the full export file or the add/deletes files were not delivered. Full Regrouping & Full Reindexing skipped." >> ${OUTPUT_FILE}
-	echo "The full export is delivered Saturday Mornings. The adds/deletes are delivered every night except Friday night."
+	echo "The full export is delivered Saturday Mornings. The adds/deletes are delivered every night except Friday night." >> ${OUTPUT_FILE}
 fi
 
 # Clean-up Solr Logs

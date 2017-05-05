@@ -41,7 +41,8 @@ DAYOFWEEK=$(date +"%u")
 # JAMES set MIN 2016 11 03 actual extract size 825177201
 # JAMES set MIN 2017 01 31 actual extract size 823662098
 # JAMES set MIN 2017 02 01 actual extract size 817883489
-MINFILE1SIZE=$((817800000))
+# JAMES set MIN 2017 02 17 actual extract size 816713948, expecting additional
+MINFILE1SIZE=$((810000000))
 
 # determine whether this server is production or test
 CONFIG=/usr/local/VuFind-Plus/sites/${PIKASERVER}/conf/config.pwd.ini
@@ -140,12 +141,12 @@ elif [ ${PRODUCTION} == "true" ]; then
 fi
 
 #Extract Lexile Data
-#cd /data/vufind-plus/; wget -N --no-verbose http://cassini.marmot.org/lexileTitles.txt
-cd /data/vufind-plus/; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/lexileTitles.txt http://cassini.marmot.org/lexileTitles.txt
+#cd /data/vufind-plus/; wget -N --no-verbose https://cassini.marmot.org/lexileTitles.txt
+cd /data/vufind-plus/; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/lexileTitles.txt https://cassini.marmot.org/lexileTitles.txt
 
 #Extract AR Data
-#cd /data/vufind-plus/accelerated_reader; wget -N --no-verbose http://cassini.marmot.org/RLI-ARDataTAB.txt
-cd /data/vufind-plus/accelerated_reader; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/accelerated_reader/RLI-ARDataTAB.txt http://cassini.marmot.org/RLI-ARDataTAB.txt
+#cd /data/vufind-plus/accelerated_reader; wget -N --no-verbose https://cassini.marmot.org/RLI-ARDataTAB.txt
+cd /data/vufind-plus/accelerated_reader; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/accelerated_reader/RLI-ARDataTAB.txt https://cassini.marmot.org/RLI-ARDataTAB.txt
 
 #Do a full extract from OverDrive just once a week to catch anything that doesn't
 #get caught in the regular extract
