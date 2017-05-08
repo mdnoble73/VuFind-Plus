@@ -70,7 +70,7 @@ public class NashvilleSchoolsRecordProcessor extends IlsRecordProcessor {
 	}
 
 	@Override
-	protected String getItemStatus(DataField itemField){
+	protected String getItemStatus(DataField itemField, String recordIdentifier){
 		//Get the barcode
 		String itemBarcode = getItemSubfieldData(barcodeSubfield, itemField);
 		LSSItemInformation itemInformation = allItemInformation.get(itemBarcode);

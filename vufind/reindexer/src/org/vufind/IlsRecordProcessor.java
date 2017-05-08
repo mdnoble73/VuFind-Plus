@@ -699,7 +699,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		ItemInfo itemInfo = new ItemInfo();
 		//Load base information from the Marc Record
 
-		String itemStatus = getItemStatus(itemField);
+		String itemStatus = getItemStatus(itemField, recordInfo.getRecordIdentifier());
 
 		String itemLocation = getItemSubfieldData(locationSubfieldIndicator, itemField);
 		itemInfo.setLocationCode(itemLocation);
@@ -1066,7 +1066,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		}
 	}
 
-	protected String getItemStatus(DataField itemField){
+	protected String getItemStatus(DataField itemField, String recordIdentifier){
 		return getItemSubfieldData(statusSubfieldIndicator, itemField);
 	}
 
@@ -1346,6 +1346,11 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		if (printFormats.contains("MusicRecording") && (printFormats.contains("CD") || printFormats.contains("CompactDisc") || printFormats.contains("SoundDisc"))){
 			printFormats.clear();
 			printFormats.add("MusicCD");
+			return;
+		}
+		if (printFormats.contains("PlayawayView")){
+			printFormats.clear();
+			printFormats.add("PlayawayView");
 			return;
 		}
 		if (printFormats.contains("Playaway")){
@@ -1760,7 +1765,9 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				Subfield subfieldA = field.getSubfield('a');
 				if (subfieldA != null && subfieldA.getData() != null) {
 					String fieldData = subfieldA.getData().toLowerCase();
-					if (fieldData.contains("playaway digital audio") || fieldData.contains("findaway world")) {
+					if (fieldData.contains("playaway view")) {
+						result.add("PlayawayView");
+					}else if (fieldData.contains("playaway digital audio") || fieldData.contains("findaway world")) {
 						result.add("Playaway");
 					}
 				}
@@ -2064,6 +2071,9 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	}
 
 	public String translateValue(String mapName, String value, String identifier){
+		return translateValue(mapName, value, identifier, true);
+	}
+	public String translateValue(String mapName, String value, String identifier, boolean reportErrors){
 		if (value == null){
 			return null;
 		}
@@ -2073,7 +2083,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			logger.error("Unable to find translation map for " + mapName + " in profile " + profileType);
 			translatedValue = value;
 		}else{
-			translatedValue = translationMap.translateValue(value, identifier);
+			translatedValue = translationMap.translateValue(value, identifier, reportErrors);
 		}
 		return translatedValue;
 	}

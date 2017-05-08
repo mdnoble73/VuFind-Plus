@@ -64,13 +64,17 @@ public class AACPLRecordProcessor extends IlsRecordProcessor {
 		return false;
 	}
 
-	protected String getItemStatus(DataField itemField){
+	protected String getItemStatus(DataField itemField, String recordIdentifier){
 		String subfieldData = getItemSubfieldData(statusSubfieldIndicator, itemField);
 		if (subfieldData == null){
+			subfieldData = "ONSHELF";
+		}else if (translateValue("item_status", subfieldData, recordIdentifier, false) == null){
 			subfieldData = "ONSHELF";
 		}
 		return subfieldData;
 	}
+
+
 
 	Pattern availableStati = Pattern.compile("^(y)$");
 	@Override
@@ -127,5 +131,40 @@ public class AACPLRecordProcessor extends IlsRecordProcessor {
 		HashSet<String> translatedAudiences = translateCollection("audience", targetAudiences, identifier);
 		groupedWork.addTargetAudiences(translatedAudiences);
 		groupedWork.addTargetAudiencesFull(translatedAudiences);
+	}
+
+	@Override
+	protected void loadLiteraryForms(GroupedWorkSolr groupedWork, Record record, HashSet<ItemInfo> printItems, String identifier) {
+		//For Arlington we can load the literary forms based off of the location code:
+		// ??f?? = Fiction
+		// ??n?? = Non-Fiction
+		// ??x?? = Other
+		String literaryForm = null;
+		for (ItemInfo printItem : printItems){
+			String locationCode = printItem.getShelfLocationCode();
+			if (locationCode != null) {
+				literaryForm = getLiteraryFormForLocation(locationCode);
+				if (literaryForm != null){
+					break;
+				}
+			}
+		}
+		if (literaryForm == null){
+			literaryForm = "Other";
+		}
+		groupedWork.addLiteraryForm(literaryForm);
+		groupedWork.addLiteraryFormFull(literaryForm);
+	}
+
+	private Pattern nonFicPattern = Pattern.compile(".*nonfic.*", Pattern.CASE_INSENSITIVE);
+	private Pattern ficPattern = Pattern.compile(".*fic.*", Pattern.CASE_INSENSITIVE);
+	private String getLiteraryFormForLocation(String locationCode) {
+		String literaryForm = null;
+		if (nonFicPattern.matcher(locationCode).matches()) {
+			literaryForm = "Non Fiction";
+		}else if (ficPattern.matcher(locationCode).matches()){
+			literaryForm = "Fiction";
+		}
+		return literaryForm;
 	}
 }

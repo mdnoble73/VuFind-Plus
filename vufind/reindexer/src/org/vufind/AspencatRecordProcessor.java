@@ -115,7 +115,7 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 	}
 
 	private HashSet<String> additionalStatuses = new HashSet<>();
-	protected String getItemStatus(DataField itemField){
+	protected String getItemStatus(DataField itemField, String recordIdentifier){
 		String itemIdentifier = getItemSubfieldData(itemRecordNumberSubfieldIndicator, itemField);
 		if (inTransitItems.contains(itemIdentifier)){
 			return "In Transit";
