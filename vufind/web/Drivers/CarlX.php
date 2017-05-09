@@ -178,7 +178,8 @@ class CarlX extends SIP2Driver{
 
 					//Load summary information for number of holds, checkouts, etc
 					$patronSummaryRequest = new stdClass();
-					$patronSummaryRequest->PatronID  = $username;
+					$patronSummaryRequest->SearchType = 'Patron ID';
+					$patronSummaryRequest->SearchID  = $username;
 					$patronSummaryRequest->Modifiers = '';
 
 					$patronSummaryResponse = $this->doSoapRequest('getPatronSummaryOverview', $patronSummaryRequest, $this->patronWsdl);
