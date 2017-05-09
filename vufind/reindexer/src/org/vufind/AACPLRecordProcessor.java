@@ -107,13 +107,11 @@ public class AACPLRecordProcessor extends IlsRecordProcessor {
 	protected String getShelfLocationForItem(ItemInfo itemInfo, DataField itemField, String identifier) {
 		String locationCode = getItemSubfieldData(locationSubfieldIndicator, itemField);
 		String location = translateValue("location", locationCode, identifier);
-		String shelvingLocation = getItemSubfieldData(shelvingLocationSubfield, itemField);
-		if (shelvingLocation != null && !shelvingLocation.equals(locationCode)){
-			if (location == null){
-				location = translateValue("shelf_location", shelvingLocation, identifier);
-			}else {
-				location += " - " + translateValue("shelf_location", shelvingLocation, identifier);
-			}
+		String shelvingLocation = itemInfo.getShelfLocationCode();
+		if (location == null){
+			location = translateValue("shelf_location", shelvingLocation, identifier);
+		}else {
+			location += " - " + translateValue("shelf_location", shelvingLocation, identifier);
 		}
 		return location;
 	}
@@ -166,5 +164,21 @@ public class AACPLRecordProcessor extends IlsRecordProcessor {
 			literaryForm = "Fiction";
 		}
 		return literaryForm;
+	}
+
+	protected void setShelfLocationCode(DataField itemField, ItemInfo itemInfo, String recordIdentifier) {
+		//For Symphony the status field holds the location code unless it is currently checked out, on display, etc.
+		//In that case the location code holds the permanent location
+		String subfieldData = getItemSubfieldData(statusSubfieldIndicator, itemField);
+		boolean loadFromPermanentLocation = false;
+		if (subfieldData == null){
+			loadFromPermanentLocation = true;
+		}else if (translateValue("item_status", subfieldData, recordIdentifier, false) != null){
+			loadFromPermanentLocation = true;
+		}
+		if (loadFromPermanentLocation){
+			subfieldData = getItemSubfieldData(shelvingLocationSubfield, itemField);
+		}
+		itemInfo.setShelfLocationCode(subfieldData);
 	}
 }
