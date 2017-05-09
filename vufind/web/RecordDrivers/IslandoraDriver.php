@@ -2579,10 +2579,10 @@ abstract class IslandoraDriver extends RecordInterface {
 				$prisonerOfWar = $this->getModsValue('prisonerOfWar', 'marmot', $militaryServiceRecord);
 				if ($militaryBranch != 'none' || $militaryConflict != 'none') {
 					$militaryRecord = array(
-							'branch' => $fedoraUtils->getObjectLabel($militaryBranch),
-							'branchLink' => '/Archive/' . $militaryBranch . '/Organization',
-							'conflict' => $fedoraUtils->getObjectLabel($militaryConflict),
-							'conflictLink' => '/Archive/' . $militaryConflict . '/Event',
+							'branch' => $militaryBranch == 'none' ? '' : $fedoraUtils->getObjectLabel($militaryBranch),
+							'branchLink' => $militaryBranch == 'none' ? '' : ('/Archive/' . $militaryBranch . '/Organization'),
+							'conflict' => $militaryConflict == 'none' ? '' : ($fedoraUtils->getObjectLabel($militaryConflict)),
+							'conflictLink' => $militaryConflict == 'none' ? '' : ('/Archive/' . $militaryConflict . '/Event'),
 							'serviceDateStart' => $serviceDateStart,
 							'serviceDateEnd' => $serviceDateEnd,
 							'highestRank' => $rank,

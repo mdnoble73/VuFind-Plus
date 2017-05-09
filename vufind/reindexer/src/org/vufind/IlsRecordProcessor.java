@@ -714,11 +714,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		//if the status and location are null, we can assume this is not a valid item
 		if (!isItemValid(itemStatus, itemLocation)) return null;
 
-		if (shelvingLocationSubfield != ' '){
-			itemInfo.setShelfLocationCode(getItemSubfieldData(shelvingLocationSubfield, itemField));
-		}else {
-			itemInfo.setShelfLocationCode(getItemSubfieldData(locationSubfieldIndicator, itemField));
-		}
+		setShelfLocationCode(itemField, itemInfo, recordInfo.getRecordIdentifier());
 		itemInfo.setShelfLocation(getShelfLocationForItem(itemInfo, itemField, recordInfo.getRecordIdentifier()));
 
 		loadDateAdded(recordInfo.getRecordIdentifier(), itemField, itemInfo);
@@ -790,6 +786,14 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 		recordInfo.addItem(itemInfo);
 		return itemInfo;
+	}
+
+	protected void setShelfLocationCode(DataField itemField, ItemInfo itemInfo, String recordIdentifier) {
+		if (shelvingLocationSubfield != ' '){
+			itemInfo.setShelfLocationCode(getItemSubfieldData(shelvingLocationSubfield, itemField));
+		}else {
+			itemInfo.setShelfLocationCode(getItemSubfieldData(locationSubfieldIndicator, itemField));
+		}
 	}
 
 	private void loadScopeInfoForPrintIlsItem(ItemInfo itemInfo, String itemLocation, String itemSublocation, boolean available, String displayStatus, String groupedDisplayStatus) {

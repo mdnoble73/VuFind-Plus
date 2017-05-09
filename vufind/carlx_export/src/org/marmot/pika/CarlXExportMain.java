@@ -6,7 +6,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.*;
 import java.text.DateFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Date;
@@ -16,13 +15,10 @@ import org.apache.log4j.PropertyConfigurator;
 import org.ini4j.Ini;
 import org.ini4j.InvalidFileFormatException;
 import org.ini4j.Profile;
-import org.ini4j.Profile.Section;
 import org.marc4j.MarcPermissiveStreamReader;
 import org.marc4j.MarcStreamWriter;
 import org.marc4j.MarcWriter;
 import org.marc4j.marc.*;
-import org.marc4j.marc.impl.DataFieldImpl;
-import org.marc4j.marc.impl.LeaderImpl;
 import org.marc4j.marc.impl.MarcFactoryImpl;
 import org.marc4j.marc.impl.SubfieldImpl;
 import org.w3c.dom.Document;
@@ -40,13 +36,14 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 /**
+ * Extracts information from a CARL.X server to determine what information needs to be updated in the index.
+ *
  * Created by pbrammeier on 7/25/2016.
+ *
  */
 public class CarlXExportMain {
 	private static Logger logger = Logger.getLogger(CarlXExportMain.class);
 	private static String serverName;
-
-	private static String itemInformationDateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
 
 	private static String itemTag;
 	private static char itemRecordNumberSubfield;
@@ -67,9 +64,9 @@ public class CarlXExportMain {
 	private static String individualMarcPath;
 	private static String marcOutURL;
 
-	protected static boolean fullReindex = true; // issues warnings for missing translation values
-	protected static String profileType;
-	protected static HashMap<String, TranslationMap> translationMaps = new HashMap<>();
+	private static boolean fullReindex = true; // issues warnings for missing translation values
+	private static String profileType;
+	private static HashMap<String, TranslationMap> translationMaps = new HashMap<>();
 
 
 	public static void main(String[] args) {
@@ -151,11 +148,8 @@ public class CarlXExportMain {
 
 
 				String carlXExportPath          = carlXIndexingProfileRS.getString("marcPath");
-//				String filenamesToInclude      = carlXIndexingProfileRS.getString("filenamesToInclude");
-//				String groupingClass           = carlXIndexingProfileRS.getString("groupingClass");
 				String recordNumberTag          = carlXIndexingProfileRS.getString("recordNumberTag");
 				String recordNumberPrefix       = carlXIndexingProfileRS.getString("recordNumberPrefix");
-//				String marcEncoding            = carlXIndexingProfileRS.getString("marcEncoding");
 				String itemBarcodeSubfield      = carlXIndexingProfileRS.getString("barcode");
 				// shelvingLocation & collection sub fields are the same in the sandbox
 
@@ -198,9 +192,6 @@ public class CarlXExportMain {
 
 			beginTimeString = beginTimeFormat.format(lastExtractDate);
 
-//			beginTimeString = "2013-12-31T12:00:00Z";
-			// TODO: Delete Line; Use the value from the Example for now
-
 		} catch (Exception e) {
 			logger.error("Error getting last Extract Time for CarlX", e);
 		}
@@ -222,8 +213,8 @@ public class CarlXExportMain {
 		URLPostResponse SOAPResponse = postToURL(marcOutURL, changedMarcSoapRequest, "text/xml", null, logger);
 
 		String[] updatedBibs = new String[0];
-//		String[] createdBibs = new String[0];
-//		String[] deletedBibs = new String[0];
+		String[] createdBibs = new String[0];
+		String[] deletedBibs = new String[0];
 
 		String totalBibs = "0";
 
@@ -237,20 +228,24 @@ public class CarlXExportMain {
 			String responseStatusCode        = responseStatusNode.getFirstChild().getTextContent();
 			if (responseStatusCode.equals("0")) {
 				totalBibs                      = responseStatusNode.getChildNodes().item(3).getTextContent();
+				logger.debug("There are " + totalBibs + " total bibs");
 				Node updatedBibsNode           = getChangedBibsResponseNode.getChildNodes().item(4); // 5th element of getChangedItemsResponseNode
-//			Node createdBibsNode           = getChangedBibsResponseNode.getChildNodes().item(3); // 4th element of getChangedItemsResponseNode
-//			Node deletedBibsNode           = getChangedBibsResponseNode.getChildNodes().item(5); // 6th element of getChangedItemsResponseNode
+				Node createdBibsNode           = getChangedBibsResponseNode.getChildNodes().item(3); // 4th element of getChangedItemsResponseNode
+				Node deletedBibsNode           = getChangedBibsResponseNode.getChildNodes().item(5); // 6th element of getChangedItemsResponseNode
 
 				// Updated Items
 				updatedBibs = getIDsStringArrayFromNodeList(updatedBibsNode.getChildNodes());
+				logger.debug("Found " + updatedBibs.length + " updated bibs since " + beginTimeString);
 
 				// TODO: Process Created Bibs in the future
-//			// Created Bibs
-//			createdBibs = getIDsStringArrayFromNodeList(createdBibsNode.getChildNodes());
+				// Created Bibs
+				createdBibs = getIDsStringArrayFromNodeList(createdBibsNode.getChildNodes());
+				logger.debug("Found " + createdBibs.length + " new bibs since " + beginTimeString);
 
 				// TODO: Process Deleted Bibs in the future
-//			// Deleted Bibs
-//			deletedBibs = getIDsStringArrayFromNodeList(deletedBibsNode.getChildNodes());
+				// Deleted Bibs
+				deletedBibs = getIDsStringArrayFromNodeList(deletedBibsNode.getChildNodes());
+				logger.debug("Found " + deletedBibs.length + " deleted bibs since " + beginTimeString);
 
 			} else {
 				String shortErrorMessage = responseStatusNode.getChildNodes().item(2).getTextContent();
@@ -298,6 +293,7 @@ public class CarlXExportMain {
 			String responseStatusCode        = responseStatusNode.getFirstChild().getTextContent();
 			if (responseStatusCode.equals("0")) {
 				totalItems = responseStatusNode.getChildNodes().item(3).getTextContent();
+				logger.debug("There are " + totalItems + " total items");
 
 				Node updatedItemsNode            = getChangedItemsResponseNode.getChildNodes().item(4); // 5th element of getChangedItemsResponseNode
 				Node createdItemsNode            = getChangedItemsResponseNode.getChildNodes().item(3); // 4th element of getChangedItemsResponseNode
@@ -305,12 +301,15 @@ public class CarlXExportMain {
 
 				// Updated Items
 				updatedItemIDs = getIDsArrayListFromNodeList(updatedItemsNode.getChildNodes());
+				logger.debug("Found " + updatedItemIDs.size() + " updated items since " + beginTimeString);
 
 				// Created Items
 				createdItemIDs = getIDsArrayListFromNodeList(createdItemsNode.getChildNodes());
+				logger.debug("Found " + createdItemIDs.size() + " new items since " + beginTimeString);
 
 				// Deleted Items
 				deletedItemIDs = getIDsArrayListFromNodeList(deletedItemsNode.getChildNodes());
+				logger.debug("Found " + deletedItemIDs.size() + " deleted items since " + beginTimeString);
 			} else {
 				String shortErrorMessage = responseStatusNode.getChildNodes().item(2).getTextContent();
 				logger.error("Error Response for API call for Changed Items : " + shortErrorMessage);
@@ -947,6 +946,7 @@ public class CarlXExportMain {
 	private static String formatDateFieldForMarc(String dateFormat, String date) {
 		String dateForMarc = null;
 		try {
+			String itemInformationDateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
 			SimpleDateFormat dateFormatter = new SimpleDateFormat(itemInformationDateFormat);
 			dateFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
 			Date marcDate = dateFormatter.parse(date);
