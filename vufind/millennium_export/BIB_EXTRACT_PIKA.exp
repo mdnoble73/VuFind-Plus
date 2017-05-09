@@ -7,6 +7,9 @@ log_user 0 ; # do NOT send screens to stdout
 # James Staub
 # Nashville Public Library
 
+# 20170504 :
+# + removed ITEM STATUS b
+
 # 20170127 :
 # + removed ITEM STATUS p
 
@@ -172,15 +175,6 @@ send "24"
 #expect "Enter boolean condition"
 send "="
 send "!"
-#expect "Enter action ( A for AND, O for OR, S to START search )"
-send "O"
-
-#expect "Enter code in front of desired field"
-#expect "24 STATUS:"
-send "24"
-#expect "Enter boolean condition"
-send "="
-send "b"
 #expect "Enter action ( A for AND, O for OR, S to START search )"
 send "O"
 
