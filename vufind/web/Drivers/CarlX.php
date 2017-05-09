@@ -263,7 +263,7 @@ class CarlX extends SIP2Driver{
 			$result = $this->soapClient->$requestName($request);
 		} catch (SoapFault $e) {
 			global $logger;
-			$logger->log('Soap Client error in CarlX: '.$e->getMessage(), PEAR_LOG_ERR);
+			$logger->log("Soap Client error in CarlX: while calling $requestName ".$e->getMessage(), PEAR_LOG_ERR);
 			return false;
 		}
 	return $result;
