@@ -18,9 +18,10 @@ LOG="logger -t copyExport "
 
 $LOG "~> starting copyExport.sh"
 
-$LOG "~~ remove old deleted and updated marc record files"
-rm -f $DEST/ascc-catalog-deleted.* $DEST/ascc-catalog-updated.*
-$LOG "~~ exit code " $?
+#$LOG "~~ remove old deleted and updated marc record files"
+#rm -f $DEST/ascc-catalog-deleted.* $DEST/ascc-catalog-updated.*
+#$LOG "~~ exit code " $?
+# Merging Process will move these to ../marc_backup pascal 5-9-2017
 
 $LOG "~~ mount $REMOTE $LOCAL"
 mount $REMOTE $LOCAL

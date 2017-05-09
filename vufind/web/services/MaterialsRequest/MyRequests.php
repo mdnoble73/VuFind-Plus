@@ -107,6 +107,7 @@ class MaterialsRequest_MyRequests extends MyAccount
 			}
 		}else{
 			header('Location: ' . $configArray['Site']['path'] . '/MyAccount/Home?followupModule=MaterialsRequest&followupAction=MyRequests');
+			exit;
 		}
 		$interface->assign('allRequests', $allRequests);
 		$interface->assign('shortPageTitle', 'My ' . translate('Materials_Request_alt'). 's' );

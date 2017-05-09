@@ -380,30 +380,5 @@
 			<input type="hidden" name="id" id="id" value="{$materialsRequest->id}">
 		{/if}
 </div>
-		{* Require User Login *}
-
-	{if $new && !$user}
-		<div id="materialsRequestLogin">
-			<fieldset>
-				<legend>{translate text="Login to your account"}</legend>
-				<div class="form-group">
-					<label for="username" class="control-label col-sm-3">{$usernameLabel} <span class="requiredIndicator">*</span> </label>
-					<div class="col-sm-9">
-						<input type="text" name="username" id="username" value="{$username|escape}" size="15" class="required form-control">
-					</div>
-				</div>
-				<div class="form-group">
-					<label for="password" class="control-label col-sm-3">{$passwordLabel} <span class="requiredIndicator">*</span> </label>
-					<div class="col-sm-9">
-						<input type="password" name="password" id="password" size="15" class="required form-control">
-					</div>
-				</div>
-				<div class="col-sm-9 col-sm-offset-3">
-					<input type="submit" name="login" value="Login" onclick="return VuFind.MaterialsRequest.materialsRequestLogin();" class="btn btn-sm btn-primary">
-				</div>
-			</fieldset>
-		</div>
-	{/if}
-
 {/strip}
 
