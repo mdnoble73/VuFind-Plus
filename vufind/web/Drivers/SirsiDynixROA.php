@@ -601,10 +601,7 @@ abstract class SirsiDynixROA extends HorizonAPI
 		//create the hold using the web service
 		$webServiceURL = $this->getWebServiceURL();
 
-		$cancelHoldResponse = $this->getWebServiceResponse($webServiceURL . "/ws/circulation/holdRecord/key/$cancelId/describe", null, $sessionToken, 'DELETE');
-
-
-				$cancelHoldResponse = $this->getWebServiceResponse($webServiceURL . "/ws/circulation/holdRecord/key/$cancelId", null, $sessionToken, 'DELETE');
+		$cancelHoldResponse = $this->getWebServiceResponse($webServiceURL . "/ws/circulation/holdRecord/key/$cancelId", null, $sessionToken, 'DELETE');
 
 		if (empty($cancelHoldResponse)) {
 			//TODO: call holds and see if it's in the list anymore?
@@ -622,6 +619,49 @@ abstract class SirsiDynixROA extends HorizonAPI
 
 	}
 
+	function changeHoldPickupLocation($patron, $recordId, $holdId, $newPickupLocation)
+	{
+		$sessionToken = $this->getSessionToken($patron);
+		if (!$sessionToken) {
+			return array(
+				'success' => false,
+				'message' => 'Sorry, it does not look like you are logged in currently.  Please login and try again');
+		}
+
+		//create the hold using the web service
+		$webServiceURL = $this->getWebServiceURL();
+
+		$params = array(
+			'key' => $holdId,
+			'resource' => '/circulation/holdRecord',
+			'fields' => array(
+				'pickupLibrary' => array(
+					'resource' => '/policy/library',
+					'key' => strtoupper($newPickupLocation)
+				),
+			)
+		);
+
+		$updateHoldResponse = $this->getWebServiceResponse($webServiceURL . "/ws/circulation/holdRecord/key/$holdId", $params, $sessionToken, 'PUT');
+		if (isset($updateHoldResponse->key) && isset($updateHoldResponse->fields->pickupLibrary->key) && ($updateHoldResponse->fields->pickupLibrary->key == strtoupper($newPickupLocation))) {
+			return array(
+				'success' => true,
+			  'message' => 'The pickup location has been updated.'
+			);
+		} else {
+			$messages = array();
+			if (isset($updateHoldResponse->messageList)) {
+				foreach ($updateHoldResponse->messageList as $message) {
+					$messages[] = $message->message;
+				}
+			}
+
+			return array(
+				'success' => false,
+				'message' => 'Failed to update the pickup location : '. implode('; ', $messages)
+			);
+		}
+	}
 
 
 }
