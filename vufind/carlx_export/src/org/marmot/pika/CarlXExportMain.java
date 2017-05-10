@@ -198,6 +198,7 @@ public class CarlXExportMain {
 
 		// Get MarcOut WSDL url for SOAP calls
 		marcOutURL = ini.get("Catalog", "marcOutApiWsdl");
+		logger.debug("Calling GetChangedBibsRequest with BeginTime of " + beginTimeString);
 
 		// Get All Changed Marc Records //
 		String changedMarcSoapRequest = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:mar=\"http://tlcdelivers.com/cx/schemas/marcoutAPI\" xmlns:req=\"http://tlcdelivers.com/cx/schemas/request\">\n" +
@@ -262,6 +263,8 @@ public class CarlXExportMain {
 			logger.error("Error Parsing SOAP Response for Fetching Changed Bibs", e);
 		}
 
+
+		logger.debug("Calling GetChangedItemsRequest with BeginTime of " + beginTimeString);
 
 		// Get All Changed Items //
 		String changedItemsSoapRequest = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:mar=\"http://tlcdelivers.com/cx/schemas/marcoutAPI\" xmlns:req=\"http://tlcdelivers.com/cx/schemas/request\">\n" +
