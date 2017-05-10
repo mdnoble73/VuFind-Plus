@@ -64,10 +64,9 @@ public class CarlXExportMain {
 	private static String individualMarcPath;
 	private static String marcOutURL;
 
-	private static boolean fullReindex = true; // issues warnings for missing translation values
 	private static String profileType;
 	private static HashMap<String, TranslationMap> translationMaps = new HashMap<>();
-
+	private static Long lastCarlXExtractTimeVariableId = null;
 
 	public static void main(String[] args) {
 		serverName = args[0];
@@ -98,232 +97,10 @@ public class CarlXExportMain {
 			System.exit(1);
 		}
 
-		Long lastCarlXExtractTime           = null;
-		Long lastCarlXExtractTimeVariableId = null;
 		Long profileIDNumber = null;
 		Long exportStartTime = startTime.getTime() / 1000;
 
-		//Get the Indexing Profile from the database
-		try {
-			PreparedStatement getCarlXIndexingProfileStmt = vufindConn.prepareStatement("SELECT * FROM indexing_profiles where name ='ils'");
-			ResultSet carlXIndexingProfileRS = getCarlXIndexingProfileStmt.executeQuery();
-			if (carlXIndexingProfileRS.next()) {
-				profileIDNumber                    = carlXIndexingProfileRS.getLong("id");
-
-				String itemTag                     = carlXIndexingProfileRS.getString("itemTag");
-				String itemRecordNumberSubfield    = carlXIndexingProfileRS.getString("itemRecordNumber");
-				String lastCheckinDateSubfield     = carlXIndexingProfileRS.getString("lastCheckinDate");
-				String lastCheckinFormat           = carlXIndexingProfileRS.getString("lastCheckinFormat");
-				String locationSubfield            = carlXIndexingProfileRS.getString("location");
-				String itemStatusSubfield          = carlXIndexingProfileRS.getString("status");
-				String dueDateSubfield             = carlXIndexingProfileRS.getString("dueDate");
-				String dateCreatedSubfield         = carlXIndexingProfileRS.getString("dateCreated");
-				String dateCreatedFormat           = carlXIndexingProfileRS.getString("dateCreatedFormat");
-				String callNumberSubfield          = carlXIndexingProfileRS.getString("callNumber");
-				String totalCheckoutsSubfield      = carlXIndexingProfileRS.getString("totalCheckouts");
-				String yearToDateCheckoutsSubfield = carlXIndexingProfileRS.getString("yearToDateCheckouts");
-				String individualMarcPath          = carlXIndexingProfileRS.getString("individualMarcPath");
-				String profileType                 = carlXIndexingProfileRS.getString("name");
-				String shelvingLocationSubfield    = carlXIndexingProfileRS.getString("shelvingLocation");
-//				String collectionSubfield          = carlXIndexingProfileRS.getString("collection"); // Same as shelvingLocation
-				String iTypeSubfield               = carlXIndexingProfileRS.getString("iType");
-
-				CarlXExportMain.itemTag                     = itemTag;
-				CarlXExportMain.itemRecordNumberSubfield    = itemRecordNumberSubfield.length() > 0 ? itemRecordNumberSubfield.charAt(0) : ' ';
-				CarlXExportMain.lastCheckInSubfield         = lastCheckinDateSubfield.length() > 0 ? lastCheckinDateSubfield.charAt(0) : ' ';
-				CarlXExportMain.lastCheckInFormat           = lastCheckinFormat;
-				CarlXExportMain.locationSubfield            = locationSubfield.length() > 0 ? locationSubfield.charAt(0) : ' ';
-				CarlXExportMain.statusSubfield              = itemStatusSubfield.length() > 0 ? itemStatusSubfield.charAt(0) : ' ';
-				CarlXExportMain.dueDateSubfield             = dueDateSubfield.length() > 0 ? dueDateSubfield.charAt(0) : ' ';
-				CarlXExportMain.dueDateFormat               = lastCheckinFormat;
-				CarlXExportMain.dateCreatedSubfield         = dateCreatedSubfield.length() > 0 ? dateCreatedSubfield.charAt(0) : ' ';
-				CarlXExportMain.dateCreatedFormat           = dateCreatedFormat;
-				CarlXExportMain.callNumberSubfield          = callNumberSubfield.length() > 0 ? callNumberSubfield.charAt(0) : ' ';
-				CarlXExportMain.totalCheckoutsSubfield      = totalCheckoutsSubfield.length() > 0 ? totalCheckoutsSubfield.charAt(0) : ' ';
-				CarlXExportMain.yearToDateCheckoutsSubfield = yearToDateCheckoutsSubfield.length() > 0 ? yearToDateCheckoutsSubfield.charAt(0) : ' ';
-				CarlXExportMain.shelvingLocationSubfield    = shelvingLocationSubfield.length() > 0 ? shelvingLocationSubfield.charAt(0) : ' ';
-				CarlXExportMain.iTypeSubfield               = iTypeSubfield.length() > 0 ? iTypeSubfield.charAt(0) : ' ';
-				CarlXExportMain.individualMarcPath          = individualMarcPath;
-				CarlXExportMain.profileType                 = profileType;
-
-
-				String carlXExportPath          = carlXIndexingProfileRS.getString("marcPath");
-				String recordNumberTag          = carlXIndexingProfileRS.getString("recordNumberTag");
-				String recordNumberPrefix       = carlXIndexingProfileRS.getString("recordNumberPrefix");
-				String itemBarcodeSubfield      = carlXIndexingProfileRS.getString("barcode");
-				// shelvingLocation & collection sub fields are the same in the sandbox
-
-			} else {
-				logger.error("Unable to find carlx indexing profile, please create a profile with the name ils.");
-			}
-
-		}catch (Exception e){
-			logger.error("Error reading index profile for CarlX", e);
-		}
-
-
-		// Set update time
-		long updateTime = new Date().getTime() / 1000;
-
-		// Get Last Extract Time
-		String beginTimeString = null;
-		try {
-			PreparedStatement loadLastCarlXExtractTimeStmt = vufindConn.prepareStatement("SELECT * from variables WHERE name = 'last_carlx_extract_time'", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-			ResultSet lastCarlXExtractTimeRS = loadLastCarlXExtractTimeStmt.executeQuery();
-			if (lastCarlXExtractTimeRS.next()){
-				lastCarlXExtractTime           = lastCarlXExtractTimeRS.getLong("value");
-				lastCarlXExtractTimeVariableId = lastCarlXExtractTimeRS.getLong("id");
-			}
-
-			DateFormat beginTimeFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-			beginTimeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-
-			//Last Update in UTC
-			Date now             = new Date();
-			Date yesterday       = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-			Date lastExtractDate = (lastCarlXExtractTime != null) ? new Date((lastCarlXExtractTime - 120) * 1000) : yesterday;
-			// Add a small buffer to the last extract time
-
-			if (lastExtractDate.before(yesterday)){
-				logger.warn("Last Extract date was more than 24 hours ago.  Just getting the last 24 hours since we should have a full extract.");
-				lastExtractDate = yesterday;
-			}
-
-
-			beginTimeString = beginTimeFormat.format(lastExtractDate);
-
-		} catch (Exception e) {
-			logger.error("Error getting last Extract Time for CarlX", e);
-		}
-
-		// Get MarcOut WSDL url for SOAP calls
-		marcOutURL = ini.get("Catalog", "marcOutApiWsdl");
-		logger.debug("Calling GetChangedBibsRequest with BeginTime of " + beginTimeString);
-
-		// Get All Changed Marc Records //
-		String changedMarcSoapRequest = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:mar=\"http://tlcdelivers.com/cx/schemas/marcoutAPI\" xmlns:req=\"http://tlcdelivers.com/cx/schemas/request\">\n" +
-				"<soapenv:Header/>\n" +
-				"<soapenv:Body>\n" +
-				"<mar:GetChangedBibsRequest>\n" +
-				"<mar:BeginTime>"+ beginTimeString + "</mar:BeginTime>\n" +
-				"<mar:Modifiers/>\n" +
-				"</mar:GetChangedBibsRequest>\n" +
-				"</soapenv:Body>\n" +
-				"</soapenv:Envelope>";
-
-		URLPostResponse SOAPResponse = postToURL(marcOutURL, changedMarcSoapRequest, "text/xml", null, logger);
-
-		String[] updatedBibs = new String[0];
-		String[] createdBibs = new String[0];
-		String[] deletedBibs = new String[0];
-
-		String totalBibs = "0";
-
-		// Read SOAP Response for Changed Bibs
-		try {
-			Document doc                     = createXMLDocumentForSoapResponse(SOAPResponse);
-			Node soapEnvelopeNode            = doc.getFirstChild();
-			Node soapBodyNode                = soapEnvelopeNode.getLastChild();
-			Node getChangedBibsResponseNode  = soapBodyNode.getFirstChild();
-			Node responseStatusNode          = getChangedBibsResponseNode.getChildNodes().item(0).getChildNodes().item(0);
-			String responseStatusCode        = responseStatusNode.getFirstChild().getTextContent();
-			if (responseStatusCode.equals("0")) {
-				totalBibs                      = responseStatusNode.getChildNodes().item(3).getTextContent();
-				logger.debug("There are " + totalBibs + " total bibs");
-				Node updatedBibsNode           = getChangedBibsResponseNode.getChildNodes().item(4); // 5th element of getChangedItemsResponseNode
-				Node createdBibsNode           = getChangedBibsResponseNode.getChildNodes().item(3); // 4th element of getChangedItemsResponseNode
-				Node deletedBibsNode           = getChangedBibsResponseNode.getChildNodes().item(5); // 6th element of getChangedItemsResponseNode
-
-				// Updated Items
-				updatedBibs = getIDsStringArrayFromNodeList(updatedBibsNode.getChildNodes());
-				logger.debug("Found " + updatedBibs.length + " updated bibs since " + beginTimeString);
-
-				// TODO: Process Created Bibs in the future
-				// Created Bibs
-				createdBibs = getIDsStringArrayFromNodeList(createdBibsNode.getChildNodes());
-				logger.debug("Found " + createdBibs.length + " new bibs since " + beginTimeString);
-
-				// TODO: Process Deleted Bibs in the future
-				// Deleted Bibs
-				deletedBibs = getIDsStringArrayFromNodeList(deletedBibsNode.getChildNodes());
-				logger.debug("Found " + deletedBibs.length + " deleted bibs since " + beginTimeString);
-
-			} else {
-				String shortErrorMessage = responseStatusNode.getChildNodes().item(2).getTextContent();
-				logger.error("Error Response for API call for Changed Bibs : " + shortErrorMessage);
-				// TODO: stop execution?
-//				System.out.println("Error Response for API call for Changed Bibs : " + shortErrorMessage);
-//				System.exit(1);
-
-			}
-
-
-
-		} catch (Exception e) {
-			logger.error("Error Parsing SOAP Response for Fetching Changed Bibs", e);
-		}
-
-
-		logger.debug("Calling GetChangedItemsRequest with BeginTime of " + beginTimeString);
-
-		// Get All Changed Items //
-		String changedItemsSoapRequest = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:mar=\"http://tlcdelivers.com/cx/schemas/marcoutAPI\" xmlns:req=\"http://tlcdelivers.com/cx/schemas/request\">\n" +
-				"<soapenv:Header/>\n" +
-				"<soapenv:Body>\n" +
-				"<mar:GetChangedItemsRequest>\n" +
-				"<mar:BeginTime>"+ beginTimeString + "</mar:BeginTime>\n" +
-				"<mar:Modifiers/>\n" +
-				"</mar:GetChangedItemsRequest>\n" +
-				"</soapenv:Body>\n" +
-				"</soapenv:Envelope>";
-
-//		URLPostResponse
-		SOAPResponse = postToURL(marcOutURL, changedItemsSoapRequest, "text/xml", null, logger);
-
-		ArrayList<String> updatedItemIDs = new ArrayList<>();
-		ArrayList<String> createdItemIDs = new ArrayList<>();
-		ArrayList<String> deletedItemIDs = new ArrayList<>();
-
-		String totalItems;
-
-		// Read SOAP Response for Changed Items
-		try {
-			Document doc                     = createXMLDocumentForSoapResponse(SOAPResponse);
-			Node soapEnvelopeNode            = doc.getFirstChild();
-			Node soapBodyNode                = soapEnvelopeNode.getLastChild();
-			Node getChangedItemsResponseNode = soapBodyNode.getFirstChild();
-			Node responseStatusNode          = getChangedItemsResponseNode.getChildNodes().item(0).getChildNodes().item(0);
-			String responseStatusCode        = responseStatusNode.getFirstChild().getTextContent();
-			if (responseStatusCode.equals("0")) {
-				totalItems = responseStatusNode.getChildNodes().item(3).getTextContent();
-				logger.debug("There are " + totalItems + " total items");
-
-				Node updatedItemsNode            = getChangedItemsResponseNode.getChildNodes().item(4); // 5th element of getChangedItemsResponseNode
-				Node createdItemsNode            = getChangedItemsResponseNode.getChildNodes().item(3); // 4th element of getChangedItemsResponseNode
-				Node deletedItemsNode            = getChangedItemsResponseNode.getChildNodes().item(5); // 6th element of getChangedItemsResponseNode
-
-				// Updated Items
-				updatedItemIDs = getIDsArrayListFromNodeList(updatedItemsNode.getChildNodes());
-				logger.debug("Found " + updatedItemIDs.size() + " updated items since " + beginTimeString);
-
-				// Created Items
-				createdItemIDs = getIDsArrayListFromNodeList(createdItemsNode.getChildNodes());
-				logger.debug("Found " + createdItemIDs.size() + " new items since " + beginTimeString);
-
-				// Deleted Items
-				deletedItemIDs = getIDsArrayListFromNodeList(deletedItemsNode.getChildNodes());
-				logger.debug("Found " + deletedItemIDs.size() + " deleted items since " + beginTimeString);
-			} else {
-				String shortErrorMessage = responseStatusNode.getChildNodes().item(2).getTextContent();
-				logger.error("Error Response for API call for Changed Items : " + shortErrorMessage);
-				System.out.println("Error Response for API call for Changed Items : " + shortErrorMessage);
-				System.exit(1);
-			}
-
-		} catch (Exception e) {
-			logger.error("Error Parsing SOAP Response for Fetching Changed Items", e);
-		}
-
+		profileIDNumber = loadIndexingProfile(vufindConn, profileIDNumber);
 		// Load Translation Map for Item Status Codes
 		try {
 			loadTranslationMapsForProfile(vufindConn, profileIDNumber);
@@ -331,12 +108,35 @@ public class CarlXExportMain {
 			logger.error("Failed to Load Translation Maps for CarlX Extract", e);
 		}
 
-		// Fetch Item Information
+		// Set update time
+		long updateTime = new Date().getTime() / 1000;
+
+		// Get Last Extract Time
+		String beginTimeString = getLastExtractTime(vufindConn);
+
+		// Get MarcOut WSDL url for SOAP calls
+		marcOutURL = ini.get("Catalog", "marcOutApiWsdl");
+
+		//Load updated bibs
+		logger.debug("Calling GetChangedBibsRequest with BeginTime of " + beginTimeString);
+		ArrayList<String> updatedBibs = new ArrayList<>();
+		ArrayList<String> createdBibs = new ArrayList<>();
+		ArrayList<String> deletedBibs = new ArrayList<>();
+		getUpdatedBibs(beginTimeString, updatedBibs, createdBibs, deletedBibs);
+
+		logger.debug("Calling GetChangedItemsRequest with BeginTime of " + beginTimeString);
+
+		ArrayList<String> updatedItemIDs = new ArrayList<>();
+		ArrayList<String> createdItemIDs = new ArrayList<>();
+		ArrayList<String> deletedItemIDs = new ArrayList<>();
+
+		getUpdatedItems(beginTimeString, updatedItemIDs, createdItemIDs, deletedItemIDs);
+
+		// Fetch Item Information for each ID
 		ArrayList<ItemChangeInfo> itemUpdates  = fetchItemInformation(updatedItemIDs);
 		ArrayList<ItemChangeInfo> createdItems = fetchItemInformation(createdItemIDs);
 
 		boolean errorUpdatingDatabase = false;
-		int numUpdates = 0;
 		PreparedStatement markGroupedWorkForBibAsChangedStmt = null;
 		try {
 			vufindConn.setAutoCommit(false); // turn off for updating grouped worked for re-indexing
@@ -351,9 +151,10 @@ public class CarlXExportMain {
 		// Fetch new Marc Data
 		// Note: There is an Include949ItemData flag, but it hasn't been implemented by TLC yet. plb 9-15-2016
 		String getMarcRecordsSoapRequest;
+		int numBibUpdates = 0;
 		// Build Marc Fetching Soap Request
-			if (updatedBibs.length > 0) {
-				try {
+		if (updatedBibs.size() > 0) {
+			try {
 				String getMarcRecordsSoapRequestStart = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:mar=\"http://tlcdelivers.com/cx/schemas/marcoutAPI\" xmlns:req=\"http://tlcdelivers.com/cx/schemas/request\">\n" +
 						"<soapenv:Header/>\n" +
 						"<soapenv:Body>\n" +
@@ -390,7 +191,7 @@ public class CarlXExportMain {
 
 					int l = marcRecordInfo.getLength();
 					for (int i=1; i < l; i++ ) { // (skip first node because it is the response status)
-						String currentBibID = updatedBibs[i-1];
+						String currentBibID = updatedBibs.get(i);
 						Node marcRecordNode = marcRecordInfo.item(i);
 
 						// Build Marc Object from the API data
@@ -443,8 +244,8 @@ public class CarlXExportMain {
 							markGroupedWorkForBibAsChangedStmt.setString(2, currentBibID);
 							markGroupedWorkForBibAsChangedStmt.executeUpdate();
 
-							numUpdates++;
-							if (numUpdates % 50 == 0){
+							numBibUpdates++;
+							if (numBibUpdates % 50 == 0){
 								vufindConn.commit();
 							}
 						}catch (SQLException e){
@@ -463,8 +264,11 @@ public class CarlXExportMain {
 		}
 
 
-		// Now update left over item updates & new items
+		// Now update left over item updates & new items.  If they are left here they would be related to a MARC record that
+		// didn't change (which shouldn't happen, but seems to)
+		int numItemUpdates = 0;
 		if (itemUpdates.size() > 0 || createdItems.size() > 0) {
+			logger.debug("Found " + itemUpdates.size() + " items that were changed and " + createdItems.size() + " items that were created that we didn't associate to Bibs");
 			// Item Updates
 			for (ItemChangeInfo item : itemUpdates) {
 				String currentUpdateItemID = item.getItemId();
@@ -516,8 +320,8 @@ public class CarlXExportMain {
 								markGroupedWorkForBibAsChangedStmt.setString(2, currentBibID);
 								markGroupedWorkForBibAsChangedStmt.executeUpdate();
 
-								numUpdates++;
-								if (numUpdates % 50 == 0){
+								numItemUpdates++;
+								if (numItemUpdates % 50 == 0){
 									vufindConn.commit();
 								}
 							}catch (SQLException e){
@@ -537,6 +341,7 @@ public class CarlXExportMain {
 
 
 			// Now add left-over Created Items
+			int numItemUpdates2 = 0;
 			for (ItemChangeInfo item : createdItems) {
 				String currentCreatedItemID = item.getItemId();
 				String currentBibID = item.getBID();
@@ -592,8 +397,8 @@ public class CarlXExportMain {
 							markGroupedWorkForBibAsChangedStmt.setString(2, currentBibID);
 							markGroupedWorkForBibAsChangedStmt.executeUpdate();
 
-							numUpdates++;
-							if (numUpdates % 50 == 0){
+							numItemUpdates2++;
+							if (numItemUpdates2 % 50 == 0){
 								vufindConn.commit();
 							}
 						}catch (SQLException e){
@@ -607,7 +412,8 @@ public class CarlXExportMain {
 			}
 		}
 
-		// Now remove Any left-over deleted items
+		// Now remove Any left-over deleted items.  The APIs give us the item id, but not the bib id.  We may need to
+		// look them up within Solr as long as the item id is exported as part of the MARC record
 		if (deletedItemIDs.size() > 0 ) {
 			for (String deletedItemID : deletedItemIDs) {
 				//TODO: Now you *really* have to get the BID, dude.
@@ -691,6 +497,216 @@ public class CarlXExportMain {
 	}
 		Date currentTime = new Date();
 		logger.info(currentTime.toString() + ": Finished CarlX Extract");
+	}
+
+	private static String getLastExtractTime(Connection vufindConn) {
+		Long lastCarlXExtractTime = null;
+		String beginTimeString = null;
+		try {
+			PreparedStatement loadLastCarlXExtractTimeStmt = vufindConn.prepareStatement("SELECT * from variables WHERE name = 'last_carlx_extract_time'", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			ResultSet lastCarlXExtractTimeRS = loadLastCarlXExtractTimeStmt.executeQuery();
+			if (lastCarlXExtractTimeRS.next()){
+				lastCarlXExtractTime           = lastCarlXExtractTimeRS.getLong("value");
+				CarlXExportMain.lastCarlXExtractTimeVariableId = lastCarlXExtractTimeRS.getLong("id");
+			}
+
+			DateFormat beginTimeFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+			beginTimeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+
+			//Last Update in UTC
+			Date now             = new Date();
+			Date yesterday       = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+			Date lastExtractDate = (lastCarlXExtractTime != null) ? new Date((lastCarlXExtractTime - 120) * 1000) : yesterday;
+			// Add a small buffer to the last extract time
+
+			if (lastExtractDate.before(yesterday)){
+				logger.warn("Last Extract date was more than 24 hours ago.  Just getting the last 24 hours since we should have a full extract.");
+				lastExtractDate = yesterday;
+			}
+
+			beginTimeString = beginTimeFormat.format(lastExtractDate);
+
+		} catch (Exception e) {
+			logger.error("Error getting last Extract Time for CarlX", e);
+		}
+		return beginTimeString;
+	}
+
+	private static void getUpdatedItems(String beginTimeString, ArrayList<String> updatedItemIDs, ArrayList<String> createdItemIDs, ArrayList<String> deletedItemIDs){
+		// Get All Changed Items //
+		String changedItemsSoapRequest = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:mar=\"http://tlcdelivers.com/cx/schemas/marcoutAPI\" xmlns:req=\"http://tlcdelivers.com/cx/schemas/request\">\n" +
+				"<soapenv:Header/>\n" +
+				"<soapenv:Body>\n" +
+				"<mar:GetChangedItemsRequest>\n" +
+				"<mar:BeginTime>"+ beginTimeString + "</mar:BeginTime>\n" +
+				"<mar:Modifiers/>\n" +
+				"</mar:GetChangedItemsRequest>\n" +
+				"</soapenv:Body>\n" +
+				"</soapenv:Envelope>";
+
+		URLPostResponse SOAPResponse = postToURL(marcOutURL, changedItemsSoapRequest, "text/xml", null, logger);
+
+		String totalItems;
+
+		// Read SOAP Response for Changed Items
+		try {
+			Document doc                     = createXMLDocumentForSoapResponse(SOAPResponse);
+			Node soapEnvelopeNode            = doc.getFirstChild();
+			Node soapBodyNode                = soapEnvelopeNode.getLastChild();
+			Node getChangedItemsResponseNode = soapBodyNode.getFirstChild();
+			Node responseStatusNode          = getChangedItemsResponseNode.getChildNodes().item(0).getChildNodes().item(0);
+			String responseStatusCode        = responseStatusNode.getFirstChild().getTextContent();
+			if (responseStatusCode.equals("0")) {
+				totalItems = responseStatusNode.getChildNodes().item(3).getTextContent();
+				logger.debug("There are " + totalItems + " total items");
+
+				Node updatedItemsNode            = getChangedItemsResponseNode.getChildNodes().item(4); // 5th element of getChangedItemsResponseNode
+				Node createdItemsNode            = getChangedItemsResponseNode.getChildNodes().item(3); // 4th element of getChangedItemsResponseNode
+				Node deletedItemsNode            = getChangedItemsResponseNode.getChildNodes().item(5); // 6th element of getChangedItemsResponseNode
+
+				// Updated Items
+				updatedItemIDs = getIDsArrayListFromNodeList(updatedItemsNode.getChildNodes());
+				logger.debug("Found " + updatedItemIDs.size() + " updated items since " + beginTimeString);
+
+				// Created Items
+				createdItemIDs = getIDsArrayListFromNodeList(createdItemsNode.getChildNodes());
+				logger.debug("Found " + createdItemIDs.size() + " new items since " + beginTimeString);
+
+				// Deleted Items
+				deletedItemIDs = getIDsArrayListFromNodeList(deletedItemsNode.getChildNodes());
+				logger.debug("Found " + deletedItemIDs.size() + " deleted items since " + beginTimeString);
+			} else {
+				String shortErrorMessage = responseStatusNode.getChildNodes().item(2).getTextContent();
+				logger.error("Error Response for API call for Changed Items : " + shortErrorMessage);
+				System.out.println("Error Response for API call for Changed Items : " + shortErrorMessage);
+				System.exit(1);
+			}
+
+		} catch (Exception e) {
+			logger.error("Error Parsing SOAP Response for Fetching Changed Items", e);
+		}
+	}
+
+	private static void getUpdatedBibs(String beginTimeString, ArrayList<String> updatedBibs, ArrayList<String> createdBibs, ArrayList<String> deletedBibs) {
+		// Get All Changed Marc Records //
+		String changedMarcSoapRequest = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:mar=\"http://tlcdelivers.com/cx/schemas/marcoutAPI\" xmlns:req=\"http://tlcdelivers.com/cx/schemas/request\">\n" +
+				"<soapenv:Header/>\n" +
+				"<soapenv:Body>\n" +
+				"<mar:GetChangedBibsRequest>\n" +
+				"<mar:BeginTime>"+ beginTimeString + "</mar:BeginTime>\n" +
+				"<mar:Modifiers/>\n" +
+				"</mar:GetChangedBibsRequest>\n" +
+				"</soapenv:Body>\n" +
+				"</soapenv:Envelope>";
+
+		URLPostResponse SOAPResponse = postToURL(marcOutURL, changedMarcSoapRequest, "text/xml", null, logger);
+
+		String totalBibs = "0";
+
+		// Read SOAP Response for Changed Bibs
+		try {
+			Document doc                     = createXMLDocumentForSoapResponse(SOAPResponse);
+			Node soapEnvelopeNode            = doc.getFirstChild();
+			Node soapBodyNode                = soapEnvelopeNode.getLastChild();
+			Node getChangedBibsResponseNode  = soapBodyNode.getFirstChild();
+			Node responseStatusNode          = getChangedBibsResponseNode.getChildNodes().item(0).getChildNodes().item(0);
+			String responseStatusCode        = responseStatusNode.getFirstChild().getTextContent();
+			if (responseStatusCode.equals("0")) {
+				totalBibs                      = responseStatusNode.getChildNodes().item(3).getTextContent();
+				logger.debug("There are " + totalBibs + " total bibs");
+				Node updatedBibsNode           = getChangedBibsResponseNode.getChildNodes().item(4); // 5th element of getChangedItemsResponseNode
+				Node createdBibsNode           = getChangedBibsResponseNode.getChildNodes().item(3); // 4th element of getChangedItemsResponseNode
+				Node deletedBibsNode           = getChangedBibsResponseNode.getChildNodes().item(5); // 6th element of getChangedItemsResponseNode
+
+				// Updated Items
+				updatedBibs = getIDsFromNodeList(updatedBibsNode.getChildNodes());
+				logger.debug("Found " + updatedBibs.size() + " updated bibs since " + beginTimeString);
+
+				// TODO: Process Created Bibs in the future.
+				// Created Bibs
+				createdBibs = getIDsFromNodeList(createdBibsNode.getChildNodes());
+				logger.debug("Found " + createdBibs.size() + " new bibs since " + beginTimeString);
+
+				// TODO: Process Deleted Bibs in the future
+				// Deleted Bibs
+				deletedBibs = getIDsFromNodeList(deletedBibsNode.getChildNodes());
+				logger.debug("Found " + deletedBibs.size() + " deleted bibs since " + beginTimeString);
+
+			} else {
+				String shortErrorMessage = responseStatusNode.getChildNodes().item(2).getTextContent();
+				logger.error("Error Response for API call for Changed Bibs : " + shortErrorMessage);
+				// TODO: stop execution?
+//				System.out.println("Error Response for API call for Changed Bibs : " + shortErrorMessage);
+//				System.exit(1);
+
+			}
+
+
+
+		} catch (Exception e) {
+			logger.error("Error Parsing SOAP Response for Fetching Changed Bibs", e);
+		}
+	}
+
+	private static Long loadIndexingProfile(Connection vufindConn, Long profileIDNumber) {
+		//Get the Indexing Profile from the database
+		try {
+			PreparedStatement getCarlXIndexingProfileStmt = vufindConn.prepareStatement("SELECT * FROM indexing_profiles where name ='ils'");
+			ResultSet carlXIndexingProfileRS = getCarlXIndexingProfileStmt.executeQuery();
+			if (carlXIndexingProfileRS.next()) {
+				profileIDNumber                    = carlXIndexingProfileRS.getLong("id");
+
+				String itemTag                     = carlXIndexingProfileRS.getString("itemTag");
+				String itemRecordNumberSubfield    = carlXIndexingProfileRS.getString("itemRecordNumber");
+				String lastCheckinDateSubfield     = carlXIndexingProfileRS.getString("lastCheckinDate");
+				String lastCheckinFormat           = carlXIndexingProfileRS.getString("lastCheckinFormat");
+				String locationSubfield            = carlXIndexingProfileRS.getString("location");
+				String itemStatusSubfield          = carlXIndexingProfileRS.getString("status");
+				String dueDateSubfield             = carlXIndexingProfileRS.getString("dueDate");
+				String dateCreatedSubfield         = carlXIndexingProfileRS.getString("dateCreated");
+				String dateCreatedFormat           = carlXIndexingProfileRS.getString("dateCreatedFormat");
+				String callNumberSubfield          = carlXIndexingProfileRS.getString("callNumber");
+				String totalCheckoutsSubfield      = carlXIndexingProfileRS.getString("totalCheckouts");
+				String yearToDateCheckoutsSubfield = carlXIndexingProfileRS.getString("yearToDateCheckouts");
+				String individualMarcPath          = carlXIndexingProfileRS.getString("individualMarcPath");
+				String profileType                 = carlXIndexingProfileRS.getString("name");
+				String shelvingLocationSubfield    = carlXIndexingProfileRS.getString("shelvingLocation");
+//				String collectionSubfield          = carlXIndexingProfileRS.getString("collection"); // Same as shelvingLocation
+				String iTypeSubfield               = carlXIndexingProfileRS.getString("iType");
+
+				CarlXExportMain.itemTag                     = itemTag;
+				CarlXExportMain.itemRecordNumberSubfield    = itemRecordNumberSubfield.length() > 0 ? itemRecordNumberSubfield.charAt(0) : ' ';
+				CarlXExportMain.lastCheckInSubfield         = lastCheckinDateSubfield.length() > 0 ? lastCheckinDateSubfield.charAt(0) : ' ';
+				CarlXExportMain.lastCheckInFormat           = lastCheckinFormat;
+				CarlXExportMain.locationSubfield            = locationSubfield.length() > 0 ? locationSubfield.charAt(0) : ' ';
+				CarlXExportMain.statusSubfield              = itemStatusSubfield.length() > 0 ? itemStatusSubfield.charAt(0) : ' ';
+				CarlXExportMain.dueDateSubfield             = dueDateSubfield.length() > 0 ? dueDateSubfield.charAt(0) : ' ';
+				CarlXExportMain.dueDateFormat               = lastCheckinFormat;
+				CarlXExportMain.dateCreatedSubfield         = dateCreatedSubfield.length() > 0 ? dateCreatedSubfield.charAt(0) : ' ';
+				CarlXExportMain.dateCreatedFormat           = dateCreatedFormat;
+				CarlXExportMain.callNumberSubfield          = callNumberSubfield.length() > 0 ? callNumberSubfield.charAt(0) : ' ';
+				CarlXExportMain.totalCheckoutsSubfield      = totalCheckoutsSubfield.length() > 0 ? totalCheckoutsSubfield.charAt(0) : ' ';
+				CarlXExportMain.yearToDateCheckoutsSubfield = yearToDateCheckoutsSubfield.length() > 0 ? yearToDateCheckoutsSubfield.charAt(0) : ' ';
+				CarlXExportMain.shelvingLocationSubfield    = shelvingLocationSubfield.length() > 0 ? shelvingLocationSubfield.charAt(0) : ' ';
+				CarlXExportMain.iTypeSubfield               = iTypeSubfield.length() > 0 ? iTypeSubfield.charAt(0) : ' ';
+				CarlXExportMain.individualMarcPath          = individualMarcPath;
+				CarlXExportMain.profileType                 = profileType;
+
+
+				String carlXExportPath          = carlXIndexingProfileRS.getString("marcPath");
+				String recordNumberTag          = carlXIndexingProfileRS.getString("recordNumberTag");
+				String recordNumberPrefix       = carlXIndexingProfileRS.getString("recordNumberPrefix");
+				String itemBarcodeSubfield      = carlXIndexingProfileRS.getString("barcode");
+				// shelvingLocation & collection sub fields are the same in the sandbox
+
+			} else {
+				logger.error("Unable to find carlx indexing profile, please create a profile with the name ils.");
+			}
+
+		}catch (Exception e){
+			logger.error("Error reading index profile for CarlX", e);
+		}
+		return profileIDNumber;
 	}
 
 
@@ -846,7 +862,7 @@ public class CarlXExportMain {
 										break;
 									case "Status":
 										// Set itemIdentifier for logging with info that we know at this point.
-										String itemIdentifier = "";
+										String itemIdentifier;
 										// Use code below if we every turn on switch fullReindex (logs missing translation values)
 										if (currentItem.getBID().isEmpty()) {
 											itemIdentifier = currentItem.getItemId().isEmpty() ? "a Carl-X Item" : " for item ID " + currentItem.getItemId();
@@ -937,11 +953,11 @@ public class CarlXExportMain {
 		return itemUpdates;
 	}
 
-	private static String[] getIDsStringArrayFromNodeList(NodeList walkThroughMe) {
+	private static ArrayList<String> getIDsFromNodeList(NodeList walkThroughMe) {
 		Integer l       = walkThroughMe.getLength();
-		String[] idList = new String[l];
+		ArrayList<String> idList = new ArrayList<>();
 		for (int i = 0; i < l; i++) {
-			idList[i] = walkThroughMe.item(i).getTextContent();
+			idList.add(walkThroughMe.item(i).getTextContent());
 		}
 		return idList;
 	}
@@ -1140,7 +1156,7 @@ public class CarlXExportMain {
 
 		File marcFile = getFileForIlsRecord(individualMarcPath, curBibId);
 
-		MarcWriter writer = null;
+		MarcWriter writer;
 		try {
 			writer = new MarcStreamWriter(new FileOutputStream(marcFile, false));
 			writer.write(marcObject);
@@ -1164,22 +1180,19 @@ public class CarlXExportMain {
 		while (recordNumber.length() < 10){ // pad up to a 10-digit number
 			recordNumber = "0" + recordNumber;
 		}
-		String fileId = "CARL" + recordNumber; // add Carl prefix
-		return fileId;
+		return "CARL" + recordNumber; // add Carl prefix
 	}
 
 	private static Document createXMLDocumentForSoapResponse(URLPostResponse SoapResponse) throws ParserConfigurationException, IOException, SAXException {
 		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-		DocumentBuilder dBuilder = null;
-		Document doc;
 
-		dBuilder = dbFactory.newDocumentBuilder();
+		DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 
 		byte[]                soapResponseByteArray            = SoapResponse.getMessage().getBytes("utf-8");
 		ByteArrayInputStream  soapResponseByteArrayInputStream = new ByteArrayInputStream(soapResponseByteArray);
 		InputSource           soapResponseInputSource          = new InputSource(soapResponseByteArrayInputStream);
 
-		doc = dBuilder.parse(soapResponseInputSource);
+		Document doc = dBuilder.parse(soapResponseInputSource);
 		doc.getDocumentElement().normalize();
 
 		return doc;
@@ -1247,7 +1260,7 @@ public class CarlXExportMain {
 		return ini;
 	}
 
-	public static String cleanIniValue(String value) {
+	private static String cleanIniValue(String value) {
 		if (value == null) {
 			return null;
 		}
@@ -1261,7 +1274,7 @@ public class CarlXExportMain {
 		return value;
 	}
 
-	public static URLPostResponse postToURL(String url, String postData, String contentType, String referer, Logger logger) {
+	private static URLPostResponse postToURL(String url, String postData, String contentType, String referer, Logger logger) {
 		URLPostResponse retVal;
 		HttpURLConnection conn = null;
 		try {
@@ -1299,7 +1312,7 @@ public class CarlXExportMain {
 				wr.close();
 			}
 
-			StringBuffer response = new StringBuffer();
+			StringBuilder response = new StringBuilder();
 			if (conn.getResponseCode() == 200) {
 				// Get the response
 				BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
@@ -1347,7 +1360,7 @@ public class CarlXExportMain {
 		return retVal;
 	}
 
-	public static String translateValue(String mapName, String value, String identifier){
+	private static String translateValue(String mapName, String value, String identifier){
 		if (value == null){
 			return null;
 		}
@@ -1368,7 +1381,7 @@ public class CarlXExportMain {
 		getTranslationMapsStmt.setLong(1, id);
 		ResultSet translationsMapRS = getTranslationMapsStmt.executeQuery();
 		while (translationsMapRS.next()){
-			TranslationMap map = new TranslationMap(profileType, translationsMapRS.getString("name"), fullReindex, translationsMapRS.getBoolean("usesRegularExpressions"), logger);
+			TranslationMap map = new TranslationMap(profileType, translationsMapRS.getString("name"), true, translationsMapRS.getBoolean("usesRegularExpressions"), logger);
 			Long translationMapId = translationsMapRS.getLong("id");
 			getTranslationMapValuesStmt.setLong(1, translationMapId);
 			ResultSet translationMapValuesRS = getTranslationMapValuesStmt.executeQuery();
@@ -1435,7 +1448,7 @@ public class CarlXExportMain {
 			PreparedStatement addIlsHoldSummary = vufindConn.prepareStatement("INSERT INTO ils_hold_summary (ilsId, numHolds) VALUES (?, ?)");
 
 			HashMap<String, Long> numHoldsByBib = new HashMap<>();
-//			HashMap<String, Long> numHoldsByVolume = new HashMap<>();
+
 			//Export bib level holds
 			PreparedStatement bibHoldsStmt = carlxConn.prepareStatement("select bid,sum(count) numHolds from (\n" +
 					"  select bid,count(1) count from transbid_v group by bid\n" +
@@ -1453,69 +1466,13 @@ public class CarlXExportMain {
 			}
 			bibHoldsRS.close();
 
-//			if (exportItemHolds) {
-//				//Export item level holds
-//				PreparedStatement itemHoldsStmt = carlxConn.prepareStatement("select count(hold.id) as numHolds, record_num\n" +
-//						"from sierra_view.hold \n" +
-//						"inner join sierra_view.bib_record_item_record_link ON hold.record_id = item_record_id \n" +
-//						"inner join sierra_view.record_metadata on bib_record_item_record_link.bib_record_id = record_metadata.id \n" +
-//						"WHERE status = '0' OR status = 't' " +
-//						"group by record_num", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-//				ResultSet itemHoldsRS = itemHoldsStmt.executeQuery();
-//				while (itemHoldsRS.next()) {
-//					String bibId = itemHoldsRS.getString("record_num");
-//					bibId = ".b" + bibId + getCheckDigit(bibId);
-//					Long numHolds = itemHoldsRS.getLong("numHolds");
-//					if (numHoldsByBib.containsKey(bibId)) {
-//						numHoldsByBib.put(bibId, numHolds + numHoldsByBib.get(bibId));
-//					} else {
-//						numHoldsByBib.put(bibId, numHolds);
-//					}
-//				}
-//				itemHoldsRS.close();
-//			}
-//
-//			//Export volume level holds
-//			PreparedStatement volumeHoldsStmt = carlxConn.prepareStatement("select count(hold.id) as numHolds, bib_metadata.record_num as bib_num, volume_metadata.record_num as volume_num\n" +
-//					"from sierra_view.hold \n" +
-//					"inner join sierra_view.bib_record_volume_record_link ON hold.record_id = volume_record_id \n" +
-//					"inner join sierra_view.record_metadata as volume_metadata on bib_record_volume_record_link.volume_record_id = volume_metadata.id \n" +
-//					"inner join sierra_view.record_metadata as bib_metadata on bib_record_volume_record_link.bib_record_id = bib_metadata.id \n" +
-//					"WHERE status = '0' OR status = 't'\n" +
-//					"GROUP BY bib_metadata.record_num, volume_metadata.record_num", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-//			ResultSet volumeHoldsRS = volumeHoldsStmt.executeQuery();
-//			while (volumeHoldsRS.next()) {
-//				String bibId = volumeHoldsRS.getString("bib_num");
-//				bibId = ".b" + bibId + getCheckDigit(bibId);
-//				String volumeId = volumeHoldsRS.getString("volume_num");
-//				volumeId = ".j" + volumeId + getCheckDigit(volumeId);
-//				Long numHolds = volumeHoldsRS.getLong("numHolds");
-//				//Do not count these in
-//				if (numHoldsByBib.containsKey(bibId)) {
-//					numHoldsByBib.put(bibId, numHolds + numHoldsByBib.get(bibId));
-//				} else {
-//					numHoldsByBib.put(bibId, numHolds);
-//				}
-//				if (numHoldsByVolume.containsKey(volumeId)) {
-//					numHoldsByVolume.put(volumeId, numHolds + numHoldsByVolume.get(bibId));
-//				} else {
-//					numHoldsByVolume.put(volumeId, numHolds);
-//				}
-//			}
-//			volumeHoldsRS.close();
-
+			logger.debug("Found " + numHoldsByBib + " bibs that have title or item level holds");
 
 			for (String bibId : numHoldsByBib.keySet()){
 				addIlsHoldSummary.setString(1, bibId);
 				addIlsHoldSummary.setLong(2, numHoldsByBib.get(bibId));
 				addIlsHoldSummary.executeUpdate();
 			}
-
-//			for (String volumeId : numHoldsByVolume.keySet()){
-//				addIlsHoldSummary.setString(1, volumeId);
-//				addIlsHoldSummary.setLong(2, numHoldsByVolume.get(volumeId));
-//				addIlsHoldSummary.executeUpdate();
-//			}
 
 			try {
 				vufindConn.commit();
