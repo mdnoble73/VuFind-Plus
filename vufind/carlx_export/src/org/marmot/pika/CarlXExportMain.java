@@ -100,7 +100,7 @@ public class CarlXExportMain {
 		Long profileIDNumber = null;
 		Long exportStartTime = startTime.getTime() / 1000;
 
-		profileIDNumber = loadIndexingProfile(vufindConn, profileIDNumber);
+		profileIDNumber = loadIndexingProfile(vufindConn);
 		// Load Translation Map for Item Status Codes
 		try {
 			loadTranslationMapsForProfile(vufindConn, profileIDNumber);
@@ -426,6 +426,7 @@ public class CarlXExportMain {
 					int l = marcRecordInfo.getLength();
 					for (int i=1; i < l; i++ ) { // (skip first node because it is the response status)
 						String currentBibID = updatedBibs.get(i);
+						logger.debug("Updating " + currentBibID);
 						Node marcRecordNode = marcRecordInfo.item(i);
 
 						// Build Marc Object from the API data
@@ -446,9 +447,11 @@ public class CarlXExportMain {
 										updateItemDataFieldWithChangeInfo(currentDataField, updatedItem);
 										itemUpdates.remove(updatedItem); // remove Item Change Info
 										updatedItemIDs.remove(currentItemID); // remove itemId for list
+										logger.debug("  Updating Item " + currentItemID + " in " + currentBibID);
 									}
 								} else if (deletedItemIDs.contains(currentItemID)) {
 									deletedItemIDs.remove(currentItemID); //TODO: check the API for the same BIB ID?
+									logger.debug("  Deleted Item " + currentItemID + " in " + currentBibID);
 									continue; // Skip adding this item into the Marc Object
 								} else if (createdItemIDs.contains(currentItemID)) {
 									// This shouldn't happen, but in case it does
@@ -459,6 +462,7 @@ public class CarlXExportMain {
 										createdItems.remove(createdItem); // remove Item Change Info
 										createdItemIDs.remove(currentItemID); // remove itemId for list
 									}
+									logger.debug("  Created New Item " + currentItemID + " in " + currentBibID);
 								}
 								updatedMarcRecordFromAPICall.addVariableField(currentDataField);
 
@@ -651,8 +655,9 @@ public class CarlXExportMain {
 		}
 	}
 
-	private static Long loadIndexingProfile(Connection vufindConn, Long profileIDNumber) {
+	private static Long loadIndexingProfile(Connection vufindConn) {
 		//Get the Indexing Profile from the database
+		Long profileIDNumber = null;
 		try {
 			PreparedStatement getCarlXIndexingProfileStmt = vufindConn.prepareStatement("SELECT * FROM indexing_profiles where name ='ils'");
 			ResultSet carlXIndexingProfileRS = getCarlXIndexingProfileStmt.executeQuery();
@@ -1164,9 +1169,11 @@ public class CarlXExportMain {
 			writer = new MarcStreamWriter(new FileOutputStream(marcFile, false));
 			writer.write(marcObject);
 			writer.close();
+			logger.debug("  Created Saved updated MARC record to " + marcFile.getAbsolutePath());
 		} catch (FileNotFoundException e) {
 			logger.error("Error saving marc record for bib " + curBibId, e);
 		}
+
 	}
 
 	private static File getFileForIlsRecord(String individualMarcPath, String recordNumber) {
