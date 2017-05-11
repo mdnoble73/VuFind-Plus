@@ -147,7 +147,9 @@ public class CarlXExportMain {
 
 		// Update Changed Bibs //
 		errorUpdatingDatabase = updateBibRecords(vufindConn, updateTime, updatedBibs, updatedItemIDs, createdItemIDs, deletedItemIDs, itemUpdates, createdItems, errorUpdatingDatabase, markGroupedWorkForBibAsChangedStmt);
+		logger.debug("Done updating Bib Records");
 		errorUpdatingDatabase = updateChangedItems(vufindConn, updateTime, createdItemIDs, deletedItemIDs, itemUpdates, createdItems, errorUpdatingDatabase, markGroupedWorkForBibAsChangedStmt);
+		logger.debug("Done updating Item Records");
 
 		// Now remove Any left-over deleted items.  The APIs give us the item id, but not the bib id.  We may need to
 		// look them up within Solr as long as the item id is exported as part of the MARC record
@@ -157,6 +159,17 @@ public class CarlXExportMain {
 			}
 		}
 
+		//TODO: Process Deleted Bibs
+		if (deletedBibs.size() > 0){
+			logger.debug("There are " + deletedBibs + " that still need to be processed.");
+		}
+
+
+		//TODO: Process New Bibs
+		if (createdBibs.size() > 0){
+			logger.debug("There are " + createdBibs.size() + " that still need to be processed");
+		}
+
 		try {
 			// Turn auto commit back on
 			vufindConn.commit();
@@ -164,7 +177,6 @@ public class CarlXExportMain {
 		} catch (Exception e) {
 			logger.error("MySQL Error: " + e.toString());
 		}
-		logger.debug("Done updating Bib Records");
 
 			//Connect to the CarlX database
 		String url        = ini.get("Catalog", "carlx_db");
@@ -805,6 +817,7 @@ public class CarlXExportMain {
 	private static ArrayList<ItemChangeInfo> fetchItemInformation(ArrayList<String> itemIDs) {
 		ArrayList<ItemChangeInfo> itemUpdates = new ArrayList<>();
 		if (itemIDs.size() > 0) {
+			logger.debug("Getting item information for Item IDs");
 			//TODO: Set an upper limit on number of IDs for one request, and process in batches
 			String getItemInformationSoapRequest;
 			String getItemInformationSoapRequestStart = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:mar=\"http://tlcdelivers.com/cx/schemas/marcoutAPI\" xmlns:req=\"http://tlcdelivers.com/cx/schemas/request\">\n" +
@@ -837,6 +850,7 @@ public class CarlXExportMain {
 				Node responseStatus                 = getItemInformationResponseNode.getFirstChild().getFirstChild();
 																							// There is a Response Statuses Node, which then contains the Response Status Node
 				String responseStatusCode           = responseStatus.getFirstChild().getTextContent();
+				logger.debug("Item information response " + doc.toString());
 				if (responseStatusCode.equals("0") ) { // Successful response
 
 					NodeList ItemStatuses = getItemInformationResponseNode.getChildNodes();
@@ -955,6 +969,8 @@ public class CarlXExportMain {
 							itemUpdates.add(currentItem);
 						}
 					}
+				}else{
+					logger.warn("Did not get a successful SOAP response " + responseStatusCode);
 				}
 			} catch (Exception e) {
 				logger.error("Error Retrieving SOAP updated items", e);
