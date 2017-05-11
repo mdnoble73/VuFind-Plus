@@ -410,10 +410,12 @@ public class CarlXExportMain {
 				}
 				getMarcRecordsSoapRequest += getMarcRecordsSoapRequestEnd;
 
+				logger.debug("Getting MARC record details " + getMarcRecordsSoapRequest);
 				URLPostResponse marcRecordSOAPResponse = postToURL(marcOutURL, getMarcRecordsSoapRequest, "text/xml", null, logger);
 
 				// Parse Response
 				Document doc                    = createXMLDocumentForSoapResponse(marcRecordSOAPResponse);
+				logger.debug("MARC record response " + doc.toString());
 				Node soapEnvelopeNode           = doc.getFirstChild();
 				Node soapBodyNode               = soapEnvelopeNode.getLastChild();
 				Node getMarcRecordsResponseNode = soapBodyNode.getFirstChild();
@@ -1292,7 +1294,7 @@ public class CarlXExportMain {
 			conn = (HttpURLConnection) emptyIndexURL.openConnection();
 			conn.setConnectTimeout(10000);
 			conn.setReadTimeout(300000);
-			logger.debug("Posting To URL " + url + (postData != null && postData.length() > 0 ? "?" + postData : ""));
+			//logger.debug("Posting To URL " + url + (postData != null && postData.length() > 0 ? "?" + postData : ""));
 
 			if (conn instanceof HttpsURLConnection){
 				HttpsURLConnection sslConn = (HttpsURLConnection)conn;
