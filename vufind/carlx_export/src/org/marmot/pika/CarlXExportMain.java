@@ -118,18 +118,17 @@ public class CarlXExportMain {
 		marcOutURL = ini.get("Catalog", "marcOutApiWsdl");
 
 		//Load updated bibs
-		logger.debug("Calling GetChangedBibsRequest with BeginTime of " + beginTimeString);
 		ArrayList<String> updatedBibs = new ArrayList<>();
 		ArrayList<String> createdBibs = new ArrayList<>();
 		ArrayList<String> deletedBibs = new ArrayList<>();
+		logger.debug("Calling GetChangedBibsRequest with BeginTime of " + beginTimeString);
 		getUpdatedBibs(beginTimeString, updatedBibs, createdBibs, deletedBibs);
 
-		logger.debug("Calling GetChangedItemsRequest with BeginTime of " + beginTimeString);
-
+		//Load updated items
 		ArrayList<String> updatedItemIDs = new ArrayList<>();
 		ArrayList<String> createdItemIDs = new ArrayList<>();
 		ArrayList<String> deletedItemIDs = new ArrayList<>();
-
+		logger.debug("Calling GetChangedItemsRequest with BeginTime of " + beginTimeString);
 		getUpdatedItems(beginTimeString, updatedItemIDs, createdItemIDs, deletedItemIDs);
 
 		// Fetch Item Information for each ID
@@ -509,6 +508,9 @@ public class CarlXExportMain {
 			if (lastCarlXExtractTimeRS.next()){
 				lastCarlXExtractTime           = lastCarlXExtractTimeRS.getLong("value");
 				CarlXExportMain.lastCarlXExtractTimeVariableId = lastCarlXExtractTimeRS.getLong("id");
+				logger.debug("Last extract time was " + lastCarlXExtractTime);
+			}else{
+				logger.debug("Last extract time was not set in the database");
 			}
 
 			DateFormat beginTimeFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
@@ -1281,7 +1283,7 @@ public class CarlXExportMain {
 		try {
 			URL emptyIndexURL = new URL(url);
 			conn = (HttpURLConnection) emptyIndexURL.openConnection();
-			conn.setConnectTimeout(1000);
+			conn.setConnectTimeout(10000);
 			conn.setReadTimeout(300000);
 			logger.debug("Posting To URL " + url + (postData != null && postData.length() > 0 ? "?" + postData : ""));
 
