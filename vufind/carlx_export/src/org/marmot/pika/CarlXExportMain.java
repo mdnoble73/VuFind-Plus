@@ -586,15 +586,15 @@ public class CarlXExportMain {
 				Node deletedItemsNode            = getChangedItemsResponseNode.getChildNodes().item(5); // 6th element of getChangedItemsResponseNode
 
 				// Updated Items
-				updatedItemIDs = getIDsArrayListFromNodeList(updatedItemsNode.getChildNodes());
+				getIDsArrayListFromNodeList(updatedItemsNode.getChildNodes(), updatedItemIDs);
 				logger.debug("Found " + updatedItemIDs.size() + " updated items since " + beginTimeString);
 
 				// Created Items
-				createdItemIDs = getIDsArrayListFromNodeList(createdItemsNode.getChildNodes());
+				getIDsArrayListFromNodeList(createdItemsNode.getChildNodes(), createdItemIDs);
 				logger.debug("Found " + createdItemIDs.size() + " new items since " + beginTimeString);
 
 				// Deleted Items
-				deletedItemIDs = getIDsArrayListFromNodeList(deletedItemsNode.getChildNodes());
+				getIDsArrayListFromNodeList(deletedItemsNode.getChildNodes(), deletedItemIDs);
 				logger.debug("Found " + deletedItemIDs.size() + " deleted items since " + beginTimeString);
 			} else {
 				String shortErrorMessage = responseStatusNode.getChildNodes().item(2).getTextContent();
@@ -816,8 +816,8 @@ public class CarlXExportMain {
 
 	private static ArrayList<ItemChangeInfo> fetchItemInformation(ArrayList<String> itemIDs) {
 		ArrayList<ItemChangeInfo> itemUpdates = new ArrayList<>();
+		logger.debug("Getting item information for " + itemIDs.size() + " Item IDs");
 		if (itemIDs.size() > 0) {
-			logger.debug("Getting item information for Item IDs");
 			//TODO: Set an upper limit on number of IDs for one request, and process in batches
 			String getItemInformationSoapRequest;
 			String getItemInformationSoapRequestStart = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:mar=\"http://tlcdelivers.com/cx/schemas/marcoutAPI\" xmlns:req=\"http://tlcdelivers.com/cx/schemas/request\">\n" +
@@ -1003,14 +1003,12 @@ public class CarlXExportMain {
 		return dateForMarc;
 	}
 
-	private static ArrayList<String> getIDsArrayListFromNodeList(NodeList walkThroughMe) {
+	private static void getIDsArrayListFromNodeList(NodeList walkThroughMe, ArrayList<String> idList) {
 		Integer l                = walkThroughMe.getLength();
-		ArrayList<String> idList = new ArrayList<>();
 		for (int i = 0; i < l; i++) {
 			String itemID = walkThroughMe.item(i).getTextContent();
 			idList.add(itemID);
 		}
-		return idList;
 	}
 
 	private static void updateItemDataFieldWithChangeInfo(DataField itemField, ItemChangeInfo changeInfo) {
