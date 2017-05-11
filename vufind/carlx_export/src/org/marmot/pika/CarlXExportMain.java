@@ -147,123 +147,92 @@ public class CarlXExportMain {
 
 
 		// Update Changed Bibs //
+		errorUpdatingDatabase = updateBibRecords(vufindConn, updateTime, updatedBibs, updatedItemIDs, createdItemIDs, deletedItemIDs, itemUpdates, createdItems, errorUpdatingDatabase, markGroupedWorkForBibAsChangedStmt);
+		errorUpdatingDatabase = updateChangedItems(vufindConn, updateTime, createdItemIDs, deletedItemIDs, itemUpdates, createdItems, errorUpdatingDatabase, markGroupedWorkForBibAsChangedStmt);
 
-		// Fetch new Marc Data
-		// Note: There is an Include949ItemData flag, but it hasn't been implemented by TLC yet. plb 9-15-2016
-		String getMarcRecordsSoapRequest;
-		int numBibUpdates = 0;
-		// Build Marc Fetching Soap Request
-		if (updatedBibs.size() > 0) {
-			try {
-				String getMarcRecordsSoapRequestStart = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:mar=\"http://tlcdelivers.com/cx/schemas/marcoutAPI\" xmlns:req=\"http://tlcdelivers.com/cx/schemas/request\">\n" +
-						"<soapenv:Header/>\n" +
-						"<soapenv:Body>\n" +
-						"<mar:GetMARCRecordsRequest>\n";
-				String getMarcRecordsSoapRequestEnd = "<mar:Include949ItemData>0</mar:Include949ItemData>\n" +
-						"<mar:IncludeOnlyUnsuppressed>0</mar:IncludeOnlyUnsuppressed>\n" +
-						"<mar:Modifiers>\n" +
-						"</mar:Modifiers>\n" +
-						"</mar:GetMARCRecordsRequest>\n" +
-						"</soapenv:Body>\n" +
-						"</soapenv:Envelope>";
-
-				getMarcRecordsSoapRequest = getMarcRecordsSoapRequestStart;
-				// Updated Bibs
-				for (String updatedBibID : updatedBibs) {
-					if (updatedBibID.length() > 0) {
-						getMarcRecordsSoapRequest += "<mar:BID>" + updatedBibID + "</mar:BID>";
-					}
-				}
-				getMarcRecordsSoapRequest += getMarcRecordsSoapRequestEnd;
-
-				URLPostResponse marcRecordSOAPResponse = postToURL(marcOutURL, getMarcRecordsSoapRequest, "text/xml", null, logger);
-
-				// Parse Response
-				Document doc                    = createXMLDocumentForSoapResponse(marcRecordSOAPResponse);
-				Node soapEnvelopeNode           = doc.getFirstChild();
-				Node soapBodyNode               = soapEnvelopeNode.getLastChild();
-				Node getMarcRecordsResponseNode = soapBodyNode.getFirstChild();
-				NodeList marcRecordInfo         = getMarcRecordsResponseNode.getChildNodes();
-				Node marcRecordsResponseStatus  = getMarcRecordsResponseNode.getFirstChild().getFirstChild();
-				String responseStatusCode       = marcRecordsResponseStatus.getFirstChild().getTextContent();
-
-				if (responseStatusCode.equals("0") ) { // Successful response
-
-					int l = marcRecordInfo.getLength();
-					for (int i=1; i < l; i++ ) { // (skip first node because it is the response status)
-						String currentBibID = updatedBibs.get(i);
-						Node marcRecordNode = marcRecordInfo.item(i);
-
-						// Build Marc Object from the API data
-						Record updatedMarcRecordFromAPICall = buildMarcRecordFromAPIResponse(marcRecordNode, currentBibID);
-
-						Record currentMarcRecord            = loadMarc(currentBibID);
-						if (currentMarcRecord != null) {
-							Integer indexOfItem;
-							List<VariableField> currentMarcDataFields = currentMarcRecord.getVariableFields(itemTag);
-							for (VariableField itemFieldVar: currentMarcDataFields) {
-								DataField currentDataField = (DataField) itemFieldVar;
-								String currentItemID = currentDataField.getSubfield(itemRecordNumberSubfield).getData();
-								if (updatedItemIDs.contains(currentItemID)) {
-									// Add current Item Change Info instead
-									indexOfItem = updatedItemIDs.indexOf(currentItemID);
-									ItemChangeInfo updatedItem = itemUpdates.get(indexOfItem);
-									if (updatedItem.getBID().equals(currentBibID)) { // Double check BID in case itemIDs aren't completely unique
-										updateItemDataFieldWithChangeInfo(currentDataField, updatedItem);
-										itemUpdates.remove(updatedItem); // remove Item Change Info
-										updatedItemIDs.remove(currentItemID); // remove itemId for list
-									}
-								} else if (deletedItemIDs.contains(currentItemID)) {
-									deletedItemIDs.remove(currentItemID); //TODO: check the API for the same BIB ID?
-									continue; // Skip adding this item into the Marc Object
-								} else if (createdItemIDs.contains(currentItemID)) {
-									// This shouldn't happen, but in case it does
-									indexOfItem = createdItemIDs.indexOf(currentItemID);
-									ItemChangeInfo createdItem = createdItems.get(indexOfItem);
-									if (createdItem.getBID().equals(currentBibID)) { // Double check BID in case itemIDs aren't completely unique
-										updateItemDataFieldWithChangeInfo(currentDataField, createdItem);
-										createdItems.remove(createdItem); // remove Item Change Info
-										createdItemIDs.remove(currentItemID); // remove itemId for list
-									}
-								}
-								updatedMarcRecordFromAPICall.addVariableField(currentDataField);
-
-							}
-						} else {
-							// We lose any existing, unchanged items.
-							// TODO: Do an additional look up for Item Information ?
-							logger.warn("Existing Marc Record for BID " + currentBibID + " failed to load; Writing new record with data from API");
-						}
-
-						// Save Marc Record to File
-						saveMarc(updatedMarcRecordFromAPICall, currentBibID);
-
-						// Mark Bib as Changed for Re-indexer
-						try {
-							markGroupedWorkForBibAsChangedStmt.setLong(1, updateTime);
-							markGroupedWorkForBibAsChangedStmt.setString(2, currentBibID);
-							markGroupedWorkForBibAsChangedStmt.executeUpdate();
-
-							numBibUpdates++;
-							if (numBibUpdates % 50 == 0){
-								vufindConn.commit();
-							}
-						}catch (SQLException e){
-							logger.error("Could not mark that " + currentBibID + " was changed due to error ", e);
-							errorUpdatingDatabase = true;
-						}
-					}
-
-				} else {
-					String shortErrorMessage = marcRecordsResponseStatus.getChildNodes().item(2).getTextContent();
-					logger.error("Error Response for API call for getting Marc Records : " + shortErrorMessage);
-				}
-			} catch (Exception e) {
-				logger.error("Error Creating SOAP Request for Marc Records", e);
+		// Now remove Any left-over deleted items.  The APIs give us the item id, but not the bib id.  We may need to
+		// look them up within Solr as long as the item id is exported as part of the MARC record
+		if (deletedItemIDs.size() > 0 ) {
+			for (String deletedItemID : deletedItemIDs) {
+				//TODO: Now you *really* have to get the BID, dude.
 			}
 		}
 
+		try {
+			// Turn auto commit back on
+			vufindConn.commit();
+			vufindConn.setAutoCommit(true);
+		} catch (Exception e) {
+			logger.error("MySQL Error: " + e.toString());
+		}
+		logger.debug("Done updating Bib Records");
 
+			//Connect to the CarlX database
+		String url        = ini.get("Catalog", "carlx_db");
+		String dbUser     = ini.get("Catalog", "carlx_db_user");
+		String dbPassword = ini.get("Catalog", "carlx_db_password");
+		if (url.startsWith("\"")){
+			url = url.substring(1, url.length() - 1);
+		}
+		Connection carlxConn = null;
+		try{
+			//Open the connection to the database
+			Properties props = new Properties();
+			props.setProperty("user", dbUser);
+			props.setProperty("password", dbPassword);
+			carlxConn = DriverManager.getConnection(url, props);
+
+			//TODO: Figure out how to get orders
+
+			exportHolds(carlxConn, vufindConn);
+
+			//Close CarlX connection
+			carlxConn.close();
+
+		}catch(Exception e){
+			System.out.println("Error: " + e.toString());
+			e.printStackTrace();
+		}
+
+		if (vufindConn != null) {
+			try {
+				// Wrap Up
+				if (!errorUpdatingDatabase) {
+					//Update the last extract time
+					Long finishTime = new Date().getTime() / 1000;
+					if (lastCarlXExtractTimeVariableId != null) {
+						PreparedStatement updateVariableStmt = vufindConn.prepareStatement("UPDATE variables set value = ? WHERE id = ?");
+						updateVariableStmt.setLong(1, updateTime);
+						updateVariableStmt.setLong(2, lastCarlXExtractTimeVariableId);
+						updateVariableStmt.executeUpdate();
+						updateVariableStmt.close();
+					} else {
+						PreparedStatement insertVariableStmt = vufindConn.prepareStatement("INSERT INTO variables (`name`, `value`) VALUES ('last_carlx_extract_time', ?)");
+						insertVariableStmt.setString(1, Long.toString(exportStartTime));
+						insertVariableStmt.executeUpdate();
+						insertVariableStmt.close();
+					}
+				} else {
+					logger.error("There was an error updating the database, not setting last extract time.");
+				}
+
+			try{
+				//Close the connection
+				vufindConn.close();
+			}catch(Exception e){
+				System.out.println("Error closing connection: " + e.toString());
+			}
+
+		} catch (Exception e) {
+			logger.error("MySQL Error: " + e.toString());
+		}
+
+	}
+		Date currentTime = new Date();
+		logger.info(currentTime.toString() + ": Finished CarlX Extract");
+	}
+
+	private static boolean updateChangedItems(Connection vufindConn, long updateTime, ArrayList<String> createdItemIDs, ArrayList<String> deletedItemIDs, ArrayList<ItemChangeInfo> itemUpdates, ArrayList<ItemChangeInfo> createdItems, boolean errorUpdatingDatabase, PreparedStatement markGroupedWorkForBibAsChangedStmt) {
 		// Now update left over item updates & new items.  If they are left here they would be related to a MARC record that
 		// didn't change (which shouldn't happen, but seems to)
 		int numItemUpdates = 0;
@@ -411,92 +380,124 @@ public class CarlXExportMain {
 				}
 			}
 		}
-
-		// Now remove Any left-over deleted items.  The APIs give us the item id, but not the bib id.  We may need to
-		// look them up within Solr as long as the item id is exported as part of the MARC record
-		if (deletedItemIDs.size() > 0 ) {
-			for (String deletedItemID : deletedItemIDs) {
-				//TODO: Now you *really* have to get the BID, dude.
-			}
-		}
-
-		try {
-			// Turn auto commit back on
-			vufindConn.commit();
-			vufindConn.setAutoCommit(true);
-		} catch (Exception e) {
-			logger.error("MySQL Error: " + e.toString());
-		}
-
-
-			//Connect to the CarlX database
-		String url        = ini.get("Catalog", "carlx_db");
-		String dbUser     = ini.get("Catalog", "carlx_db_user");
-		String dbPassword = ini.get("Catalog", "carlx_db_password");
-		if (url.startsWith("\"")){
-			url = url.substring(1, url.length() - 1);
-		}
-		Connection carlxConn = null;
-		try{
-			//Open the connection to the database
-			Properties props = new Properties();
-			props.setProperty("user", dbUser);
-			props.setProperty("password", dbPassword);
-			carlxConn = DriverManager.getConnection(url, props);
-//			orderStatusesToExport = ini.get("Reindex", "orderStatusesToExport");
-//			if (orderStatusesToExport == null){
-//				orderStatusesToExport = "o|1";
-//			}
-//			exportActiveOrders(exportPath, carlxConn);
-
-			exportHolds(carlxConn, vufindConn);
-
-			//Close CarlX connection
-			carlxConn.close();
-
-		}catch(Exception e){
-			System.out.println("Error: " + e.toString());
-			e.printStackTrace();
-		}
-
-
-
-		if (vufindConn != null) {
-			try {
-				// Wrap Up
-				if (!errorUpdatingDatabase) {
-					//Update the last extract time
-					Long finishTime = new Date().getTime() / 1000;
-					if (lastCarlXExtractTimeVariableId != null) {
-						PreparedStatement updateVariableStmt = vufindConn.prepareStatement("UPDATE variables set value = ? WHERE id = ?");
-						updateVariableStmt.setLong(1, updateTime);
-						updateVariableStmt.setLong(2, lastCarlXExtractTimeVariableId);
-						updateVariableStmt.executeUpdate();
-						updateVariableStmt.close();
-					} else {
-						PreparedStatement insertVariableStmt = vufindConn.prepareStatement("INSERT INTO variables (`name`, `value`) VALUES ('last_carlx_extract_time', ?)");
-						insertVariableStmt.setString(1, Long.toString(exportStartTime));
-						insertVariableStmt.executeUpdate();
-						insertVariableStmt.close();
-					}
-				} else {
-					logger.error("There was an error updating the database, not setting last extract time.");
-				}
-
-			try{
-				//Close the connection
-				vufindConn.close();
-			}catch(Exception e){
-				System.out.println("Error closing connection: " + e.toString());
-			}
-
-		} catch (Exception e) {
-			logger.error("MySQL Error: " + e.toString());
-		}
-
+		return errorUpdatingDatabase;
 	}
-		Date currentTime = new Date();
-		logger.info(currentTime.toString() + ": Finished CarlX Extract");
+
+	private static boolean updateBibRecords(Connection vufindConn, long updateTime, ArrayList<String> updatedBibs, ArrayList<String> updatedItemIDs, ArrayList<String> createdItemIDs, ArrayList<String> deletedItemIDs, ArrayList<ItemChangeInfo> itemUpdates, ArrayList<ItemChangeInfo> createdItems, boolean errorUpdatingDatabase, PreparedStatement markGroupedWorkForBibAsChangedStmt) {
+		// Fetch new Marc Data
+		// Note: There is an Include949ItemData flag, but it hasn't been implemented by TLC yet. plb 9-15-2016
+		// Build Marc Fetching Soap Request
+		if (updatedBibs.size() > 0) {
+			int numBibUpdates = 0;
+			try {
+				String getMarcRecordsSoapRequestStart = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:mar=\"http://tlcdelivers.com/cx/schemas/marcoutAPI\" xmlns:req=\"http://tlcdelivers.com/cx/schemas/request\">\n" +
+						"<soapenv:Header/>\n" +
+						"<soapenv:Body>\n" +
+						"<mar:GetMARCRecordsRequest>\n";
+				String getMarcRecordsSoapRequestEnd = "<mar:Include949ItemData>0</mar:Include949ItemData>\n" +
+						"<mar:IncludeOnlyUnsuppressed>0</mar:IncludeOnlyUnsuppressed>\n" +
+						"<mar:Modifiers>\n" +
+						"</mar:Modifiers>\n" +
+						"</mar:GetMARCRecordsRequest>\n" +
+						"</soapenv:Body>\n" +
+						"</soapenv:Envelope>";
+
+				String getMarcRecordsSoapRequest = getMarcRecordsSoapRequestStart;
+				// Updated Bibs
+				for (String updatedBibID : updatedBibs) {
+					if (updatedBibID.length() > 0) {
+						getMarcRecordsSoapRequest += "<mar:BID>" + updatedBibID + "</mar:BID>";
+					}
+				}
+				getMarcRecordsSoapRequest += getMarcRecordsSoapRequestEnd;
+
+				URLPostResponse marcRecordSOAPResponse = postToURL(marcOutURL, getMarcRecordsSoapRequest, "text/xml", null, logger);
+
+				// Parse Response
+				Document doc                    = createXMLDocumentForSoapResponse(marcRecordSOAPResponse);
+				Node soapEnvelopeNode           = doc.getFirstChild();
+				Node soapBodyNode               = soapEnvelopeNode.getLastChild();
+				Node getMarcRecordsResponseNode = soapBodyNode.getFirstChild();
+				NodeList marcRecordInfo         = getMarcRecordsResponseNode.getChildNodes();
+				Node marcRecordsResponseStatus  = getMarcRecordsResponseNode.getFirstChild().getFirstChild();
+				String responseStatusCode       = marcRecordsResponseStatus.getFirstChild().getTextContent();
+
+				if (responseStatusCode.equals("0") ) { // Successful response
+
+					int l = marcRecordInfo.getLength();
+					for (int i=1; i < l; i++ ) { // (skip first node because it is the response status)
+						String currentBibID = updatedBibs.get(i);
+						Node marcRecordNode = marcRecordInfo.item(i);
+
+						// Build Marc Object from the API data
+						Record updatedMarcRecordFromAPICall = buildMarcRecordFromAPIResponse(marcRecordNode, currentBibID);
+
+						Record currentMarcRecord            = loadMarc(currentBibID);
+						if (currentMarcRecord != null) {
+							Integer indexOfItem;
+							List<VariableField> currentMarcDataFields = currentMarcRecord.getVariableFields(itemTag);
+							for (VariableField itemFieldVar: currentMarcDataFields) {
+								DataField currentDataField = (DataField) itemFieldVar;
+								String currentItemID = currentDataField.getSubfield(itemRecordNumberSubfield).getData();
+								if (updatedItemIDs.contains(currentItemID)) {
+									// Add current Item Change Info instead
+									indexOfItem = updatedItemIDs.indexOf(currentItemID);
+									ItemChangeInfo updatedItem = itemUpdates.get(indexOfItem);
+									if (updatedItem.getBID().equals(currentBibID)) { // Double check BID in case itemIDs aren't completely unique
+										updateItemDataFieldWithChangeInfo(currentDataField, updatedItem);
+										itemUpdates.remove(updatedItem); // remove Item Change Info
+										updatedItemIDs.remove(currentItemID); // remove itemId for list
+									}
+								} else if (deletedItemIDs.contains(currentItemID)) {
+									deletedItemIDs.remove(currentItemID); //TODO: check the API for the same BIB ID?
+									continue; // Skip adding this item into the Marc Object
+								} else if (createdItemIDs.contains(currentItemID)) {
+									// This shouldn't happen, but in case it does
+									indexOfItem = createdItemIDs.indexOf(currentItemID);
+									ItemChangeInfo createdItem = createdItems.get(indexOfItem);
+									if (createdItem.getBID().equals(currentBibID)) { // Double check BID in case itemIDs aren't completely unique
+										updateItemDataFieldWithChangeInfo(currentDataField, createdItem);
+										createdItems.remove(createdItem); // remove Item Change Info
+										createdItemIDs.remove(currentItemID); // remove itemId for list
+									}
+								}
+								updatedMarcRecordFromAPICall.addVariableField(currentDataField);
+
+							}
+						} else {
+							// We lose any existing, unchanged items.
+							// TODO: Do an additional look up for Item Information ?
+							logger.warn("Existing Marc Record for BID " + currentBibID + " failed to load; Writing new record with data from API");
+						}
+
+						// Save Marc Record to File
+						saveMarc(updatedMarcRecordFromAPICall, currentBibID);
+
+						// Mark Bib as Changed for Re-indexer
+						try {
+							markGroupedWorkForBibAsChangedStmt.setLong(1, updateTime);
+							markGroupedWorkForBibAsChangedStmt.setString(2, currentBibID);
+							markGroupedWorkForBibAsChangedStmt.executeUpdate();
+
+							numBibUpdates++;
+							if (numBibUpdates % 50 == 0){
+								vufindConn.commit();
+							}
+						}catch (SQLException e){
+							logger.error("Could not mark that " + currentBibID + " was changed due to error ", e);
+							errorUpdatingDatabase = true;
+						}
+					}
+
+				} else {
+					String shortErrorMessage = marcRecordsResponseStatus.getChildNodes().item(2).getTextContent();
+					logger.error("Error Response for API call for getting Marc Records : " + shortErrorMessage);
+				}
+			} catch (Exception e) {
+				logger.error("Error Creating SOAP Request for Marc Records", e);
+			}
+		}
+		return errorUpdatingDatabase;
 	}
 
 	private static String getLastExtractTime(Connection vufindConn) {
@@ -1466,7 +1467,7 @@ public class CarlXExportMain {
 			}
 			bibHoldsRS.close();
 
-			logger.debug("Found " + numHoldsByBib + " bibs that have title or item level holds");
+			logger.debug("Found " + numHoldsByBib.size() + " bibs that have title or item level holds");
 
 			for (String bibId : numHoldsByBib.keySet()){
 				addIlsHoldSummary.setString(1, bibId);
