@@ -1216,7 +1216,7 @@ class CarlX extends SIP2Driver{
 				if (isset($result['variable']['AO'][0])){
 					$mySip->AO = $result['variable']['AO'][0]; /* set AO to value returned */
 				}else{
-					$mySip->AO = ''; /* set AO to value returned */
+					$mySip->AO = 'NASH'; /* set AO to value returned */
 				}
 				if (isset($result['variable']['AN'][0])) {
 					$mySip->AN = $result['variable']['AN'][0]; /* set AN to value returned */
@@ -1307,8 +1307,16 @@ class CarlX extends SIP2Driver{
 
 				//  Use result to populate SIP2 setings
 				// These settings don't seem to apply to the CarlX Sandbox. pascal 7-12-2016
-				$mySip->AO = $result['variable']['AO'][0]; /* set AO to value returned */
-				$mySip->AN = $result['variable']['AN'][0]; /* set AN to value returned */
+				if (isset($result['variable']['AO'][0])){
+					$mySip->AO = $result['variable']['AO'][0]; /* set AO to value returned */
+				}else{
+					$mySip->AO = 'NASH'; /* set AO to value returned */
+				}
+				if (isset($result['variable']['AN'][0])) {
+					$mySip->AN = $result['variable']['AN'][0]; /* set AN to value returned */
+				}else{
+					$mySip->AN = '';
+				}
 
 				$mySip->patron    = $patron->cat_username;
 				$mySip->patronpwd = $patron->cat_password;
@@ -1404,7 +1412,7 @@ class CarlX extends SIP2Driver{
 				if (isset($result['variable']['AO'][0])){
 					$mysip->AO = $result['variable']['AO'][0]; /* set AO to value returned */
 				}else{
-					$mysip->AO = ''; /* set AO to value returned */
+					$mysip->AO = 'NASH'; /* set AO to value returned */
 				}
 				if (isset($result['variable']['AN'][0])) {
 					$mysip->AN = $result['variable']['AN'][0]; /* set AN to value returned */
