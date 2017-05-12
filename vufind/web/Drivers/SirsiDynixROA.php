@@ -730,7 +730,7 @@ abstract class SirsiDynixROA extends HorizonAPI
 
 		$updateHoldResponse = $this->getWebServiceResponse($webServiceURL . "/ws/circulation/holdRecord/key/$holdToThawId", $params, $sessionToken, 'PUT');
 
-		if (isset($updateHoldResponse->key) && isset($updateHoldResponse->fields->suspendEndDate) && $updateHoldResponse->fields->suspendEndDate == null) {
+		if (isset($updateHoldResponse->key) && is_null($updateHoldResponse->fields->suspendEndDate)) {
 			$thawed = translate('thawed');
 			return array(
 				'success' => true,
