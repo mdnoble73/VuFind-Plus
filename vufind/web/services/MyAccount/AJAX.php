@@ -492,7 +492,7 @@ class MyAccount_AJAX
 						if (translate('frozen') != 'frozen') {
 							$notice = str_replace('frozen', translate('frozen'), $notice);  // Translate the phrase frozen from the notice.
 						}
-						$message = '<div class="alert alert-success">'.$result['message'] .'</div><div class="alert alert-info">'.$notice .'</div>';
+						$message = '<div class="alert alert-success">'.$result['message'] .'</div>'. ($notice ? '<div class="alert alert-info">'.$notice .'</div>' : '');
 						$result['message'] = $message;
 					}
 
