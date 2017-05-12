@@ -933,7 +933,7 @@ class MyAccount_AJAX
 		$results = array(
 			'title'        => $title,
 			'modalBody'    => $interface->fetch("MyAccount/reactivationDate.tpl"),
-			'modalButtons' => "<button class='tool btn btn-primary' onclick='VuFind.Account.doFreezeHoldWithReactivationDate(this); return false;'>$title</button>"
+			'modalButtons' => "<button class='tool btn btn-primary' id='doFreezeHoldWithReactivationDate' onclick='$(\".form\").submit(); return false;'>$title</button>"
 		);
 		return $results;
 	}

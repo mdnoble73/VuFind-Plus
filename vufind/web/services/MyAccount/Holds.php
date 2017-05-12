@@ -23,7 +23,7 @@ class MyAccount_Holds extends MyAccount{
 		$ils = $configArray['Catalog']['ils'];
 		$showPosition = ($ils == 'Horizon' || $ils == 'Koha');
 		$showExpireTime = ($ils == 'Horizon');
-		$suspendRequiresReactivationDate = ($ils == 'Horizon' || $ils == 'CarlX');
+		$suspendRequiresReactivationDate = ($ils == 'Horizon' || $ils == 'CarlX' || $ils == 'Symphony');
 		$interface->assign('suspendRequiresReactivationDate', $suspendRequiresReactivationDate);
 		$canChangePickupLocation = ($ils != 'Koha');
 		$interface->assign('canChangePickupLocation', $canChangePickupLocation);
