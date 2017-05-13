@@ -37,14 +37,9 @@ import org.marc4j.marc.impl.SubfieldImpl;
 public class SierraExportMain{
 	private static Logger logger = Logger.getLogger(SierraExportMain.class);
 	private static String serverName;
-	private static String itemTag;
-	private static char itemRecordNumberSubfield;
-	private static char locationSubfield;
-	private static char statusSubfield;
-	private static char dueDateSubfield;
-	private static String dueDateFormat;
-	private static char lastCheckInSubfield;
-	private static String lastCheckInFormat;
+
+	private static IndexingProfile indexingProfile;
+
 	private static boolean exportItemHolds = true;
 	private static boolean suppressOrderRecordsThatAreReceivedAndCatalogged = false;
 	private static boolean suppressOrderRecordsThatAreCatalogged = false;
@@ -90,6 +85,12 @@ public class SierraExportMain{
 			System.out.println("Error connecting to vufind database " + e.toString());
 			System.exit(1);
 		}
+
+		String profileToLoad = "ils";
+		if (args.length > 1){
+			profileToLoad = args[1];
+		}
+		indexingProfile = IndexingProfile.loadIndexingProfile(vufindConn, profileToLoad, logger);
 
 		//Get a list of works that have changed since the last index
 		getChangedRecordsFromApi(ini, vufindConn, exportPath);
@@ -270,24 +271,6 @@ public class SierraExportMain{
 				changedItemsReader.close();
 			}
 
-			String individualMarcPath = ini.get("Reindex", "individualMarcPath");
-			itemTag = ini.get("Reindex", "itemTag");
-			itemRecordNumberSubfield = getSubfieldIndicatorFromConfig(ini, "itemRecordNumberSubfield");
-			locationSubfield = getSubfieldIndicatorFromConfig(ini, "locationSubfield");
-			statusSubfield = getSubfieldIndicatorFromConfig(ini, "statusSubfield");
-			dueDateSubfield = getSubfieldIndicatorFromConfig(ini, "dueDateSubfield");
-			if (ini.get("Reindex").containsKey("dueDateFormat")){
-				dueDateFormat = ini.get("Reindex", "dueDateFormat");
-			}else{
-				dueDateFormat = "yyMMdd";
-			}
-			lastCheckInSubfield = getSubfieldIndicatorFromConfig(ini, "lastCheckinDateSubfield");
-			if (ini.get("Reindex").containsKey("lastCheckInFormat")){
-				lastCheckInFormat = ini.get("Reindex", "lastCheckInFormat");
-			}else{
-				lastCheckInFormat = "MM-dd-yyyy HH:mm";
-			}
-
 			PreparedStatement loadLastSierraExtractTimeStmt = vufindConn.prepareStatement("SELECT * from variables WHERE name = 'last_sierra_extract_time'", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet lastSierraExtractTimeRS = loadLastSierraExtractTimeStmt.executeQuery();
 			if (lastSierraExtractTimeRS.next()){
@@ -329,8 +312,8 @@ public class SierraExportMain{
 				long updateTime = new Date().getTime() / 1000;
 				logger.info("Loading records changed since " + dateUpdated);
 
-				SimpleDateFormat marcDateFormat = new SimpleDateFormat(dueDateFormat);
-				SimpleDateFormat marcCheckInFormat = new SimpleDateFormat(lastCheckInFormat);
+				SimpleDateFormat marcDateFormat = new SimpleDateFormat(indexingProfile.dueDateFormat);
+				SimpleDateFormat marcCheckInFormat = new SimpleDateFormat(indexingProfile.lastCheckinFormat);
 
 				//Extract the ids of all records that have changed.  That will allow us to mark
 				//That the grouped record has changed which will force the work to be indexed
@@ -479,7 +462,7 @@ public class SierraExportMain{
 				int numUpdates = 0;
 				for (String curBibId : changedBibs.keySet()){
 					//Update the marc record
-					updateMarc(individualMarcPath, curBibId, changedBibs.get(curBibId));
+					updateMarc(curBibId, changedBibs.get(curBibId));
 					logger.debug("Updated Bib " + curBibId);
 					//Update the database
 					try {
@@ -540,10 +523,10 @@ public class SierraExportMain{
 		logger.info("Finished loading changed records from Sierra API");
 	}
 
-	private static void updateMarc(String individualMarcPath, String curBibId, ArrayList<ItemChangeInfo> itemChangeInfo) {
+	private static void updateMarc(String curBibId, ArrayList<ItemChangeInfo> itemChangeInfo) {
 		//Load the existing marc record from file
 		try {
-			File marcFile = getFileForIlsRecord(individualMarcPath, curBibId);
+			File marcFile = indexingProfile.getFileForIlsRecord(curBibId);
 			if (marcFile.exists()) {
 				FileInputStream inputStream = new FileInputStream(marcFile);
 				MarcPermissiveStreamReader marcReader = new MarcPermissiveStreamReader(inputStream, true, true, "UTF-8");
@@ -552,46 +535,46 @@ public class SierraExportMain{
 					inputStream.close();
 
 					//Loop through all item fields to see what has changed
-					List<VariableField> itemFields = marcRecord.getVariableFields(itemTag);
+					List<VariableField> itemFields = marcRecord.getVariableFields(indexingProfile.itemTag);
 					for (VariableField itemFieldVar : itemFields) {
 						DataField itemField = (DataField) itemFieldVar;
-						if (itemField.getSubfield(itemRecordNumberSubfield) != null) {
-							String itemRecordNumber = itemField.getSubfield(itemRecordNumberSubfield).getData();
+						if (itemField.getSubfield(indexingProfile.itemRecordNumberSubfield) != null) {
+							String itemRecordNumber = itemField.getSubfield(indexingProfile.itemRecordNumberSubfield).getData();
 							//Update the items
 							for (ItemChangeInfo curItem : itemChangeInfo) {
 								//Find the correct item
 								if (itemRecordNumber.equals(curItem.getItemId())) {
-									itemField.getSubfield(locationSubfield).setData(curItem.getLocation());
-									itemField.getSubfield(statusSubfield).setData(curItem.getStatus());
+									itemField.getSubfield(indexingProfile.locationSubfield).setData(curItem.getLocation());
+									itemField.getSubfield(indexingProfile.itemStatusSubfield).setData(curItem.getStatus());
 									if (curItem.getDueDate() == null) {
-										if (itemField.getSubfield(dueDateSubfield) != null) {
-											if (dueDateFormat.contains("-")){
-												itemField.getSubfield(dueDateSubfield).setData("  -  -  ");
+										if (itemField.getSubfield(indexingProfile.dueDateSubfield) != null) {
+											if (indexingProfile.dueDateFormat.contains("-")){
+												itemField.getSubfield(indexingProfile.dueDateSubfield).setData("  -  -  ");
 											} else {
-												itemField.getSubfield(dueDateSubfield).setData("      ");
+												itemField.getSubfield(indexingProfile.dueDateSubfield).setData("      ");
 											}
 										}
 									} else {
-										if (itemField.getSubfield(dueDateSubfield) == null) {
-											itemField.addSubfield(new SubfieldImpl(dueDateSubfield, curItem.getDueDate()));
+										if (itemField.getSubfield(indexingProfile.dueDateSubfield) == null) {
+											itemField.addSubfield(new SubfieldImpl(indexingProfile.dueDateSubfield, curItem.getDueDate()));
 										} else {
-											itemField.getSubfield(dueDateSubfield).setData(curItem.getDueDate());
+											itemField.getSubfield(indexingProfile.dueDateSubfield).setData(curItem.getDueDate());
 										}
 									}
-									if (lastCheckInSubfield != ' ') {
+									if (indexingProfile.lastCheckinDateSubfield != ' ') {
 										if (curItem.getLastCheckinDate() == null) {
-											if (itemField.getSubfield(lastCheckInSubfield) != null) {
-												if (lastCheckInFormat.contains("-")) {
-													itemField.getSubfield(lastCheckInSubfield).setData("  -  -  ");
+											if (itemField.getSubfield(indexingProfile.lastCheckinDateSubfield) != null) {
+												if (indexingProfile.lastCheckinFormat.contains("-")) {
+													itemField.getSubfield(indexingProfile.lastCheckinDateSubfield).setData("  -  -  ");
 												} else {
-													itemField.getSubfield(lastCheckInSubfield).setData("      ");
+													itemField.getSubfield(indexingProfile.lastCheckinDateSubfield).setData("      ");
 												}
 											}
 										} else {
-											if (itemField.getSubfield(lastCheckInSubfield) == null) {
-												itemField.addSubfield(new SubfieldImpl(lastCheckInSubfield, curItem.getLastCheckinDate()));
+											if (itemField.getSubfield(indexingProfile.lastCheckinDateSubfield) == null) {
+												itemField.addSubfield(new SubfieldImpl(indexingProfile.lastCheckinDateSubfield, curItem.getLastCheckinDate()));
 											} else {
-												itemField.getSubfield(lastCheckInSubfield).setData(curItem.getLastCheckinDate());
+												itemField.getSubfield(indexingProfile.lastCheckinDateSubfield).setData(curItem.getLastCheckinDate());
 											}
 										}
 									}
@@ -615,26 +598,10 @@ public class SierraExportMain{
 		}
 	}
 
-	private static File getFileForIlsRecord(String individualMarcPath, String recordNumber) {
-		String shortId = getFileIdForRecordNumber(recordNumber);
-		String firstChars = shortId.substring(0, 4);
-		String basePath = individualMarcPath + "/" + firstChars;
-		String individualFilename = basePath + "/" + shortId + ".mrc";
-		return new File(individualFilename);
-	}
-
-	private static String getFileIdForRecordNumber(String recordNumber) {
-		String shortId = recordNumber.replace(".", "");
-		while (shortId.length() < 9){
-			shortId = "0" + shortId;
-		}
-		return shortId;
-	}
-
 	private static void exportActiveOrders(String exportPath, Connection conn) throws SQLException, IOException {
 		logger.info("Starting export of active orders");
 		String[] orderStatusesToExportVals = orderStatusesToExport.split("|");
-		String orderStatusCodesSQL = new String();
+		String orderStatusCodesSQL = "";
 		for (String orderStatusesToExportVal : orderStatusesToExportVals){
 			if (orderStatusCodesSQL.length() > 0){
 				orderStatusCodesSQL += " or ";
@@ -733,7 +700,7 @@ public class SierraExportMain{
 		return ini;
 	}
 
-	public static String cleanIniValue(String value) {
+	private static String cleanIniValue(String value) {
 		if (value == null) {
 			return null;
 		}
@@ -745,15 +712,6 @@ public class SierraExportMain{
 			value = value.substring(0, value.length() - 1);
 		}
 		return value;
-	}
-
-	private static char getSubfieldIndicatorFromConfig(Ini configIni, String subfieldName) {
-		String subfieldString = configIni.get("Reindex", subfieldName);
-		char subfield = ' ';
-		if (subfieldString != null && subfieldString.length() > 0)  {
-			subfield = subfieldString.charAt(0);
-		}
-		return subfield;
 	}
 
 	private static String sierraAPIToken;
@@ -885,8 +843,6 @@ public class SierraExportMain{
 						logger.error(response.toString());
 
 						rd.close();
-					}else{
-						//logger.debug("Received error " + conn.getResponseCode() + " calling sierra API " + sierraUrl);
 					}
 				}
 
@@ -908,7 +864,7 @@ public class SierraExportMain{
 	 * @param basedId String the base id without checksum
 	 * @return String the check digit
 	 */
-	public static String getCheckDigit(String basedId) {
+	private static String getCheckDigit(String basedId) {
 		int sumOfDigits = 0;
 		for (int i = 0; i < basedId.length(); i++){
 			int multiplier = ((basedId.length() +1 ) - i);

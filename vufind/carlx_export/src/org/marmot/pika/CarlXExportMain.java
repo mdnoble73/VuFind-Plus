@@ -45,26 +45,10 @@ public class CarlXExportMain {
 	private static Logger logger = Logger.getLogger(CarlXExportMain.class);
 	private static String serverName;
 
-	private static String itemTag;
-	private static char itemRecordNumberSubfield;
-	private static char locationSubfield;
-	private static char statusSubfield;
-	private static char dueDateSubfield;
-	private static char shelvingLocationSubfield;
-	private static char iTypeSubfield;
-	private static char callNumberSubfield;
-	private static char totalCheckoutsSubfield;
-	private static char yearToDateCheckoutsSubfield;
-	private static String dueDateFormat;
-	private static char lastCheckInSubfield;
-	private static String lastCheckInFormat;
-	private static char dateCreatedSubfield;
-	private static String dateCreatedFormat;
+	private static IndexingProfile indexingProfile;
 
-	private static String individualMarcPath;
 	private static String marcOutURL;
 
-	private static String profileType;
 	private static HashMap<String, TranslationMap> translationMaps = new HashMap<>();
 	private static Long lastCarlXExtractTimeVariableId = null;
 
@@ -84,9 +68,6 @@ public class CarlXExportMain {
 		// Read the base INI file to get information about the server (current directory/cron/config.ini)
 		Ini ini = loadConfigFile("config.ini");
 
-
-		// Get Indexing Profile //
-
 		//Connect to the vufind database
 		Connection vufindConn = null;
 		try{
@@ -97,13 +78,17 @@ public class CarlXExportMain {
 			System.exit(1);
 		}
 
-		Long profileIDNumber = null;
 		Long exportStartTime = startTime.getTime() / 1000;
 
-		profileIDNumber = loadIndexingProfile(vufindConn);
+		String profileToLoad = "ils";
+		if (args.length > 1){
+			profileToLoad = args[1];
+		}
+		indexingProfile = IndexingProfile.loadIndexingProfile(vufindConn, profileToLoad, logger);
+
 		// Load Translation Map for Item Status Codes
 		try {
-			loadTranslationMapsForProfile(vufindConn, profileIDNumber);
+			loadTranslationMapsForProfile(vufindConn, indexingProfile.id);
 		} catch (SQLException e) {
 			logger.error("Failed to Load Translation Maps for CarlX Extract", e);
 		}
@@ -258,10 +243,10 @@ public class CarlXExportMain {
 					if (currentMarcRecord != null) {
 						Boolean itemFound = false;
 						Boolean saveRecord = false;
-						List<VariableField> currentMarcDataFields = currentMarcRecord.getVariableFields(itemTag);
+						List<VariableField> currentMarcDataFields = currentMarcRecord.getVariableFields(indexingProfile.itemTag);
 						for (VariableField itemFieldVar: currentMarcDataFields) {
 							DataField currentDataField = (DataField) itemFieldVar;
-							String currentItemID = currentDataField.getSubfield(itemRecordNumberSubfield).getData();
+							String currentItemID = currentDataField.getSubfield(indexingProfile.itemRecordNumberSubfield).getData();
 							if (currentItemID.equals(currentUpdateItemID)) { // check ItemIDs for other item matches for this bib?
 								currentMarcRecord.removeVariableField(currentDataField); // take out the existing Item tag
 								updateItemDataFieldWithChangeInfo(currentDataField, item);
@@ -330,11 +315,11 @@ public class CarlXExportMain {
 					Boolean saveRecord = false;
 					if (currentMarcRecord != null) {
 						Boolean itemFound = false;
-						List<VariableField> currentMarcDataFields = currentMarcRecord.getVariableFields(itemTag);
+						List<VariableField> currentMarcDataFields = currentMarcRecord.getVariableFields(indexingProfile.itemTag);
 						for (VariableField itemFieldVar: currentMarcDataFields) {
 							DataField currentDataField = (DataField) itemFieldVar;
-							if (currentDataField.getTag().equals(itemTag)) {
-								String currentItemID = currentDataField.getSubfield(itemRecordNumberSubfield).getData();
+							if (currentDataField.getTag().equals(indexingProfile.itemTag)) {
+								String currentItemID = currentDataField.getSubfield(indexingProfile.itemRecordNumberSubfield).getData();
 								if (currentItemID.equals(currentCreatedItemID)) { // check ItemIDs for other item matches for this bib?
 									logger.warn("New Item " + currentItemID + " found on Bib " + currentBibID + "; Updating instead.");
 									currentMarcRecord.removeVariableField(currentDataField);
@@ -449,10 +434,10 @@ public class CarlXExportMain {
 						Record currentMarcRecord            = loadMarc(currentBibID);
 						if (currentMarcRecord != null) {
 							Integer indexOfItem;
-							List<VariableField> currentMarcDataFields = currentMarcRecord.getVariableFields(itemTag);
+							List<VariableField> currentMarcDataFields = currentMarcRecord.getVariableFields(indexingProfile.itemTag);
 							for (VariableField itemFieldVar: currentMarcDataFields) {
 								DataField currentDataField = (DataField) itemFieldVar;
-								String currentItemID = currentDataField.getSubfield(itemRecordNumberSubfield).getData();
+								String currentItemID = currentDataField.getSubfield(indexingProfile.itemRecordNumberSubfield).getData();
 								if (updatedItemIDs.contains(currentItemID)) {
 									// Add current Item Change Info instead
 									indexOfItem = updatedItemIDs.indexOf(currentItemID);
@@ -669,69 +654,6 @@ public class CarlXExportMain {
 		}
 	}
 
-	private static Long loadIndexingProfile(Connection vufindConn) {
-		//Get the Indexing Profile from the database
-		Long profileIDNumber = null;
-		try {
-			PreparedStatement getCarlXIndexingProfileStmt = vufindConn.prepareStatement("SELECT * FROM indexing_profiles where name ='ils'");
-			ResultSet carlXIndexingProfileRS = getCarlXIndexingProfileStmt.executeQuery();
-			if (carlXIndexingProfileRS.next()) {
-				profileIDNumber                    = carlXIndexingProfileRS.getLong("id");
-
-				String itemTag                     = carlXIndexingProfileRS.getString("itemTag");
-				String itemRecordNumberSubfield    = carlXIndexingProfileRS.getString("itemRecordNumber");
-				String lastCheckinDateSubfield     = carlXIndexingProfileRS.getString("lastCheckinDate");
-				String lastCheckinFormat           = carlXIndexingProfileRS.getString("lastCheckinFormat");
-				String locationSubfield            = carlXIndexingProfileRS.getString("location");
-				String itemStatusSubfield          = carlXIndexingProfileRS.getString("status");
-				String dueDateSubfield             = carlXIndexingProfileRS.getString("dueDate");
-				String dateCreatedSubfield         = carlXIndexingProfileRS.getString("dateCreated");
-				String dateCreatedFormat           = carlXIndexingProfileRS.getString("dateCreatedFormat");
-				String callNumberSubfield          = carlXIndexingProfileRS.getString("callNumber");
-				String totalCheckoutsSubfield      = carlXIndexingProfileRS.getString("totalCheckouts");
-				String yearToDateCheckoutsSubfield = carlXIndexingProfileRS.getString("yearToDateCheckouts");
-				String individualMarcPath          = carlXIndexingProfileRS.getString("individualMarcPath");
-				String profileType                 = carlXIndexingProfileRS.getString("name");
-				String shelvingLocationSubfield    = carlXIndexingProfileRS.getString("shelvingLocation");
-//				String collectionSubfield          = carlXIndexingProfileRS.getString("collection"); // Same as shelvingLocation
-				String iTypeSubfield               = carlXIndexingProfileRS.getString("iType");
-
-				CarlXExportMain.itemTag                     = itemTag;
-				CarlXExportMain.itemRecordNumberSubfield    = itemRecordNumberSubfield.length() > 0 ? itemRecordNumberSubfield.charAt(0) : ' ';
-				CarlXExportMain.lastCheckInSubfield         = lastCheckinDateSubfield.length() > 0 ? lastCheckinDateSubfield.charAt(0) : ' ';
-				CarlXExportMain.lastCheckInFormat           = lastCheckinFormat;
-				CarlXExportMain.locationSubfield            = locationSubfield.length() > 0 ? locationSubfield.charAt(0) : ' ';
-				CarlXExportMain.statusSubfield              = itemStatusSubfield.length() > 0 ? itemStatusSubfield.charAt(0) : ' ';
-				CarlXExportMain.dueDateSubfield             = dueDateSubfield.length() > 0 ? dueDateSubfield.charAt(0) : ' ';
-				CarlXExportMain.dueDateFormat               = lastCheckinFormat;
-				CarlXExportMain.dateCreatedSubfield         = dateCreatedSubfield.length() > 0 ? dateCreatedSubfield.charAt(0) : ' ';
-				CarlXExportMain.dateCreatedFormat           = dateCreatedFormat;
-				CarlXExportMain.callNumberSubfield          = callNumberSubfield.length() > 0 ? callNumberSubfield.charAt(0) : ' ';
-				CarlXExportMain.totalCheckoutsSubfield      = totalCheckoutsSubfield.length() > 0 ? totalCheckoutsSubfield.charAt(0) : ' ';
-				CarlXExportMain.yearToDateCheckoutsSubfield = yearToDateCheckoutsSubfield.length() > 0 ? yearToDateCheckoutsSubfield.charAt(0) : ' ';
-				CarlXExportMain.shelvingLocationSubfield    = shelvingLocationSubfield.length() > 0 ? shelvingLocationSubfield.charAt(0) : ' ';
-				CarlXExportMain.iTypeSubfield               = iTypeSubfield.length() > 0 ? iTypeSubfield.charAt(0) : ' ';
-				CarlXExportMain.individualMarcPath          = individualMarcPath;
-				CarlXExportMain.profileType                 = profileType;
-
-
-				String carlXExportPath          = carlXIndexingProfileRS.getString("marcPath");
-				String recordNumberTag          = carlXIndexingProfileRS.getString("recordNumberTag");
-				String recordNumberPrefix       = carlXIndexingProfileRS.getString("recordNumberPrefix");
-				String itemBarcodeSubfield      = carlXIndexingProfileRS.getString("barcode");
-				// shelvingLocation & collection sub fields are the same in the sandbox
-
-			} else {
-				logger.error("Unable to find carlx indexing profile, please create a profile with the name ils.");
-			}
-
-		}catch (Exception e){
-			logger.error("Error reading index profile for CarlX", e);
-		}
-		return profileIDNumber;
-	}
-
-
 	private static Record buildMarcRecordFromAPIResponse(Node marcRecordNode, String currentBibID) {
 		NodeList marcFields = marcRecordNode.getChildNodes();
 		Integer numFields   = marcFields.getLength();
@@ -898,16 +820,16 @@ public class CarlXExportMain {
 										currentItem.setStatus(statusCode);
 										break;
 									case "DueDate":
-										String dueDateMarc = formatDateFieldForMarc(dueDateFormat, detailValue);
+										String dueDateMarc = formatDateFieldForMarc(indexingProfile.dueDateFormat, detailValue);
 										currentItem.setDueDate(dueDateMarc);
 										break;
 									case "LastCheckinDate":
 										// There is no LastCheckinDate field in ItemInformation Call
-										String lastCheckInDateMarc = formatDateFieldForMarc(lastCheckInFormat, detailValue);
+										String lastCheckInDateMarc = formatDateFieldForMarc(indexingProfile.lastCheckinFormat, detailValue);
 										currentItem.setLastCheckinDate(lastCheckInDateMarc);
 										break;
 									case "CreationDate":
-										String dateCreatedMarc = formatDateFieldForMarc(dateCreatedFormat, detailValue);
+										String dateCreatedMarc = formatDateFieldForMarc(indexingProfile.dateCreatedFormat, detailValue);
 										currentItem.setDateCreated(dateCreatedMarc);
 										break;
 									case "CallNumber":
@@ -1012,135 +934,135 @@ public class CarlXExportMain {
 	}
 
 	private static void updateItemDataFieldWithChangeInfo(DataField itemField, ItemChangeInfo changeInfo) {
-		itemField.getSubfield(locationSubfield).setData(changeInfo.getLocation());
-		itemField.getSubfield(statusSubfield).setData(changeInfo.getStatus());
-		if (callNumberSubfield != ' ' && !changeInfo.getCallNumber().isEmpty()) {
-			itemField.getSubfield(callNumberSubfield).setData(changeInfo.getCallNumber());
+		itemField.getSubfield(indexingProfile.locationSubfield).setData(changeInfo.getLocation());
+		itemField.getSubfield(indexingProfile.itemStatusSubfield).setData(changeInfo.getStatus());
+		if (indexingProfile.callNumberSubfield != ' ' && !changeInfo.getCallNumber().isEmpty()) {
+			itemField.getSubfield(indexingProfile.callNumberSubfield).setData(changeInfo.getCallNumber());
 		}
 
-		if (totalCheckoutsSubfield != ' ' && !changeInfo.getTotalCheckouts().isEmpty()) {
-			itemField.getSubfield(totalCheckoutsSubfield).setData(changeInfo.getTotalCheckouts());
+		if (indexingProfile.totalCheckoutsSubfield != ' ' && !changeInfo.getTotalCheckouts().isEmpty()) {
+			itemField.getSubfield(indexingProfile.totalCheckoutsSubfield).setData(changeInfo.getTotalCheckouts());
 		}
 
-		if (yearToDateCheckoutsSubfield != ' ' && !changeInfo.getYearToDateCheckouts().isEmpty()) {
-			itemField.getSubfield(yearToDateCheckoutsSubfield).setData(changeInfo.getYearToDateCheckouts());
+		if (indexingProfile.yearToDateCheckoutsSubfield != ' ' && !changeInfo.getYearToDateCheckouts().isEmpty()) {
+			itemField.getSubfield(indexingProfile.yearToDateCheckoutsSubfield).setData(changeInfo.getYearToDateCheckouts());
 		}
 
-		if (iTypeSubfield != ' ' && !changeInfo.getYearToDateCheckouts().isEmpty()) {
-			itemField.getSubfield(iTypeSubfield).setData(changeInfo.getiType());
+		if (indexingProfile.iTypeSubfield != ' ' && !changeInfo.getYearToDateCheckouts().isEmpty()) {
+			itemField.getSubfield(indexingProfile.iTypeSubfield).setData(changeInfo.getiType());
 		}
 
-		if (dueDateSubfield != ' ') {
+		if (indexingProfile.dueDateSubfield != ' ') {
 			if (changeInfo.getDueDate() == null) {
-				if (itemField.getSubfield(dueDateSubfield) != null) {
-					if (dueDateFormat.contains("-")){
-						itemField.getSubfield(dueDateSubfield).setData("  -  -  ");
+				if (itemField.getSubfield(indexingProfile.dueDateSubfield) != null) {
+					if (indexingProfile.dueDateFormat.contains("-")){
+						itemField.getSubfield(indexingProfile.dueDateSubfield).setData("  -  -  ");
 					} else {
-						itemField.getSubfield(dueDateSubfield).setData("      ");
+						itemField.getSubfield(indexingProfile.dueDateSubfield).setData("      ");
 					}
 				}
 			} else {
-				if (itemField.getSubfield(dueDateSubfield) == null) {
-					itemField.addSubfield(new SubfieldImpl(dueDateSubfield, changeInfo.getDueDate()));
+				if (itemField.getSubfield(indexingProfile.dueDateSubfield) == null) {
+					itemField.addSubfield(new SubfieldImpl(indexingProfile.dueDateSubfield, changeInfo.getDueDate()));
 				} else {
-					itemField.getSubfield(dueDateSubfield).setData(changeInfo.getDueDate());
+					itemField.getSubfield(indexingProfile.dueDateSubfield).setData(changeInfo.getDueDate());
 				}
 			}
 		}
 
-		if (dateCreatedSubfield != ' ') {
+		if (indexingProfile.dateCreatedSubfield != ' ') {
 			if (changeInfo.getDateCreated() == null) {
-				if (itemField.getSubfield(dateCreatedSubfield) != null) {
-					if (dateCreatedFormat.contains("-")){
-						itemField.getSubfield(dateCreatedSubfield).setData("  -  -  ");
+				if (itemField.getSubfield(indexingProfile.dateCreatedSubfield) != null) {
+					if (indexingProfile.dateCreatedFormat.contains("-")){
+						itemField.getSubfield(indexingProfile.dateCreatedSubfield).setData("  -  -  ");
 					} else {
-						itemField.getSubfield(dateCreatedSubfield).setData("      ");
+						itemField.getSubfield(indexingProfile.dateCreatedSubfield).setData("      ");
 					}
 				}
 			} else {
-				if (itemField.getSubfield(dateCreatedSubfield) == null) {
-					itemField.addSubfield(new SubfieldImpl(dateCreatedSubfield, changeInfo.getDateCreated()));
+				if (itemField.getSubfield(indexingProfile.dateCreatedSubfield) == null) {
+					itemField.addSubfield(new SubfieldImpl(indexingProfile.dateCreatedSubfield, changeInfo.getDateCreated()));
 				} else {
-					itemField.getSubfield(dateCreatedSubfield).setData(changeInfo.getDateCreated());
+					itemField.getSubfield(indexingProfile.dateCreatedSubfield).setData(changeInfo.getDateCreated());
 				}
 			}
 		}
 
-		if (lastCheckInSubfield != ' ') {
+		if (indexingProfile.lastCheckinDateSubfield != ' ') {
 			if (changeInfo.getLastCheckinDate() == null) {
-				if (itemField.getSubfield(lastCheckInSubfield) != null) {
-					if (lastCheckInFormat.contains("-")) {
-						itemField.getSubfield(lastCheckInSubfield).setData("  -  -  ");
+				if (itemField.getSubfield(indexingProfile.lastCheckinDateSubfield) != null) {
+					if (indexingProfile.lastCheckinFormat.contains("-")) {
+						itemField.getSubfield(indexingProfile.lastCheckinDateSubfield).setData("  -  -  ");
 					} else {
-						itemField.getSubfield(lastCheckInSubfield).setData("      ");
+						itemField.getSubfield(indexingProfile.lastCheckinDateSubfield).setData("      ");
 					}
 				}
 			} else {
-				if (itemField.getSubfield(lastCheckInSubfield) == null) {
-					itemField.addSubfield(new SubfieldImpl(lastCheckInSubfield, changeInfo.getLastCheckinDate()));
+				if (itemField.getSubfield(indexingProfile.lastCheckinDateSubfield) == null) {
+					itemField.addSubfield(new SubfieldImpl(indexingProfile.lastCheckinDateSubfield, changeInfo.getLastCheckinDate()));
 				} else {
-					itemField.getSubfield(lastCheckInSubfield).setData(changeInfo.getLastCheckinDate());
+					itemField.getSubfield(indexingProfile.lastCheckinDateSubfield).setData(changeInfo.getLastCheckinDate());
 				}
 			}
 		}
 	}
 
 	private static DataField createItemDataFieldWithChangeInfo(ItemChangeInfo changeInfo) {
-		DataField itemField = MarcFactoryImpl.newInstance().newDataField(itemTag, ' ', ' ');
-		itemField.addSubfield(new SubfieldImpl(itemRecordNumberSubfield, changeInfo.getItemId()));
-		itemField.addSubfield(new SubfieldImpl(locationSubfield, changeInfo.getLocation()));
-		itemField.addSubfield(new SubfieldImpl(shelvingLocationSubfield, changeInfo.getShelvingLocation()));
-		itemField.addSubfield(new SubfieldImpl(statusSubfield, changeInfo.getStatus()));
+		DataField itemField = MarcFactoryImpl.newInstance().newDataField(indexingProfile.itemTag, ' ', ' ');
+		itemField.addSubfield(new SubfieldImpl(indexingProfile.itemRecordNumberSubfield, changeInfo.getItemId()));
+		itemField.addSubfield(new SubfieldImpl(indexingProfile.locationSubfield, changeInfo.getLocation()));
+		itemField.addSubfield(new SubfieldImpl(indexingProfile.shelvingLocationSubfield, changeInfo.getShelvingLocation()));
+		itemField.addSubfield(new SubfieldImpl(indexingProfile.itemStatusSubfield, changeInfo.getStatus()));
 
-		if (callNumberSubfield != ' ') {
-			itemField.addSubfield(new SubfieldImpl(callNumberSubfield, changeInfo.getCallNumber()));
+		if (indexingProfile.callNumberSubfield != ' ') {
+			itemField.addSubfield(new SubfieldImpl(indexingProfile.callNumberSubfield, changeInfo.getCallNumber()));
 		}
 
-		if (totalCheckoutsSubfield != ' ') {
-			itemField.addSubfield(new SubfieldImpl(totalCheckoutsSubfield, changeInfo.getTotalCheckouts()));
+		if (indexingProfile.totalCheckoutsSubfield != ' ') {
+			itemField.addSubfield(new SubfieldImpl(indexingProfile.totalCheckoutsSubfield, changeInfo.getTotalCheckouts()));
 		}
 
-		if (yearToDateCheckoutsSubfield != ' ') {
-			itemField.addSubfield(new SubfieldImpl(yearToDateCheckoutsSubfield, changeInfo.getYearToDateCheckouts()));
+		if (indexingProfile.yearToDateCheckoutsSubfield != ' ') {
+			itemField.addSubfield(new SubfieldImpl(indexingProfile.yearToDateCheckoutsSubfield, changeInfo.getYearToDateCheckouts()));
 		}
 
-		if (iTypeSubfield != ' ') {
-			itemField.addSubfield(new SubfieldImpl(iTypeSubfield, changeInfo.getiType()));
+		if (indexingProfile.iTypeSubfield != ' ') {
+			itemField.addSubfield(new SubfieldImpl(indexingProfile.iTypeSubfield, changeInfo.getiType()));
 		}
 
-		if (dueDateSubfield != ' ') {
+		if (indexingProfile.dueDateSubfield != ' ') {
 			if (changeInfo.getDueDate() == null) {
-					if (dueDateFormat.contains("-")){
-						itemField.addSubfield(new SubfieldImpl(dueDateSubfield, "  -  -  "));
+					if (indexingProfile.dueDateFormat.contains("-")){
+						itemField.addSubfield(new SubfieldImpl(indexingProfile.dueDateSubfield, "  -  -  "));
 					} else {
-						itemField.addSubfield(new SubfieldImpl(dueDateSubfield, "      "));
+						itemField.addSubfield(new SubfieldImpl(indexingProfile.dueDateSubfield, "      "));
 					}
 			} else {
-				itemField.addSubfield(new SubfieldImpl(dueDateSubfield, changeInfo.getDueDate()));
+				itemField.addSubfield(new SubfieldImpl(indexingProfile.dueDateSubfield, changeInfo.getDueDate()));
 			}
 		}
 
-		if (dateCreatedSubfield != ' ') {
+		if (indexingProfile.dateCreatedSubfield != ' ') {
 			if (changeInfo.getDueDate() == null) {
-					if (dateCreatedFormat.contains("-")){
-						itemField.addSubfield(new SubfieldImpl(dateCreatedSubfield, "  -  -  "));
+					if (indexingProfile.dateCreatedFormat.contains("-")){
+						itemField.addSubfield(new SubfieldImpl(indexingProfile.dateCreatedSubfield, "  -  -  "));
 					} else {
-						itemField.addSubfield(new SubfieldImpl(dateCreatedSubfield, "      "));
+						itemField.addSubfield(new SubfieldImpl(indexingProfile.dateCreatedSubfield, "      "));
 					}
 			} else {
-				itemField.addSubfield(new SubfieldImpl(dateCreatedSubfield, changeInfo.getDueDate()));
+				itemField.addSubfield(new SubfieldImpl(indexingProfile.dateCreatedSubfield, changeInfo.getDueDate()));
 			}
 		}
 
-		if (lastCheckInSubfield != ' ') {
+		if (indexingProfile.lastCheckinDateSubfield != ' ') {
 			if (changeInfo.getDueDate() == null) {
-					if (lastCheckInFormat.contains("-")){
-						itemField.addSubfield(new SubfieldImpl(lastCheckInSubfield, "  -  -  "));
+					if (indexingProfile.lastCheckinFormat.contains("-")){
+						itemField.addSubfield(new SubfieldImpl(indexingProfile.lastCheckinDateSubfield, "  -  -  "));
 					} else {
-						itemField.addSubfield(new SubfieldImpl(lastCheckInSubfield, "      "));
+						itemField.addSubfield(new SubfieldImpl(indexingProfile.lastCheckinDateSubfield, "      "));
 					}
 			} else {
-				itemField.addSubfield(new SubfieldImpl(lastCheckInSubfield, changeInfo.getDueDate()));
+				itemField.addSubfield(new SubfieldImpl(indexingProfile.lastCheckinDateSubfield, changeInfo.getDueDate()));
 			}
 		}
 		return itemField;
@@ -1149,7 +1071,7 @@ public class CarlXExportMain {
 	private static Record loadMarc(String curBibId) {
 		//Load the existing marc record from file
 		try {
-			File marcFile = getFileForIlsRecord(individualMarcPath, curBibId);
+			File marcFile = indexingProfile.getFileForIlsRecord(getFileIdForRecordNumber(curBibId));
 			if (marcFile.exists()) {
 				FileInputStream inputStream = new FileInputStream(marcFile);
 				MarcPermissiveStreamReader marcReader = new MarcPermissiveStreamReader(inputStream, true, true, "UTF-8");
@@ -1171,14 +1093,7 @@ public class CarlXExportMain {
 
 	private static void saveMarc(Record marcObject, String curBibId) {
 		//Write the new marc record
-//		String shortId            = getFileIdForRecordNumber(curBibId);
-//		String firstChars         = "CARL";
-//		String basePath           = individualMarcPath + "/" + firstChars;
-//		String individualFilename = basePath + "/" + shortId + "_new.mrc";
-//		File marcFile =  new File(individualFilename);
-		// The above is for debugging
-
-		File marcFile = getFileForIlsRecord(individualMarcPath, curBibId);
+		File marcFile = indexingProfile.getFileForIlsRecord(curBibId);
 
 		MarcWriter writer;
 		try {
@@ -1190,16 +1105,6 @@ public class CarlXExportMain {
 			logger.error("Error saving marc record for bib " + curBibId, e);
 		}
 
-	}
-
-	private static File getFileForIlsRecord(String individualMarcPath, String recordNumber) {
-		String shortId           = getFileIdForRecordNumber(recordNumber);
-		String firstChars        = shortId.substring(0, 4);
-//		TODO: individual marc record folder creation needs adjusting for CarlX (PK-2191)
-//		String firstChars         = "CARL";
-		String basePath           = individualMarcPath + "/" + firstChars;
-		String individualFilename = basePath + "/" + shortId + ".mrc";
-		return new File(individualFilename);
 	}
 
 	private static String getFileIdForRecordNumber(String recordNumber) {
@@ -1393,7 +1298,7 @@ public class CarlXExportMain {
 		TranslationMap translationMap = translationMaps.get(mapName);
 		String translatedValue;
 		if (translationMap == null){
-			logger.error("Unable to find translation map for " + mapName + " in profile " + profileType);
+			logger.error("Unable to find translation map for " + mapName + " in profile " + indexingProfile.name);
 			translatedValue = value;
 		}else{
 			translatedValue = translationMap.translateValue(value, identifier);
@@ -1407,7 +1312,7 @@ public class CarlXExportMain {
 		getTranslationMapsStmt.setLong(1, id);
 		ResultSet translationsMapRS = getTranslationMapsStmt.executeQuery();
 		while (translationsMapRS.next()){
-			TranslationMap map = new TranslationMap(profileType, translationsMapRS.getString("name"), true, translationsMapRS.getBoolean("usesRegularExpressions"), logger);
+			TranslationMap map = new TranslationMap(indexingProfile.name, translationsMapRS.getString("name"), true, translationsMapRS.getBoolean("usesRegularExpressions"), logger);
 			Long translationMapId = translationsMapRS.getLong("id");
 			getTranslationMapValuesStmt.setLong(1, translationMapId);
 			ResultSet translationMapValuesRS = getTranslationMapValuesStmt.executeQuery();

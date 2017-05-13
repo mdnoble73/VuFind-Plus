@@ -546,6 +546,7 @@ class CarlX extends SIP2Driver{
 				$curTitle['shortId']         = $chargeItem->BID;
 				$curTitle['id']              = $chargeItem->BID;
 				$curTitle['barcode']         = $chargeItem->ItemNumber;   // Barcode & ItemNumber are the same for CarlX
+				$curTitle['itemid']          = $chargeItem->ItemNumber;
 				$curTitle['title']           = $chargeItem->Title;
 				$curTitle['author']          = $chargeItem->Author;
 				$curTitle['dueDate']         = strtotime($dueDate);

@@ -79,18 +79,23 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	protected char orderStatusSubfield;
 	protected char orderCode3Subfield;
 
+	protected int numCharsToCreateFolderFrom;
+	protected boolean createFolderFromLeadingCharacters;
+
 	private HashMap<String, Integer> numberOfHoldsByIdentifier = new HashMap<>();
 
 	protected HashMap<String, TranslationMap> translationMaps = new HashMap<>();
 	protected ArrayList<TimeToReshelve> timesToReshelve = new ArrayList<>();
 
-	public IlsRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
+	IlsRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
 		super(indexer, logger);
 		this.fullReindex = fullReindex;
 		//String marcRecordPath = configIni.get("Reindex", "marcPath");
 		try {
 			profileType = indexingProfileRS.getString("name");
 			individualMarcPath = indexingProfileRS.getString("individualMarcPath");
+			numCharsToCreateFolderFrom         = indexingProfileRS.getInt("numCharsToCreateFolderFrom");
+			createFolderFromLeadingCharacters  = indexingProfileRS.getBoolean("createFolderFromLeadingCharacters");
 
 			recordNumberTag = indexingProfileRS.getString("recordNumberTag");
 			suppressItemlessBibs = indexingProfileRS.getBoolean("suppressItemlessBibs");
@@ -256,9 +261,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		while (shortId.length() < 9){
 			shortId = "0" + shortId;
 		}
-		String firstChars = shortId.substring(0, 4);
-		String basePath = individualMarcPath + "/" + firstChars;
-		String individualFilename = basePath + "/" + shortId + ".mrc";
+		String individualFilename = getFileForIlsRecord(identifier);;
 		try {
 			byte[] fileContents = Util.readFileBytes(individualFilename);
 			//FileInputStream inputStream = new FileInputStream(individualFile);
@@ -272,6 +275,23 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			logger.error("Error reading data from ils file " + individualFilename, e);
 		}
 		return record;
+	}
+
+	private String getFileForIlsRecord(String recordNumber) {
+		String shortId = recordNumber.replace(".", "");
+		while (shortId.length() < 9){
+			shortId = "0" + shortId;
+		}
+
+		String subFolderName;
+		if (createFolderFromLeadingCharacters){
+			subFolderName        = shortId.substring(0, numCharsToCreateFolderFrom);
+		}else{
+			subFolderName        = shortId.substring(0, shortId.length() - numCharsToCreateFolderFrom);
+		}
+
+		String basePath           = individualMarcPath + "/" + subFolderName;
+		return basePath + "/" + shortId + ".mrc";
 	}
 
 	@Override

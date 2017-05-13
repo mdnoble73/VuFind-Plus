@@ -29,8 +29,9 @@ import java.util.*;
 public class HorizonExportMain {
 	private static Logger logger = Logger.getLogger(HorizonExportMain.class);
 	private static String serverName; //Pika instance name
-	private static String recordNumberTag = "";
-	private static String individualMarcPath;
+
+	private static IndexingProfile indexingProfile;
+
 	private static Connection vufindConn;
 	private static PreparedStatement markGroupedWorkForBibAsChangedStmt;
 
@@ -49,9 +50,6 @@ public class HorizonExportMain {
 		// Read the base INI file to get information about the server (current directory/conf/config.ini)
 		Ini ini = loadConfigFile("config.ini");
 
-		recordNumberTag = ini.get("Reindex", "recordNumberTag");
-		individualMarcPath = ini.get("Reindex", "individualMarcPath");
-
 		//Connect to the vufind database
 		vufindConn = null;
 		try {
@@ -67,6 +65,12 @@ public class HorizonExportMain {
 			logger.error("Error connecting to vufind database ", e);
 			System.exit(1);
 		}
+
+		String profileToLoad = "ils";
+		if (args.length > 1){
+			profileToLoad = args[1];
+		}
+		indexingProfile = IndexingProfile.loadIndexingProfile(vufindConn, profileToLoad, logger);
 
 		//Look for any exports from Horizon that have not been processed
 		processChangesFromHorizon(ini);
@@ -100,10 +104,7 @@ public class HorizonExportMain {
 	private static void processChangesFromHorizon(Ini ini) {
 		String exportPath = ini.get("Reindex", "marcChangesPath");
 		File exportFile = new File(exportPath);
-		if (exportFile == null){
-			logger.error("Export path " + exportPath + " could not be initialized");
-			return;
-		}else if(!exportFile.exists()){
+		if(!exportFile.exists()){
 			logger.error("Export path " + exportPath + " does not exist");
 			return;
 		}
@@ -186,7 +187,7 @@ public class HorizonExportMain {
 	private static boolean updateMarc(String recordId, Record recordToUpdate, long updateTime) {
 		//Replace the MARC record in the individual marc records
 		try {
-			File marcFile = getFileForIlsRecord(individualMarcPath, recordId);
+			File marcFile = indexingProfile.getFileForIlsRecord(recordId);
 			if (!marcFile.exists()){
 				//This is a new record, we can just skip it for now.
 				return true;
@@ -214,24 +215,8 @@ public class HorizonExportMain {
 		return true;
 	}
 
-	private static File getFileForIlsRecord(String individualMarcPath, String recordNumber) {
-		String shortId = getFileIdForRecordNumber(recordNumber);
-		String firstChars = shortId.substring(0, 4);
-		String basePath = individualMarcPath + "/" + firstChars;
-		String individualFilename = basePath + "/" + shortId + ".mrc";
-		return new File(individualFilename);
-	}
-
-	private static String getFileIdForRecordNumber(String recordNumber) {
-		String shortId = recordNumber.replace(".", "");
-		while (shortId.length() < 9){
-			shortId = "0" + shortId;
-		}
-		return shortId;
-	}
-
 	private static String getRecordIdFromMarcRecord(Record marcRecord) {
-		List<DataField> recordIdField = getDataFields(marcRecord, recordNumberTag);
+		List<DataField> recordIdField = getDataFields(marcRecord, indexingProfile.recordNumberTag);
 		//Make sure we only get one ils identifier
 		for (DataField curRecordField : recordIdField) {
 			Subfield subfieldA = curRecordField.getSubfield('a');
@@ -315,7 +300,7 @@ public class HorizonExportMain {
 		return ini;
 	}
 
-	public static String cleanIniValue(String value) {
+	private static String cleanIniValue(String value) {
 		if (value == null) {
 			return null;
 		}

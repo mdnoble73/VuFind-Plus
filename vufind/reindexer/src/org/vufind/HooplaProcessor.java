@@ -8,6 +8,8 @@ import org.marc4j.marc.Record;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
+import java.sql.Connection;
+import java.sql.ResultSet;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -20,12 +22,22 @@ import java.util.Set;
  * Date: 12/17/2014
  * Time: 10:30 AM
  */
-public class HooplaProcessor extends MarcRecordProcessor {
+class HooplaProcessor extends MarcRecordProcessor {
 	private String individualMarcPath;
-	public HooplaProcessor(GroupedWorkIndexer indexer, Ini configIni, Logger logger) {
+	private int numCharsToCreateFolderFrom;
+	private boolean createFolderFromLeadingCharacters;
+
+	HooplaProcessor(GroupedWorkIndexer indexer, ResultSet indexingProfileRS, Logger logger) {
 		super(indexer, logger);
 
-		individualMarcPath = configIni.get("Hoopla", "individualMarcPath");
+		try {
+			individualMarcPath = indexingProfileRS.getString("individualMarcPath");
+			numCharsToCreateFolderFrom         = indexingProfileRS.getInt("numCharsToCreateFolderFrom");
+			createFolderFromLeadingCharacters  = indexingProfileRS.getBoolean("createFolderFromLeadingCharacters");
+
+		}catch (Exception e){
+			logger.error("Error loading indexing profile information from database", e);
+		}
 	}
 
 	@Override
@@ -41,13 +53,10 @@ public class HooplaProcessor extends MarcRecordProcessor {
 		}
 	}
 
-	public Record loadMarcRecordFromDisk(String identifier){
+	private Record loadMarcRecordFromDisk(String identifier){
 		Record record = null;
 		//Load the marc record from disc
-		String firstChars = identifier.substring(0, 7);
-		String basePath = individualMarcPath + "/" + firstChars;
-		String individualFilename = basePath + "/" + identifier + ".mrc";
-		File individualFile = new File(individualFilename);
+		String individualFilename = getFileForIlsRecord(identifier);;
 		try {
 			byte[] fileContents = Util.readFileBytes(individualFilename);
 			InputStream inputStream = new ByteArrayInputStream(fileContents);
@@ -58,9 +67,26 @@ public class HooplaProcessor extends MarcRecordProcessor {
 			}
 			inputStream.close();
 		} catch (Exception e) {
-			logger.error("Error reading data from hoopla file " + individualFile.toString(), e);
+			logger.error("Error reading data from hoopla file " + individualFilename, e);
 		}
 		return record;
+	}
+
+	private String getFileForIlsRecord(String recordNumber) {
+		String shortId = recordNumber.replace(".", "");
+		while (shortId.length() < 9){
+			shortId = "0" + shortId;
+		}
+
+		String subFolderName;
+		if (createFolderFromLeadingCharacters){
+			subFolderName        = shortId.substring(0, numCharsToCreateFolderFrom);
+		}else{
+			subFolderName        = shortId.substring(0, shortId.length() - numCharsToCreateFolderFrom);
+		}
+
+		String basePath           = individualMarcPath + "/" + subFolderName;
+		return basePath + "/" + shortId + ".mrc";
 	}
 
 	@Override

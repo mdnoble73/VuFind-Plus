@@ -207,13 +207,23 @@ function getIndexingUpdates() {
 			)
 		),
 
-			'indexing_profile_collectionsToSuppress' => array(
-					'title' => 'Indexing Profiles - collections to suppress',
-					'description' => 'Allow specific collection codes to be suppressed',
-					'sql' => array(
-							"ALTER TABLE indexing_profiles ADD COLUMN `collectionsToSuppress` varchar(100) DEFAULT ''",
-					)
-			),
+		'indexing_profile_collectionsToSuppress' => array(
+				'title' => 'Indexing Profiles - collections to suppress',
+				'description' => 'Allow specific collection codes to be suppressed',
+				'sql' => array(
+						"ALTER TABLE indexing_profiles ADD COLUMN `collectionsToSuppress` varchar(100) DEFAULT ''",
+				)
+		),
+
+		'indexing_profile_folderCreation' => array(
+				'title' => 'Indexing Profiles - Individual Folder Creation',
+				'description' => 'Determine how marc record folders should be created',
+				'sql' => array(
+						"ALTER TABLE indexing_profiles ADD COLUMN `numCharsToCreateFolderFrom` int(11) DEFAULT 4",
+						"ALTER TABLE indexing_profiles ADD COLUMN `createFolderFromLeadingCharacters` tinyint(1) DEFAULT 1",
+						"UPDATE indexing_profiles SET `numCharsToCreateFolderFrom` = 7 WHERE name = 'hoopla'",
+				)
+		),
 
 		'translation_map_regex' => array(
 			'title' => 'Translation Maps Regex',
