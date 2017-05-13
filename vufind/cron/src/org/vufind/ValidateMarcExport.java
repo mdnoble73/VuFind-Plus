@@ -126,6 +126,8 @@ public class ValidateMarcExport implements IProcessHandler{
 				profile.individualMarcPath = indexingProfilesRS.getString("individualMarcPath");
 				profile.recordNumberTag = indexingProfilesRS.getString("recordNumberTag");
 				profile.marcEncoding = indexingProfilesRS.getString("marcEncoding");
+				profile.numCharsToCreateFolderFrom = indexingProfilesRS.getInt("numCharsToCreateFolderFrom");
+				profile.createFolderFromLeadingCharacters = indexingProfilesRS.getBoolean("createFolderFromLeadingCharacters");
 				profile.setItemTag(indexingProfilesRS.getString("itemTag"));
 				profile.setRecordNumberPrefix(indexingProfilesRS.getString("recordNumberPrefix"));
 				profile.setRecordNumberTag(indexingProfilesRS.getString("recordNumberTag"));

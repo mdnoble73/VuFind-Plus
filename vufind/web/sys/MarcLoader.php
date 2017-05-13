@@ -34,11 +34,7 @@ class MarcLoader{
 		if (array_key_exists($ilsId, MarcLoader::$loadedMarcRecords)){
 			return MarcLoader::$loadedMarcRecords[$ilsId];
 		}
-		$shortId = str_replace('.', '', $ilsId);
-		if (strlen($shortId) < 9){
-			$shortId = str_pad($shortId, 9, "0", STR_PAD_LEFT);
-		}
-		$firstChars = substr($shortId, 0, 4);
+
 		/** @var $indexingProfiles IndexingProfile[] */
 		if (array_key_exists($recordType, $indexingProfiles)){
 			$indexingProfile = $indexingProfiles[$recordType];
@@ -51,6 +47,17 @@ class MarcLoader{
 				$indexingProfile = $indexingProfiles['ils'];
 			}
 		}
+
+		$shortId = str_replace('.', '', $ilsId);
+		if (strlen($shortId) < 9){
+			$shortId = str_pad($shortId, 9, "0", STR_PAD_LEFT);
+		}
+		if ($indexingProfile->createFolderFromLeadingCharacters){
+			$firstChars = substr($shortId, 0, $indexingProfile->numCharsToCreateFolderFrom);
+		}else{
+			$firstChars = substr($shortId, 0, strlen($shortId) - $indexingProfile->numCharsToCreateFolderFrom);
+		}
+
 		$individualName = $indexingProfile->individualMarcPath . "/{$firstChars}/{$shortId}.mrc";
 		$marcRecord = false;
 		if (isset($indexingProfile->individualMarcPath)){
@@ -95,16 +102,20 @@ class MarcLoader{
 			$ilsId = $id;
 		}
 
-		$shortId = str_replace('.', '', $ilsId);
-		if (strlen($shortId) < 9){
-			$shortId = str_pad($shortId, 9, "0", STR_PAD_LEFT);
-		}
-		$firstChars = substr($shortId, 0, 4);
 		/** @var $indexingProfiles IndexingProfile[] */
 		if (array_key_exists($recordType, $indexingProfiles)){
 			$indexingProfile = $indexingProfiles[$recordType];
 		}else{
 			$indexingProfile = $indexingProfiles['ils'];
+		}
+		$shortId = str_replace('.', '', $ilsId);
+		if (strlen($shortId) < 9){
+			$shortId = str_pad($shortId, 9, "0", STR_PAD_LEFT);
+		}
+		if ($indexingProfile->createFolderFromLeadingCharacters){
+			$firstChars = substr($shortId, 0, $indexingProfile->numCharsToCreateFolderFrom);
+		}else{
+			$firstChars = substr($shortId, 0, strlen($shortId) - $indexingProfile->numCharsToCreateFolderFrom);
 		}
 		$individualName = $indexingProfile->individualMarcPath . "/{$firstChars}/{$shortId}.mrc";
 		if (isset($indexingProfile->individualMarcPath)){
@@ -136,16 +147,20 @@ class MarcLoader{
 			$ilsId = $id;
 		}
 
-		$shortId = str_replace('.', '', $ilsId);
-		if (strlen($shortId) < 9){
-			$shortId = str_pad($shortId, 9, "0", STR_PAD_LEFT);
-		}
-		$firstChars = substr($shortId, 0, 4);
 		/** @var $indexingProfiles IndexingProfile[] */
 		if (array_key_exists($recordType, $indexingProfiles)){
 			$indexingProfile = $indexingProfiles[$recordType];
 		}else{
 			$indexingProfile = $indexingProfiles['ils'];
+		}
+		$shortId = str_replace('.', '', $ilsId);
+		if (strlen($shortId) < 9){
+			$shortId = str_pad($shortId, 9, "0", STR_PAD_LEFT);
+		}
+		if ($indexingProfile->createFolderFromLeadingCharacters){
+			$firstChars = substr($shortId, 0, $indexingProfile->numCharsToCreateFolderFrom);
+		}else{
+			$firstChars = substr($shortId, 0, strlen($shortId) - $indexingProfile->numCharsToCreateFolderFrom);
 		}
 		$individualName = $indexingProfile->individualMarcPath . "/{$firstChars}/{$shortId}.mrc";
 		if (isset($indexingProfile->individualMarcPath)){
@@ -161,7 +176,14 @@ class MarcLoader{
 	 */
 	public static function marcExistsForHooplaId($hooplaId){
 		global $configArray;
-		$firstChars = substr($hooplaId, 0, 7);
+		global $indexingProfiles;
+		$indexingProfile = $indexingProfiles['hoopla'];
+		if ($indexingProfile->createFolderFromLeadingCharacters){
+			$firstChars = substr($hooplaId, 0, $indexingProfile->numCharsToCreateFolderFrom);
+		}else{
+			$firstChars = substr($hooplaId, 0, strlen($hooplaId) - $indexingProfile->numCharsToCreateFolderFrom);
+		}
+
 		$individualName = $configArray['Hoopla']['individualMarcPath'] . "/{$firstChars}/{$hooplaId}.mrc";
 		if (isset($configArray['Hoopla']['individualMarcPath'])){
 			return file_exists($individualName);
@@ -172,10 +194,16 @@ class MarcLoader{
 
 	public static function loadMarcRecordByHooplaId($id) {
 		global $configArray;
+		global $indexingProfiles;
 		if (array_key_exists($id, MarcLoader::$loadedMarcRecords)){
 			return MarcLoader::$loadedMarcRecords[$id];
 		}
-		$firstChars = substr($id, 0, 7);
+		$indexingProfile = $indexingProfiles['hoopla'];
+		if ($indexingProfile->createFolderFromLeadingCharacters){
+			$firstChars = substr($id, 0, $indexingProfile->numCharsToCreateFolderFrom);
+		}else{
+			$firstChars = substr($id, 0, strlen($id) - $indexingProfile->numCharsToCreateFolderFrom);
+		}
 		$individualName = $configArray['Hoopla']['individualMarcPath'] . "/{$firstChars}/{$id}.mrc";
 		$marcRecord = false;
 		if (isset($configArray['Hoopla']['individualMarcPath'])){

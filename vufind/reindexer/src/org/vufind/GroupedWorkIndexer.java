@@ -43,8 +43,8 @@ public class GroupedWorkIndexer {
 	private PreparedStatement getRatingStmt;
 	private Connection vufindConn;
 
-	protected int availableAtLocationBoostValue = 50;
-	protected int ownedByLocationBoostValue = 10;
+	private int availableAtLocationBoostValue = 50;
+	private int ownedByLocationBoostValue = 10;
 
 	private boolean fullReindex = false;
 	private long lastReindexTime;
@@ -215,7 +215,7 @@ public class GroupedWorkIndexer {
 							ilsRecordProcessors.put(curIdentifier, new FlatironsRecordProcessor(this, vufindConn, configIni, indexingProfileRS, logger, fullReindex));
 							break;
 						case "Hoopla":
-							ilsRecordProcessors.put(curIdentifier, new HooplaProcessor(this, configIni, logger));
+							ilsRecordProcessors.put(curIdentifier, new HooplaProcessor(this, indexingProfileRS, logger));
 							break;
 						case "Arlington":
 							ilsRecordProcessors.put(curIdentifier, new ArlingtonRecordProcessor(this, vufindConn, configIni, indexingProfileRS, logger, fullReindex));
@@ -269,7 +269,7 @@ public class GroupedWorkIndexer {
 		}
 	}
 
-	protected void setupIndexingStats() {
+	private void setupIndexingStats() {
 		ArrayList<String> recordProcessorNames = new ArrayList<>();
 		recordProcessorNames.addAll(ilsRecordProcessors.keySet());
 		recordProcessorNames.add("overdrive");
@@ -280,18 +280,18 @@ public class GroupedWorkIndexer {
 		}
 	}
 
-	public boolean isOkToIndex(){
+	boolean isOkToIndex(){
 		return okToIndex;
 	}
 
 	private boolean libraryAndLocationDataLoaded = false;
 
 	//Keep track of what we are indexing for validation purposes
-	public TreeMap<String, TreeSet<String>> ilsRecordsIndexed = new TreeMap<>();
-	public TreeSet<String> overDriveRecordsIndexed = new TreeSet<>();
-	public TreeMap<String, TreeSet<String>> ilsRecordsSkipped = new TreeMap<>();
-	public TreeSet<String> overDriveRecordsSkipped = new TreeSet<>();
-	public TreeMap<String, ScopedIndexingStats> indexingStats = new TreeMap<>();
+	private TreeMap<String, TreeSet<String>> ilsRecordsIndexed = new TreeMap<>();
+	TreeSet<String> overDriveRecordsIndexed = new TreeSet<>();
+	private TreeMap<String, TreeSet<String>> ilsRecordsSkipped = new TreeMap<>();
+	TreeSet<String> overDriveRecordsSkipped = new TreeSet<>();
+	private TreeMap<String, ScopedIndexingStats> indexingStats = new TreeMap<>();
 
 	private void loadScopes() {
 		if (!libraryAndLocationDataLoaded){
@@ -591,7 +591,7 @@ public class GroupedWorkIndexer {
 		}
 	}
 
-	public void deleteRecord(String id) {
+	void deleteRecord(String id) {
 		logger.info("Clearing existing work from index");
 		try {
 			updateServer.deleteById(id);
@@ -834,7 +834,7 @@ public class GroupedWorkIndexer {
 		}
 	}
 
-	public Long processGroupedWorks(HashMap<Scope, ArrayList<SiteMapEntry>> siteMapsByScope, HashSet<Long> uniqueGroupedWorks) {
+	Long processGroupedWorks(HashMap<Scope, ArrayList<SiteMapEntry>> siteMapsByScope, HashSet<Long> uniqueGroupedWorks) {
 		Long numWorksProcessed = 0L;
 		try {
 			PreparedStatement getAllGroupedWorks;
@@ -899,7 +899,7 @@ public class GroupedWorkIndexer {
 		return numWorksProcessed;
 	}
 
-	public void processGroupedWork(Long id, String permanentId, String grouping_category, HashMap<Scope, ArrayList<SiteMapEntry>> siteMapsByScope, HashSet<Long> uniqueGroupedWorks) throws SQLException {
+	void processGroupedWork(Long id, String permanentId, String grouping_category, HashMap<Scope, ArrayList<SiteMapEntry>> siteMapsByScope, HashSet<Long> uniqueGroupedWorks) throws SQLException {
 		//Create a solr record for the grouped work
 		GroupedWorkSolr groupedWork = new GroupedWorkSolr(this, logger);
 		groupedWork.setId(permanentId);
@@ -1134,9 +1134,9 @@ public class GroupedWorkIndexer {
 		return translationMap;
 	}
 
-	HashSet<String> unableToTranslateWarnings = new HashSet<>();
-	HashSet<String> missingTranslationMaps = new HashSet<>();
-	public String translateSystemValue(String mapName, String value, String identifier){
+	private HashSet<String> unableToTranslateWarnings = new HashSet<>();
+	private HashSet<String> missingTranslationMaps = new HashSet<>();
+	String translateSystemValue(String mapName, String value, String identifier){
 		if (value == null){
 				return null;
 			}
@@ -1176,7 +1176,7 @@ public class GroupedWorkIndexer {
 		return translatedValue;
 	}
 
-	public LinkedHashSet<String> translateSystemCollection(String mapName, Set<String> values, String identifier) {
+	LinkedHashSet<String> translateSystemCollection(String mapName, Set<String> values, String identifier) {
 		LinkedHashSet<String> translatedCollection = new LinkedHashSet<>();
 		for (String value : values){
 				String translatedValue = translateSystemValue(mapName, value, identifier);
@@ -1189,7 +1189,7 @@ public class GroupedWorkIndexer {
 
 
 
-	public void addWorkWithInvalidLiteraryForms(String id) {
+	void addWorkWithInvalidLiteraryForms(String id) {
 		this.worksWithInvalidLiteraryForms.add(id);
 	}
 
@@ -1197,7 +1197,7 @@ public class GroupedWorkIndexer {
 		return this.scopes;
 	}
 
-	public Date getDateFirstDetected(String recordId){
+	Date getDateFirstDetected(String recordId){
 		Long dateFirstDetected = null;
 		try {
 			getDateFirstDetectedStmt.setString(1, recordId);
@@ -1215,7 +1215,7 @@ public class GroupedWorkIndexer {
 		}
 	}
 
-	public long processPublicUserLists() {
+	long processPublicUserLists() {
 		UserListProcessor listProcessor = new UserListProcessor(this, vufindConn, logger, fullReindex, availableAtLocationBoostValue, ownedByLocationBoostValue);
 		return listProcessor.processPublicUserLists(lastReindexTime, updateServer, solrServer);
 	}

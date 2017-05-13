@@ -16,9 +16,9 @@ import java.util.*;
  * Date: 12/15/2015
  * Time: 3:03 PM
  */
-public class SideLoadedEContentProcessor extends IlsRecordProcessor{
+class SideLoadedEContentProcessor extends IlsRecordProcessor{
 	private PreparedStatement getDateAddedStmt;
-	public SideLoadedEContentProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
+	SideLoadedEContentProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
 		super(indexer, vufindConn, configIni, indexingProfileRS, logger, fullReindex);
 
 		try{
@@ -83,7 +83,7 @@ public class SideLoadedEContentProcessor extends IlsRecordProcessor{
 		}
 	}
 
-	protected RecordInfo loadEContentRecord(GroupedWorkSolr groupedWork, String identifier, Record record){
+	private RecordInfo loadEContentRecord(GroupedWorkSolr groupedWork, String identifier, Record record){
 		//We will always have a single record
 		return getEContentIlsRecord(groupedWork, record, identifier);
 	}
@@ -209,7 +209,7 @@ public class SideLoadedEContentProcessor extends IlsRecordProcessor{
 		}
 	}
 
-	protected void loadDateAdded(String identfier, ItemInfo itemInfo) {
+	private void loadDateAdded(String identfier, ItemInfo itemInfo) {
 		try {
 			getDateAddedStmt.setString(1, identfier);
 			ResultSet getDateAddedRS = getDateAddedStmt.executeQuery();

@@ -26,13 +26,10 @@ public class MillenniumExportMain{
 	private static Logger logger = Logger.getLogger(MillenniumExportMain.class);
 	private static String serverName; //Pika instance name
 	private static Connection vufindConn;
-	private static String itemTag;
-	private static char itemRecordNumberSubfield;
-	private static char locationSubfield;
-	private static char statusSubfield;
-	private static char dueDateSubfield;
+
+	private static IndexingProfile indexingProfile;
+
 	private static String defaultDueDate;
-	private static String dueDateFormat;
 
 	public static void main(String[] args){
 		serverName = args[0];
@@ -63,6 +60,12 @@ public class MillenniumExportMain{
 			System.exit(1);
 		}
 
+		String profileToLoad = "ils";
+		if (args.length > 1){
+			profileToLoad = args[1];
+		}
+		indexingProfile = IndexingProfile.loadIndexingProfile(vufindConn, profileToLoad, logger);
+
 		//We assume that before this process runs, you have already called
 		//ITEM_UPDATE_EXTRACT_PIKA.exp to create the export.
 
@@ -80,16 +83,16 @@ public class MillenniumExportMain{
 			}
 		});
 
-		//Sort the potential files alphabetically
-		Arrays.sort(potentialFiles);
-		if (potentialFiles.length == 0){
+		if (potentialFiles == null || potentialFiles.length == 0){
 			logger.error("Could not find updates file to process");
 		}else{
+			//Sort the potential files alphabetically
+			Arrays.sort(potentialFiles);
 			//Grab the last file
 			File itemUpdateDataFile = potentialFiles[potentialFiles.length - 1];
 			if (itemUpdateDataFile.exists()){
 				//Yay, we got a file, process it.
-				processItemUpdates(ini, itemUpdateDataFile);
+				processItemUpdates(itemUpdateDataFile);
 			}else{
 				logger.error("That's really weird, the update file was deleted while we were looking at it.");
 			}
@@ -111,7 +114,7 @@ public class MillenniumExportMain{
 		}
 	}
 
-	public static long getChecksum(Record marcRecord) {
+	private static long getChecksum(Record marcRecord) {
 		CRC32 crc32 = new CRC32();
 		crc32.update(marcRecord.toString().getBytes());
 		return crc32.getValue();
@@ -128,7 +131,7 @@ public class MillenniumExportMain{
 			vufindConn.prepareCall("TRUNCATE TABLE ils_hold_summary").executeQuery();
 
 			PreparedStatement addIlsHoldSummary = vufindConn.prepareStatement("INSERT INTO ils_hold_summary (ilsId, numHolds) VALUES (?, ?)");
-			HashMap<String, Long> numHoldsByBib = new HashMap<String, Long>();
+			HashMap<String, Long> numHoldsByBib = new HashMap<>();
 
 			CSVReader holdsReader = new CSVReader(new FileReader(holdsExport), '\t');
 			//Read the header
@@ -174,25 +177,17 @@ public class MillenniumExportMain{
 		logger.info("Finished exporting holds");
 	}
 
-	public static void processItemUpdates(Ini ini, File itemUpdateDataFile) {
-		String individualMarcPath = ini.get("Reindex", "individualMarcPath");
-		itemTag = ini.get("Reindex", "itemTag");
-		itemRecordNumberSubfield = getSubfieldIndicatorFromConfig(ini, "itemRecordNumberSubfield");
-		locationSubfield = getSubfieldIndicatorFromConfig(ini, "locationSubfield");
-		statusSubfield = getSubfieldIndicatorFromConfig(ini, "statusSubfield");
-		dueDateSubfield = getSubfieldIndicatorFromConfig(ini, "dueDateSubfield");
-		dueDateFormat = cleanIniValue(ini.get("Reindex", "dateAddedFormat"));
-		defaultDueDate = dueDateFormat.replaceAll("[Mdy]", " ");
+	private static void processItemUpdates(File itemUpdateDataFile) {
+		defaultDueDate = indexingProfile.dueDateFormat.replaceAll("[Mdy]", " ");
 
 		//Last Update in UTC
-		SimpleDateFormat dateFormatter = new SimpleDateFormat("MM-dd-yyyy");
 		long updateTime = new Date().getTime() / 1000;
 
 		SimpleDateFormat csvDateFormat = new SimpleDateFormat("MM-dd-yyyy");
-		SimpleDateFormat marcDateFormat = new SimpleDateFormat(dueDateFormat);
+		SimpleDateFormat marcDateFormat = new SimpleDateFormat(indexingProfile.dueDateFormat);
 
 		//Merge item changes with the individual marc records and
-		HashMap<String, ArrayList<ItemChangeInfo>> changedItemsByBib = new HashMap<String, ArrayList<ItemChangeInfo>>();
+		HashMap<String, ArrayList<ItemChangeInfo>> changedItemsByBib = new HashMap<>();
 		try {
 			CSVReader updateReader = new CSVReader(new FileReader(itemUpdateDataFile), '\t');
 			//Read each line in the file
@@ -224,7 +219,7 @@ public class MillenniumExportMain{
 					if (changedItemsByBib.containsKey(fullId)) {
 						itemChanges = changedItemsByBib.get(fullId);
 					}else{
-						itemChanges = new ArrayList<ItemChangeInfo>();
+						itemChanges = new ArrayList<>();
 						changedItemsByBib.put(fullId, itemChanges);
 					}
 					itemChanges.add(changeInfo);
@@ -249,7 +244,7 @@ public class MillenniumExportMain{
 			int numUpdates = 0;
 			for (String curBibId : changedItemsByBib.keySet()) {
 				//Update the marc record
-				long newChecksum = updateMarc(individualMarcPath, curBibId, changedItemsByBib.get(curBibId));
+				long newChecksum = updateMarc(curBibId, changedItemsByBib.get(curBibId));
 				//Mark that the checksum has changed within database
 				//Update the database
 				try {
@@ -274,19 +269,11 @@ public class MillenniumExportMain{
 
 	}
 
-	private static File getFileForIlsRecord(String individualMarcPath, String recordNumber) {
-		String shortId = getFileIdForRecordNumber(recordNumber);
-		String firstChars = shortId.substring(0, 4);
-		String basePath = individualMarcPath + "/" + firstChars;
-		String individualFilename = basePath + "/" + shortId + ".mrc";
-		return new File(individualFilename);
-	}
-
-	private static Long updateMarc(String individualMarcPath, String curBibId, ArrayList<ItemChangeInfo> itemChanges) {
+	private static Long updateMarc(String curBibId, ArrayList<ItemChangeInfo> itemChanges) {
 		//Load the existing marc record from file
 		long newChecksum = -1L;
 		try {
-			File marcFile = getFileForIlsRecord(individualMarcPath, curBibId);
+			File marcFile = indexingProfile.getFileForIlsRecord(curBibId);
 			if (marcFile.exists()) {
 				FileInputStream inputStream = new FileInputStream(marcFile);
 				MarcPermissiveStreamReader marcReader = new MarcPermissiveStreamReader(inputStream, true, true, "UTF-8");
@@ -296,27 +283,27 @@ public class MillenniumExportMain{
 					inputStream.close();
 
 					//Loop through all item fields to see what has changed
-					List<VariableField> itemFields = marcRecord.getVariableFields(itemTag);
+					List<VariableField> itemFields = marcRecord.getVariableFields(indexingProfile.itemTag);
 					for (VariableField itemFieldVar : itemFields) {
 						DataField itemField = (DataField) itemFieldVar;
-						if (itemField.getSubfield(itemRecordNumberSubfield) != null) {
-							String itemRecordNumber = itemField.getSubfield(itemRecordNumberSubfield).getData();
+						if (itemField.getSubfield(indexingProfile.itemRecordNumberSubfield) != null) {
+							String itemRecordNumber = itemField.getSubfield(indexingProfile.itemRecordNumberSubfield).getData();
 							//Update the items
 							for (ItemChangeInfo curItem : itemChanges) {
 								//Find the correct item
 								if (itemRecordNumber.equals(curItem.getItemId())) {
-									setSubfield(itemField, locationSubfield, curItem.getLocation());
-									setSubfield(itemField, statusSubfield, curItem.getStatus());
+									setSubfield(itemField, indexingProfile.locationSubfield, curItem.getLocation());
+									setSubfield(itemField, indexingProfile.itemStatusSubfield, curItem.getStatus());
 
 									if (curItem.getDueDate() == null) {
-										if (itemField.getSubfield(dueDateSubfield) != null) {
-											itemField.getSubfield(dueDateSubfield).setData(defaultDueDate);
+										if (itemField.getSubfield(indexingProfile.dueDateSubfield) != null) {
+											itemField.getSubfield(indexingProfile.dueDateSubfield).setData(defaultDueDate);
 										}
 									} else {
-										if (itemField.getSubfield(dueDateSubfield) == null) {
-											itemField.addSubfield(new SubfieldImpl(dueDateSubfield, curItem.getDueDate()));
+										if (itemField.getSubfield(indexingProfile.dueDateSubfield) == null) {
+											itemField.addSubfield(new SubfieldImpl(indexingProfile.dueDateSubfield, curItem.getDueDate()));
 										} else {
-											itemField.getSubfield(dueDateSubfield).setData(curItem.getDueDate());
+											itemField.getSubfield(indexingProfile.dueDateSubfield).setData(curItem.getDueDate());
 										}
 									}
 									itemChanges.remove(curItem);
@@ -434,7 +421,7 @@ public class MillenniumExportMain{
 		return ini;
 	}
 
-	public static String cleanIniValue(String value) {
+	private static String cleanIniValue(String value) {
 		if (value == null) {
 			return null;
 		}
@@ -447,14 +434,4 @@ public class MillenniumExportMain{
 		}
 		return value;
 	}
-
-	private static char getSubfieldIndicatorFromConfig(Ini configIni, String subfieldName) {
-		String subfieldString = configIni.get("Reindex", subfieldName);
-		char subfield = ' ';
-		if (subfieldString != null && subfieldString.length() > 0)  {
-			subfield = subfieldString.charAt(0);
-		}
-		return subfield;
-	}
-
 }

@@ -1,11 +1,16 @@
 package org.vufind;
 
 import org.apache.log4j.Logger;
+import org.apache.log4j.pattern.IntegerPatternConverter;
 import org.ini4j.Ini;
 import org.marc4j.marc.DataField;
+import org.marc4j.marc.Record;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Record Processing Specific to records loaded from CARL.X
@@ -36,5 +41,51 @@ public class CarlXRecordProcessor extends IlsRecordProcessor {
 			}
 		}
 		return location;
+	}
+
+	int numSampleRecordsWithMultiplePrintFormats = 0;
+	@Override
+	public void loadPrintFormatInformation(RecordInfo ilsRecord, Record record) {
+		Set<String> printFormatsRaw = getFieldList(record, "998d");
+		HashMap<String, Integer> printFormats = new HashMap<>();
+		for (String curFormat : printFormatsRaw){
+			String printFormatLower = curFormat.toLowerCase();
+			if (!printFormats.containsKey(printFormatLower)){
+				printFormats.put(printFormatLower, 1);
+			}else{
+				printFormats.put(printFormatLower, printFormats.get(printFormatLower) + 1);
+			}
+		}
+
+		HashSet<String> selectedPrintFormats = new HashSet<>();
+		if (selectedPrintFormats.size() > 1 && numSampleRecordsWithMultiplePrintFormats < 100){
+			logger.debug("Record " + ilsRecord.getRecordIdentifier() + " had multiple formats based on the item information");
+			numSampleRecordsWithMultiplePrintFormats++;
+		}
+		int maxPrintFormats = 0;
+		String selectedFormat = "";
+		for (String printFormat : printFormats.keySet()){
+			int numUsages = printFormats.get(printFormat);
+			if (numUsages > maxPrintFormats){
+				selectedFormat = printFormat;
+			}
+		}
+		selectedPrintFormats.add(selectedFormat);
+
+		HashSet<String> translatedFormats = translateCollection("format", selectedPrintFormats, ilsRecord.getRecordIdentifier());
+		HashSet<String> translatedFormatCategories = translateCollection("format_category", selectedPrintFormats, ilsRecord.getRecordIdentifier());
+		ilsRecord.addFormats(translatedFormats);
+		ilsRecord.addFormatCategories(translatedFormatCategories);
+		Long formatBoost = 0L;
+		HashSet<String> formatBoosts = translateCollection("format_boost", selectedPrintFormats, ilsRecord.getRecordIdentifier());
+		for (String tmpFormatBoost : formatBoosts){
+			if (Util.isNumeric(tmpFormatBoost)) {
+				Long tmpFormatBoostLong = Long.parseLong(tmpFormatBoost);
+				if (tmpFormatBoostLong > formatBoost) {
+					formatBoost = tmpFormatBoostLong;
+				}
+			}
+		}
+		ilsRecord.setFormatBoost(formatBoost);
 	}
 }
