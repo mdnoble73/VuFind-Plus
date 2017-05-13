@@ -5,11 +5,13 @@ import org.apache.log4j.pattern.IntegerPatternConverter;
 import org.ini4j.Ini;
 import org.marc4j.marc.DataField;
 import org.marc4j.marc.Record;
+import org.marc4j.marc.Subfield;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -46,14 +48,18 @@ public class CarlXRecordProcessor extends IlsRecordProcessor {
 	int numSampleRecordsWithMultiplePrintFormats = 0;
 	@Override
 	public void loadPrintFormatInformation(RecordInfo ilsRecord, Record record) {
-		Set<String> printFormatsRaw = getFieldList(record, "998d");
+		List<DataField> items = getDataFields(record, itemTag);
 		HashMap<String, Integer> printFormats = new HashMap<>();
-		for (String curFormat : printFormatsRaw){
-			String printFormatLower = curFormat.toLowerCase();
-			if (!printFormats.containsKey(printFormatLower)){
-				printFormats.put(printFormatLower, 1);
-			}else{
-				printFormats.put(printFormatLower, printFormats.get(printFormatLower) + 1);
+		for (DataField curItem : items){
+			Subfield formatField = curItem.getSubfield(formatSubfield);
+			if (formatField != null) {
+				String curFormat = formatField.getData();
+				String printFormatLower = curFormat.toLowerCase();
+				if (!printFormats.containsKey(printFormatLower)) {
+					printFormats.put(printFormatLower, 1);
+				} else {
+					printFormats.put(printFormatLower, printFormats.get(printFormatLower) + 1);
+				}
 			}
 		}
 
