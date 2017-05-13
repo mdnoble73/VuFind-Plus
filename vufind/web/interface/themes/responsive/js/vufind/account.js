@@ -583,14 +583,17 @@ VuFind.Account = (function(){
 
 // called by ReactivationDateForm when fn freezeHold above has promptForReactivationDate is set
 		doFreezeHoldWithReactivationDate: function(caller){
-			var popUpBoxTitle = $(caller).text() || "Freezing Hold" // freezing terminology can be customized, so grab text from click button: caller
-					,patronId = $('#patronId').val()
-					,recordId = $('#recordId').val()
-					,holdId = $("#holdId").val()
-					,reactivationDate = $("#reactivationDate").val()
-					,url = Globals.path + '/MyAccount/AJAX?method=freezeHold&patronId=' + patronId + "&recordId=" + recordId + '&holdId=' + holdId + '&reactivationDate=' + reactivationDate;
+			var popUpBoxTitle = $(caller).text() || "Freezing Hold"  // freezing terminology can be customized, so grab text from click button: caller
+					,params = {
+						'method' : 'freezeHold'
+						,patronId : $('#patronId').val()
+						,recordId : $('#recordId').val()
+						,holdId : $("#holdId").val()
+						,reactivationDate : $("#reactivationDate").val()
+					}
+					,url = Globals.path + '/MyAccount/AJAX';
 			VuFind.showMessage(popUpBoxTitle, "Updating your hold.  This may take a minute.");
-			$.getJSON(url, function(data){
+			$.getJSON(url, params, function(data){
 				if (data.success) {
 					VuFind.showMessage("Success", data.message, true, true);
 				} else {

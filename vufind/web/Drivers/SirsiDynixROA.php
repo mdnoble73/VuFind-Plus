@@ -356,21 +356,16 @@ abstract class SirsiDynixROA extends HorizonAPI
 		);
 
 		//Get the session token for the user
-		if (isset(SirsiDynixROA::$sessionIdsForUsers[$patron->id])) {
-			$sessionToken = SirsiDynixROA::$sessionIdsForUsers[$patron->id];
-		} else {
-			//Log the user in
-			list($userValid, $sessionToken) = $this->loginViaWebService($patron->cat_username, $patron->cat_password);
-			if (!$userValid) {
-				return $holds;
-			}
+		$sessionToken = $this->getSessionToken($patron);
+		if (!$sessionToken) {
+			return $holds;
 		}
 
 		//Now that we have the session token, get holds information
 		$webServiceURL = $this->getWebServiceURL();
 		//Get a list of holds for the user
 		$patronHolds = $this->getWebServiceResponse($webServiceURL . '/ws/user/patron/key/' . $patron->username . '?includeFields=holdRecordList', null, $sessionToken);
-		$holdRecord  = $this->getWebServiceResponse($webServiceURL . "/ws/circulation/holdRecord/describe", null, $sessionToken);
+//		$holdRecord  = $this->getWebServiceResponse($webServiceURL . "/ws/circulation/holdRecord/describe", null, $sessionToken);
 		if ($patronHolds && isset($patronHolds->fields)) {
 			require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
 			foreach ($patronHolds->fields->holdRecordList as $hold) {
@@ -659,6 +654,99 @@ abstract class SirsiDynixROA extends HorizonAPI
 			return array(
 				'success' => false,
 				'message' => 'Failed to update the pickup location : '. implode('; ', $messages)
+			);
+		}
+	}
+
+	function freezeHold($patron, $recordId, $holdToFreezeId, $dateToReactivate)
+	{
+		$sessionToken = $this->getSessionToken($patron);
+		if (!$sessionToken) {
+			return array(
+				'success' => false,
+				'message' => 'Sorry, it does not look like you are logged in currently.  Please login and try again');
+		}
+
+		//create the hold using the web service
+		$webServiceURL = $this->getWebServiceURL();
+
+		$today = date('Y-m-d');
+		$formattedDateToReactivate = date('Y-m-d', strtotime($dateToReactivate));
+		//TODO: case where suspend date is empty
+
+		$params = array(
+			'key' => $holdToFreezeId,
+			'resource' => '/circulation/holdRecord',
+			'fields' => array(
+					'suspendBeginDate' => $today,
+					'suspendEndDate' => $formattedDateToReactivate
+			)
+		);
+
+		$updateHoldResponse = $this->getWebServiceResponse($webServiceURL . "/ws/circulation/holdRecord/key/$holdToFreezeId", $params, $sessionToken, 'PUT');
+
+		if (isset($updateHoldResponse->key) && isset($updateHoldResponse->fields->suspendEndDate) && $updateHoldResponse->fields->suspendEndDate == $formattedDateToReactivate) {
+			$frozen = translate('frozen');
+			return array(
+				'success' => true,
+				'message' => "The hold has been $frozen."
+			);
+		} else {
+			$messages = array();
+			if (isset($updateHoldResponse->messageList)) {
+				foreach ($updateHoldResponse->messageList as $message) {
+					$messages[] = $message->message;
+				}
+			}
+			$freeze = translate('freeze');
+
+			return array(
+				'success' => false,
+				'message' => "Failed to $freeze hold : ". implode('; ', $messages)
+			);
+		}
+	}
+
+	function thawHold($patron, $recordId, $holdToThawId)
+	{
+		$sessionToken = $this->getSessionToken($patron);
+		if (!$sessionToken) {
+			return array(
+				'success' => false,
+				'message' => 'Sorry, it does not look like you are logged in currently.  Please login and try again');
+		}
+
+		//create the hold using the web service
+		$webServiceURL = $this->getWebServiceURL();
+
+		$params = array(
+			'key' => $holdToThawId,
+			'resource' => '/circulation/holdRecord',
+			'fields' => array(
+				'suspendBeginDate' => null,
+				'suspendEndDate' => null
+			)
+		);
+
+		$updateHoldResponse = $this->getWebServiceResponse($webServiceURL . "/ws/circulation/holdRecord/key/$holdToThawId", $params, $sessionToken, 'PUT');
+
+		if (isset($updateHoldResponse->key) && is_null($updateHoldResponse->fields->suspendEndDate)) {
+			$thawed = translate('thawed');
+			return array(
+				'success' => true,
+				'message' => "The hold has been $thawed."
+			);
+		} else {
+			$messages = array();
+			if (isset($updateHoldResponse->messageList)) {
+				foreach ($updateHoldResponse->messageList as $message) {
+					$messages[] = $message->message;
+				}
+			}
+			$thaw = translate('thaw');
+			return array(
+				'success' => false,
+				'message' => "Failed to $thaw hold : ". implode('; ', $messages)
 			);
 		}
 	}

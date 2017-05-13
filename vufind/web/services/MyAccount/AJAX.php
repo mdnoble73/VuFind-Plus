@@ -492,7 +492,7 @@ class MyAccount_AJAX
 						if (translate('frozen') != 'frozen') {
 							$notice = str_replace('frozen', translate('frozen'), $notice);  // Translate the phrase frozen from the notice.
 						}
-						$message = '<div class="alert alert-success">'.$result['message'] .'</div><div class="alert alert-info">'.$notice .'</div>';
+						$message = '<div class="alert alert-success">'.$result['message'] .'</div>'. ($notice ? '<div class="alert alert-info">'.$notice .'</div>' : '');
 						$result['message'] = $message;
 					}
 
@@ -933,7 +933,7 @@ class MyAccount_AJAX
 		$results = array(
 			'title'        => $title,
 			'modalBody'    => $interface->fetch("MyAccount/reactivationDate.tpl"),
-			'modalButtons' => "<button class='tool btn btn-primary' onclick='VuFind.Account.doFreezeHoldWithReactivationDate(this); return false;'>$title</button>"
+			'modalButtons' => "<button class='tool btn btn-primary' id='doFreezeHoldWithReactivationDate' onclick='$(\".form\").submit(); return false;'>$title</button>"
 		);
 		return $results;
 	}
