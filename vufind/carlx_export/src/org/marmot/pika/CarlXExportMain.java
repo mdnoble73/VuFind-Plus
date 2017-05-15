@@ -425,6 +425,11 @@ public class CarlXExportMain {
 					int l = marcRecordInfo.getLength();
 					for (int i=1; i < l; i++ ) { // (skip first node because it is the response status)
 						String currentBibID = updatedBibs.get(i);
+						//Pad the bib id based on what we get from the MARC export
+						while (currentBibID.length() < 10){
+							currentBibID = "0" + currentBibID;
+						}
+						currentBibID = "CARL" + currentBibID;
 						logger.debug("Updating " + currentBibID);
 						Node marcRecordNode = marcRecordInfo.item(i);
 
