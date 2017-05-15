@@ -225,6 +225,16 @@ function getIndexingUpdates() {
 				)
 		),
 
+		'indexing_profile_dueDateFormat' => array(
+				'title' => 'Indexing Profiles - Due Date Format',
+				'description' => 'Set the Due Date Format for an indexing profile',
+				'continueOnError' => true,
+				'sql' => array(
+						"ALTER TABLE indexing_profiles ADD COLUMN `dueDateFormat` varchar(20) DEFAULT 'yyMMdd'",
+						"updateDueDateFormat",
+				)
+		),
+
 		'translation_map_regex' => array(
 			'title' => 'Translation Maps Regex',
 			'description' => 'Setup Translation Maps to use regular expressions',

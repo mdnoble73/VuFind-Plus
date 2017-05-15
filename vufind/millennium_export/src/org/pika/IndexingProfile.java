@@ -108,6 +108,7 @@ public class IndexingProfile {
 				indexingProfile.lastCheckinFormat = indexingProfileRS.getString("lastCheckinFormat");
 				indexingProfile.setLocationSubfield(indexingProfileRS.getString("location"));
 				indexingProfile.setItemStatusSubfield(indexingProfileRS.getString("status"));
+				indexingProfile.dueDateFormat = indexingProfileRS.getString("dueDateFormat");
 				indexingProfile.setDueDateSubfield(indexingProfileRS.getString("dueDate"));
 				indexingProfile.setDateCreatedSubfield(indexingProfileRS.getString("dateCreated"));
 				indexingProfile.dateCreatedFormat = indexingProfileRS.getString("dateCreatedFormat");
