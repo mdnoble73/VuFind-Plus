@@ -286,9 +286,12 @@ class CarlX extends SIP2Driver{
 					$logger->log("Renew all response\r\n" . $msg_result, PEAR_LOG_ERR);
 
 					$renew_result['success'] = ($result['fixed']['Ok'] == 1);
-					//$renew_result['Renewed'] = $result['']
-					//$renew_result['Unrenewed'] =
+					$renew_result['Renewed'] = count($result['variable']['BM']);
+					$renew_result['Unrenewed'] = count($result['variable']['BN']);
 					$renew_result['message'] = array($result['variable']['AF'][0]);
+					if ($renew_result['Unrenewed'] > 0){
+						$renew_result['message'] = array_merge($renew_result['message'], $result['variable']['BN']);
+					}
 				}else{
 					$renew_result['message'] = array("Invalid message returned from SIP server");
 				}
@@ -586,6 +589,8 @@ class CarlX extends SIP2Driver{
 
 		//Search for the patron in the database
 		$result = $this->getPatronTransactions($user);
+		global $logger;
+		$logger->log("Patron Transactions\r\n" . print_r($result, true), PEAR_LOG_ERR );
 
 		if ($result && !empty($result->ChargeItems->ChargeItem)) {
 			if (!is_array($result->ChargeItems->ChargeItem)) {
