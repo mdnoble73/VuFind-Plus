@@ -25,8 +25,9 @@ class MyAccount_CheckedOut extends MyAccount{
 			//Determine which columns to show
 			$ils = $configArray['Catalog']['ils'];
 			$showOut = ($ils == 'Horizon');
-			$showRenewed = ($ils == 'Horizon' || $ils == 'Millennium'  || $ils == 'Sierra' || $ils == 'Koha');
+			$showRenewed = ($ils == 'Horizon' || $ils == 'Millennium'  || $ils == 'Sierra' || $ils == 'Koha' || $ils == 'Symphony');
 			$showWaitList = $ils == 'Horizon';
+			//TODO: Add symphony?
 
 			$interface->assign('showOut', $showOut);
 			$interface->assign('showRenewed', $showRenewed);

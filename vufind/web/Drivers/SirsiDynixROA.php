@@ -33,7 +33,10 @@ abstract class SirsiDynixROA extends HorizonAPI
 		}
 		if (empty($customRequest)) {
 			curl_setopt($ch, CURLOPT_HTTPGET, true);
-		} else {
+		} elseif ($customRequest == 'POST') {
+			curl_setopt($ch, CURLOPT_POST, true);
+		}
+		else {
 			curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $customRequest);
 		}
 
@@ -46,6 +49,7 @@ abstract class SirsiDynixROA extends HorizonAPI
 		}
 		$json = curl_exec($ch);
 		$err  = curl_getinfo($ch);
+		//TODO: debugging only, comment out later.
 		$logger->log("Web service response\r\n$json", PEAR_LOG_INFO);
 		curl_close($ch);
 
@@ -93,9 +97,9 @@ abstract class SirsiDynixROA extends HorizonAPI
 			$webServiceURL = $this->getWebServiceURL();
 
 			//$userDescribeResponse = $this->getWebServiceResponse($webServiceURL . '/v1/user/describe', null, $sessionToken);
-			$patronDescribeResponse           = $this->getWebServiceResponse($webServiceURL . '/ws/user/patron/describe', null, $sessionToken);
-			$patronStatusInfoDescribeResponse = $this->getWebServiceResponse($webServiceURL . '/ws/user/patronStatusInfo/describe', null, $sessionToken);
-			$userProfileDescribeResponse      = $this->getWebServiceResponse($webServiceURL . '/ws/policy/profile/describe', null, $sessionToken);
+//			$patronDescribeResponse           = $this->getWebServiceResponse($webServiceURL . '/ws/user/patron/describe', null, $sessionToken);
+//			$patronStatusInfoDescribeResponse = $this->getWebServiceResponse($webServiceURL . '/ws/user/patronStatusInfo/describe', null, $sessionToken);
+//			$userProfileDescribeResponse      = $this->getWebServiceResponse($webServiceURL . '/ws/policy/profile/describe', null, $sessionToken);
 			//$lookupMyAccountInfoResponse = $this->getWebServiceResponse($webServiceURL . '/ws/user/patron/key/' . $userID . '?includeFields=firstName,lastName,displayName,privilegeExpiresDate,estimatedOverdueAmount,patronStatusInfo,preferredAddress,address1,address2,address3,primaryPhone,patronstatus,checkoutLocation,library', null, $sessionToken);
 			$lookupMyAccountInfoResponse = $this->getWebServiceResponse($webServiceURL . '/ws/user/patron/key/' . $userID, null, $sessionToken);
 			if ($lookupMyAccountInfoResponse) {
@@ -281,7 +285,7 @@ abstract class SirsiDynixROA extends HorizonAPI
 				$user->finesVal              = $finesVal;
 				$user->expires               = ''; //TODO: Determine if we can get this
 				$user->expireClose           = $expireClose;
-				$user->numCheckedOutIls      = isset($lookupMyAccountInfoResponse->ItemsOutInfo) ? count($lookupMyAccountInfoResponse->ItemsOutInfo) : 0;
+				$user->numCheckedOutIls      = isset($patronStatusResponse2->fields->circRecordList) ? count($patronStatusResponse2->fields->circRecordList) : 0;
 				$user->numHoldsIls           = $numHoldsAvailable + $numHoldsRequested;
 				$user->numHoldsAvailableIls  = $numHoldsAvailable;
 				$user->numHoldsRequestedIls  = $numHoldsRequested;
@@ -302,7 +306,7 @@ abstract class SirsiDynixROA extends HorizonAPI
 			} else {
 				$timer->logTime("lookupMyAccountInfo failed");
 				global $logger;
-				$logger->log('Horizon API call lookupMyAccountInfo failed.', PEAR_LOG_ERR);
+				$logger->log('Symphony API call lookupMyAccountInfo failed.', PEAR_LOG_ERR);
 //				$logger->log($configArray['Catalog']['webServiceUrl'] . '/standard/lookupMyAccountInfo?clientID=' . $configArray['Catalog']['clientId'] . '&sessionToken=' . $sessionToken . '&includeAddressInfo=true&includeHoldInfo=true&includeBlockInfo=true&includeItemsOutInfo=true', PEAR_LOG_ERR);
 				return null;
 			}
@@ -312,7 +316,7 @@ abstract class SirsiDynixROA extends HorizonAPI
 	protected function loginViaWebService($username, $password)
 	{
 		global $configArray;
-		$loginDescribeResponse = $this->getWebServiceResponse($configArray['Catalog']['webServiceUrl'] . '/user/patron/login/describe');
+//		$loginDescribeResponse = $this->getWebServiceResponse($configArray['Catalog']['webServiceUrl'] . '/user/patron/login/describe');
 		$loginUserUrl          = $configArray['Catalog']['webServiceUrl'] . '/user/patron/login';
 		$params                = array(
 			'login' => $username,
@@ -334,6 +338,98 @@ abstract class SirsiDynixROA extends HorizonAPI
 				return array(false, false, false);
 			}
 		}
+	}
+
+	/**
+	 * @param User $patron
+	 * @param int $page
+	 * @param int $recordsPerPage
+	 * @param string $sortOption
+	 * @return array
+	 */
+	public function getMyCheckouts($patron, $page = 1, $recordsPerPage = -1, $sortOption = 'dueDate')
+	{
+		$checkedOutTitles = array();
+
+		//Get the session token for the user
+		$sessionToken = $this->getSessionToken($patron);
+		if (!$sessionToken) {
+			return $checkedOutTitles;
+		}
+
+		//Now that we have the session token, get holds information
+		$webServiceURL = $this->getWebServiceURL();
+		//Get a list of holds for the user
+//		$loginDescribeResponse = $this->getWebServiceResponse($webServiceURL . '/user/patron/describe'); //TODO: remove
+		$patronCheckouts = $this->getWebServiceResponse($webServiceURL . '/ws/user/patron/key/' . $patron->username . '?includeFields=circRecordList', null, $sessionToken);
+
+		$circRecordDescribe  = $this->getWebServiceResponse($webServiceURL . "/ws/circulation/circRecord/describe", null, $sessionToken);
+		//TODO: remove
+
+		if (!empty($patronCheckouts->fields->circRecordList)) {
+			$sCount = 0;
+			require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
+
+			foreach ($patronCheckouts->fields->circRecordList as $checkout) {
+				$curTitle['checkoutSource'] = 'ILS';
+
+				list($bibId)                = explode(':', $checkout->key);
+				$curTitle['recordId']       = $bibId;
+				$curTitle['shortId']        = $bibId;
+				$curTitle['id']             = $bibId;
+
+				$circInfo                   = $this->getWebServiceResponse($webServiceURL . '/ws/circulation/circRecord/key/' . $checkout->key, null, $sessionToken);
+				$curTitle['dueDate']        = strtotime($circInfo->fields->dueDate);
+				$curTitle['checkoutdate']   = strtotime($circInfo->fields->checkOutDate);
+				// Note: there is an overdue flag
+				$curTitle['renewCount']     = $circInfo->fields->renewalCount;
+				$curTitle['canrenew']       = true; //TODO: Figure out if the user can renew the title or not; There is a seenRenewals field and unseenRenewals field
+				$curTitle['renewIndicator'] = $circInfo->fields->item->key;
+
+//				$curTitle['holdQueueLength'] = $this->getNumHolds($bibId); //TODO: needed for checkouts?  Used by Horizon. Is it in this API
+
+
+				$curTitle['format'] = 'Unknown';
+				$recordDriver = new MarcRecord('a' . $bibId);
+				if ($recordDriver->isValid()) {
+					$curTitle['coverUrl']      = $recordDriver->getBookcoverUrl('medium');
+					$curTitle['groupedWorkId'] = $recordDriver->getGroupedWorkId();
+					$curTitle['format']        = $recordDriver->getPrimaryFormat();
+					$curTitle['title']         = $recordDriver->getTitle();
+					$curTitle['title_sort']    = $recordDriver->getSortableTitle();
+					$curTitle['author']        = $recordDriver->getPrimaryAuthor();
+					$curTitle['link']          = $recordDriver->getLinkUrl();
+					$curTitle['ratingData']    = $recordDriver->getRatingData();
+				}
+
+				$sCount++;
+				$sortTitle = isset($curTitle['title_sort']) ? $curTitle['title_sort'] : $curTitle['title'];
+				$sortKey = $sortTitle;
+				if ($sortOption == 'title'){
+					$sortKey = $sortTitle;
+				}elseif ($sortOption == 'author'){
+					$sortKey = (isset($curTitle['author']) ? $curTitle['author'] : "Unknown") . '-' . $sortTitle;
+				}elseif ($sortOption == 'dueDate'){
+					if (isset($curTitle['dueDate'])){
+						if (preg_match('/.*?(\\d{1,2})[-\/](\\d{1,2})[-\/](\\d{2,4}).*/', $curTitle['dueDate'], $matches)) {
+							$sortKey = $matches[3] . '-' . $matches[1] . '-' . $matches[2] . '-' . $sortTitle;
+						} else {
+							$sortKey = $curTitle['dueDate'] . '-' . $sortTitle;
+						}
+					}
+				}elseif ($sortOption == 'format'){
+					$sortKey = (isset($curTitle['format']) ? $curTitle['format'] : "Unknown") . '-' . $sortTitle;
+				}elseif ($sortOption == 'renewed'){
+					$sortKey = (isset($curTitle['renewCount']) ? $curTitle['renewCount'] : 0) . '-' . $sortTitle;
+				}elseif ($sortOption == 'holdQueueLength'){
+					$sortKey = (isset($curTitle['holdQueueLength']) ? $curTitle['holdQueueLength'] : 0) . '-' . $sortTitle;
+				}
+				$sortKey .= "_$sCount";
+				$checkedOutTitles[$sortKey] = $curTitle;
+
+			}
+		}
+		return $checkedOutTitles;
 	}
 
 	/**
@@ -537,8 +633,8 @@ abstract class SirsiDynixROA extends HorizonAPI
 					$holdData['holdType'] = 'TITLE';
 				}
 
-				$holdRecord         = $this->getWebServiceResponse($webServiceURL . "/ws/circulation/holdRecord/describe", null, $sessionToken);
-				$placeHold          = $this->getWebServiceResponse($webServiceURL . "/ws/circulation/holdRecord/placeHold/describe", null, $sessionToken);
+//				$holdRecord         = $this->getWebServiceResponse($webServiceURL . "/ws/circulation/holdRecord/describe", null, $sessionToken);
+//				$placeHold          = $this->getWebServiceResponse($webServiceURL . "/ws/circulation/holdRecord/placeHold/describe", null, $sessionToken);
 				$createHoldResponse = $this->getWebServiceResponse($webServiceURL . "/ws/circulation/holdRecord/placeHold", $holdData, $sessionToken);
 
 				$hold_result = array();
@@ -599,8 +695,6 @@ abstract class SirsiDynixROA extends HorizonAPI
 		$cancelHoldResponse = $this->getWebServiceResponse($webServiceURL . "/ws/circulation/holdRecord/key/$cancelId", null, $sessionToken, 'DELETE');
 
 		if (empty($cancelHoldResponse)) {
-			//TODO: call holds and see if it's in the list anymore?
-
 			return array(
 				'success' => true,
 			  'message' => 'The hold was successfully canceled'
@@ -749,6 +843,65 @@ abstract class SirsiDynixROA extends HorizonAPI
 				'message' => "Failed to $thaw hold : ". implode('; ', $messages)
 			);
 		}
+	}
+
+	/**
+	 * @param User $patron
+	 * @param string $recordId
+	 * @param string $itemId
+	 * @param string $itemIndex
+	 * @return array
+	 */
+	public function renewItem($patron, $recordId, $itemId, $itemIndex)
+	{
+		$sessionToken = $this->getSessionToken($patron);
+		if (!$sessionToken) {
+			return array(
+				'success' => false,
+				'message' => 'Sorry, it does not look like you are logged in currently.  Please login and try again');
+		}
+
+		//create the hold using the web service
+		$webServiceURL = $this->getWebServiceURL();
+
+		$params = array(
+			'item' => array(
+			'key' => $itemId,
+		  'resource' => '/catalog/item'
+			)
+		);
+
+
+//		$circRenewDescribe  = $this->getWebServiceResponse($webServiceURL . "/ws/circulation/circRecord/renew/describe", null, $sessionToken);
+//		$itemDescribe  = $this->getWebServiceResponse($webServiceURL . "/ws/catalog/item/describe", null, $sessionToken);
+
+		$circRenewResponse  = $this->getWebServiceResponse($webServiceURL . "/ws/circulation/circRecord/renew", $params, $sessionToken, 'POST');
+
+		if (isset($circRenewResponse->circRecord->key)) {
+			// Success
+
+//			$newDueDate = $circRenewResponse->fields->dueDate; //TODO: reformat date?
+			return array(
+				'itemId'  => $circRenewResponse->circRecord->key,
+				'success' => true,
+				'message' => "Your item was successfully renewed."
+			);
+		} else {
+			// Error
+			$messages = array();
+			if (isset($circRenewResponse->messageList)) {
+				foreach ($circRenewResponse->messageList as $message) {
+					$messages[] = $message->message;
+				}
+			}
+			return array(
+				'itemId'  => $itemId,
+				'success' =>false,
+				'message' => "The item failed to renew".  ($messages ? ': '. implode(';', $messages) : '')
+			);
+
+		}
+
 	}
 
 
