@@ -1409,7 +1409,7 @@ class CarlX extends SIP2Driver{
 					$locationLookup->locationId = $patron->homeLocationId;
 					$locationLookup->find(1);
 					if ($locationLookup->N > 0){
-						$pickupBranch = $locationLookup->code;
+						$pickupBranch = strtoupper($locationLookup->code);
 					}
 				}
 
