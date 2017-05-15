@@ -1027,8 +1027,8 @@ class CarlX extends SIP2Driver{
 		// Fines
 		$request->TransactionType = 'Fine';
 		$result = $this->doSoapRequest('getPatronTransactions', $request);
-		global $logger;
-		$logger->log("Result of getPatronTransactions (Fine)\r\n" . print_r($result, true), PEAR_LOG_ERR);
+		//global $logger;
+		//$logger->log("Result of getPatronTransactions (Fine)\r\n" . print_r($result, true), PEAR_LOG_ERR);
 		if ($result && !empty($result->FineItems->FineItem)) {
 			if (!is_array($result->FineItems->FineItem)) {
 				$result->FineItems->FineItem = array($result->FineItems->FineItem);
@@ -1051,7 +1051,7 @@ class CarlX extends SIP2Driver{
 		// TODO: Lost Items don't have the fine amount
 		$request->TransactionType = 'Lost';
 		$result = $this->doSoapRequest('getPatronTransactions', $request);
-		$logger->log("Result of getPatronTransactions (Lost)\r\n" . print_r($result, true), PEAR_LOG_ERR);
+		//$logger->log("Result of getPatronTransactions (Lost)\r\n" . print_r($result, true), PEAR_LOG_ERR);
 
 		if ($result && !empty($result->LostItems->LostItem)) {
 			if (!is_array($result->LostItems->LostItem)) {
