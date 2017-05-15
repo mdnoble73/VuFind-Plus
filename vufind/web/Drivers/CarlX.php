@@ -589,8 +589,8 @@ class CarlX extends SIP2Driver{
 
 		//Search for the patron in the database
 		$result = $this->getPatronTransactions($user);
-		global $logger;
-		$logger->log("Patron Transactions\r\n" . print_r($result, true), PEAR_LOG_ERR );
+		//global $logger;
+		//$logger->log("Patron Transactions\r\n" . print_r($result, true), PEAR_LOG_ERR );
 
 		$itemsToLoad = array();
 		if (!$result){
@@ -628,7 +628,7 @@ class CarlX extends SIP2Driver{
 				$curTitle['author']          = $chargeItem->Author;
 				$curTitle['dueDate']         = strtotime($dueDate);
 				$curTitle['checkoutdate']    = strstr($chargeItem->TransactionDate, 'T', true);
-				$curTitle['renewCount']      = $chargeItem->RenewalCount;
+				$curTitle['renewCount']      = isset($chargeItem->RenewalCount) ? $chargeItem->RenewalCount : 0;
 				$curTitle['canrenew']        = true;
 				$curTitle['renewIndicator']  = $chargeItem->ItemNumber;
 
