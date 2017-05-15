@@ -288,7 +288,10 @@ class CarlX extends SIP2Driver{
 					$renew_result['success'] = ($result['fixed']['Ok'] == 1);
 					$renew_result['Renewed'] = $result['fixed']['Renewed'];
 					$renew_result['Unrenewed'] = $result['fixed']['Unrenewed'];
-					$renew_result['message'] = array($result['variable']['AF'][0]);
+					if (isset($result['variable']['AF'])){
+						$renew_result['message'][] = $result['variable']['AF'][0];
+					}
+
 					if ($renew_result['Unrenewed'] > 0){
 						$renew_result['message'] = array_merge($renew_result['message'], $result['variable']['BN']);
 					}
