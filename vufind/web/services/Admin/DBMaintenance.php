@@ -2622,4 +2622,23 @@ class DBMaintenance extends Admin_Admin {
 			return $primaryIdentifier;
 		}
 	}
+
+	function updateDueDateFormat(){
+		global $configArray;
+		if (isset($configArray['Reindex']['dueDateFormat'])){
+			$ilsIndexingProfile = new IndexingProfile();
+			$ilsIndexingProfile->name = 'ils';
+			if ($ilsIndexingProfile->find(true)){
+				$ilsIndexingProfile->dueDateFormat = $configArray['Reindex']['dueDateFormat'];
+				$ilsIndexingProfile->update();
+			}
+
+			$ilsIndexingProfile = new IndexingProfile();
+			$ilsIndexingProfile->name = 'millennium';
+			if ($ilsIndexingProfile->find(true)){
+				$ilsIndexingProfile->dueDateFormat = $configArray['Reindex']['dueDateFormat'];
+				$ilsIndexingProfile->update();
+			}
+		}
+	}
 }
