@@ -247,7 +247,7 @@ class CarlX extends SIP2Driver{
 
 		$renew_result = array(
 				'success' => false,
-				'message' => array('Failed to connect to complete requested action.'),
+				'message' => array(),
 				'Renewed' => 0,
 				'Unrenewed' => $patron->numCheckedOutIls,
 				'Total' => $patron->numCheckedOutIls
