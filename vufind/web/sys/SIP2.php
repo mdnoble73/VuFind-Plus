@@ -764,6 +764,7 @@ class sip2
 		$nr         = '';
 
 		$this->_debugmsg('SIP2: Sending SIP2 request...');
+		$this->_debugmsg($message);
 		socket_write($this->socket, $message, strlen($message));
 		$this->Sleep();
 
@@ -997,7 +998,9 @@ class sip2
 	function _debugmsg($message) {
 		/* custom debug function,  why repeat the check for the debug flag in code... */
 		if ($this->debug) {
-			trigger_error( $message, E_USER_NOTICE);
+			global $logger;
+			$logger->log( $message, PEAR_LOG_ERR);
+			//echo($message . "<br/>\r\n");
 		}
 	}
 
