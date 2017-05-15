@@ -1061,7 +1061,7 @@ class CarlX extends SIP2Driver{
 				$myFines[] = array(
 					'reason'  => $fine->FeeNotes,
 //					'amount'  => $fine->FineAmount, // TODO: There is no corresponding amount
-					'amount'  => '',
+					'amount'  => $fine->FeeAmount,
 					'message' => $fine->Title,
 					'date'    => date('M j, Y', strtotime($fine->TransactionDate)),
 				);
