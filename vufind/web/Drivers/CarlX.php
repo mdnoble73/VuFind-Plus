@@ -237,6 +237,7 @@ class CarlX extends SIP2Driver{
 	 */
 	public function renewAll($patron) {
 		global $configArray;
+		global $logger;
 
 		//renew the item via SIP 2
 		require_once ROOT_DIR . '/sys/SIP2.php';
@@ -282,23 +283,25 @@ class CarlX extends SIP2Driver{
 
 				if (preg_match("/^66/", $msg_result)) {
 					$result = $mysip->parseRenewAllResponse($msg_result);
-					global $logger;
 					$logger->log("Renew all response\r\n" . print_r($msg_result, true), PEAR_LOG_ERR);
 
 					$renew_result['success'] = ($result['fixed']['Ok'] == 1);
-					$renew_result['Renewed'] = count($result['variable']['BM']);
-					$renew_result['Unrenewed'] = count($result['variable']['BN']);
+					$renew_result['Renewed'] = $result['fixed']['Renewed'];
+					$renew_result['Unrenewed'] = $result['fixed']['Unrenewed'];
 					$renew_result['message'] = array($result['variable']['AF'][0]);
 					if ($renew_result['Unrenewed'] > 0){
 						$renew_result['message'] = array_merge($renew_result['message'], $result['variable']['BN']);
 					}
 				}else{
+					$logger->log("Invalid message returned from SIP server $msg_result", PEAR_LOG_ERR);
 					$renew_result['message'] = array("Invalid message returned from SIP server");
 				}
 			}else{
+				$logger->log("Could not authenticate with the SIP server", PEAR_LOG_ERR);
 				$renew_result['message'] = array("Could not authenticate with the SIP server");
 			}
 		}else{
+			$logger->log("Could not connect to the SIP server", PEAR_LOG_ERR);
 			$renew_result['message'] = array("Could not connect to circulation server, please try again later.");
 		}
 
