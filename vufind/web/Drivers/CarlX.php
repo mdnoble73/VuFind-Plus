@@ -242,6 +242,7 @@ class CarlX extends SIP2Driver{
 		require_once ROOT_DIR . '/sys/SIP2.php';
 		$mysip = new sip2();
 		$mysip->hostname = $configArray['SIP2']['host'];
+		$mysip->port = $configArray['SIP2']['port'];
 
 		$renew_result = array(
 				'success' => false,
