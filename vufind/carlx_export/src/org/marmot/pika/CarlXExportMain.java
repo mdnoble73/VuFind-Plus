@@ -239,6 +239,12 @@ public class CarlXExportMain {
 				String currentUpdateItemID = item.getItemId();
 				String currentBibID = item.getBID();
 				if (!currentBibID.isEmpty()) {
+					//Pad the bib id based on what we get from the MARC export
+					while (currentBibID.length() < 10){
+						currentBibID = "0" + currentBibID;
+					}
+					currentBibID = "CARL" + currentBibID;
+					logger.debug("Updating " + currentBibID);
 					Record currentMarcRecord = loadMarc(currentBibID);
 					if (currentMarcRecord != null) {
 						Boolean itemFound = false;
@@ -311,6 +317,12 @@ public class CarlXExportMain {
 				String currentCreatedItemID = item.getItemId();
 				String currentBibID = item.getBID();
 				if (!currentBibID.isEmpty()) {
+					//Pad the bib id based on what we get from the MARC export
+					while (currentBibID.length() < 10){
+						currentBibID = "0" + currentBibID;
+					}
+					currentBibID = "CARL" + currentBibID;
+					logger.debug("Updating " + currentBibID);
 					Record currentMarcRecord = loadMarc(currentBibID);
 					Boolean saveRecord = false;
 					if (currentMarcRecord != null) {
