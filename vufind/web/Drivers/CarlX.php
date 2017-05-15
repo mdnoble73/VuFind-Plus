@@ -245,13 +245,11 @@ class CarlX extends SIP2Driver{
 
 		$renew_result = array(
 				'success' => false,
-				'message' => array(),
+				'message' => array('Failed to connect to complete requested action.'),
 				'Renewed' => 0,
-				'Unrenewed' => 0
+				'Unrenewed' => $patron->numCheckedOutIls,
+				'Total' => $patron->numCheckedOutIls
 		);
-		$renew_result['Total'] = $patron->getNumCheckedOutTotal();
-		$success = false;
-		$renew_result['message'] = array('Failed to connect to complete requested action.');
 		if ($mysip->connect()) {
 			//send selfcheck status message
 			$in = $mysip->msgSCStatus();
@@ -290,10 +288,14 @@ class CarlX extends SIP2Driver{
 					//$renew_result['Renewed'] = $result['']
 					//$renew_result['Unrenewed'] =
 					$renew_result['message'] = array($result['variable']['AF'][0]);
+				}else{
+					$renew_result['message'] = array("Invalid message returned from SIP server");
 				}
+			}else{
+				$renew_result['message'] = array("Could not authenticate with the SIP server");
 			}
 		}else{
-			$message = "Could not connect to circulation server, please try again later.";
+			$renew_result['message'] = array("Could not connect to circulation server, please try again later.");
 		}
 
 		return $renew_result;
