@@ -293,7 +293,7 @@ class CarlX extends SIP2Driver{
 						$renew_result['message'] = array_merge($renew_result['message'], $result['variable']['BN']);
 					}
 				}else{
-					$logger->log("Invalid message returned from SIP server $msg_result", PEAR_LOG_ERR);
+					$logger->log("Invalid message returned from SIP server '$msg_result''", PEAR_LOG_ERR);
 					$renew_result['message'] = array("Invalid message returned from SIP server");
 				}
 			}else{
