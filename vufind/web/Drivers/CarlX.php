@@ -553,7 +553,7 @@ class CarlX extends SIP2Driver{
 				$curTitle['checkoutdate']    = strstr($chargeItem->TransactionDate, 'T', true);
 				$curTitle['renewCount']      = $chargeItem->RenewalCount;
 				$curTitle['canrenew']        = true;
-				$curTitle['renewIndicator']  = null;
+				$curTitle['renewIndicator']  = $chargeItem->ItemNumber;
 
 				$curTitle['format']          = 'Unknown';
 				if (!empty($carlID)){
