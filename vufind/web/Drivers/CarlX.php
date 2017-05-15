@@ -283,7 +283,7 @@ class CarlX extends SIP2Driver{
 				if (preg_match("/^66/", $msg_result)) {
 					$result = $mysip->parseRenewAllResponse($msg_result);
 					global $logger;
-					$logger->log("Renew all response\r\n" . $msg_result, PEAR_LOG_ERR);
+					$logger->log("Renew all response\r\n" . print_r($msg_result, true), PEAR_LOG_ERR);
 
 					$renew_result['success'] = ($result['fixed']['Ok'] == 1);
 					$renew_result['Renewed'] = count($result['variable']['BM']);
@@ -592,12 +592,30 @@ class CarlX extends SIP2Driver{
 		global $logger;
 		$logger->log("Patron Transactions\r\n" . print_r($result, true), PEAR_LOG_ERR );
 
-		if ($result && !empty($result->ChargeItems->ChargeItem)) {
-			if (!is_array($result->ChargeItems->ChargeItem)) {
-				// Structure an single entry as an array of one.
-				$result->ChargeItems->ChargeItem = array($result->ChargeItems->ChargeItem);
+		$itemsToLoad = array();
+		if (!$result){
+			global $logger;
+			$logger->log('Failed to retrieve user Check outs from CarlX API call.', PEAR_LOG_WARNING);
+		}else{
+			//TLC provides both ChargeItems and OverdueItems as separate elements, we can combine for loading
+			if (!empty($result->ChargeItems->ChargeItem)) {
+				if (!is_array($result->ChargeItems->ChargeItem)) {
+					// Structure an single entry as an array of one.
+					$itemsToLoad[] = $result->ChargeItems->ChargeItem;
+				}else{
+					$itemsToLoad = $result->ChargeItems->ChargeItem;
+				}
 			}
-			foreach ($result->ChargeItems->ChargeItem as $chargeItem) {
+			if (!empty($result->OverdueItems->OverdueItem)) {
+				if (!is_array($result->OverdueItems->OverdueItem)) {
+					// Structure an single entry as an array of one.
+					$itemsToLoad[] = $result->OverdueItems->OverdueItem;
+				}else{
+					$itemsToLoad = $result->OverdueItems->OverdueItem;
+				}
+			}
+
+			foreach ($itemsToLoad as $chargeItem) {
 				$carlID = $this->fullCarlIDfromBID($chargeItem->BID);
 				$dueDate = strstr($chargeItem->DueDate, 'T', true);
 				$curTitle['checkoutSource']  = 'ILS';
@@ -639,13 +657,9 @@ class CarlX extends SIP2Driver{
 				$checkedOutTitles[] = $curTitle;
 
 			}
-
-		} else {
-			global $logger;
-			$logger->log('Failed to retrieve user Check outs from CarlX API call.', PEAR_LOG_WARNING);
 		}
 
-	return $checkedOutTitles;
+		return $checkedOutTitles;
 	}
 
 	public function updatePin($user, $oldPin, $newPin, $confirmNewPin) {
