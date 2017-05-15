@@ -280,14 +280,8 @@ class CarlX extends SIP2Driver{
 	 * @return mixed
 	 */
 	public function renewItem($patron, $recordId, $itemId=null, $itemIndex=null) {
-		// For CarlX RecordId is the same as the itemId
-
 		// Renew Via SIP
-		return $result = $this->renewItemViaSIP($patron, $recordId);
-
-		// For an AlternateSIP Port
-//		$useAlternateSIP = false;
-//		$result = $this->renewItemViaSIP($patron, $itemId, $useAlternateSIP);
+		return $result = $this->renewItemViaSIP($patron, $itemId);
 	}
 
 	private $holdStatusCodes = array(
