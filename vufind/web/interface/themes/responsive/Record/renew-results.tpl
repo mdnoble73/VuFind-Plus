@@ -1,5 +1,5 @@
 <div class = "content">
-	{if $renew_message_data.Unrenewed === 0}
+	{if $renew_message_data.Unrenewed === 0 && $renew_message_data.success}
 		<div class="alert alert-success">All items were renewed successfully.</div>
 	{elseif $renew_message_data.Unrenewed > 0}
 		<div class="alert alert-warning"><strong>{$renew_message_data.Renewed} of {$renew_message_data.Total}</strong> items were renewed successfully.</div>
