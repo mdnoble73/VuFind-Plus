@@ -226,9 +226,7 @@ class CarlX extends SIP2Driver{
 	 * @return boolean true if the driver can renew all titles in a single pass
 	 */
 	public function hasFastRenewAll() {
-		// TODO: Implement hasFastRenewAll() method.
-		// TODO: There is a Renew All through SIP, this should become true
-		return false;
+		return true;
 	}
 
 	/**
@@ -238,8 +236,67 @@ class CarlX extends SIP2Driver{
 	 * @return mixed
 	 */
 	public function renewAll($patron) {
-		// TODO: Implement renewAll() method.
-		return false;
+		global $configArray;
+
+		//renew the item via SIP 2
+		require_once ROOT_DIR . '/sys/SIP2.php';
+		$mysip = new sip2();
+		$mysip->hostname = $configArray['SIP2']['host'];
+
+		$renew_result = array(
+				'success' => false,
+				'message' => array(),
+				'Renewed' => 0,
+				'Unrenewed' => 0
+		);
+		$renew_result['Total'] = $patron->getNumCheckedOutTotal();
+		$success = false;
+		$renew_result['message'] = array('Failed to connect to complete requested action.');
+		if ($mysip->connect()) {
+			//send selfcheck status message
+			$in = $mysip->msgSCStatus();
+			$msg_result = $mysip->get_message($in);
+			// Make sure the response is 98 as expected
+			if (preg_match("/^98/", $msg_result)) {
+				$result = $mysip->parseACSStatusResponse($msg_result);
+
+				//  Use result to populate SIP2 settings
+				// These settings don't seem to apply to the CarlX Sandbox. pascal 7-12-2016
+				if (isset($result['variable']['AO'][0])){
+					$mysip->AO = $result['variable']['AO'][0]; /* set AO to value returned */
+				}else{
+					$mysip->AO = 'NASH'; /* set AO to value returned */
+				}
+				if (isset($result['variable']['AN'][0])) {
+					$mysip->AN = $result['variable']['AN'][0]; /* set AN to value returned */
+				}else{
+					$mysip->AN = '';
+				}
+
+				$mysip->patron    = $patron->cat_username;
+				$mysip->patronpwd = $patron->cat_password;
+
+				$in = $mysip->msgRenewAll();
+				//print_r($in . '<br/>');
+				$msg_result = $mysip->get_message($in);
+				//print_r($msg_result);
+
+				if (preg_match("/^66/", $msg_result)) {
+					$result = $mysip->parseRenewAllResponse($msg_result);
+					global $logger;
+					$logger->log("Renew all response\r\n" . $msg_result, PEAR_LOG_ERR);
+
+					$renew_result['success'] = ($result['fixed']['Ok'] == 1);
+					//$renew_result['Renewed'] = $result['']
+					//$renew_result['Unrenewed'] =
+					$renew_result['message'] = array($result['variable']['AF'][0]);
+				}
+			}
+		}else{
+			$message = "Could not connect to circulation server, please try again later.";
+		}
+
+		return $renew_result;
 	}
 
 	private $genericResponseSOAPCallOptions = array(
