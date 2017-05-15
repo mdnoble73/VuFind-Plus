@@ -1411,6 +1411,8 @@ class CarlX extends SIP2Driver{
 					if ($locationLookup->N > 0){
 						$pickupBranch = strtoupper($locationLookup->code);
 					}
+				}else{
+					$pickupBranch = strtoupper($pickupBranch);
 				}
 
 				//place the hold
