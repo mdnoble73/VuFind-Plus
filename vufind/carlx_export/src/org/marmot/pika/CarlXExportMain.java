@@ -437,12 +437,7 @@ public class CarlXExportMain {
 					int l = marcRecordInfo.getLength();
 					for (int i=1; i < l; i++ ) { // (skip first node because it is the response status)
 						String currentBibID = updatedBibs.get(i);
-						//Pad the bib id based on what we get from the MARC export
-						while (currentBibID.length() < 10){
-							currentBibID = "0" + currentBibID;
-						}
-						currentBibID = "CARL" + currentBibID;
-						logger.debug("Updating " + currentBibID);
+						logger.debug("Updating " + getFileIdForRecordNumber(currentBibID));
 						Node marcRecordNode = marcRecordInfo.item(i);
 
 						// Build Marc Object from the API data
@@ -1100,7 +1095,7 @@ public class CarlXExportMain {
 					logger.info("Could not read marc record for " + curBibId + ". The bib was empty");
 				}
 			}else{
-				logger.debug("Marc Record does not exist for " + curBibId + ". It is not part of the main extract yet.");
+				logger.debug("Marc Record does not exist for " + curBibId + " (" + marcFile.getAbsolutePath() + "). It is not part of the main extract yet.");
 			}
 		}catch (Exception e){
 			logger.error("Error updating marc record for bib " + curBibId, e);
