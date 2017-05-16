@@ -41,11 +41,6 @@
 #
 
 #--------------------------------------------------------------
-# delete previous days /ftp/sierra/fullexport.marc
-00 23 * * * rm -f /ftp/sierra/fullexport.marc
-#TODO: delete this task once confirmed not needed.
-
-#--------------------------------------------------------------
 # copy and split marmot full export
 17 00 * * * cp /ftp/sierra/fullexport.marc /data/vufind-plus/marmot.ftp/marc/fullexport.mrc;cd /usr/local/vufind-plus/vufind/cron; java -jar cron.jar marmot.ftp SplitMarcExport
 
@@ -106,7 +101,13 @@
 02 2 * * * scp pascal@10.1.2.11:/data/vufind-plus/ebrary/adams/marc/*.mrc /data/vufind-plus/ebrary/adams/marc/
 #
 # ftp adams marc records to ebsco at 2.45am daily
-#45 2 * * * /root/cron/adams_ebrary.exp
+45 2 * * * /root/cron/adams_ebrary.exp
+
+#Fetch western ebrary from pika production server
+53 2 * * * scp pascal@10.1.2.11:/data/vufind-plus/ebrary/western/marc/*.mrc /data/vufind-plus/ebrary/western/marc/
+#
+# ftp adams marc records to ebsco at 2.45am daily
+03 3 * * * /root/cron/western_ebrary.exp
 
 # ftp hoopla marc records to ebsco at 4.15 on the 10th (takes about 10min)
 15 4 10 * * /root/cron/hoopla.exp
