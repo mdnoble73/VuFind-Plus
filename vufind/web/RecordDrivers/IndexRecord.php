@@ -621,6 +621,9 @@ class IndexRecord extends RecordInterface
 		global $interface;
 		$interface->assign('details', $this->fields);
 
+		$lastGroupedWorkModificationTime = $this->groupedWork->date_updated;
+		$interface->assign('lastGroupedWorkModificationTime', $lastGroupedWorkModificationTime);
+
 		return 'RecordDrivers/Index/staff.tpl';
 	}
 
