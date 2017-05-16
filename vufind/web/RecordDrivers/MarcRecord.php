@@ -350,6 +350,9 @@ class MarcRecord extends IndexRecord
 		$lastMarcModificationTime = MarcLoader::lastModificationTimeForIlsId("{$this->profileType}:{$this->id}");
 		$interface->assign('lastMarcModificationTime', $lastMarcModificationTime);
 
+		$lastGroupedWorkModificationTime = $this->groupedWork->date_updated;
+		$interface->assign('lastGroupedWorkModificationTime', $lastGroupedWorkModificationTime);
+
 		$solrRecord = $this->fields;
 		if ($solrRecord) {
 			ksort($solrRecord);

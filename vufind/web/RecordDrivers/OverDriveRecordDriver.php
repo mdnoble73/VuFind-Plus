@@ -369,6 +369,9 @@ class OverDriveRecordDriver extends RecordInterface {
 			$interface->assign('overDriveMetaDataRaw', $overDriveMetadata);
 		}
 
+		$lastGroupedWorkModificationTime = $this->groupedWork->date_updated;
+		$interface->assign('lastGroupedWorkModificationTime', $lastGroupedWorkModificationTime);
+
 		return 'RecordDrivers/Marc/staff.tpl';
 	}
 
