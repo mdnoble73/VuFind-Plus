@@ -287,6 +287,7 @@ public class CarlXExportMain {
 
 							// Mark Bib as Changed for Re-indexer
 							try {
+								logger.debug("Marking " + currentBibID + " as changed.");
 								markGroupedWorkForBibAsChangedStmt.setLong(1, updateTime);
 								markGroupedWorkForBibAsChangedStmt.setString(2, currentBibID);
 								markGroupedWorkForBibAsChangedStmt.executeUpdate();
