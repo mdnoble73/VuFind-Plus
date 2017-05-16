@@ -1083,6 +1083,7 @@ public class CarlXExportMain {
 	private static Record loadMarc(String curBibId) {
 		//Load the existing marc record from file
 		try {
+			logger.debug("Loading MARC for " + curBibId);
 			File marcFile = indexingProfile.getFileForIlsRecord(getFileIdForRecordNumber(curBibId));
 			if (marcFile.exists()) {
 				FileInputStream inputStream = new FileInputStream(marcFile);
@@ -1120,6 +1121,9 @@ public class CarlXExportMain {
 	}
 
 	private static String getFileIdForRecordNumber(String recordNumber) {
+		if (recordNumber.startsWith("CARL")){
+			return recordNumber;
+		}
 		while (recordNumber.length() < 10){ // pad up to a 10-digit number
 			recordNumber = "0" + recordNumber;
 		}
