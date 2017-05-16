@@ -831,8 +831,8 @@ class sip2
 		$this->_debugmsg( "SIP2: Attempting to connect to '$address' on port '{$this->port}'...");
 
 		//Set SIP timeouts
-		socket_set_option($this->socket, SOL_SOCKET, SO_RCVTIMEO, array('sec' => 0, 'usec' => 500));
-		socket_set_option($this->socket, SOL_SOCKET, SO_SNDTIMEO, array('sec' => 0, 'usec' => 500));
+		socket_set_option($this->socket, SOL_SOCKET, SO_RCVTIMEO, array('sec' => 2, 'usec' => 500));
+		socket_set_option($this->socket, SOL_SOCKET, SO_SNDTIMEO, array('sec' => 2, 'usec' => 500));
 		//Make the socket blocking so we can ensure we get responses without rewriting everything.
 		socket_set_block($this->socket);
 
