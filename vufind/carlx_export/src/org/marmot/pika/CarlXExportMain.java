@@ -829,6 +829,9 @@ public class CarlXExportMain {
 											itemIdentifier = currentItem.getItemId().isEmpty() ? currentItem.getBID() + " for an unknown Carl-X Item" : currentItem.getBID() + " for item ID " + currentItem.getItemId();
 										}
 										String statusCode = translateValue("status_codes", detailValue, itemIdentifier);
+										if (statusCode.equals("U")){
+											logger.warn("Unknown status " + detailValue);
+										}
 										//TODO: If status code wasn't translate, set to Unknown (U) (Not an actual listed value)?
 										currentItem.setStatus(statusCode);
 										break;
