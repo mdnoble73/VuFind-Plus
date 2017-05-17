@@ -242,7 +242,8 @@ public class CarlXExportMain {
 		if (itemUpdates.size() > 0 || createdItems.size() > 0) {
 			logger.debug("Found " + itemUpdates.size() + " items that were changed and " + createdItems.size() + " items that were created that we didn't associate to Bibs");
 			// Item Updates
-			for (ItemChangeInfo item : itemUpdates) {
+			for (int i = itemUpdates.size() -1; i >= 0; i--) {
+				ItemChangeInfo item = itemUpdates.get(i);
 				String currentUpdateItemID = item.getItemId();
 				String currentBibID = item.getBID();
 				if (!currentBibID.isEmpty()) {
@@ -261,9 +262,15 @@ public class CarlXExportMain {
 							DataField currentDataField = (DataField) itemFieldVar;
 							String currentItemID = currentDataField.getSubfield(indexingProfile.itemRecordNumberSubfield).getData();
 							if (currentItemID.equals(currentUpdateItemID)) { // check ItemIDs for other item matches for this bib?
-								currentMarcRecord.removeVariableField(currentDataField); // take out the existing Item tag
-								updateItemDataFieldWithChangeInfo(currentDataField, item);
-								currentMarcRecord.addVariableField(currentDataField);
+								if (item.isSuppressed()){
+									logger.warn("Suppressed Item " + currentItemID + " found on Bib " + currentBibID + "; Deleting.");
+									currentMarcRecord.removeVariableField(currentDataField);
+								}else{
+									logger.warn("Item " + currentItemID + " found on Bib " + currentBibID + "; Updating.");
+									currentMarcRecord.removeVariableField(currentDataField);
+									updateItemDataFieldWithChangeInfo(currentDataField, item);
+									currentMarcRecord.addVariableField(currentDataField);
+								}
 								saveRecord = true;
 								itemFound = true;
 								break;
@@ -288,6 +295,8 @@ public class CarlXExportMain {
 							DataField itemField = createItemDataFieldWithChangeInfo(item);
 							currentMarcRecord.addVariableField(itemField);
 							saveRecord = true;
+						}else{
+							itemUpdates.remove(item);
 						}
 						if (saveRecord) {
 							saveMarc(currentMarcRecord, currentBibID);
@@ -878,7 +887,7 @@ public class CarlXExportMain {
 										break;
 									// Fields we don't currently do anything with
 									case "Suppress":
-										logger.debug("Suppression for item is " + detailValue);
+										//logger.debug("Suppression for item is " + detailValue);
 										currentItem.setSuppress(detailValue);
 									case "HoldsHistory": // Number of times item has gone to Hold Shelf status since counter set
 									case "InHouseCirc":
