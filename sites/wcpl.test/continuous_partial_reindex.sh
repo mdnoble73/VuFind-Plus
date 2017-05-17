@@ -97,8 +97,6 @@ do
 
 
 	#Fetch partial updates from FTP server
-
-	# Process below is for production only. Fetch all partial exports to the marc_updates folder; on the ftp server move the partial export to the processed subfolder
 	mount 10.1.2.7:/ftp/wcpl /mnt/ftp
 	find /mnt/ftp/continuous_exports -maxdepth 1 -mmin -30 -name *.mrc| while FILES =read FILE; do
 	#Above find is for test only. Copy any partial exports from the last 30 minutes because of the moving out the partials is only done in production
