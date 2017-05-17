@@ -53,6 +53,7 @@ class MillenniumCheckouts {
 	 * @access public
 	 */
 	public function getMyCheckouts($user) {
+		$checkedOutTitles = array();
 		global $timer;
 		$timer->logTime("Ready to load checked out titles from Millennium");
 		//Load the information from millennium using CURL
@@ -70,7 +71,6 @@ class MillenniumCheckouts {
 			$sRows            = preg_split("/<tr([^>]*)>/", $s);
 			$sCount           = 0;
 			$sKeys            = array_pad(array(), 10, "");
-			$checkedOutTitles = array();
 
 			//Get patron's location to determine if renewals are allowed.
 			global $locationSingleton;
@@ -214,8 +214,8 @@ class MillenniumCheckouts {
 			}
 			$timer->logTime("Parsed checkout information");
 
-			return $checkedOutTitles;
 		}
+		return $checkedOutTitles;
 	}
 
 	public function renewAll($patron){
