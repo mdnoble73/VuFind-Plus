@@ -341,10 +341,15 @@ public class CarlXExportMain {
 							if (currentDataField.getTag().equals(indexingProfile.itemTag)) {
 								String currentItemID = currentDataField.getSubfield(indexingProfile.itemRecordNumberSubfield).getData();
 								if (currentItemID.equals(currentCreatedItemID)) { // check ItemIDs for other item matches for this bib?
-									logger.warn("New Item " + currentItemID + " found on Bib " + currentBibID + "; Updating instead.");
-									currentMarcRecord.removeVariableField(currentDataField);
-									updateItemDataFieldWithChangeInfo(currentDataField, item);
-									currentMarcRecord.addVariableField(currentDataField);
+									if (item.isSuppressed()){
+										logger.warn("Suppressed Item " + currentItemID + " found on Bib " + currentBibID + "; Deleting.");
+										currentMarcRecord.removeVariableField(currentDataField);
+									}else{
+										logger.warn("Item " + currentItemID + " found on Bib " + currentBibID + "; Updating.");
+										currentMarcRecord.removeVariableField(currentDataField);
+										updateItemDataFieldWithChangeInfo(currentDataField, item);
+										currentMarcRecord.addVariableField(currentDataField);
+									}
 									saveRecord = true;
 									itemFound = true;
 									break;

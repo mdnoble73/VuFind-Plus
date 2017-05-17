@@ -20,7 +20,7 @@ public class ItemChangeInfo {
 	private String yearToDateCheckouts;
 	private String shelvingLocation;
 	private String iType;
-	private String suppress;
+	private boolean suppress;
 
 
 	public String getItemId() {
@@ -125,6 +125,10 @@ public class ItemChangeInfo {
 	}
 
 	public void setSuppress(String suppress) {
-		this.suppress = suppress;
+		this.suppress = suppress.equalsIgnoreCase("true");
+	}
+
+	public boolean isSuppressed(){
+		return this.suppress;
 	}
 }
