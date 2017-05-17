@@ -363,7 +363,7 @@ abstract class SirsiDynixROA extends HorizonAPI
 //		$loginDescribeResponse = $this->getWebServiceResponse($webServiceURL . '/user/patron/describe'); //TODO: remove
 		$patronCheckouts = $this->getWebServiceResponse($webServiceURL . '/ws/user/patron/key/' . $patron->username . '?includeFields=circRecordList', null, $sessionToken);
 
-		$circRecordDescribe  = $this->getWebServiceResponse($webServiceURL . "/ws/circulation/circRecord/describe", null, $sessionToken);
+//		$circRecordDescribe  = $this->getWebServiceResponse($webServiceURL . "/ws/circulation/circRecord/describe", null, $sessionToken);
 		//TODO: remove
 
 		if (!empty($patronCheckouts->fields->circRecordList)) {
@@ -871,16 +871,11 @@ abstract class SirsiDynixROA extends HorizonAPI
 			)
 		);
 
-
-//		$circRenewDescribe  = $this->getWebServiceResponse($webServiceURL . "/ws/circulation/circRecord/renew/describe", null, $sessionToken);
-//		$itemDescribe  = $this->getWebServiceResponse($webServiceURL . "/ws/catalog/item/describe", null, $sessionToken);
-
 		$circRenewResponse  = $this->getWebServiceResponse($webServiceURL . "/ws/circulation/circRecord/renew", $params, $sessionToken, 'POST');
 
 		if (isset($circRenewResponse->circRecord->key)) {
 			// Success
 
-//			$newDueDate = $circRenewResponse->fields->dueDate; //TODO: reformat date?
 			return array(
 				'itemId'  => $circRenewResponse->circRecord->key,
 				'success' => true,
