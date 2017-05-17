@@ -95,7 +95,29 @@ do
 	#echo "Starting new extract and index - `date`" > ${OUTPUT_FILE}
 	# reset the output file each round
 
-	#TODO export from symphony
+
+	#Fetch partial updates from FTP server
+
+	# Process below is for production only. Fetch all partial exports to the marc_updates folder; on the ftp server move the partial export to the processed subfolder
+	mount 10.1.2.7:/ftp/wcpl /mnt/ftp
+	find /mnt/ftp/continuous_exports -maxdepth 1 -mmin -30 -name *.mrc| while FILES =read FILE; do
+	#Above find is for test only. Copy any partial exports from the last 30 minutes because of the moving out the partials is only done in production
+
+	#find /mnt/ftp/continuous_exports -maxdepth 1 -name *.mrc| while FILES =read FILE; do
+	#Above find is for production only. Copy any partial exports from the last 30 minutes
+
+	        cp $FILE /data/vufind-plus/${PIKASERVER}/marc_updates/
+	#        echo "cp $FILE /data/vufind-plus/${PIKASERVER}/marc_updates/"
+
+	#        # Move to processed (Production Only does this)
+	#        mv $FILE /mnt/ftp/continuous_exports/processed/
+	#        echo "mv $FILE /mnt/ftp/continuous_exports/processed/"
+	done
+	umount /mnt/ftp
+
+	#merge the changes with the full extract
+	cd /usr/local/vufind-plus/vufind/horizon_export/
+	java -server -XX:+UseG1GC -jar horizon_export.jar ${PIKASERVER} >> ${OUTPUT_FILE}
 
 	#export from overdrive
 	#echo "Starting OverDrive Extract - `date`" >> ${OUTPUT_FILE}

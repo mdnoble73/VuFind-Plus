@@ -150,7 +150,11 @@ if [ -n "$FILE1" ]; then
 		cp $FILE1 /data/vufind-plus/${PIKASERVER}/marc/fullexport.mrc
 
 		#Delete full exports older than a week
-		find /mnt/ftp/daily_exports -name *.mrc -mtime +7 -delete
+		find /mnt/ftp/daily_exports -maxdepth=1 -name *.mrc -mtime +7 -delete
+
+		# Delete Continuous Extracts older than 3 days
+		find /mnt/ftp/continuous_exports/processed -maxdepth=1 -name *.mrc -mtime +3 -delete
+
 		umount /mnt/ftp
 
 		#Validate the export
