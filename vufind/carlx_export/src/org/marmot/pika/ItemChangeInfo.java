@@ -20,6 +20,7 @@ public class ItemChangeInfo {
 	private String yearToDateCheckouts;
 	private String shelvingLocation;
 	private String iType;
+	private String suppress;
 
 
 	public String getItemId() {
@@ -121,5 +122,9 @@ public class ItemChangeInfo {
 
 	public void setiType(String iType) {
 		this.iType = iType;
+	}
+
+	public void setSuppress(String suppress) {
+		this.suppress = suppress;
 	}
 }

@@ -140,6 +140,7 @@ public class CarlXExportMain {
 		// look them up within Solr as long as the item id is exported as part of the MARC record
 		if (deletedItemIDs.size() > 0 ) {
 			for (String deletedItemID : deletedItemIDs) {
+				logger.debug("Item " + deletedItemID + " should be deleted.");
 				//TODO: Now you *really* have to get the BID, dude.
 			}
 		}
@@ -147,12 +148,18 @@ public class CarlXExportMain {
 		//TODO: Process Deleted Bibs
 		if (deletedBibs.size() > 0){
 			logger.debug("There are " + deletedBibs + " that still need to be processed.");
+			for (String deletedBibID : deletedBibs) {
+				logger.debug("Bib " + deletedBibID + " should be deleted.");
+			}
 		}
 
 
 		//TODO: Process New Bibs
 		if (createdBibs.size() > 0){
 			logger.debug("There are " + createdBibs.size() + " that still need to be processed");
+			for (String createdBibId : createdBibs) {
+				logger.debug("Bib " + createdBibId + " is new and should be created.");
+			}
 		}
 
 		try {
@@ -865,6 +872,9 @@ public class CarlXExportMain {
 										currentItem.setiType(detailValue);
 										break;
 									// Fields we don't currently do anything with
+									case "Suppress":
+										logger.debug("Suppression for item is " + detailValue);
+										currentItem.setSuppress(detailValue);
 									case "HoldsHistory": // Number of times item has gone to Hold Shelf status since counter set
 									case "InHouseCirc":
 									case "Price":
@@ -895,12 +905,11 @@ public class CarlXExportMain {
 									case "OwningBranchCode":
 									case "OwningBranchName":
 									case "OwningBranchNumber":
-									case "Suppress":
 									case "Type":
 										// Do Nothing
 										break;
 									default:
-										logger.warn("New Item Detail : " + detailName);
+										logger.warn("Unknown Item Detail : " + detailName + " = " + detailValue);
 										break;
 								}
 							}
