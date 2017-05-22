@@ -77,7 +77,6 @@
 # Process Offline Circs
 29 21 * * * cd /usr/local/vufind-plus/vufind/cron; java -jar cron.jar opac.marmot.org OfflineCirculation
 
-
 # AspenCat
 # All the default cron run does is Reading History update, do that once a day early in the morning after the index completes
 14 5 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar aspencat.production

@@ -14,6 +14,8 @@ PIKASERVER=wcpl.test
 PIKADBNAME=pika
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
 
+MINFILE1SIZE=$((341000000))
+
 # Check if full_update is already running
 #TODO: Verify that the PID file doesn't get log-rotated
 PIDFILE="/var/log/vufind-plus/${PIKASERVER}/full_update.pid"
@@ -132,21 +134,44 @@ then
 fi
 
 #Extract from ILS
-#Copy extracts from FTP Server
-mount 10.1.2.6:/ftp/wcpl /mnt/ftp
-FILE1=$(find /mnt/ftp/ -name pika*.mrc -mtime -1 | sort -n | tail -1)
-cp $FILE1 /data/vufind-plus/${PIKASERVER}/marc/fullexport.mrc
-umount /mnt/ftp
+#Copy extracts from SFTP Server
+mount 10.1.2.7:/ftp/wcpl /mnt/ftp
+FILE1=$(find /mnt/ftp/daily_exports -name *.mrc -mtime -1 | sort -n | tail -1)
 
+if [ -n "$FILE1" ]; then
+	FILE1SIZE=$(wc -c <"$FILE1")
+	if [ $FILE1SIZE -ge $MINFILE1SIZE ]; then
 
-#Validate the export
-cd /usr/local/vufind-plus/vufind/cron; java -server -XX:+UseG1GC -jar cron.jar ${PIKASERVER} ValidateMarcExport >> ${OUTPUT_FILE}
+		echo "Latest file is " $FILE1 >> ${OUTPUT_FILE}
+		DIFF=$(($FILE1SIZE - $MINFILE1SIZE))
+		PERCENTABOVE=$((100 * $DIFF / $MINFILE1SIZE))
+		echo "The export file is $PERCENTABOVE (%) larger than the minimum size check." >> ${OUTPUT_FILE}
 
-#Full Regroup
-cd /usr/local/vufind-plus/vufind/record_grouping; java -server -XX:+UseG1GC -Xmx2G -jar record_grouping.jar ${PIKASERVER} fullRegroupingNoClear >> ${OUTPUT_FILE}
+		cp $FILE1 /data/vufind-plus/${PIKASERVER}/marc/fullexport.mrc
 
-#Full Reindex
-cd /usr/local/vufind-plus/vufind/reindexer; java -server -XX:+UseG1GC -Xmx2G -jar reindexer.jar ${PIKASERVER} fullReindex >> ${OUTPUT_FILE}
+#TODO: only do this in production script
+#		#Delete full exports older than a week
+#		find /mnt/ftp/daily_exports -name *.mrc -mtime +7 -delete
+
+		umount /mnt/ftp
+
+		#Validate the export
+		cd /usr/local/vufind-plus/vufind/cron; java -server -XX:+UseG1GC -jar cron.jar ${PIKASERVER} ValidateMarcExport >> ${OUTPUT_FILE}
+
+		#Full Regroup
+		cd /usr/local/vufind-plus/vufind/record_grouping; java -server -XX:+UseG1GC -Xmx2G -jar record_grouping.jar ${PIKASERVER} fullRegroupingNoClear >> ${OUTPUT_FILE}
+
+		#Full Reindex
+		cd /usr/local/vufind-plus/vufind/reindexer; java -server -XX:+UseG1GC -Xmx2G -jar reindexer.jar ${PIKASERVER} fullReindex >> ${OUTPUT_FILE}
+
+		else
+			umount /mnt/ftp
+			echo $FILE1 " size " $FILE1SIZE "is less than minimum size :" $MINFILE1SIZE "; Export was not moved to data directory." >> ${OUTPUT_FILE}
+		fi
+else
+	umount /mnt/ftp
+	echo "Did not find a Horizon full export file from the last 24 hours." >> ${OUTPUT_FILE}
+fi
 
 # Clean-up Solr Logs
 find /usr/local/vufind-plus/sites/default/solr/jetty/logs -name "solr_log_*" -mtime +7 -delete
