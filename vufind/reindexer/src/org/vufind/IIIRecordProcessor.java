@@ -307,12 +307,13 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 	}
 
 	SimpleDateFormat displayDateFormatter = new SimpleDateFormat("MMM d, yyyy");
+	SimpleDateFormat dueDateFormatter;
 	protected String getDisplayDueDate(String dueDate, String identifier){
 		try {
-			if (dateAddedFormatter == null) {
-				dateAddedFormatter = new SimpleDateFormat(dateAddedFormat);
+			if (dueDateFormatter == null) {
+				dueDateFormatter = new SimpleDateFormat(dueDateFormat);
 			}
-			Date dateAdded = dateAddedFormatter.parse(dueDate);
+			Date dateAdded = dueDateFormatter.parse(dueDate);
 			return displayDateFormatter.format(dateAdded);
 		}catch (Exception e){
 			logger.warn("Could not load display due date for dueDate " + dueDate + " for identifier " + identifier, e);
