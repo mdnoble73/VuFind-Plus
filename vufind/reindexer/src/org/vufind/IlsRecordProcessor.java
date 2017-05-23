@@ -692,7 +692,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 	protected void loadDateAdded(String recordIdentifier, DataField itemField, ItemInfo itemInfo) {
 		String dateAddedStr = getItemSubfieldData(dateCreatedSubfield, itemField);
-		if (dateAddedStr != null) {
+		if (dateAddedStr != null && dateAddedStr.length() > 0) {
 			try {
 				if (dateAddedFormatter == null){
 					dateAddedFormatter = new SimpleDateFormat(dateAddedFormat);
