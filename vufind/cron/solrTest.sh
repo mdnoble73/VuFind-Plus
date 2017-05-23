@@ -40,7 +40,7 @@ function siteName() {
                 do
                 IFS='=' read -a pair <<< "$arg"
                 if [ "${pair[0]}" == "-Dsolr.solr.home" ]; then
-                        if [ "${pair[1]:18}" == *"/pika/"* ]; then
+                        if [ "${pair[1]}" == *"/pika/"* ]; then
                             local siteName="${pair[1]:11}"
                         else
                             local siteName="${pair[1]:18}"
