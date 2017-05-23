@@ -263,10 +263,10 @@ public class CarlXExportMain {
 							String currentItemID = currentDataField.getSubfield(indexingProfile.itemRecordNumberSubfield).getData();
 							if (currentItemID.equals(currentUpdateItemID)) { // check ItemIDs for other item matches for this bib?
 								if (item.isSuppressed()){
-									logger.warn("Suppressed Item " + currentItemID + " found on Bib " + currentBibID + "; Deleting.");
+									logger.debug("Suppressed Item " + currentItemID + " found on Bib " + currentBibID + "; Deleting.");
 									currentMarcRecord.removeVariableField(currentDataField);
 								}else{
-									logger.warn("Item " + currentItemID + " found on Bib " + currentBibID + "; Updating.");
+									logger.debug("Item " + currentItemID + " found on Bib " + currentBibID + "; Updating.");
 									currentMarcRecord.removeVariableField(currentDataField);
 									updateItemDataFieldWithChangeInfo(currentDataField, item);
 									currentMarcRecord.addVariableField(currentDataField);
@@ -275,7 +275,7 @@ public class CarlXExportMain {
 								itemFound = true;
 								break;
 							} else if (createdItemIDs.contains(currentItemID)) {
-								logger.warn("New Item " + currentItemID + "found on Bib " + currentBibID + "; Updating instead.");
+								logger.debug("New Item " + currentItemID + "found on Bib " + currentBibID + "; Updating instead.");
 								Integer indexOfItem = createdItemIDs.indexOf(currentItemID);
 								ItemChangeInfo createdItem = createdItems.get(indexOfItem);
 								updateItemDataFieldWithChangeInfo(currentDataField, createdItem);
@@ -351,10 +351,10 @@ public class CarlXExportMain {
 								String currentItemID = currentDataField.getSubfield(indexingProfile.itemRecordNumberSubfield).getData();
 								if (currentItemID.equals(currentCreatedItemID)) { // check ItemIDs for other item matches for this bib?
 									if (item.isSuppressed()){
-										logger.warn("Suppressed Item " + currentItemID + " found on Bib " + currentBibID + "; Deleting.");
+										logger.debug("Suppressed Item " + currentItemID + " found on Bib " + currentBibID + "; Deleting.");
 										currentMarcRecord.removeVariableField(currentDataField);
 									}else{
-										logger.warn("Item " + currentItemID + " found on Bib " + currentBibID + "; Updating.");
+										logger.debug("Item " + currentItemID + " found on Bib " + currentBibID + "; Updating.");
 										currentMarcRecord.removeVariableField(currentDataField);
 										updateItemDataFieldWithChangeInfo(currentDataField, item);
 										currentMarcRecord.addVariableField(currentDataField);
