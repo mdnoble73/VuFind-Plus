@@ -63,7 +63,7 @@ public class MillenniumExportMain{
 		String profileToLoad = "ils";
 		if (args.length > 1){
 			profileToLoad = args[1];
-			logger.warn("Indexing profile provided as parameter " + profileToLoad);
+			logger.debug("Indexing profile provided as parameter " + profileToLoad);
 		}
 		indexingProfile = IndexingProfile.loadIndexingProfile(vufindConn, profileToLoad, logger);
 

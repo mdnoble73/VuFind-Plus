@@ -125,7 +125,7 @@ public class IndexingProfile {
 				indexingProfile.setITypeSubfield(indexingProfileRS.getString("iType"));
 
 			} else {
-				logger.error("Unable to find carlx indexing profile, please create a profile with the name ils.");
+				logger.error("Unable to find " + profileToLoad + " indexing profile, please create a profile with the name ils.");
 			}
 
 		}catch (Exception e){
