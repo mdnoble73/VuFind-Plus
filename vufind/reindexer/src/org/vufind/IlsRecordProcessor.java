@@ -42,6 +42,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	protected char shelvingLocationSubfield;
 	protected char collectionSubfield;
 	protected char dueDateSubfield;
+	protected String dueDateFormat;
 	protected char lastCheckInSubfield;
 	protected String lastCheckInFormat;
 	protected char dateCreatedSubfield;
@@ -143,6 +144,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			}
 
 			dueDateSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "dueDate");
+			dueDateFormat = indexingProfileRS.getString("dueDateFormat");
 
 			ytdCheckoutSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "yearToDateCheckouts");
 			lastYearCheckoutSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "lastYearCheckouts");

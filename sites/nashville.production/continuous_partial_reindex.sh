@@ -66,7 +66,7 @@ do
 	cd /usr/local/vufind-plus/vufind/overdrive_api_extract/
 	nice -n -10 java -server -XX:+UseG1GC -jar overdrive_extract.jar ${PIKASERVER} >> ${OUTPUT_FILE}
 
-	#process the export from Library.Solution to give Pika what it needs
+	#process the export from CARL.X to give Pika what it needs
 	#echo "Starting Millennium Export - `date`" >> ${OUTPUT_FILE}
 	cd /usr/local/vufind-plus/vufind/carlx_export/
 	nice -n -10 java -server -XX:+UseG1GC -jar carlx_export.jar ${PIKASERVER} >> ${OUTPUT_FILE}
