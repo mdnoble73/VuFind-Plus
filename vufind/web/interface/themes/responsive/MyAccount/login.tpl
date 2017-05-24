@@ -26,7 +26,12 @@
 						<input type="password" name="password" id="password" size="28" onkeypress="return VuFind.submitOnEnter(event, '#loginForm');" class="form-control">
 						{if $showForgotPinLink}
 							<p class="help-block">
-								<strong>Forgot PIN?</strong> <a href="{$path}/MyResearch/EmailPin">E-mail my PIN</a>
+								<strong>Forgot PIN?</strong>&nbsp;
+								{if $useEmailResetPin}
+									<a href="{$path}/MyAccount/EmailResetPin">Reset My PIN</a>
+								{else}
+									<a href="{$path}/MyAccount/EmailPin">E-mail my PIN</a>
+								{/if}
 							</p>
 						{/if}
 
@@ -50,7 +55,7 @@
 								<input type="checkbox" id="rememberMe" name="rememberMe">
 								{translate text="Remember Me"}
 							</label>
-							{/if}
+						{/if}
 					</div>
 				</div>
 
@@ -73,39 +78,39 @@
 </div>
 {/strip}
 {literal}
-	<script type="text/javascript">
-		$('#username').focus().select();
-		$(function(){
-			VuFind.Account.validateCookies();
-			var haslocalStorage = VuFind.hasLocalStorage() || false;
-			if (haslocalStorage) {
-				var rememberMe = (window.localStorage.getItem('rememberMe') == 'true'), // localStorage saves everything as strings
-						showCovers = window.localStorage.getItem('showCovers') || false;
-				if (rememberMe) {
-					var lastUserName = window.localStorage.getItem('lastUserName'),
-							lastPwd = window.localStorage.getItem('lastPwd');
-{/literal}{*// showPwd = (window.localStorage.getItem('showPwd') == 'true'); // localStorage saves everything as strings *}{literal}
-					$("#username").val(lastUserName);
-					$("#password").val(lastPwd);
-{/literal}{*// $("#showPwd").prop("checked", showPwd  ? "checked" : '');
+<script type="text/javascript">
+	$('#username').focus().select();
+	$(function(){
+		VuFind.Account.validateCookies();
+		var haslocalStorage = VuFind.hasLocalStorage() || false;
+		if (haslocalStorage) {
+			var rememberMe = (window.localStorage.getItem('rememberMe') == 'true'), // localStorage saves everything as strings
+							showCovers = window.localStorage.getItem('showCovers') || false;
+			if (rememberMe) {
+				var lastUserName = window.localStorage.getItem('lastUserName'),
+								lastPwd = window.localStorage.getItem('lastPwd');
+				{/literal}{*// showPwd = (window.localStorage.getItem('showPwd') == 'true'); // localStorage saves everything as strings *}{literal}
+				$("#username").val(lastUserName);
+				$("#password").val(lastPwd);
+				{/literal}{*// $("#showPwd").prop("checked", showPwd  ? "checked" : '');
 //					if (showPwd) VuFind.pwdToText('password');*}{literal}
-				}
-				$("#rememberMe").prop("checked", rememberMe ? "checked" : '');
-				if (showCovers.length > 0) {
-					$("<input>").attr({
-						type: 'hidden',
-						name: 'showCovers',
-						value: showCovers
-					}).appendTo('#loginForm');
-				}
-			} else {
-{/literal}{* // disable, uncheck & hide RememberMe checkbox if localStorage isn't available.*}{literal}
-				$("#rememberMe").prop({checked : '', disabled: true}).parent().hide();
 			}
-{/literal}{* // Once Box is shown, focus on username input and Select the text;
+			$("#rememberMe").prop("checked", rememberMe ? "checked" : '');
+			if (showCovers.length > 0) {
+				$("<input>").attr({
+					type: 'hidden',
+					name: 'showCovers',
+					value: showCovers
+				}).appendTo('#loginForm');
+			}
+		} else {
+			{/literal}{* // disable, uncheck & hide RememberMe checkbox if localStorage isn't available.*}{literal}
+			$("#rememberMe").prop({checked : '', disabled: true}).parent().hide();
+		}
+		{/literal}{* // Once Box is shown, focus on username input and Select the text;
 			$("#modalDialog").on('shown.bs.modal', function(){
 				$('#username').focus().select();
 			})*}{literal}
-		});
-	</script>
+	});
+</script>
 {/literal}
