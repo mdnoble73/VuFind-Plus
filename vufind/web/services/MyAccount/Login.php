@@ -110,8 +110,11 @@ class MyAccount_Login extends Action
 			$interface->assign('usernameLabel', 'Your Name');
 			$interface->assign('passwordLabel', 'Library Card Number');
 		}
-		if ($configArray['Catalog']['ils'] == 'Horizon'){
+		if ($configArray['Catalog']['ils'] == 'Horizon' || $configArray['Catalog']['ils'] == 'Symphony'){
 			$interface->assign('showForgotPinLink', true);
+			$catalog = CatalogFactory::getCatalogConnectionInstance();
+			$useEmailResetPin = $catalog->checkFunction('emailResetPin');
+			$interface->assign('useEmailResetPin', $useEmailResetPin);
 		}
 
 		$interface->assign('isLoginPage', true);

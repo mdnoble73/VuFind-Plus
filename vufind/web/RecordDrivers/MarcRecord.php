@@ -1288,6 +1288,14 @@ class MarcRecord extends IndexRecord
 		} else {
 			$showHoldButton = false;
 		}
+		if ($showHoldButton & $interface->getVariable('offline')) {
+			// When Pika is in offline mode, only show the hold button if offline-login & offline-holds are allowed
+			global $configArray;
+			if (!$interface->getVariable('enableLoginWhileOffline') || !$configArray['Catalog']['enableOfflineHolds']) {
+				$showHoldButton = false;
+			}
+		}
+
 		if ($showHoldButton && $isAvailable) {
 			$showHoldButton = !$interface->getVariable('showHoldButtonForUnavailableOnly');
 		}
