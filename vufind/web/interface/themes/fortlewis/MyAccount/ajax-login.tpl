@@ -10,6 +10,14 @@
 		Logging you in now. Please wait.
 	</p>
 	{if $offline && !$enableLoginWhileOffline}
+		<div class="alert alert-warning">
+			<p>
+				The Library’s accounts system is down. Tech support is working to assess and fix the problem as quickly as possible.
+			</p>
+			<p>
+				Thank you for your patience and understanding.
+			</p>
+		</div>
 	{else}
 		<form method="post" action="{$path}/MyAccount/Home" id="loginForm" class="form-horizontal" role="form" onsubmit="return VuFind.Account.processAjaxLogin()">
 			<div class="row">
