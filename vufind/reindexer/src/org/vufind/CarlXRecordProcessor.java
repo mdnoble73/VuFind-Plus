@@ -74,6 +74,7 @@ public class CarlXRecordProcessor extends IlsRecordProcessor {
 			int numUsages = printFormats.get(printFormat);
 			if (numUsages > maxPrintFormats){
 				selectedFormat = printFormat;
+				maxPrintFormats = numUsages;
 			}
 		}
 		selectedPrintFormats.add(selectedFormat);
