@@ -3,6 +3,7 @@ package org.marmot.pika;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.sql.*;
 import java.text.DateFormat;
@@ -107,14 +108,20 @@ public class CarlXExportMain {
 		ArrayList<String> createdBibs = new ArrayList<>();
 		ArrayList<String> deletedBibs = new ArrayList<>();
 		logger.debug("Calling GetChangedBibsRequest with BeginTime of " + beginTimeString);
-		getUpdatedBibs(beginTimeString, updatedBibs, createdBibs, deletedBibs);
+		if (!getUpdatedBibs(beginTimeString, updatedBibs, createdBibs, deletedBibs)){
+			//Halt execution
+			System.exit(1);
+		}
 
 		//Load updated items
 		ArrayList<String> updatedItemIDs = new ArrayList<>();
 		ArrayList<String> createdItemIDs = new ArrayList<>();
 		ArrayList<String> deletedItemIDs = new ArrayList<>();
 		logger.debug("Calling GetChangedItemsRequest with BeginTime of " + beginTimeString);
-		getUpdatedItems(beginTimeString, updatedItemIDs, createdItemIDs, deletedItemIDs);
+		if (!getUpdatedItems(beginTimeString, updatedItemIDs, createdItemIDs, deletedItemIDs)){
+			//Halt execution
+			System.exit(1);
+		}
 
 		// Fetch Item Information for each ID
 		ArrayList<ItemChangeInfo> itemUpdates  = fetchItemInformation(updatedItemIDs);
@@ -572,7 +579,7 @@ public class CarlXExportMain {
 		return beginTimeString;
 	}
 
-	private static void getUpdatedItems(String beginTimeString, ArrayList<String> updatedItemIDs, ArrayList<String> createdItemIDs, ArrayList<String> deletedItemIDs){
+	private static boolean getUpdatedItems(String beginTimeString, ArrayList<String> updatedItemIDs, ArrayList<String> createdItemIDs, ArrayList<String> deletedItemIDs){
 		// Get All Changed Items //
 		String changedItemsSoapRequest = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:mar=\"http://tlcdelivers.com/cx/schemas/marcoutAPI\" xmlns:req=\"http://tlcdelivers.com/cx/schemas/request\">\n" +
 				"<soapenv:Header/>\n" +
@@ -585,49 +592,54 @@ public class CarlXExportMain {
 				"</soapenv:Envelope>";
 
 		URLPostResponse SOAPResponse = postToURL(marcOutURL, changedItemsSoapRequest, "text/xml", null, logger);
+		if (SOAPResponse.isSuccess()) {
+			String totalItems;
 
-		String totalItems;
+			// Read SOAP Response for Changed Items
+			try {
+				Document doc = createXMLDocumentForSoapResponse(SOAPResponse);
+				Node soapEnvelopeNode = doc.getFirstChild();
+				Node soapBodyNode = soapEnvelopeNode.getLastChild();
+				Node getChangedItemsResponseNode = soapBodyNode.getFirstChild();
+				Node responseStatusNode = getChangedItemsResponseNode.getChildNodes().item(0).getChildNodes().item(0);
+				String responseStatusCode = responseStatusNode.getFirstChild().getTextContent();
+				if (responseStatusCode.equals("0")) {
+					totalItems = responseStatusNode.getChildNodes().item(3).getTextContent();
+					logger.debug("There are " + totalItems + " total items");
 
-		// Read SOAP Response for Changed Items
-		try {
-			Document doc                     = createXMLDocumentForSoapResponse(SOAPResponse);
-			Node soapEnvelopeNode            = doc.getFirstChild();
-			Node soapBodyNode                = soapEnvelopeNode.getLastChild();
-			Node getChangedItemsResponseNode = soapBodyNode.getFirstChild();
-			Node responseStatusNode          = getChangedItemsResponseNode.getChildNodes().item(0).getChildNodes().item(0);
-			String responseStatusCode        = responseStatusNode.getFirstChild().getTextContent();
-			if (responseStatusCode.equals("0")) {
-				totalItems = responseStatusNode.getChildNodes().item(3).getTextContent();
-				logger.debug("There are " + totalItems + " total items");
+					Node updatedItemsNode = getChangedItemsResponseNode.getChildNodes().item(4); // 5th element of getChangedItemsResponseNode
+					Node createdItemsNode = getChangedItemsResponseNode.getChildNodes().item(3); // 4th element of getChangedItemsResponseNode
+					Node deletedItemsNode = getChangedItemsResponseNode.getChildNodes().item(5); // 6th element of getChangedItemsResponseNode
 
-				Node updatedItemsNode            = getChangedItemsResponseNode.getChildNodes().item(4); // 5th element of getChangedItemsResponseNode
-				Node createdItemsNode            = getChangedItemsResponseNode.getChildNodes().item(3); // 4th element of getChangedItemsResponseNode
-				Node deletedItemsNode            = getChangedItemsResponseNode.getChildNodes().item(5); // 6th element of getChangedItemsResponseNode
+					// Updated Items
+					getIDsArrayListFromNodeList(updatedItemsNode.getChildNodes(), updatedItemIDs);
+					logger.debug("Found " + updatedItemIDs.size() + " updated items since " + beginTimeString);
 
-				// Updated Items
-				getIDsArrayListFromNodeList(updatedItemsNode.getChildNodes(), updatedItemIDs);
-				logger.debug("Found " + updatedItemIDs.size() + " updated items since " + beginTimeString);
+					// Created Items
+					getIDsArrayListFromNodeList(createdItemsNode.getChildNodes(), createdItemIDs);
+					logger.debug("Found " + createdItemIDs.size() + " new items since " + beginTimeString);
 
-				// Created Items
-				getIDsArrayListFromNodeList(createdItemsNode.getChildNodes(), createdItemIDs);
-				logger.debug("Found " + createdItemIDs.size() + " new items since " + beginTimeString);
+					// Deleted Items
+					getIDsArrayListFromNodeList(deletedItemsNode.getChildNodes(), deletedItemIDs);
+					logger.debug("Found " + deletedItemIDs.size() + " deleted items since " + beginTimeString);
+				} else {
+					String shortErrorMessage = responseStatusNode.getChildNodes().item(2).getTextContent();
+					logger.error("Error Response for API call for Changed Items : " + shortErrorMessage);
+					return false;
+				}
 
-				// Deleted Items
-				getIDsArrayListFromNodeList(deletedItemsNode.getChildNodes(), deletedItemIDs);
-				logger.debug("Found " + deletedItemIDs.size() + " deleted items since " + beginTimeString);
-			} else {
-				String shortErrorMessage = responseStatusNode.getChildNodes().item(2).getTextContent();
-				logger.error("Error Response for API call for Changed Items : " + shortErrorMessage);
-				System.out.println("Error Response for API call for Changed Items : " + shortErrorMessage);
-				System.exit(1);
+			} catch (Exception e) {
+				logger.error("Error Parsing SOAP Response for Fetching Changed Items", e);
+				return false;
 			}
-
-		} catch (Exception e) {
-			logger.error("Error Parsing SOAP Response for Fetching Changed Items", e);
+		}else{
+			logger.error("Error Calling Web Service for Fetching Changed Items");
+			return false;
 		}
+		return true;
 	}
 
-	private static void getUpdatedBibs(String beginTimeString, ArrayList<String> updatedBibs, ArrayList<String> createdBibs, ArrayList<String> deletedBibs) {
+	private static boolean getUpdatedBibs(String beginTimeString, ArrayList<String> updatedBibs, ArrayList<String> createdBibs, ArrayList<String> deletedBibs) {
 		// Get All Changed Marc Records //
 		String changedMarcSoapRequest = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:mar=\"http://tlcdelivers.com/cx/schemas/marcoutAPI\" xmlns:req=\"http://tlcdelivers.com/cx/schemas/request\">\n" +
 				"<soapenv:Header/>\n" +
@@ -640,52 +652,54 @@ public class CarlXExportMain {
 				"</soapenv:Envelope>";
 
 		URLPostResponse SOAPResponse = postToURL(marcOutURL, changedMarcSoapRequest, "text/xml", null, logger);
+		if (SOAPResponse.isSuccess()) {
+			String totalBibs = "0";
 
-		String totalBibs = "0";
+			// Read SOAP Response for Changed Bibs
+			try {
+				Document doc = createXMLDocumentForSoapResponse(SOAPResponse);
+				Node soapEnvelopeNode = doc.getFirstChild();
+				Node soapBodyNode = soapEnvelopeNode.getLastChild();
+				Node getChangedBibsResponseNode = soapBodyNode.getFirstChild();
+				Node responseStatusNode = getChangedBibsResponseNode.getChildNodes().item(0).getChildNodes().item(0);
+				String responseStatusCode = responseStatusNode.getFirstChild().getTextContent();
+				if (responseStatusCode.equals("0")) {
+					totalBibs = responseStatusNode.getChildNodes().item(3).getTextContent();
+					logger.debug("There are " + totalBibs + " total bibs");
+					Node updatedBibsNode = getChangedBibsResponseNode.getChildNodes().item(4); // 5th element of getChangedItemsResponseNode
+					Node createdBibsNode = getChangedBibsResponseNode.getChildNodes().item(3); // 4th element of getChangedItemsResponseNode
+					Node deletedBibsNode = getChangedBibsResponseNode.getChildNodes().item(5); // 6th element of getChangedItemsResponseNode
 
-		// Read SOAP Response for Changed Bibs
-		try {
-			Document doc                     = createXMLDocumentForSoapResponse(SOAPResponse);
-			Node soapEnvelopeNode            = doc.getFirstChild();
-			Node soapBodyNode                = soapEnvelopeNode.getLastChild();
-			Node getChangedBibsResponseNode  = soapBodyNode.getFirstChild();
-			Node responseStatusNode          = getChangedBibsResponseNode.getChildNodes().item(0).getChildNodes().item(0);
-			String responseStatusCode        = responseStatusNode.getFirstChild().getTextContent();
-			if (responseStatusCode.equals("0")) {
-				totalBibs                      = responseStatusNode.getChildNodes().item(3).getTextContent();
-				logger.debug("There are " + totalBibs + " total bibs");
-				Node updatedBibsNode           = getChangedBibsResponseNode.getChildNodes().item(4); // 5th element of getChangedItemsResponseNode
-				Node createdBibsNode           = getChangedBibsResponseNode.getChildNodes().item(3); // 4th element of getChangedItemsResponseNode
-				Node deletedBibsNode           = getChangedBibsResponseNode.getChildNodes().item(5); // 6th element of getChangedItemsResponseNode
+					// Updated Items
+					updatedBibs = getIDsFromNodeList(updatedBibsNode.getChildNodes());
+					logger.debug("Found " + updatedBibs.size() + " updated bibs since " + beginTimeString);
 
-				// Updated Items
-				updatedBibs = getIDsFromNodeList(updatedBibsNode.getChildNodes());
-				logger.debug("Found " + updatedBibs.size() + " updated bibs since " + beginTimeString);
+					// TODO: Process Created Bibs in the future.
+					// Created Bibs
+					createdBibs = getIDsFromNodeList(createdBibsNode.getChildNodes());
+					logger.debug("Found " + createdBibs.size() + " new bibs since " + beginTimeString);
 
-				// TODO: Process Created Bibs in the future.
-				// Created Bibs
-				createdBibs = getIDsFromNodeList(createdBibsNode.getChildNodes());
-				logger.debug("Found " + createdBibs.size() + " new bibs since " + beginTimeString);
+					// TODO: Process Deleted Bibs in the future
+					// Deleted Bibs
+					deletedBibs = getIDsFromNodeList(deletedBibsNode.getChildNodes());
+					logger.debug("Found " + deletedBibs.size() + " deleted bibs since " + beginTimeString);
 
-				// TODO: Process Deleted Bibs in the future
-				// Deleted Bibs
-				deletedBibs = getIDsFromNodeList(deletedBibsNode.getChildNodes());
-				logger.debug("Found " + deletedBibs.size() + " deleted bibs since " + beginTimeString);
+				} else {
+					String shortErrorMessage = responseStatusNode.getChildNodes().item(2).getTextContent();
+					logger.error("Error Response for API call for Changed Bibs : " + shortErrorMessage);
+					return false;
+				}
 
-			} else {
-				String shortErrorMessage = responseStatusNode.getChildNodes().item(2).getTextContent();
-				logger.error("Error Response for API call for Changed Bibs : " + shortErrorMessage);
-				// TODO: stop execution?
-//				System.out.println("Error Response for API call for Changed Bibs : " + shortErrorMessage);
-//				System.exit(1);
 
+			} catch (Exception e) {
+				logger.error("Error Parsing SOAP Response for Fetching Changed Bibs", e);
+				return false;
 			}
-
-
-
-		} catch (Exception e) {
-			logger.error("Error Parsing SOAP Response for Fetching Changed Bibs", e);
+		}else{
+			logger.error("Did not get a successful response from the API");
+			return false;
 		}
+		return true;
 	}
 
 	private static Record buildMarcRecordFromAPIResponse(Node marcRecordNode, String currentBibID) {
@@ -1258,8 +1272,8 @@ public class CarlXExportMain {
 			conn.setReadTimeout(300000);
 			//logger.debug("Posting To URL " + url + (postData != null && postData.length() > 0 ? "?" + postData : ""));
 
-			if (conn instanceof HttpsURLConnection){
-				HttpsURLConnection sslConn = (HttpsURLConnection)conn;
+			if (conn instanceof HttpsURLConnection) {
+				HttpsURLConnection sslConn = (HttpsURLConnection) conn;
 				sslConn.setHostnameVerifier(new HostnameVerifier() {
 
 					@Override
@@ -1270,7 +1284,7 @@ public class CarlXExportMain {
 				});
 			}
 			conn.setDoInput(true);
-			if (referer != null){
+			if (referer != null) {
 				conn.setRequestProperty("Referer", referer);
 			}
 			conn.setRequestMethod("POST");
@@ -1309,7 +1323,7 @@ public class CarlXExportMain {
 
 				rd.close();
 
-				if (response.length() == 0){
+				if (response.length() == 0) {
 					//Try to load the regular body as well
 					// Get the response
 					BufferedReader rd2 = new BufferedReader(new InputStreamReader(conn.getInputStream()));
@@ -1322,6 +1336,9 @@ public class CarlXExportMain {
 				retVal = new URLPostResponse(false, conn.getResponseCode(), response.toString());
 			}
 
+		} catch (SocketTimeoutException e){
+			logger.error("Timeout connecting to URL (" + url + ")", e);
+			retVal = new URLPostResponse(false, -1, "Timeout connecting to URL (" + url + ")");
 		} catch (MalformedURLException e) {
 			logger.error("URL to post (" + url + ") is malformed", e);
 			retVal = new URLPostResponse(false, -1, "URL to post (" + url + ") is malformed");
