@@ -140,7 +140,7 @@ public class HorizonExportMain {
 				}
 				marcFileStream.close();
 			} catch (Exception e){
-				logger.error("Unable to read file " + file + " not processing");
+				logger.error("Unable to read file " + file + " not processing", e);
 				filesToProcess.remove(fileName);
 			}
 		}
