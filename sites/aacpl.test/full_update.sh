@@ -134,7 +134,7 @@ fi
 #Extract from ILS
 #Copy extracts from FTP Server
 mount 10.1.2.6:/ftp/aacpl /mnt/ftp
-FILE1=$(find /mnt/ftp/ -name pika*.mrc -mtime -1 | sort -n | tail -1)
+FILE1=$(find /mnt/ftp/symphony -name pika*.mrc -mtime -1 | sort -n | tail -1)
 cp $FILE1 /data/vufind-plus/${PIKASERVER}/marc/fullexport.mrc
 umount /mnt/ftp
 
