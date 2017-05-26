@@ -125,7 +125,9 @@ public class HorizonExportMain {
 		}
 		//A list of records to be updated.
 		HashMap<String, Record> recordsToUpdate = new HashMap<>();
-		for (File file : filesToProcess.values()){
+		Set<String> filenames = filesToProcess.keySet();
+		for (String fileName: filenames){
+			File file = filesToProcess.get(fileName);
 			logger.debug("Processing " + file.getName());
 			try {
 				FileInputStream marcFileStream = new FileInputStream(file);
@@ -138,7 +140,8 @@ public class HorizonExportMain {
 				}
 				marcFileStream.close();
 			} catch (Exception e){
-				logger.error("Unable to read file " + file);
+				logger.error("Unable to read file " + file + " not processing", e);
+				filesToProcess.remove(fileName);
 			}
 		}
 		//Now that we have all the records, merge them and update the database.
