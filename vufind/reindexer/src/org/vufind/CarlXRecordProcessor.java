@@ -70,13 +70,17 @@ public class CarlXRecordProcessor extends IlsRecordProcessor {
 		}
 		int maxPrintFormats = 0;
 		String selectedFormat = "";
-		for (String printFormat : printFormats.keySet()){
-			int numUsages = printFormats.get(printFormat);
-			if (numUsages > maxPrintFormats){
-				logger.info(printFormat + " has more usages (" + numUsages + ") than " + selectedFormat + " (" + maxPrintFormats + ")");
-				selectedFormat = printFormat;
-				maxPrintFormats = numUsages;
+		if (printFormats.size() > 1) {
+			for (String printFormat : printFormats.keySet()) {
+				int numUsages = printFormats.get(printFormat);
+				if (numUsages > maxPrintFormats) {
+					logger.info(printFormat + " has more usages (" + numUsages + ") than " + selectedFormat + " (" + maxPrintFormats + ")");
+					selectedFormat = printFormat;
+					maxPrintFormats = numUsages;
+				}
 			}
+		}else{
+			selectedFormat = printFormats.keySet().iterator().next();
 		}
 		selectedPrintFormats.add(selectedFormat);
 
