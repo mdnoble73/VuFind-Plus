@@ -45,7 +45,7 @@ public class CarlXRecordProcessor extends IlsRecordProcessor {
 		return location;
 	}
 
-	int numSampleRecordsWithMultiplePrintFormats = 0;
+	private static int numSampleRecordsWithMultiplePrintFormats = 0;
 	@Override
 	public void loadPrintFormatInformation(RecordInfo ilsRecord, Record record) {
 		List<DataField> items = getDataFields(record, itemTag);
@@ -74,7 +74,9 @@ public class CarlXRecordProcessor extends IlsRecordProcessor {
 			for (String printFormat : printFormats.keySet()) {
 				int numUsages = printFormats.get(printFormat);
 				if (numUsages > maxPrintFormats) {
-					logger.info(printFormat + " has more usages (" + numUsages + ") than " + selectedFormat + " (" + maxPrintFormats + ")");
+					if (selectedFormat.length() > 0) {
+						logger.info("Record " + ilsRecord.getRecordIdentifier() + " " + printFormat + " has more usages (" + numUsages + ") than " + selectedFormat + " (" + maxPrintFormats + ")");
+					}
 					selectedFormat = printFormat;
 					maxPrintFormats = numUsages;
 				}
