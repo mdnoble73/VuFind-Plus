@@ -4,6 +4,7 @@ import org.apache.log4j.PropertyConfigurator;
 import org.ini4j.Ini;
 import org.ini4j.InvalidFileFormatException;
 import org.ini4j.Profile;
+import org.marc4j.MarcException;
 import org.marc4j.MarcPermissiveStreamReader;
 import org.marc4j.MarcReader;
 import org.marc4j.MarcStreamWriter;
@@ -134,9 +135,14 @@ public class HorizonExportMain {
 				//Record Grouping always writes individual MARC records as UTF8
 				MarcReader updatesReader = new MarcPermissiveStreamReader(marcFileStream, true, true, "UTF8");
 				while (updatesReader.hasNext()) {
-					Record curBib = updatesReader.next();
-					String recordId = getRecordIdFromMarcRecord(curBib);
-					recordsToUpdate.put(recordId, curBib);
+					try {
+						Record curBib = updatesReader.next();
+						String recordId = getRecordIdFromMarcRecord(curBib);
+						recordsToUpdate.put(recordId, curBib);
+					}catch (MarcException me){
+						logger.info("File " + file + " has not been fully written", me);
+						filesToProcess.remove(fileName);
+					}
 				}
 				marcFileStream.close();
 			} catch (EOFException e){
