@@ -139,6 +139,9 @@ public class HorizonExportMain {
 					recordsToUpdate.put(recordId, curBib);
 				}
 				marcFileStream.close();
+			} catch (EOFException e){
+				logger.info("File " + file + " has not been fully written", e);
+				filesToProcess.remove(fileName);
 			} catch (Exception e){
 				logger.error("Unable to read file " + file + " not processing", e);
 				filesToProcess.remove(fileName);
@@ -153,6 +156,7 @@ public class HorizonExportMain {
 			for (String recordId : recordsToUpdate.keySet()) {
 				Record recordToUpdate = recordsToUpdate.get(recordId);
 				if (!updateMarc(recordId, recordToUpdate, updateTime)){
+					logger.error("Error updating marc record " + recordId);
 					errorUpdatingDatabase = true;
 				}
 				numUpdates++;
