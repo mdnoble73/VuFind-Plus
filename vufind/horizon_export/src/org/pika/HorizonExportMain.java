@@ -127,7 +127,8 @@ public class HorizonExportMain {
 		//A list of records to be updated.
 		HashMap<String, Record> recordsToUpdate = new HashMap<>();
 		Set<String> filenames = filesToProcess.keySet();
-		for (String fileName: filenames){
+		String[] filenamesArray = filenames.toArray(new String[filenames.size()]);
+		for (String fileName: filenamesArray){
 			File file = filesToProcess.get(fileName);
 			logger.debug("Processing " + file.getName());
 			try {
