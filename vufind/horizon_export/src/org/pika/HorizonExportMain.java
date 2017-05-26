@@ -142,6 +142,7 @@ public class HorizonExportMain {
 					}catch (MarcException me){
 						logger.info("File " + file + " has not been fully written", me);
 						filesToProcess.remove(fileName);
+						break;
 					}
 				}
 				marcFileStream.close();
