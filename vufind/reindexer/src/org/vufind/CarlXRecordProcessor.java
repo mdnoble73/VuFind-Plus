@@ -73,6 +73,7 @@ public class CarlXRecordProcessor extends IlsRecordProcessor {
 		if (printFormats.size() > 1) {
 			for (String printFormat : printFormats.keySet()) {
 				int numUsages = printFormats.get(printFormat);
+				logger.info("  " + printFormat + " used " + numUsages + " times");
 				if (numUsages > maxPrintFormats) {
 					if (selectedFormat.length() > 0) {
 						logger.info("Record " + ilsRecord.getRecordIdentifier() + " " + printFormat + " has more usages (" + numUsages + ") than " + selectedFormat + " (" + maxPrintFormats + ")");
@@ -81,6 +82,7 @@ public class CarlXRecordProcessor extends IlsRecordProcessor {
 					maxPrintFormats = numUsages;
 				}
 			}
+			logger.info("  Selected Format is " + selectedFormat);
 		}else{
 			selectedFormat = printFormats.keySet().iterator().next();
 		}
