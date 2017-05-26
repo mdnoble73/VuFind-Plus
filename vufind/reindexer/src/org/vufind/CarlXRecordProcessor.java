@@ -64,7 +64,7 @@ public class CarlXRecordProcessor extends IlsRecordProcessor {
 		}
 
 		HashSet<String> selectedPrintFormats = new HashSet<>();
-		if (selectedPrintFormats.size() > 1 && numSampleRecordsWithMultiplePrintFormats < 100){
+		if (printFormats.size() > 1 && numSampleRecordsWithMultiplePrintFormats < 100){
 			logger.info("Record " + ilsRecord.getRecordIdentifier() + " had multiple formats based on the item information");
 			numSampleRecordsWithMultiplePrintFormats++;
 		}
