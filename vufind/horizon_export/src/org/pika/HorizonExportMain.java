@@ -172,6 +172,7 @@ public class HorizonExportMain {
 			}
 		}catch (Exception e){
 			logger.error("Error updating marc records");
+			errorUpdatingDatabase = true;
 		} finally{
 			try {
 				//Turn auto commit back on
@@ -192,6 +193,7 @@ public class HorizonExportMain {
 					logger.warn("Could not delete " + file.getName());
 				}
 			}
+			logger.info("Deleted " + filesToProcess.size() + " files that were processed successfully.");
 		}else{
 			logger.error("There were errors updating the database, not clearing the files so they will be processed next time");
 		}
