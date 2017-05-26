@@ -65,7 +65,7 @@ public class CarlXRecordProcessor extends IlsRecordProcessor {
 
 		HashSet<String> selectedPrintFormats = new HashSet<>();
 		if (selectedPrintFormats.size() > 1 && numSampleRecordsWithMultiplePrintFormats < 100){
-			logger.debug("Record " + ilsRecord.getRecordIdentifier() + " had multiple formats based on the item information");
+			logger.info("Record " + ilsRecord.getRecordIdentifier() + " had multiple formats based on the item information");
 			numSampleRecordsWithMultiplePrintFormats++;
 		}
 		int maxPrintFormats = 0;
@@ -73,6 +73,7 @@ public class CarlXRecordProcessor extends IlsRecordProcessor {
 		for (String printFormat : printFormats.keySet()){
 			int numUsages = printFormats.get(printFormat);
 			if (numUsages > maxPrintFormats){
+				logger.info(printFormat + " has more usages (" + numUsages + ") than " + selectedFormat + " (" + maxPrintFormats + ")");
 				selectedFormat = printFormat;
 				maxPrintFormats = numUsages;
 			}
