@@ -11,71 +11,82 @@
 		<p class="alert alert-info" id="loading" style="display: none">
 			Logging you in now. Please wait.
 		</p>
-		<form method="post" action="{$path}/MyAccount/Home" id="loginForm" class="form-horizontal">
-			<div id="missingLoginPrompt" style="display: none">Please enter both {$usernameLabel} and {$passwordLabel}.</div>
-			<div id="loginFormFields">
-				<div id="loginUsernameRow" class="form-group">
-					<label for="username" class="control-label col-xs-12 col-sm-4">{$usernameLabel}: </label>
-					<div class="col-xs-12 col-sm-8">
-						<input type="text" name="username" id="username" value="{$username|escape}" size="28" class="form-control">
-					</div>
-				</div>
-				<div id="loginPasswordRow" class="form-group">
-					<label for="password" class="control-label col-xs-12 col-sm-4">{$passwordLabel}: </label>
-					<div class="col-xs-12 col-sm-8">
-						<input type="password" title="PIN should be 4 numbers" pattern="[0-9]{ldelim}4,{rdelim}" name="password" id="password" size="28" class="form-control">
-					</div>
-				</div>
- 				<div id="loginPasswordConfirmRow" class="form-group" style="display:none">
-					<label for="password2" class='control-label col-xs-12 col-sm-4'>{translate text='Confirm pin #'}: </label>
-					<div class='col-xs-12 col-sm-8'>
-						<input type="password" pattern="[0-9]{ldelim}4,{rdelim}" name="password2" id="password2" size="28" class="form-control">
-					</div>
-				</div>
-				<div id="loginHelpRow" class="form-group">
-					<div class="col-xs-12 col-sm-offset-4 col-sm-8">
-						<p class="help-block"><a href="{$path}/MyAccount/RequestPinReset">Forgot your PIN?</a></p>
-						{*<p class="help-block"><a href="#" onclick="document.getElementById('loginPasswordConfirmRow').style.display='block';">Create new PIN</p>*}
-						<p class="help-block"><a href="#" onclick="$('#loginPasswordConfirmRow').show();">Create new PIN</p>
-						{if $enableSelfRegistration == 1}
-							<p class="help-block">
-								<a href="{$path}/MyAccount/SelfReg">Get a Card [PIKA SELFREG]</a>
-							</p>
-						{else}
-							<p class="help-block">
-								<a href="http://library.nashville.org/card/crd_getcard.asp">Get a Card</a>
-							</p>
-						{/if}
-
-						<label for="showPwd" class="checkbox">
-							<input type="checkbox" id="showPwd" name="showPwd" onclick="return VuFind.pwdToText('password')">
-							{translate text="Reveal Password"}
-						</label>
-
-						<label for="rememberMe" class="checkbox">
-							<input type="checkbox" id="rememberMe" name="rememberMe">
-							{translate text="Remember Me"}
-						</label>
-					</div>
-				</div>
-
-				<div id="loginSubmitRow" class="form-group">
-				{*<div id="loginPasswordRow2" class="form-group">*}
-					<div class="col-xs-12 col-sm-offset-4 col-sm-8">
-						<input type="submit" name="submit" value="Login" id="loginFormSubmit" class="btn btn-primary" onclick="return VuFind.Account.preProcessLogin();">
-						{if $followup}<input type="hidden" name="followup" value="{$followup}">{/if}
-						<input type="cancel" name="cancel" value="Cancel" id="loginFormCancel" class="btn btn-primary" onclick="Location.reload()" style="display:none;">
-						{if $followupModule}<input type="hidden" name="followupModule" value="{$followupModule}">{/if}
-						{if $followupAction}<input type="hidden" name="followupAction" value="{$followupAction}">{/if}
-						{if $recordId}<input type="hidden" name="recordId" value="{$recordId|escape:"html"}">{/if}
-						{if $comment}<input type="hidden" id="comment" name="comment" value="{$comment|escape:"html"}">{/if}
-						{if $cardNumber}<input type="hidden" name="cardNumber" value="{$cardNumber|escape:"html"}">{/if}
-						{if $returnUrl}<input type="hidden" name="returnUrl" value="{$returnUrl}">{/if}
-					</div>
-				</div>
-
+		{if $offline && !$enableLoginWhileOffline}
+			<div class="alert alert-warning">
+				<p>
+					The Library’s accounts system is down. Tech support is working to assess and fix the problem as quickly as possible.
+				</p>
+				<p>
+					Thank you for your patience and understanding.
+				</p>
 			</div>
-		</form>
+		{else}
+			<form method="post" action="{$path}/MyAccount/Home" id="loginForm" class="form-horizontal">
+				<div id="missingLoginPrompt" style="display: none">Please enter both {$usernameLabel} and {$passwordLabel}.</div>
+				<div id="loginFormFields">
+					<div id="loginUsernameRow" class="form-group">
+						<label for="username" class="control-label col-xs-12 col-sm-4">{$usernameLabel}: </label>
+						<div class="col-xs-12 col-sm-8">
+							<input type="text" name="username" id="username" value="{$username|escape}" size="28" class="form-control">
+						</div>
+					</div>
+					<div id="loginPasswordRow" class="form-group">
+						<label for="password" class="control-label col-xs-12 col-sm-4">{$passwordLabel}: </label>
+						<div class="col-xs-12 col-sm-8">
+							<input type="password" title="PIN should be 4 numbers" pattern="[0-9]{ldelim}4,{rdelim}" name="password" id="password" size="28" class="form-control">
+						</div>
+					</div>
+	        <div id="loginPasswordConfirmRow" class="form-group" style="display:none">
+						<label for="password2" class='control-label col-xs-12 col-sm-4'>{translate text='Confirm pin #'}: </label>
+						<div class='col-xs-12 col-sm-8'>
+							<input type="password" pattern="[0-9]{ldelim}4,{rdelim}" name="password2" id="password2" size="28" class="form-control">
+						</div>
+					</div>
+					<div id="loginHelpRow" class="form-group">
+						<div class="col-xs-12 col-sm-offset-4 col-sm-8">
+							<p class="help-block"><a href="{$path}/MyAccount/RequestPinReset">Forgot your PIN?</a></p>
+							{*<p class="help-block"><a href="#" onclick="document.getElementById('loginPasswordConfirmRow').style.display='block';">Create new PIN</p>*}
+							<p class="help-block"><a href="#" onclick="$('#loginPasswordConfirmRow').show();">Create new PIN</p>
+							{if $enableSelfRegistration == 1}
+								<p class="help-block">
+									<a href="{$path}/MyAccount/SelfReg">Get a Card [PIKA SELFREG]</a>
+								</p>
+							{else}
+								<p class="help-block">
+									<a href="http://library.nashville.org/card/crd_getcard.asp">Get a Card</a>
+								</p>
+							{/if}
+
+							<label for="showPwd" class="checkbox">
+								<input type="checkbox" id="showPwd" name="showPwd" onclick="return VuFind.pwdToText('password')">
+								{translate text="Reveal Password"}
+							</label>
+
+							<label for="rememberMe" class="checkbox">
+								<input type="checkbox" id="rememberMe" name="rememberMe">
+								{translate text="Remember Me"}
+							</label>
+						</div>
+					</div>
+
+					<div id="loginSubmitRow" class="form-group">
+					{*<div id="loginPasswordRow2" class="form-group">*}
+						<div class="col-xs-12 col-sm-offset-4 col-sm-8">
+							<input type="submit" name="submit" value="Login" id="loginFormSubmit" class="btn btn-primary" onclick="return VuFind.Account.preProcessLogin();">
+							{if $followup}<input type="hidden" name="followup" value="{$followup}">{/if}
+							<input type="cancel" name="cancel" value="Cancel" id="loginFormCancel" class="btn btn-primary" onclick="Location.reload()" style="display:none;">
+							{if $followupModule}<input type="hidden" name="followupModule" value="{$followupModule}">{/if}
+							{if $followupAction}<input type="hidden" name="followupAction" value="{$followupAction}">{/if}
+							{if $recordId}<input type="hidden" name="recordId" value="{$recordId|escape:"html"}">{/if}
+							{if $comment}<input type="hidden" id="comment" name="comment" value="{$comment|escape:"html"}">{/if}
+							{if $cardNumber}<input type="hidden" name="cardNumber" value="{$cardNumber|escape:"html"}">{/if}
+							{if $returnUrl}<input type="hidden" name="returnUrl" value="{$returnUrl}">{/if}
+						</div>
+					</div>
+
+				</div>
+			</form>
+		{/if}
 	</div>
 </div>
 {/strip}
