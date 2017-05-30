@@ -185,7 +185,7 @@ class SideLoadedEContentProcessor extends IlsRecordProcessor{
 						econtentItem.setFormat("MusicalScore");
 						econtentItem.setFormatCategory("eBook");
 						econtentRecord.setFormatBoost(5);
-					} else if (format.equalsIgnoreCase("Movies") || format.equalsIgnoreCase("Video")) {
+					} else if (format.equalsIgnoreCase("Movies") || format.equalsIgnoreCase("Video") || format.equalsIgnoreCase("DVD")) {
 						econtentItem.setFormat("eVideo");
 						econtentItem.setFormatCategory("Movies");
 						econtentRecord.setFormatBoost(10);
