@@ -286,8 +286,15 @@ class CarlX extends SIP2Driver{
 					$logger->log("Renew all response\r\n" . print_r($msg_result, true), PEAR_LOG_ERR);
 
 					$renew_result['success'] = ($result['fixed']['Ok'] == 1);
-					$renew_result['Renewed'] = $result['fixed']['Renewed'];
-					$renew_result['Unrenewed'] = $result['fixed']['Unrenewed'];
+					$renew_result['Renewed'] = ltrim($result['fixed']['Renewed'], '0');
+					if (strlen($renew_result['Renewed']) == 0){
+						$renew_result['Renewed'] = 0;
+					}
+
+					$renew_result['Unrenewed'] = ltrim($result['fixed']['Unrenewed'], '0');
+					if (strlen($renew_result['Unrenewed']) == 0){
+						$renew_result['Unrenewed'] = 0;
+					}
 					if (isset($result['variable']['AF'])){
 						$renew_result['message'][] = $result['variable']['AF'][0];
 					}
