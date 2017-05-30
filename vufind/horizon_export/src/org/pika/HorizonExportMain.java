@@ -4,6 +4,7 @@ import org.apache.log4j.PropertyConfigurator;
 import org.ini4j.Ini;
 import org.ini4j.InvalidFileFormatException;
 import org.ini4j.Profile;
+import org.marc4j.MarcException;
 import org.marc4j.MarcPermissiveStreamReader;
 import org.marc4j.MarcReader;
 import org.marc4j.MarcStreamWriter;
@@ -126,7 +127,8 @@ public class HorizonExportMain {
 		//A list of records to be updated.
 		HashMap<String, Record> recordsToUpdate = new HashMap<>();
 		Set<String> filenames = filesToProcess.keySet();
-		for (String fileName: filenames){
+		String[] filenamesArray = filenames.toArray(new String[filenames.size()]);
+		for (String fileName: filenamesArray){
 			File file = filesToProcess.get(fileName);
 			logger.debug("Processing " + file.getName());
 			try {
@@ -134,11 +136,20 @@ public class HorizonExportMain {
 				//Record Grouping always writes individual MARC records as UTF8
 				MarcReader updatesReader = new MarcPermissiveStreamReader(marcFileStream, true, true, "UTF8");
 				while (updatesReader.hasNext()) {
-					Record curBib = updatesReader.next();
-					String recordId = getRecordIdFromMarcRecord(curBib);
-					recordsToUpdate.put(recordId, curBib);
+					try {
+						Record curBib = updatesReader.next();
+						String recordId = getRecordIdFromMarcRecord(curBib);
+						recordsToUpdate.put(recordId, curBib);
+					}catch (MarcException me){
+						logger.info("File " + file + " has not been fully written", me);
+						filesToProcess.remove(fileName);
+						break;
+					}
 				}
 				marcFileStream.close();
+			} catch (EOFException e){
+				logger.info("File " + file + " has not been fully written", e);
+				filesToProcess.remove(fileName);
 			} catch (Exception e){
 				logger.error("Unable to read file " + file + " not processing", e);
 				filesToProcess.remove(fileName);
@@ -153,6 +164,7 @@ public class HorizonExportMain {
 			for (String recordId : recordsToUpdate.keySet()) {
 				Record recordToUpdate = recordsToUpdate.get(recordId);
 				if (!updateMarc(recordId, recordToUpdate, updateTime)){
+					logger.error("Error updating marc record " + recordId);
 					errorUpdatingDatabase = true;
 				}
 				numUpdates++;
@@ -162,6 +174,7 @@ public class HorizonExportMain {
 			}
 		}catch (Exception e){
 			logger.error("Error updating marc records");
+			errorUpdatingDatabase = true;
 		} finally{
 			try {
 				//Turn auto commit back on
@@ -182,6 +195,7 @@ public class HorizonExportMain {
 					logger.warn("Could not delete " + file.getName());
 				}
 			}
+			logger.info("Deleted " + filesToProcess.size() + " files that were processed successfully.");
 		}else{
 			logger.error("There were errors updating the database, not clearing the files so they will be processed next time");
 		}

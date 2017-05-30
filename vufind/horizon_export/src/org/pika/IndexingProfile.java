@@ -103,6 +103,7 @@ public class IndexingProfile {
 				indexingProfile.id = indexingProfileRS.getLong("id");
 
 				indexingProfile.itemTag = indexingProfileRS.getString("itemTag");
+				indexingProfile.recordNumberTag = indexingProfileRS.getString("recordNumberTag");
 				indexingProfile.setItemRecordNumberSubfield(indexingProfileRS.getString("itemRecordNumber"));
 				indexingProfile.setLastCheckinDateSubfield(indexingProfileRS.getString("lastCheckinDate"));
 				indexingProfile.lastCheckinFormat = indexingProfileRS.getString("lastCheckinFormat");
