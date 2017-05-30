@@ -30,9 +30,9 @@ class Fines extends MyAccount
 		       $configArray;
 
 		$ils = $configArray['Catalog']['ils'];
-		$interface->assign('showDate', $ils == 'Koha' || $ils == 'Horizon' || $ils == 'CarlX');
+		$interface->assign('showDate', $ils == 'Koha' || $ils == 'Horizon' || $ils == 'CarlX' || $ils == 'Symphony');
 		$interface->assign('showReason', $ils != 'Koha');
-		$useOutstanding = $ils == 'Koha';
+		$useOutstanding = ($ils == 'Koha' || $ils == 'Symphony');
 		$interface->assign('showOutstanding', $useOutstanding);
 
 		if ($user) {

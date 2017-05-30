@@ -14,7 +14,7 @@ abstract class SirsiDynixROA extends HorizonAPI
 	//TODO: Additional caching of sessionIds by patron
 	private static $sessionIdsForUsers = array();
 
-	// $customRequest is for curl, can be 'PUT', 'DELETE'
+	// $customRequest is for curl, can be 'PUT', 'DELETE', 'POST'
 	public function getWebServiceResponse($url, $params = null, $session = null, $customRequest = null)
 	{
 		global $configArray;
@@ -43,7 +43,7 @@ abstract class SirsiDynixROA extends HorizonAPI
 		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 		curl_setopt($ch, CURLOPT_HEADER, false);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // TODO: debugging only
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // TODO: debugging only: comment out for production
 		if ($params != null) {
 			curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($params));
 		}
@@ -96,26 +96,31 @@ abstract class SirsiDynixROA extends HorizonAPI
 			$logger->log("User is valid in symphony", PEAR_LOG_INFO);
 			$webServiceURL = $this->getWebServiceURL();
 
-			//$userDescribeResponse = $this->getWebServiceResponse($webServiceURL . '/v1/user/describe', null, $sessionToken);
-//			$patronDescribeResponse           = $this->getWebServiceResponse($webServiceURL . '/ws/user/patron/describe', null, $sessionToken);
-//			$patronStatusInfoDescribeResponse = $this->getWebServiceResponse($webServiceURL . '/ws/user/patronStatusInfo/describe', null, $sessionToken);
-//			$userProfileDescribeResponse      = $this->getWebServiceResponse($webServiceURL . '/ws/policy/profile/describe', null, $sessionToken);
-			//$lookupMyAccountInfoResponse = $this->getWebServiceResponse($webServiceURL . '/ws/user/patron/key/' . $userID . '?includeFields=firstName,lastName,displayName,privilegeExpiresDate,estimatedOverdueAmount,patronStatusInfo,preferredAddress,address1,address2,address3,primaryPhone,patronstatus,checkoutLocation,library', null, $sessionToken);
-			$lookupMyAccountInfoResponse = $this->getWebServiceResponse($webServiceURL . '/ws/user/patron/key/' . $userID, null, $sessionToken);
-			if ($lookupMyAccountInfoResponse) {
+
+			$patronDescribeResponse           = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/describe', null, $sessionToken);
+//			$patronStatusInfoDescribeResponse = $this->getWebServiceResponse($webServiceURL . '/v1/user/patronStatusInfo/describe', null, $sessionToken);
+//			$userProfileDescribeResponse      = $this->getWebServiceResponse($webServiceURL . '/v1/policy/profile/describe', null, $sessionToken);
+
+//				$patronStatusResponse  = $this->getWebServiceResponse($webServiceURL . '/v1/user/patronStatusInfo/key/' . $userID, null, $sessionToken);
+			//TODO: This resource is currently hidden
+
+//			$lookupMyAccountInfoResponse = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/key/' . $userID . '?includeFields=firstName,lastName,displayName,privilegeExpiresDate,estimatedOverdueAmount,patronStatusInfo{*},preferredAddress,address1,address2,address3,primaryPhone,library', null, $sessionToken);
+			// TODO: Use Primary Phone at all? displayName doesn't seem to be a field
+			$lookupMyAccountInfoResponse = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/key/' . $userID . '?includeFields=firstName,lastName,privilegeExpiresDate,patronStatusInfo{*},preferredAddress,address1,address2,address3,library,circRecordList,blockList{owed},holdRecordList{status}', null, $sessionToken);
+			if ($lookupMyAccountInfoResponse && !isset($lookupMyAccountInfoResponse->messageList)) {
 				$lastName  = $lookupMyAccountInfoResponse->fields->lastName;
 				$firstName = $lookupMyAccountInfoResponse->fields->firstName;
 
-				if (isset($lookupMyAccountInfoResponse->fields->displayName)) {
-					$fullName = $lookupMyAccountInfoResponse->fields->displayName;
-				} else {
+//				if (isset($lookupMyAccountInfoResponse->fields->displayName)) {
+//					$fullName = $lookupMyAccountInfoResponse->fields->displayName;
+//				} else {
 					$fullName = $lastName . ', ' . $firstName;
-				}
+//				}
 
 				$userExistsInDB = false;
 				/** @var User $user */
 				$user = new User();
-//				$user->source = $this->accountProfile->name;
+				$user->source = $this->accountProfile->name;
 				$user->username = $userID;
 				if ($user->find(true)) {
 					$userExistsInDB = true;
@@ -139,25 +144,35 @@ abstract class SirsiDynixROA extends HorizonAPI
 				$user->cat_username = $username;
 				$user->cat_password = $password;
 
-				if (isset($lookupMyAccountInfoResponse->preferredAddress)) {
-					if ($lookupMyAccountInfoResponse->preferredAddress == 1) {
-						$address = $lookupMyAccountInfoResponse->address1;
-					} elseif ($lookupMyAccountInfoResponse->preferredAddress == 2) {
-						$address = $lookupMyAccountInfoResponse->address2;
-					} elseif ($lookupMyAccountInfoResponse->preferredAddress == 3) {
-						$address = $lookupMyAccountInfoResponse->address3;
+				if (isset($lookupMyAccountInfoResponse->fields->preferredAddress)) {
+					if ($lookupMyAccountInfoResponse->fields->preferredAddress == 1) {
+						$address = $lookupMyAccountInfoResponse->fields->address1;
+					} elseif ($lookupMyAccountInfoResponse->fields->preferredAddress == 2) {
+						$address = $lookupMyAccountInfoResponse->fields->address2;
+					} elseif ($lookupMyAccountInfoResponse->fields->preferredAddress == 3) {
+						$address = $lookupMyAccountInfoResponse->fields->address3;
 					}
 					foreach ($address as $addressField) {
-						if ($addressField->key == '2') {
-							$Address1 = $addressField->fields->data;
-						} elseif ($addressField->key == '3') {
-							$cityState = $addressField->fields->data;
-							list($City, $State) = explode(' ', $cityState);
-						} elseif ($addressField->key == '4') {
-							$Zip = $addressField->fields->data;
-						} elseif ($addressField->key == '6') {
-							$email       = $addressField->fields->data;
-							$user->email = $email;
+						$fields = $addressField->fields;
+						switch ($fields->code->key) {
+							case 'STREET' :
+								$Address1 = $fields->data;
+								break;
+							case 'CITY/STATE' :
+								$cityState = $fields->data;
+								list($City, $State) = explode(' ', $cityState);
+								break;
+							case 'ZIP' :
+								$Zip = $fields->data;
+								break;
+							case 'PHONE' :
+								$phone = $fields->data;
+								$user->phone = $phone;
+								break;
+							case 'EMAIL' :
+								$email = $fields->data;
+								$user->email = $email;
+								break;
 						}
 					}
 
@@ -176,7 +191,6 @@ abstract class SirsiDynixROA extends HorizonAPI
 					/** @var \Location $location */
 					$location       = new Location();
 					$location->code = $homeBranchCode;
-//					$location->find(1);
 					if (!$location->find(true)) {
 						unset($location);
 					}
@@ -232,15 +246,14 @@ abstract class SirsiDynixROA extends HorizonAPI
 					$user->homeLocation     = $location->displayName;
 				}
 
-				//TODO: See if we can get information about card expiration date
-				$expireClose = 0;
 				if (isset($lookupMyAccountInfoResponse->fields->privilegeExpiresDate)) {
 					$user->expires = $lookupMyAccountInfoResponse->fields->privilegeExpiresDate;
-					list ($monthExp, $dayExp, $yearExp) = explode("-", $user->expires);
+					list ($yearExp, $monthExp, $dayExp) = explode("-", $user->expires);
 					$timeExpire   = strtotime($monthExp . "/" . $dayExp . "/" . $yearExp);
 					$timeNow      = time();
 					$timeToExpire = $timeExpire - $timeNow;
 					if ($timeToExpire <= 30 * 24 * 60 * 60) {
+						//TODO: the ils also has an expire soon flag in the patronStatusInfo
 						if ($timeToExpire <= 0) {
 							$user->expired = 1;
 						}
@@ -249,14 +262,12 @@ abstract class SirsiDynixROA extends HorizonAPI
 				}
 
 				//Get additional information about fines, etc
-				$patronStatusResponse  = $this->getWebServiceResponse($webServiceURL . '/ws/user/patronStatusInfo/key/' . $userID, null, $sessionToken);
-				$patronStatusResponse2 = $this->getWebServiceResponse($webServiceURL . '/ws/user/patron/key/' . $userID . '?includeFields=patronStatusInfo,circRecordList,estimatedOverdueAmount,blockList,holdRecordList', null, $sessionToken);
 
 				$finesVal = 0;
-				if (isset($patronStatusResponse2->fields->blockList)) {
-					foreach ($patronStatusResponse2->fields->blockList as $block) {
+				if (isset($lookupMyAccountInfoResponse->fields->blockList)) {
+					foreach ($lookupMyAccountInfoResponse->fields->blockList as $block) {
 						// $block is a simplexml object with attribute info about currency, type casting as below seems to work for adding up. plb 3-27-2015
-						$fineAmount = (float)$block->balance;
+						$fineAmount = (float)$block->fields->owed->amount;
 						$finesVal   += $fineAmount;
 
 					}
@@ -264,12 +275,18 @@ abstract class SirsiDynixROA extends HorizonAPI
 
 				$numHoldsAvailable = 0;
 				$numHoldsRequested = 0;
-				if (isset($patronStatusResponse2->fields->holdRecordList)) {
-					foreach ($patronStatusResponse2->fields->holdRecordList as $hold) {
-						$holdInfo = $this->getWebServiceResponse($webServiceURL . '/ws/circulation/holdRecord/key/' . $hold->key, null, $sessionToken);
-						if ($holdInfo->fields->status == 'BEING_HELD') {
+				if (isset($lookupMyAccountInfoResponse->fields->holdRecordList)) {
+					foreach ($lookupMyAccountInfoResponse->fields->holdRecordList as $hold) {
+//						$holdInfo = $this->getWebServiceResponse($webServiceURL . '/ws/circulation/holdRecord/key/' . $hold->key, null, $sessionToken);
+//						//TODO include in original call
+//						if ($holdInfo->fields->status == 'BEING_HELD') {
+//							$numHoldsAvailable++;
+//						} elseif ($holdInfo->fields->status != 'EXPIRED') {
+//							$numHoldsRequested++;
+//						}
+						if ($hold->fields->status == 'BEING_HELD') {
 							$numHoldsAvailable++;
-						} else {
+						} elseif ($hold->fields->status != 'EXPIRED') {
 							$numHoldsRequested++;
 						}
 					}
@@ -280,16 +297,14 @@ abstract class SirsiDynixROA extends HorizonAPI
 				$user->city                  = $City;
 				$user->state                 = $State;
 				$user->zip                   = $Zip;
-				$user->phone                 = isset($lookupMyAccountInfoResponse->phone) ? (string)$lookupMyAccountInfoResponse->phone : '';
+//				$user->phone                 = isset($phone) ? $phone : '';
 				$user->fines                 = sprintf('$%01.2f', $finesVal);
 				$user->finesVal              = $finesVal;
-				$user->expires               = ''; //TODO: Determine if we can get this
-				$user->expireClose           = $expireClose;
-				$user->numCheckedOutIls      = isset($patronStatusResponse2->fields->circRecordList) ? count($patronStatusResponse2->fields->circRecordList) : 0;
+				$user->numCheckedOutIls      = isset($lookupMyAccountInfoResponse->fields->circRecordList) ? count($lookupMyAccountInfoResponse->fields->circRecordList) : 0;
 				$user->numHoldsIls           = $numHoldsAvailable + $numHoldsRequested;
 				$user->numHoldsAvailableIls  = $numHoldsAvailable;
 				$user->numHoldsRequestedIls  = $numHoldsRequested;
-				$user->patronType            = 0;
+				$user->patronType            = 0; //TODO: not getting this info here?
 				$user->notices               = '-';
 				$user->noticePreferenceLabel = 'E-mail';
 				$user->web_note              = '';
@@ -307,7 +322,6 @@ abstract class SirsiDynixROA extends HorizonAPI
 				$timer->logTime("lookupMyAccountInfo failed");
 				global $logger;
 				$logger->log('Symphony API call lookupMyAccountInfo failed.', PEAR_LOG_ERR);
-//				$logger->log($configArray['Catalog']['webServiceUrl'] . '/standard/lookupMyAccountInfo?clientID=' . $configArray['Catalog']['clientId'] . '&sessionToken=' . $sessionToken . '&includeAddressInfo=true&includeHoldInfo=true&includeBlockInfo=true&includeItemsOutInfo=true', PEAR_LOG_ERR);
 				return null;
 			}
 		}
@@ -361,7 +375,7 @@ abstract class SirsiDynixROA extends HorizonAPI
 		$webServiceURL = $this->getWebServiceURL();
 		//Get a list of holds for the user
 //		$loginDescribeResponse = $this->getWebServiceResponse($webServiceURL . '/user/patron/describe'); //TODO: remove
-		$patronCheckouts = $this->getWebServiceResponse($webServiceURL . '/ws/user/patron/key/' . $patron->username . '?includeFields=circRecordList', null, $sessionToken);
+		$patronCheckouts = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/key/' . $patron->username . '?includeFields=circRecordList{*}', null, $sessionToken);
 
 //		$circRecordDescribe  = $this->getWebServiceResponse($webServiceURL . "/ws/circulation/circRecord/describe", null, $sessionToken);
 		//TODO: remove
@@ -460,7 +474,7 @@ abstract class SirsiDynixROA extends HorizonAPI
 		//Now that we have the session token, get holds information
 		$webServiceURL = $this->getWebServiceURL();
 		//Get a list of holds for the user
-		$patronHolds = $this->getWebServiceResponse($webServiceURL . '/ws/user/patron/key/' . $patron->username . '?includeFields=holdRecordList', null, $sessionToken);
+		$patronHolds = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/key/' . $patron->username . '?includeFields=holdRecordList{*}', null, $sessionToken);
 //		$holdRecord  = $this->getWebServiceResponse($webServiceURL . "/ws/circulation/holdRecord/describe", null, $sessionToken);
 		if ($patronHolds && isset($patronHolds->fields)) {
 			require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
@@ -489,17 +503,20 @@ abstract class SirsiDynixROA extends HorizonAPI
 					$curHold['currentPickupName'] = $curPickupBranch->displayName;
 					$curHold['location']          = $curPickupBranch->displayName;
 				}
-				$curHold['locationUpdateable'] = true;
 				$curHold['currentPickupName']  = $curHold['location'];
 				$curHold['status']             = ucfirst(strtolower($holdInfo->fields->status));
 				$curHold['expire']             = strtotime($expireDate);
 				$curHold['reactivate']         = $reactivateDate;
 				$curHold['reactivateTime']     = strtotime($reactivateDate);
-				$curHold['cancelable']         = strcasecmp($curHold['status'], 'Suspended') != 0;
+				$curHold['cancelable']         = strcasecmp($curHold['status'], 'Suspended') != 0 && strcasecmp($curHold['status'], 'Expired') != 0;
 				$curHold['frozen']             = strcasecmp($curHold['status'], 'Suspended') == 0;
 				$curHold['freezeable']         = true;
-				if (strcasecmp($curHold['status'], 'Transit') == 0) {
+				if (strcasecmp($curHold['status'], 'Transit') == 0 || strcasecmp($curHold['status'], 'Expired') == 0) {
 					$curHold['freezeable'] = false;
+				}
+				$curHold['locationUpdateable'] = true;
+				if (strcasecmp($curHold['status'], 'Transit') == 0 || strcasecmp($curHold['status'], 'Expired') == 0) {
+					$curHold['locationUpdateable'] = false;
 				}
 
 				$recordDriver = new MarcRecord('a' . $bibId);
@@ -899,5 +916,159 @@ abstract class SirsiDynixROA extends HorizonAPI
 
 	}
 
+	/**
+	 * @param $patron
+	 * @param $includeMessages
+	 * @return array|PEAR_Error
+	 */
+	public function getMyFines($patron, $includeMessages)
+	{
+		$fines = array();
+		$sessionToken = $this->getSessionToken($patron);
+		if ($sessionToken) {
+
+			//create the hold using the web service
+			$webServiceURL = $this->getWebServiceURL();
+
+//			$blockList = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/key/' . $patron->username . '?includeFields=blockList{*}', null, $sessionToken);
+			$blockList = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/key/' . $patron->username . '?includeFields=blockList{*,item{bib{title,author}}}', null, $sessionToken);
+			// Include Title data if available
+
+			if (!empty($blockList->fields->blockList)) {
+				foreach ($blockList->fields->blockList as $block) {
+					$fine = $block->fields;
+					$title = '';
+					if (!empty($fine->item->fields->bib->fields->title)) {
+						$title = $fine->item->fields->bib->fields->title;
+						if (!empty($fine->item->fields->bib->fields->author)) {
+							$title .= '  by '.$fine->item->fields->bib->fields->author;
+						}
+
+					}
+					$fines[] = array(
+						'reason' => $fine->block->key,
+						'amount' => $fine->amount->amount,
+						'message' => $title,
+						'amountOutstanding' => $fine->owed->amount,
+						'date' => $fine->billDate
+					);
+				}
+			}
+		}
+		return $fines;
+	}
+
+	/**
+	 * @param $user
+	 * @param $oldPin
+	 * @param $newPin
+	 * @param $confirmNewPin
+	 * @return string
+	 */
+	function updatePin($patron, $oldPin, $newPin, $confirmNewPin)
+	{
+		$sessionToken = $this->getSessionToken($patron);
+		if (!$sessionToken) {
+			return 'Sorry, it does not look like you are logged in currently.  Please login and try again';
+		}
+
+		$params = array(
+			'currentPin' => $oldPin,
+		  'newPin' => $newPin
+		);
+
+		$webServiceURL = $this->getWebServiceURL();
+
+		$updatePinResponse = $this->getWebServiceResponse($webServiceURL . "/v1/user/patron/changeMyPin", $params, $sessionToken, 'POST');
+		if (0 /*TODO: success check*/) {
+
+		} else {
+			$messages = array();
+			if (isset($updatePinResponse->messageList)) {
+				foreach ($updatePinResponse->messageList as $message) {
+					$messages[] = $message->message;
+				}
+				return implode('; ', $messages);
+			}
+			return 'Failed to update pin';
+		}
+	}
+
+
+
+	// Newer Horizon API version
+	public function emailResetPin($barcode)
+	{
+		if (empty($barcode)) {
+			$barcode = $_REQUEST['barcode'];
+		}
+
+
+		$patron = new User;
+		$patron->get('cat_username', $barcode);
+		if (!empty($patron->id)) {
+			global $configArray;
+			$userID = $patron->id;
+
+			// If possible, check if Horizon has an email address for the patron
+			if (!empty($patron->cat_password)) {
+				list($userValid, $sessionToken, $userID) = $this->loginViaWebService($barcode, $patron->cat_password);
+				if ($userValid) {
+					// Yay! We were able to login with the pin Pika has!
+
+					//Now check for an email address
+					//TODO: update this look up
+					$lookupMyAccountInfoResponse = $this->getWebServiceResponse( $configArray['Catalog']['webServiceUrl']  . '/standard/lookupMyAccountInfo?clientID=' . $configArray['Catalog']['clientId'] . '&sessionToken=' . $sessionToken . '&includeAddressInfo=true');
+					if ($lookupMyAccountInfoResponse) {
+						if (isset($lookupMyAccountInfoResponse->AddressInfo)){
+							if (empty($lookupMyAccountInfoResponse->AddressInfo->email)){
+								// return an error message because horizon doesn't have an email.
+								return array(
+									'error' => 'The circulation system does not have an email associated with this card number. Please contact your library to reset your pin.'
+								);
+							}
+						}
+					}
+				}
+			}
+
+			// email the pin to the user
+//			$resetPinAPIUrl = $this->getBaseWebServiceUrl() . '/hzws/v1/user/patron/resetMyPin';
+			$resetPinAPIUrl = $this->getWebServiceUrl() . '/v1/user/patron/resetMyPin';
+			$jsonPOST       = array(
+				'login' => $barcode,
+				'resetPinUrl' => $configArray['Site']['url'] . '/MyAccount/ResetPin?resetToken=<RESET_PIN_TOKEN>&uid=' . $userID
+			);
+
+			$resetPinResponse = $this->getWebServiceResponse($resetPinAPIUrl, $jsonPOST, null, 'POST');
+			// Reset Pin Response is empty JSON on success.
+
+			if ($resetPinResponse === array() && !isset($resetPinResponse['messageList'])) {
+				return array(
+					'success' => true,
+				);
+			} else {
+				$result = array(
+					'error' => "Sorry, we could not e-mail your pin to you.  Please visit the library to reset your pin."
+				);
+				if (isset($resetPinResponse['messageList'])) {
+					$errors = '';
+					foreach ($resetPinResponse['messageList'] as $errorMessage) {
+						$errors .= $errorMessage['message'] . ';';
+					}
+					global $logger;
+					$logger->log('SirsiDynixROA Driver error updating user\'s Pin :' . $errors, PEAR_LOG_ERR);
+				}
+				return $result;
+			}
+
+
+
+		} else {
+			return array(
+				'error' => 'Sorry, we did not find the card number you entered or you have not logged into the catalog previously.  Please contact your library to reset your pin.'
+			);
+		}
+	}
 
 }
