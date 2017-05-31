@@ -111,6 +111,7 @@ rm /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
 
 #truncate the output file so you don't spend a week debugging an error from a week ago!
 : > $OUTPUT_FILE;
+/usr/local/vufind-plus/sites/aacpl.test/moveFullExport.sh aacpl/symphony aacpl.test >> ${OUTPUT_FILE}
 
 #Restart Solr
 cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
