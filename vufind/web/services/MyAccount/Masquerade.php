@@ -27,7 +27,7 @@ class MyAccount_Masquerade extends MyAccount
 			// Display error and embedded Masquerade As Form
 			global $interface;
 			$interface->assign('error', $result['error']);
-			$this->display('MasqueradeAs.tpl', 'Masquerade');
+			$this->display('masqueradeAs.tpl', 'Masquerade');
 		}
 	}
 
