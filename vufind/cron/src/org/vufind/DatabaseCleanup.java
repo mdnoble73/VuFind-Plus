@@ -69,19 +69,22 @@ public class DatabaseCleanup implements IProcessHandler {
 					libraryLocations += libraryLocationsRS.getString("locationId");
 				}
 
-				//Delete records for that library
-				PreparedStatement requestsToDeleteStmt = vufindConn.prepareStatement("SELECT materials_request.id from materials_request INNER JOIN materials_request_status on materials_request.status = materials_request_status.id INNER JOIN user on createdBy = user.id where isOpen = 0 and user.homeLocationId IN (" + libraryLocations + ") AND dateCreated < ?");
+				if (libraryLocations.length() > 0) {
+					//Delete records for that library
+					PreparedStatement requestsToDeleteStmt = vufindConn.prepareStatement("SELECT materials_request.id from materials_request INNER JOIN materials_request_status on materials_request.status = materials_request_status.id INNER JOIN user on createdBy = user.id where isOpen = 0 and user.homeLocationId IN (" + libraryLocations + ") AND dateCreated < ?");
 
-				Long now = new Date().getTime() / 1000;
-				Long earliestDateToPreserve = now - (daysToPreserve * 24 * 60 * 60);
-				requestsToDeleteStmt.setLong(1, earliestDateToPreserve);
+					Long now = new Date().getTime() / 1000;
+					Long earliestDateToPreserve = now - (daysToPreserve * 24 * 60 * 60);
+					requestsToDeleteStmt.setLong(1, earliestDateToPreserve);
 
-				ResultSet requestsToDeleteRS = requestsToDeleteStmt.executeQuery();
-				while (requestsToDeleteRS.next()){
-					requestToDeleteStmt.setLong(1, requestsToDeleteRS.getLong(1));
-					int numUpdates = requestToDeleteStmt.executeUpdate();
-					processLog.addUpdates(numUpdates);
-					numDeletions += numUpdates;
+					ResultSet requestsToDeleteRS = requestsToDeleteStmt.executeQuery();
+					while (requestsToDeleteRS.next()) {
+						requestToDeleteStmt.setLong(1, requestsToDeleteRS.getLong(1));
+						int numUpdates = requestToDeleteStmt.executeUpdate();
+						processLog.addUpdates(numUpdates);
+						numDeletions += numUpdates;
+					}
+					requestsToDeleteStmt.close();
 				}
 			}
 			librariesListRS.close();
