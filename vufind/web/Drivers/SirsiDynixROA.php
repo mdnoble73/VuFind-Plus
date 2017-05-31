@@ -1002,7 +1002,9 @@ abstract class SirsiDynixROA extends HorizonAPI
 				foreach ($updatePinResponse->messageList as $message) {
 					$messages[] = $message->message;
 				}
-				return implode('; ', $messages);
+				global $logger;
+				$logger->log('Symphony ILS encountered errors updating patron pin : '. implode('; ', $messages), PEAR_LOG_ERR);
+				return 'The circulation system encountered errors attempt to update the pin.';
 			}
 			return 'Failed to update pin';
 		}
