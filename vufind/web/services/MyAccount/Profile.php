@@ -90,12 +90,8 @@ class MyAccount_Profile extends MyAccount
 			$interface->assign('allowAccountLinking', $allowAccountLinking);
 
 			// Determine Pickup Locations
-			if ($showPickupLocationInProfile) { // only grab pickup locations if needed.
-				global $locationSingleton;
-				//Get the list of pickup branch locations for display in the user interface.
-				$locations = $locationSingleton->getPickupBranches($patron, $patron->homeLocationId); // TODO getPickUpBranches has a $isLinkedUser parameter, needed?
-				$interface->assign('pickupLocations', $locations);
-			}
+			$pickupLocations = $patron->getValidPickupBranches($patron->getAccountProfile()->name);
+			$interface->assign('pickupLocations', $pickupLocations);
 
 			// Save/Update Actions
 			if (isset($_POST['updateScope']) && !$configArray['Catalog']['offline']) {
@@ -165,13 +161,13 @@ class MyAccount_Profile extends MyAccount
 
 			if ($showAlternateLibraryOptionsInProfile) {
 				//Get the list of locations for display in the user interface.
-				$location                        = new Location();
-				$location->validHoldPickupBranch = 1;
-				$location->find();
 
 				$locationList = array();
-				while ($location->fetch()) {
-					$locationList[$location->locationId] = $location->displayName;
+				$locationList['0'] = "No Alternate Location Selected";
+				foreach ($pickupLocations as $pickupLocation){
+					if (!is_string($pickupLocation)){
+						$locationList[$pickupLocation->locationId] = $pickupLocation->displayName;
+					}
 				}
 				$interface->assign('locationList', $locationList);
 			}

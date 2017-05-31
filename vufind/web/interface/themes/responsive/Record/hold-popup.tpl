@@ -44,8 +44,12 @@
 						<select name="campus" id="campus" class="form-control">
 							{if count($pickupLocations) > 0}
 								{foreach from=$pickupLocations item=location}
-									<option value="{$location->code}"{if $location->selected == "selected"} selected="selected"{/if}
-													 data-users="[{$location->pickupUsers|@implode:','}]">{$location->displayName}</option>
+									{if is_string($location)}
+										<option value="undefined">{$location}</option>
+									{else}
+										<option value="{$location->code}"{if $location->selected == "selected"} selected="selected"{/if}
+										        data-users="[{$location->pickupUsers|@implode:','}]">{$location->displayName}</option>
+									{/if}
 								{/foreach}
 							{else}
 								<option>placeholder</option>
