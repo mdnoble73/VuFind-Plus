@@ -605,22 +605,31 @@ class User extends DB_DataObject
 
 		//Make sure the selected location codes are in the database.
 		if (isset($_POST['myLocation1'])){
-			$location = new Location();
-			$location->get('locationId', $_POST['myLocation1'] );
-			if ($location->N != 1) {
-				PEAR_Singleton::raiseError('The 1st location could not be found in the database.');
-			} else {
+			if ($_POST['myLocation1'] == 0){
 				$this->myLocation1Id = $_POST['myLocation1'];
+			}else{
+				$location = new Location();
+				$location->get('locationId', $_POST['myLocation1'] );
+				if ($location->N != 1) {
+					PEAR_Singleton::raiseError('The 1st location could not be found in the database.');
+				} else {
+					$this->myLocation1Id = $_POST['myLocation1'];
+				}
 			}
 		}
 		if (isset($_POST['myLocation2'])){
-			$location = new Location();
-			$location->get('locationId', $_POST['myLocation2'] );
-			if ($location->N != 1) {
-				PEAR_Singleton::raiseError('The 2nd location could not be found in the database.');
-			} else {
+			if ($_POST['myLocation2'] == 0){
 				$this->myLocation2Id = $_POST['myLocation2'];
+			}else{
+				$location = new Location();
+				$location->get('locationId', $_POST['myLocation2'] );
+				if ($location->N != 1) {
+					PEAR_Singleton::raiseError('The 2nd location could not be found in the database.');
+				} else {
+					$this->myLocation2Id = $_POST['myLocation2'];
+				}
 			}
+
 		}
 
 		$this->noPromptForUserReviews = (isset($_POST['noPromptForUserReviews']) && $_POST['noPromptForUserReviews'] == 'on')? 1 : 0;
@@ -949,6 +958,7 @@ class User extends DB_DataObject
 	 */
 	function placeHold($recordId, $pickupBranch, $cancelDate = null) {
 		$result = $this->getCatalogDriver()->placeHold($this, $recordId, $pickupBranch, $cancelDate);
+		$this->updateAltLocationForHold($pickupBranch);
 		if ($result['success']){
 			$this->clearCache();
 		}
@@ -957,6 +967,7 @@ class User extends DB_DataObject
 
 	function placeVolumeHold($recordId, $volumeId, $pickupBranch, $cancelDate = null){
 		$result = $this->getCatalogDriver()->placeVolumeHold($this, $recordId, $volumeId, $pickupBranch, $cancelDate);
+		$this->updateAltLocationForHold($pickupBranch);
 		if ($result['success']){
 			$this->clearCache();
 		}
@@ -969,6 +980,22 @@ class User extends DB_DataObject
 			$this->clearCache();
 		}
 		return $result;
+	}
+
+	function updateAltLocationForHold($pickupBranch){
+		if ($this->homeLocationCode != $pickupBranch) {
+			$location = new Location();
+			$location->code = $pickupBranch;
+			if ($location->find(true)) {
+				if ($this->myLocation1Id == 0) {
+					$this->myLocation1Id = $location->locationId;
+					$this->update();
+				} else if ($this->myLocation2Id == 0 && $location->locationId != $this->myLocation1Id) {
+					$this->myLocation2Id = $location->locationId;
+					$this->update();
+				}
+			}
+		}
 	}
 
 	function cancelBookedMaterial($cancelId){
@@ -1015,6 +1042,7 @@ class User extends DB_DataObject
 	 */
 	function placeItemHold($recordId, $itemId, $pickupBranch) {
 		$result = $this->getCatalogDriver()->placeItemHold($this, $recordId, $itemId, $pickupBranch);
+		$this->updateAltLocationForHold($pickupBranch);
 		if ($result['success']){
 			$this->clearCache();
 		}

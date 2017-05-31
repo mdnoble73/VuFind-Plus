@@ -87,6 +87,10 @@ VuFind.Record = (function(){
 			if (volume.length > 0){
 				params['volume'] = volume.val();
 			}
+			if (params['campus'] == 'undefined'){
+				alert("Please select a location to pick up your hold when it is ready.");
+				return false;
+			}
 			$.getJSON(Globals.path + "/" + module +  "/" + id + "/AJAX", params, function(data){
 				if (data.success){
 					if (data.needsItemLevelHold){
