@@ -75,10 +75,11 @@ abstract class SirsiDynixROA extends HorizonAPI
 		return $webServiceURL;
 	}
 
+	private static $userPreferredAddresses = array();
+
 	public function patronLogin($username, $password, $validatedViaSSO)
 	{
 		global $timer;
-		global $configArray;
 		global $logger;
 
 		//Remove any spaces from the barcode
@@ -97,7 +98,7 @@ abstract class SirsiDynixROA extends HorizonAPI
 			$webServiceURL = $this->getWebServiceURL();
 
 
-			$patronDescribeResponse           = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/describe', null, $sessionToken);
+//			$patronDescribeResponse           = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/describe', null, $sessionToken);
 //			$patronStatusInfoDescribeResponse = $this->getWebServiceResponse($webServiceURL . '/v1/user/patronStatusInfo/describe', null, $sessionToken);
 //			$userProfileDescribeResponse      = $this->getWebServiceResponse($webServiceURL . '/v1/policy/profile/describe', null, $sessionToken);
 
@@ -144,13 +145,24 @@ abstract class SirsiDynixROA extends HorizonAPI
 				$user->cat_username = $username;
 				$user->cat_password = $password;
 
+				$Address1    = "";
+				$City        = "";
+				$State       = "";
+				$Zip         = "";
+
 				if (isset($lookupMyAccountInfoResponse->fields->preferredAddress)) {
-					if ($lookupMyAccountInfoResponse->fields->preferredAddress == 1) {
+					$preferredAddress = $lookupMyAccountInfoResponse->fields->preferredAddress;
+					// Set for Account Updating
+					self::$userPreferredAddresses[$userID] = $preferredAddress;
+					// Used by My Account Profile to update Contact Info
+					if ($preferredAddress == 1) {
 						$address = $lookupMyAccountInfoResponse->fields->address1;
-					} elseif ($lookupMyAccountInfoResponse->fields->preferredAddress == 2) {
+					} elseif ($preferredAddress == 2) {
 						$address = $lookupMyAccountInfoResponse->fields->address2;
-					} elseif ($lookupMyAccountInfoResponse->fields->preferredAddress == 3) {
+					} elseif ($preferredAddress == 3) {
 						$address = $lookupMyAccountInfoResponse->fields->address3;
+					} else {
+						$address = array();
 					}
 					foreach ($address as $addressField) {
 						$fields = $addressField->fields;
@@ -160,7 +172,15 @@ abstract class SirsiDynixROA extends HorizonAPI
 								break;
 							case 'CITY/STATE' :
 								$cityState = $fields->data;
-								list($City, $State) = explode(' ', $cityState);
+								if (substr_count($cityState, ' ') > 1) {
+									//Splitting multiple word cities
+									$last_space = strrpos($cityState, ' ');
+									$City = substr($cityState, 0, $last_space);
+									$State = substr($cityState, $last_space+1);
+
+								} else {
+									list($City, $State) = explode(' ', $cityState);
+								}
 								break;
 							case 'ZIP' :
 								$Zip = $fields->data;
@@ -176,12 +196,6 @@ abstract class SirsiDynixROA extends HorizonAPI
 						}
 					}
 
-				} else {
-					$Address1    = "";
-					$City        = "";
-					$State       = "";
-					$Zip         = "";
-					$user->email = '';
 				}
 
 				//Get additional information about the patron's home branch for display.
@@ -1070,5 +1084,121 @@ abstract class SirsiDynixROA extends HorizonAPI
 			);
 		}
 	}
+
+	/**
+	 * @param User $user
+	 * @param bool $canUpdateContactInfo
+	 * @return array
+	 */
+	function updatePatronInfo($user, $canUpdateContactInfo)
+	{
+		$updateErrors = array();
+		if ($canUpdateContactInfo) {
+			$sessionToken = $this->getSessionToken($user);
+			if ($sessionToken) {
+				$webServiceURL = $this->getWebServiceURL();
+				if ($userID = $user->username) {
+					$updatePatronInfoParameters = array(
+						'fields' => array(),
+					  'key' => $userID,
+					  'resource' => '/user/patron',
+					);
+					if (!empty(self::$userPreferredAddresses[$userID])) {
+						$preferredAddress = self::$userPreferredAddresses[$userID];
+					} else {
+						// TODO: Also set the preferred address in the $updatePatronInfoParameters
+						$preferredAddress = 1;
+					}
+
+					// Build Address Field with existing data
+					$index = 0;
+
+					// Closure to handle the data structure of the address parameters to pass onto the ILS
+					$setField = function ($key, $value) use (&$updatePatronInfoParameters, $preferredAddress, &$index) {
+						static $parameterIndex = array();
+
+						$addressField = 'address' . $preferredAddress;
+						$patronAddressPolicyResource = '/policy/patron' . ucfirst($addressField);
+
+						$l = array_key_exists($key, $parameterIndex) ? $parameterIndex[$key] : $index++;
+						$updatePatronInfoParameters['fields'][$addressField][$l] = array(
+							'resource' => '/user/patron/'. $addressField,
+							'fields' => array(
+								'code' => array(
+									'key' => $key,
+									'resource' => $patronAddressPolicyResource
+								),
+								'data' => $value
+							)
+						);
+						$parameterIndex[$key] = $l;
+
+					};
+
+					if (!empty($user->email)) {
+						$setField('EMAIL', $user->email);
+					}
+
+					if (!empty($user->address1)) {
+						$setField('STREET', $user->address1);
+					}
+
+					if (!empty($user->zip)) {
+						$setField('ZIP', $user->zip);
+					}
+
+					if (!empty($user->phone)) {
+						$setField('PHONE', $user->phone);
+					}
+
+					if (!empty($user->city) && !empty($user->city)) {
+						$setField('CITY/STATE', $user->city .' '. $user->state);
+					}
+
+
+					// Update Address Field with new data supplied by the user
+					if (isset($_REQUEST['email'])) {
+						$setField('EMAIL', $_REQUEST['email']);
+					}
+
+					if (isset($_REQUEST['phone'])) {
+						$setField('PHONE',$_REQUEST['phone']);
+					}
+
+					if (isset($_REQUEST['address1'])) {
+						$setField('STREET',$_REQUEST['address1']);
+					}
+
+					if (isset($_REQUEST['city']) && isset($_REQUEST['state'])) {
+						$setField('CITY/STATE',$_REQUEST['city'] . ' ' . $_REQUEST['state']);
+					}
+
+					if (isset($_REQUEST['zip'])) {
+						$setField('ZIP',$_REQUEST['zip']);
+					}
+
+					$updateAccountInfoResponse = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/key/' . $userID, $updatePatronInfoParameters, $sessionToken, 'PUT');
+
+						if (isset($updateAccountInfoResponse->messageList)) {
+							foreach ($updateAccountInfoResponse->messageList as $message) {
+								$updateErrors[] = $message->message;
+							}
+							global $logger;
+							$logger->log('Symphony Driver - Patron Info Update Error - Error from ILS : '.implode(';', $updateErrors), PEAR_LOG_ERR);
+						}
+				} else {
+					global $logger;
+					$logger->log('Symphony Driver - Patron Info Update Error: Catalog does not have the circulation system User Id', PEAR_LOG_ERR);
+					$updateErrors[] = 'Catalog does not have the circulation system User Id';
+				}
+			} else {
+				$updateErrors[] = 'Sorry, it does not look like you are logged in currently.  Please login and try again';
+			}
+		} else {
+			$updateErrors[] = 'You do not have permission to update profile information.';
+		}
+		return $updateErrors;
+	}
+
 
 }
