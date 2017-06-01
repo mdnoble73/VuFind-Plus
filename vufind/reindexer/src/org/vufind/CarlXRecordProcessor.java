@@ -83,8 +83,12 @@ public class CarlXRecordProcessor extends IlsRecordProcessor {
 				}
 			}
 			logger.info("  Selected Format is " + selectedFormat);
-		}else{
+		}else if (printFormats.size() == 1) {
 			selectedFormat = printFormats.keySet().iterator().next();
+		}else{
+			//format not found based on item records.
+			//TODO Fall back to default method?
+			selectedFormat = "On Order";
 		}
 		selectedPrintFormats.add(selectedFormat);
 

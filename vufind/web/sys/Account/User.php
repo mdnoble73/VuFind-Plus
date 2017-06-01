@@ -984,16 +984,23 @@ class User extends DB_DataObject
 
 	function updateAltLocationForHold($pickupBranch){
 		if ($this->homeLocationCode != $pickupBranch) {
+			global $logger;
+			$logger->log("The selected pickup branch is not the user's home location, checking to see if we need to set an alternate branch", PEAR_LOG_INFO);
 			$location = new Location();
 			$location->code = $pickupBranch;
 			if ($location->find(true)) {
+				$logger->log("Found the location for the pickup branch $pickupBranch {$location->locationId}", PEAR_LOG_INFO);
 				if ($this->myLocation1Id == 0) {
+					$logger->log("Alternate location 1 is blank updating that", PEAR_LOG_INFO);
 					$this->myLocation1Id = $location->locationId;
 					$this->update();
 				} else if ($this->myLocation2Id == 0 && $location->locationId != $this->myLocation1Id) {
+					$logger->log("Alternate location 2 is blank updating that", PEAR_LOG_INFO);
 					$this->myLocation2Id = $location->locationId;
 					$this->update();
 				}
+			}else{
+				$logger->log("Could not find location for $pickupBranch", PEAR_LOG_ERR);
 			}
 		}
 	}
