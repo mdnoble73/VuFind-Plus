@@ -15,7 +15,7 @@ abstract class SirsiDynixROA extends HorizonAPI
 	private static $sessionIdsForUsers = array();
 
 	// $customRequest is for curl, can be 'PUT', 'DELETE', 'POST'
-	public function getWebServiceResponse($url, $params = null, $session = null, $customRequest = null)
+	public function getWebServiceResponse($url, $params = null, $sessionToken = null, $customRequest = null)
 	{
 		global $configArray;
 		global $logger;
@@ -28,8 +28,8 @@ abstract class SirsiDynixROA extends HorizonAPI
 			'SD-Originating-App-Id: Pika',
 			'x-sirs-clientID: ' . $clientId,
 		);
-		if ($session != null) {
-			$headers[] = 'x-sirs-sessionToken: ' . $session;
+		if ($sessionToken != null) {
+			$headers[] = 'x-sirs-sessionToken: ' . $sessionToken;
 		}
 		if (empty($customRequest)) {
 			curl_setopt($ch, CURLOPT_HTTPGET, true);
@@ -1002,21 +1002,60 @@ abstract class SirsiDynixROA extends HorizonAPI
 				foreach ($updatePinResponse->messageList as $message) {
 					$messages[] = $message->message;
 				}
-				return implode('; ', $messages);
+				global $logger;
+				$logger->log('Symphony ILS encountered errors updating patron pin : '. implode('; ', $messages), PEAR_LOG_ERR);
+				return 'The circulation system encountered errors attempt to update the pin.';
 			}
 			return 'Failed to update pin';
 		}
 	}
 
+	function resetPin($user, $newPin, $resetToken=null){
+		if (empty($resetToken)) {
+			global $logger;
+			$logger->log('No Reset Token passed to resetPin function', PEAR_LOG_ERR);
+			return array(
+				'error' => 'Sorry, we could not update your pin. The reset token is missing. Please try again later'
+			);
+		}
 
+		$changeMyPinAPIUrl = $this->getWebServiceUrl() . '/v1/user/patron/changeMyPin';
+		$jsonParameters = array(
+			'resetPinToken' => $resetToken,
+			'newPin' => $newPin,
+		);
+		$changeMyPinResponse = $this->getWebServiceResponse($changeMyPinAPIUrl, $jsonParameters, null, 'POST');
+		if (is_object($changeMyPinResponse) &&  isset($changeMyPinResponse->messageList)) {
+			$errors = array();
+			foreach ($changeMyPinResponse->messageList as $message) {
+				$errors[] = $message->message;
+			}
+			global $logger;
+			$logger->log('SirsiDynixROA Driver error updating user\'s Pin :'. implode(';',$errors), PEAR_LOG_ERR);
+			return array(
+				'error' => 'Sorry, we encountered an error while attempting to update your pin. Please contact your local library.'
+			);
+		} elseif (!empty($changeMyPinResponse->sessionToken)){
+			if ($user->username == $changeMyPinResponse->key) { // Check that the ILS user matches the Pika user
+				$user->cat_password = $newPin;
+				$user->update();
+			}
+			return array(
+				'success' => true,
+			);
+//			return "Your pin number was updated successfully.";
+		}else{
+			return array(
+				'error' => "Sorry, we could not update your pin number. Please try again later."
+			);
+		}
+	}
 
-	// Newer Horizon API version
 	public function emailResetPin($barcode)
 	{
 		if (empty($barcode)) {
 			$barcode = $_REQUEST['barcode'];
 		}
-
 
 		$patron = new User;
 		$patron->get('cat_username', $barcode);
@@ -1024,22 +1063,34 @@ abstract class SirsiDynixROA extends HorizonAPI
 			global $configArray;
 			$userID = $patron->id;
 
-			// If possible, check if Horizon has an email address for the patron
+			// If possible, check if ILS has an email address for the patron
 			if (!empty($patron->cat_password)) {
 				list($userValid, $sessionToken, $userID) = $this->loginViaWebService($barcode, $patron->cat_password);
 				if ($userValid) {
 					// Yay! We were able to login with the pin Pika has!
 
 					//Now check for an email address
-					//TODO: update this look up
-					$lookupMyAccountInfoResponse = $this->getWebServiceResponse( $configArray['Catalog']['webServiceUrl']  . '/standard/lookupMyAccountInfo?clientID=' . $configArray['Catalog']['clientId'] . '&sessionToken=' . $sessionToken . '&includeAddressInfo=true');
+					$lookupMyAccountInfoResponse = $this->getWebServiceResponse($this->getWebServiceURL() . '/v1/user/patron/key/' . $userID . '?includeFields=preferredAddress,address1,address2,address3', null, $sessionToken);
 					if ($lookupMyAccountInfoResponse) {
-						if (isset($lookupMyAccountInfoResponse->AddressInfo)){
-							if (empty($lookupMyAccountInfoResponse->AddressInfo->email)){
-								// return an error message because horizon doesn't have an email.
-								return array(
-									'error' => 'The circulation system does not have an email associated with this card number. Please contact your library to reset your pin.'
-								);
+						if (isset($lookupMyAccountInfoResponse->fields->preferredAddress)){
+							$preferredAddress = $lookupMyAccountInfoResponse->fields->preferredAddress;
+							$addressField = 'address'. $preferredAddress;
+							//TODO: Does Symphony's email reset pin use any email address; or just the one associated with the preferred Address
+							if (!empty($lookupMyAccountInfoResponse->fields->$addressField)){
+								$addressData = $lookupMyAccountInfoResponse->fields->$addressField;
+								$email = '';
+								foreach ($addressData as $field) {
+									if ($field->fields->code->key == 'EMAIL') {
+										$email = $field->fields->data;
+										break;
+									}
+								}
+								if (empty($email)) {
+									// return an error message because Symphony doesn't have an email.
+									return array(
+										'error' => 'The circulation system does not have an email associated with this card number. Please contact your library to reset your pin.'
+									);
+								}
 							}
 						}
 					}
@@ -1047,7 +1098,6 @@ abstract class SirsiDynixROA extends HorizonAPI
 			}
 
 			// email the pin to the user
-//			$resetPinAPIUrl = $this->getBaseWebServiceUrl() . '/hzws/v1/user/patron/resetMyPin';
 			$resetPinAPIUrl = $this->getWebServiceUrl() . '/v1/user/patron/resetMyPin';
 			$jsonPOST       = array(
 				'login' => $barcode,
@@ -1055,9 +1105,8 @@ abstract class SirsiDynixROA extends HorizonAPI
 			);
 
 			$resetPinResponse = $this->getWebServiceResponse($resetPinAPIUrl, $jsonPOST, null, 'POST');
-			// Reset Pin Response is empty JSON on success.
-
-			if ($resetPinResponse === array() && !isset($resetPinResponse['messageList'])) {
+			if (is_object($resetPinResponse) && !isset($resetPinResponse->messageList)) {
+				// Reset Pin Response is empty JSON on success.
 				return array(
 					'success' => true,
 				);
@@ -1065,18 +1114,16 @@ abstract class SirsiDynixROA extends HorizonAPI
 				$result = array(
 					'error' => "Sorry, we could not e-mail your pin to you.  Please visit the library to reset your pin."
 				);
-				if (isset($resetPinResponse['messageList'])) {
-					$errors = '';
-					foreach ($resetPinResponse['messageList'] as $errorMessage) {
-						$errors .= $errorMessage['message'] . ';';
+				if (isset($resetPinResponse->messageList)) {
+					$errors = array();
+					foreach ($resetPinResponse->messageList as $message) {
+						$errors[] = $message->message;
 					}
 					global $logger;
-					$logger->log('SirsiDynixROA Driver error updating user\'s Pin :' . $errors, PEAR_LOG_ERR);
+					$logger->log('SirsiDynixROA Driver error updating user\'s Pin :' . implode(';', $errors), PEAR_LOG_ERR);
 				}
 				return $result;
 			}
-
-
 
 		} else {
 			return array(
