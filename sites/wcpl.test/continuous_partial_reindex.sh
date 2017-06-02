@@ -99,18 +99,21 @@ do
 	#Fetch partial updates from FTP server
 	mount 10.1.2.7:/ftp/wcpl /mnt/ftp >> ${OUTPUT_FILE}
 	find /mnt/ftp/continuous_exports -maxdepth 1 -mmin -30 -name *.mrc| while FILES= read FILE; do
-	#Above find is for test only. Copy any partial exports from the last 30 minutes because of the moving out the partials is only done in production
+		#Above find is for test only. Copy any partial exports from the last 30 minutes because of the moving out the partials is only done in production
 
-	#find /mnt/ftp/continuous_exports -maxdepth 1 -name *.mrc| while FILES= read FILE; do
-	#Above find is for production only. Copy any partial exports from the last 30 minutes
-	# Note: the space after the equals is important in  "while FILES= read FILE;"
+		#find /mnt/ftp/continuous_exports -maxdepth 1 -name *.mrc| while FILES= read FILE; do
+		#Above find is for production only. Copy any partial exports from the last 30 minutes
+		# Note: the space after the equals is important in  "while FILES= read FILE;"
+		if test "`find $FILE -mmin +1`"; then
+			cp $FILE /data/vufind-plus/${PIKASERVER}/marc_updates/ >> ${OUTPUT_FILE}
+		else
+			echo "$FILE was modified less than 1 minute ago, waiting to copy "
+		fi
+		#	echo "cp $FILE /data/vufind-plus/${PIKASERVER}/marc_updates/"
 
-	        cp $FILE /data/vufind-plus/${PIKASERVER}/marc_updates/ >> ${OUTPUT_FILE}
-	#        echo "cp $FILE /data/vufind-plus/${PIKASERVER}/marc_updates/"
-
-	#        # Move to processed (Production Only does this)
-	#        mv $FILE /mnt/ftp/continuous_exports/processed/ >> ${OUTPUT_FILE}
-	#        echo "mv $FILE /mnt/ftp/continuous_exports/processed/"
+		#	# Move to processed (Production Only does this)
+		#	mv $FILE /mnt/ftp/continuous_exports/processed/ >> ${OUTPUT_FILE}
+		#	echo "mv $FILE /mnt/ftp/continuous_exports/processed/"
 	done
 	umount /mnt/ftp >> ${OUTPUT_FILE}
 
