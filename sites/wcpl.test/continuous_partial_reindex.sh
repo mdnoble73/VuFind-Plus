@@ -104,17 +104,16 @@ do
 		#find /mnt/ftp/continuous_exports -maxdepth 1 -name *.mrc| while FILES= read FILE; do
 		#Above find is for production only. Copy any partial exports from the last 30 minutes
 		# Note: the space after the equals is important in  "while FILES= read FILE;"
-		if test "`find $FILE -mmin +1`"; then
+		if test "`find $FILE -mmin -1`"; then
+			echo "$FILE was modified less than 1 minute ago, waiting to copy "
+		else
 			echo "Copying $FILE"
 			cp $FILE /data/vufind-plus/${PIKASERVER}/marc_updates/ >> ${OUTPUT_FILE}
-		else
-			echo "$FILE was modified less than 1 minute ago, waiting to copy "
-		fi
-		#	echo "cp $FILE /data/vufind-plus/${PIKASERVER}/marc_updates/"
 
-		#	# Move to processed (Production Only does this)
-		#	mv $FILE /mnt/ftp/continuous_exports/processed/ >> ${OUTPUT_FILE}
-		#	echo "mv $FILE /mnt/ftp/continuous_exports/processed/"
+			#	# Move to processed (Production Only does this)
+			#	mv $FILE /mnt/ftp/continuous_exports/processed/ >> ${OUTPUT_FILE}
+			#	echo "mv $FILE /mnt/ftp/continuous_exports/processed/"
+		fi
 	done
 	umount /mnt/ftp >> ${OUTPUT_FILE}
 
