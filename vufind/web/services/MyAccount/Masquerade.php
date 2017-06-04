@@ -17,6 +17,7 @@ class MyAccount_Masquerade extends MyAccount
 	// When the parameters aren't passed and there is no user logged in, MyAccount::__construct will prompt user to login,
 	// with a followup action back to this class
 
+
 	function launch()
 	{
 		$result = $this->initiateMasquerade();
@@ -106,6 +107,7 @@ class MyAccount_Masquerade extends MyAccount
 											'error'   => 'You do not have the same home library branch as the patron.'
 										);
 									}
+									break;
 								case 'library' :
 									$guidingUserLibrary = $user->getHomeLibrary();
 									if (!$guidingUserLibrary) {
@@ -127,6 +129,7 @@ class MyAccount_Masquerade extends MyAccount
 											'error'   => 'You do not have the same home library as the patron.'
 										);
 									}
+									break;
 								case 'any' :
 									global $guidingUser;
 									$guidingUser = $user;
