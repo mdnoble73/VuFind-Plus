@@ -58,8 +58,9 @@ class MyAccount_Masquerade extends MyAccount
 									'error' => 'No need to masquerade as yourself.'
 								);
 							}
+							$logger->log("Found masqueraded user with card " . $libraryCard, PEAR_LOG_ERR);
 						} else {
-
+							$logger->log("Testing a different login configuration", PEAR_LOG_ERR);
 							// Check for another ILS with a different login configuration
 							$accountProfile = new AccountProfile();
 							$accountProfile->groupBy('loginConfiguration');
@@ -134,6 +135,7 @@ class MyAccount_Masquerade extends MyAccount
 									break;
 								case 'any' :
 									global $guidingUser;
+									$logger->log("Logging in with masqueraded user information", PEAR_LOG_ERR);
 									$guidingUser = $user;
 									// NOW login in as masquerade user
 									$_REQUEST['username'] = $masqueradedUser->cat_username;
