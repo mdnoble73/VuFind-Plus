@@ -302,12 +302,13 @@ if ($user) {
 		if (isset($_REQUEST['followupModule']) && isset($_REQUEST['followupAction'])) {
 
 			// For Masquerade Follow up, start directly instead of a redirect
-			/*if ($_REQUEST['followupAction'] == 'Masquerade' && $_REQUEST['followupModule'] == 'MyAccount') {
+			if ($_REQUEST['followupAction'] == 'Masquerade' && $_REQUEST['followupModule'] == 'MyAccount') {
+				$logger->log("Processing Masquerade after logging in", PEAR_LOG_ERR);
 				require_once ROOT_DIR . '/services/MyAccount/Masquerade.php';
 				$masquerade = new MyAccount_Masquerade();
 				$masquerade->launch();
 				die;
-			}*/
+			}
 
 			echo("Redirecting to followup location");
 			$followupUrl = $configArray['Site']['path'] . "/". strip_tags($_REQUEST['followupModule']);
