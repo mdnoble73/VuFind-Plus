@@ -21,7 +21,7 @@ class MyAccount_Masquerade extends MyAccount
 	{
 		$result = $this->initiateMasquerade();
 		if ($result['success']) {
-			header('Location: Home');
+			header('Location: /MyAccount/Home');
 			exit();
 		} else {
 			// Display error and embedded Masquerade As Form

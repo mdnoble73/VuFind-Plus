@@ -994,7 +994,10 @@ abstract class SirsiDynixROA extends HorizonAPI
 		$webServiceURL = $this->getWebServiceURL();
 
 		$updatePinResponse = $this->getWebServiceResponse($webServiceURL . "/v1/user/patron/changeMyPin", $params, $sessionToken, 'POST');
-		if (0 /*TODO: success check*/) {
+		if (!empty($updatePinResponse->patronKey) && $updatePinResponse->patronKey ==  $patron->username) {
+			$patron->cat_password = $newPin;
+			$patron->update();
+			return "Your pin number was updated successfully.";
 
 		} else {
 			$messages = array();
@@ -1036,7 +1039,7 @@ abstract class SirsiDynixROA extends HorizonAPI
 				'error' => 'Sorry, we encountered an error while attempting to update your pin. Please contact your local library.'
 			);
 		} elseif (!empty($changeMyPinResponse->sessionToken)){
-			if ($user->username == $changeMyPinResponse->key) { // Check that the ILS user matches the Pika user
+			if ($user->username == $changeMyPinResponse->patronKey) { // Check that the ILS user matches the Pika user
 				$user->cat_password = $newPin;
 				$user->update();
 			}
@@ -1061,7 +1064,7 @@ abstract class SirsiDynixROA extends HorizonAPI
 		$patron->get('cat_username', $barcode);
 		if (!empty($patron->id)) {
 			global $configArray;
-			$userID = $patron->id;
+			$pikaUserID = $patron->id;
 
 			// If possible, check if ILS has an email address for the patron
 			if (!empty($patron->cat_password)) {
@@ -1101,7 +1104,7 @@ abstract class SirsiDynixROA extends HorizonAPI
 			$resetPinAPIUrl = $this->getWebServiceUrl() . '/v1/user/patron/resetMyPin';
 			$jsonPOST       = array(
 				'login' => $barcode,
-				'resetPinUrl' => $configArray['Site']['url'] . '/MyAccount/ResetPin?resetToken=<RESET_PIN_TOKEN>&uid=' . $userID
+				'resetPinUrl' => $configArray['Site']['url'] . '/MyAccount/ResetPin?resetToken=<RESET_PIN_TOKEN>&uid=' . $pikaUserID
 			);
 
 			$resetPinResponse = $this->getWebServiceResponse($resetPinAPIUrl, $jsonPOST, null, 'POST');
