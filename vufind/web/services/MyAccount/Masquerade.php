@@ -38,7 +38,7 @@ class MyAccount_Masquerade extends MyAccount
 		global $logger;
 		if (!empty($library) && $library->allowMasqueradeMode) {
 			if (!empty($_REQUEST['cardNumber'])) {
-				$logger->loge("Masquerading as " . $_REQUEST['cardNumber'], PEAR_LOG_ERR);
+				$logger->log("Masquerading as " . $_REQUEST['cardNumber'], PEAR_LOG_ERR);
 				$libraryCard = $_REQUEST['cardNumber'];
 				global $guidingUser;
 				if (empty($guidingUser)) {
