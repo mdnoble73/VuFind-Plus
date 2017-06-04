@@ -246,6 +246,14 @@ class DBMaintenanceEContent extends Admin_Admin {
 						),
 				),
 
+				'overdrive_api_data_metadata_isOwnedByCollections' => array(
+						'title' => 'Add isOwnedByCollections to OverDrive Metadata API',
+						'description' => 'Update isOwnedByCollections table to add metadata table',
+						'sql' => array(
+								"ALTER TABLE overdrive_api_product_metadata ADD COLUMN isOwnedByCollections TINYINT(1) DEFAULT '1'",
+						),
+				),
+
 			'utf8_update' => array(
 				'title' => 'Update to UTF-8',
 				'description' => 'Update database to use UTF-8 encoding',
