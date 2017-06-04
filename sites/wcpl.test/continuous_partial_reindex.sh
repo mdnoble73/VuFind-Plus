@@ -107,7 +107,6 @@ do
 		if test "`find $FILE -mmin -1`"; then
 			echo "$FILE was modified less than 1 minute ago, waiting to copy "
 		else
-			echo "Copying $FILE"
 			cp $FILE /data/vufind-plus/${PIKASERVER}/marc_updates/ >> ${OUTPUT_FILE}
 
 			#	# Move to processed (Production Only does this)
