@@ -8,7 +8,7 @@ if {[file exists $confpwd] != 1} {
         puts "Please check spelling of site $site; config.pwd.ini not found at $confpwd"
         exit
 }
-set localPath "/data/pika/$site/marc/"
+set localPath "/data/pika/$site/marc"
 if {[file exists $localPath] != 1} {
         puts "Please check spelling of site $site; /marc/ directory not found at $localPath"
         exit
@@ -46,7 +46,5 @@ expect -re ".*password.*"
 send "$FTPPassword\r"
 expect "100%"
 close
-set timeout $wait
-puts $logFile "[clock format [clock seconds] -format "%y%m%d %H:%M:%S"] >> MARC extract retrieved from $host"
 #
 #--eof--
