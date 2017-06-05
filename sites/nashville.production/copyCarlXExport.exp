@@ -40,16 +40,13 @@ while {![eof $fd]} {
 }
 
 set timeout 2400
-spawn sftp $FTPUser@$FTPHost
-expect "$FTPUser@$FTPHost's password:"
-send "$FTPPassword"
-expect "sftp> "
-send "lcd /data/pika/$site/marc\r"
-expect "sftp> "
-send "cd /carl.output\r"
-expect "sftp> "
-send "get fullExport fullExport.mrc\r"
-expect "sftp> "
-send "bye\r"
+spawn scp $FTPUser@$FTPHost:/carl.output/fullExport $localPath/fullExport.mrc
+set timeout -1
+expect -re ".*password.*"
+send "$FTPPassword\r"
+expect "100%"
+close
+set timeout $wait
+puts $logFile "[clock format [clock seconds] -format "%y%m%d %H:%M:%S"] >> MARC extract retrieved from $host"
 #
 #--eof--
