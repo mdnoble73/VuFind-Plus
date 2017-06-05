@@ -8,7 +8,7 @@ if {[file exists $confpwd] != 1} {
         puts "Please check spelling of site $site; config.pwd.ini not found at $confpwd"
         exit
 }
-set localPath "/data/vufind-plus/$site/marc/"
+set localPath "/data/pika/$site/marc/"
 if {[file exists $localPath] != 1} {
         puts "Please check spelling of site $site; /marc/ directory not found at $localPath"
         exit
@@ -44,7 +44,7 @@ spawn sftp $FTPUser@$FTPHost
 expect "password:"
 send "$FTPPassword"
 expect "sftp> "
-send "lcd /data/vufind-plus/$site/marc\r"
+send "lcd /data/pika/$site/marc\r"
 expect "sftp> "
 send "cd /carl.output\r"
 expect "sftp> "
