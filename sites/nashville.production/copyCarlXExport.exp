@@ -41,7 +41,7 @@ while {![eof $fd]} {
 
 set timeout 2400
 spawn sftp $FTPUser@$FTPHost
-expect "password:"
+expect "$FTPUser@$FTPHost's password:"
 send "$FTPPassword"
 expect "sftp> "
 send "lcd /data/pika/$site/marc\r"
