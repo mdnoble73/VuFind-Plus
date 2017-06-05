@@ -1,0 +1,55 @@
+#!/usr/bin/expect -f
+#
+# copyCarlXExport.exp
+#
+set site [lindex $argv 0]
+set confpwd "/usr/local/VuFind-Plus/sites/$site/conf/config.pwd.ini"
+if {[file exists $confpwd] != 1} {
+        puts "Please check spelling of site $site; config.pwd.ini not found at $confpwd"
+        exit
+}
+set localPath "/data/vufind-plus/$site/marc/"
+if {[file exists $localPath] != 1} {
+        puts "Please check spelling of site $site; /marc/ directory not found at $localPath"
+        exit
+}
+
+# READ CONFIG.PWD.INI
+set fd [open $confpwd r]
+while {![eof $fd]} {
+        set line [string trim [gets $fd] " "]
+        if {$line == ""} continue
+        switch -regexp -nocase -- $line {
+                "^\\[Catalog Extract\\]" {
+                        set section true
+                }
+                "^\\[" {
+                        set section false
+                }
+                ^(FTP) {
+                        if {$section == true} {
+                                set pair [split $line =]
+                                set variable [string trim [lindex $pair 0]]
+                                set value [string trim [lindex $pair 1]]
+                                set $variable $value
+                                # puts "$variable  = $value"
+                        }
+                }
+                default {}
+        }
+}
+
+set timeout 2400
+spawn sftp $FTPUser@$FTPHost
+expect "password:"
+send "$FTPPassword"
+expect "sftp> "
+send "lcd /data/vufind-plus/$site/marc\r"
+expect "sftp> "
+send "cd /carl.output\r"
+expect "sftp> "
+send "get fullExport fullExport.mrc\r"
+expect "sftp> "
+send "bye\r"
+#
+#--eof--
