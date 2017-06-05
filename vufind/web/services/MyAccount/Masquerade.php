@@ -90,72 +90,79 @@ class MyAccount_Masquerade extends MyAccount
 
 						// Now that we have found the masqueraded User, check Masquerade Levels
 						if ($masqueradedUser) {
+							//Check for errors
 							switch ($user->getMasqueradeLevel()) {
-								case 'location' :
-									if (empty($user->homeLocationId)) {
-										return array(
-											'success' => false,
-											'error'   => 'Could not determine your home library branch.'
-										);
-									}
-									if (empty($masqueradedUser->homeLocationId)) {
-										return array(
-											'success' => false,
-											'error'   => 'Could not determine the patron\'s home library branch.'
-										);
-									}
-									if ($user->homeLocationId != $masqueradedUser->homeLocationId) {
-										return array(
-											'success' => false,
-											'error'   => 'You do not have the same home library branch as the patron.'
-										);
-									}
-									break;
-								case 'library' :
-									$guidingUserLibrary = $user->getHomeLibrary();
-									if (!$guidingUserLibrary) {
-										return array(
-											'success' => false,
-											'error'   => 'Could not determine your home library.'
-										);
-									}
-									$masqueradedUserLibrary = $masqueradedUser->getHomeLibrary();
-									if (!$masqueradedUserLibrary) {
-										return array(
-											'success' => false,
-											'error' => 'Could not determine the patron\'s home library.'
-										);
-									}
-									if ($guidingUserLibrary->libraryId != $masqueradedUserLibrary->libraryId) {
-										return array(
-											'success' => false,
-											'error'   => 'You do not have the same home library as the patron.'
-										);
-									}
-									break;
-								case 'any' :
-									global $guidingUser;
-									$logger->log("Logging in with masqueraded user information", PEAR_LOG_ERR);
-									$logger->log("Guiding User " . print_r($guidingUser, true), PEAR_LOG_ERR);
-									$logger->log("User " . print_r($user, true), PEAR_LOG_ERR);
-									$guidingUser = $user;
-									// NOW login in as masquerade user
-									$logger->log("Masqueraded User " . print_r($masqueradedUser, true), PEAR_LOG_ERR);
-									$_REQUEST['username'] = $masqueradedUser->cat_username;
-									$_REQUEST['password'] = $masqueradedUser->cat_password;
-									$user                 = UserAccount::login();
-									if (!empty($user) && !PEAR_Singleton::isError($user)){
-										@session_start(); // (suppress notice if the session is already started)
-										$_SESSION['guidingUserId'] = $guidingUser->id;
-										global $masqueradeMode;
-										$masqueradeMode = true;
-										return array('success' => true);
-									} else {
-										return array(
-											'success' => false,
-											'error'   => 'Failed to initiate masquerade as specified user.'
-										);
-									}
+							case 'location' :
+								if (empty($user->homeLocationId)) {
+									return array(
+										'success' => false,
+										'error'   => 'Could not determine your home library branch.'
+									);
+								}
+								if (empty($masqueradedUser->homeLocationId)) {
+									return array(
+										'success' => false,
+										'error'   => 'Could not determine the patron\'s home library branch.'
+									);
+								}
+								if ($user->homeLocationId != $masqueradedUser->homeLocationId) {
+									return array(
+										'success' => false,
+										'error'   => 'You do not have the same home library branch as the patron.'
+									);
+								}
+								break;
+							case 'library' :
+								$guidingUserLibrary = $user->getHomeLibrary();
+								if (!$guidingUserLibrary) {
+									return array(
+										'success' => false,
+										'error'   => 'Could not determine your home library.'
+									);
+								}
+								$masqueradedUserLibrary = $masqueradedUser->getHomeLibrary();
+								if (!$masqueradedUserLibrary) {
+									return array(
+										'success' => false,
+										'error' => 'Could not determine the patron\'s home library.'
+									);
+								}
+								if ($guidingUserLibrary->libraryId != $masqueradedUserLibrary->libraryId) {
+									return array(
+										'success' => false,
+										'error'   => 'You do not have the same home library as the patron.'
+									);
+								}
+								break;
+							case 'any' :
+
+							}
+
+							//Setup the guiding user and masqueraded user
+							global $guidingUser;
+							$logger->log("Logging in with masqueraded user information", PEAR_LOG_ERR);
+							$logger->log("Guiding User " . (empty($guidingUser) ? 'none' : $guidingUser->id), PEAR_LOG_ERR);
+							$logger->log("User " . (empty($user) ? 'none' : $user->id), PEAR_LOG_ERR);
+							$guidingUser = $user;
+							// NOW login in as masquerade user
+							$logger->log("Masqueraded User " . (empty($masqueradedUser) ? 'none' : $masqueradedUser->id), PEAR_LOG_ERR);
+							$_REQUEST['username'] = $masqueradedUser->cat_username;
+							$_REQUEST['password'] = $masqueradedUser->cat_password;
+							$logger->log("Masquerade Login " . $_REQUEST['username'] . " " . $_REQUEST['password'], PEAR_LOG_ERR);
+							$user                 = UserAccount::login();
+							if (!empty($user) && !PEAR_Singleton::isError($user)){
+								@session_start(); // (suppress notice if the session is already started)
+								$_SESSION['guidingUserId'] = $guidingUser->id;
+								global $masqueradeMode;
+								$masqueradeMode = true;
+								return array('success' => true);
+							} else {
+								unset($_SESSION['guidingUserId']);
+								$user = $guidingUser;
+								return array(
+										'success' => false,
+										'error'   => 'Failed to initiate masquerade as specified user.'
+								);
 							}
 						} else {
 
