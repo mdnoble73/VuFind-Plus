@@ -23,6 +23,7 @@ class MyAccount_Masquerade extends MyAccount
 		$result = $this->initiateMasquerade();
 		if ($result['success']) {
 			header('Location: /MyAccount/Home');
+			session_commit();
 			exit();
 		} else {
 			// Display error and embedded Masquerade As Form
@@ -150,9 +151,11 @@ class MyAccount_Masquerade extends MyAccount
 							$_REQUEST['password'] = $masqueradedUser->cat_password;
 							$logger->log("Masquerade Login " . $_REQUEST['username'] . " " . $_REQUEST['password'], PEAR_LOG_ERR);
 							$user                 = UserAccount::login();
+							$logger->log("New User " . (empty($user) ? 'none' : $user->id), PEAR_LOG_ERR);
 							if (!empty($user) && !PEAR_Singleton::isError($user)){
 								@session_start(); // (suppress notice if the session is already started)
 								$_SESSION['guidingUserId'] = $guidingUser->id;
+								$_SESSION['activeUserId'];
 								global $masqueradeMode;
 								$masqueradeMode = true;
 								return array('success' => true);
