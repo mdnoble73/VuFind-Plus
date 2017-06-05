@@ -39,7 +39,7 @@ class MyAccount_Masquerade extends MyAccount
 		global $logger;
 		if (!empty($library) && $library->allowMasqueradeMode) {
 			if (!empty($_REQUEST['cardNumber'])) {
-				$logger->log("Masquerading as " . $_REQUEST['cardNumber'], PEAR_LOG_ERR);
+				//$logger->log("Masquerading as " . $_REQUEST['cardNumber'], PEAR_LOG_ERR);
 				$libraryCard = $_REQUEST['cardNumber'];
 				global $guidingUser;
 				if (empty($guidingUser)) {
@@ -59,9 +59,9 @@ class MyAccount_Masquerade extends MyAccount
 									'error' => 'No need to masquerade as yourself.'
 								);
 							}
-							$logger->log("Found masqueraded user with card " . $libraryCard, PEAR_LOG_ERR);
+							//$logger->log("Found masqueraded user with card " . $libraryCard, PEAR_LOG_ERR);
 						} else {
-							$logger->log("Testing a different login configuration", PEAR_LOG_ERR);
+							//$logger->log("Testing a different login configuration", PEAR_LOG_ERR);
 							// Check for another ILS with a different login configuration
 							$accountProfile = new AccountProfile();
 							$accountProfile->groupBy('loginConfiguration');
@@ -141,18 +141,18 @@ class MyAccount_Masquerade extends MyAccount
 
 							//Setup the guiding user and masqueraded user
 							global $guidingUser;
-							$logger->log("Logging in with masqueraded user information", PEAR_LOG_ERR);
-							$logger->log("Guiding User " . (empty($guidingUser) ? 'none' : $guidingUser->id), PEAR_LOG_ERR);
-							$logger->log("User " . (empty($user) ? 'none' : $user->id), PEAR_LOG_ERR);
+							//$logger->log("Logging in with masqueraded user information", PEAR_LOG_ERR);
+							//$logger->log("Guiding User " . (empty($guidingUser) ? 'none' : $guidingUser->id), PEAR_LOG_ERR);
+							//$logger->log("User " . (empty($user) ? 'none' : $user->id), PEAR_LOG_ERR);
 							$guidingUser = $user;
-							$logger->log("New Guiding User " . (empty($guidingUser) ? 'none' : $guidingUser->id), PEAR_LOG_ERR);
+							//$logger->log("New Guiding User " . (empty($guidingUser) ? 'none' : $guidingUser->id), PEAR_LOG_ERR);
 							// NOW login in as masquerade user
-							$logger->log("Masqueraded User " . (empty($masqueradedUser) ? 'none' : $masqueradedUser->id), PEAR_LOG_ERR);
+							//$logger->log("Masqueraded User " . (empty($masqueradedUser) ? 'none' : $masqueradedUser->id), PEAR_LOG_ERR);
 							$_REQUEST['username'] = $masqueradedUser->cat_username;
 							$_REQUEST['password'] = $masqueradedUser->cat_password;
-							$logger->log("Masquerade Login " . $_REQUEST['username'] . " " . $_REQUEST['password'], PEAR_LOG_ERR);
+							//$logger->log("Masquerade Login " . $_REQUEST['username'] . " " . $_REQUEST['password'], PEAR_LOG_ERR);
 							$user                 = UserAccount::login();
-							$logger->log("New User " . (empty($user) ? 'none' : $user->id), PEAR_LOG_ERR);
+							//$logger->log("New User " . (empty($user) ? 'none' : $user->id), PEAR_LOG_ERR);
 							if (!empty($user) && !PEAR_Singleton::isError($user)){
 								@session_start(); // (suppress notice if the session is already started)
 								$_SESSION['guidingUserId'] = $guidingUser->id;
