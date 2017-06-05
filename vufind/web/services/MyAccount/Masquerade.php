@@ -145,6 +145,7 @@ class MyAccount_Masquerade extends MyAccount
 							$logger->log("Guiding User " . (empty($guidingUser) ? 'none' : $guidingUser->id), PEAR_LOG_ERR);
 							$logger->log("User " . (empty($user) ? 'none' : $user->id), PEAR_LOG_ERR);
 							$guidingUser = $user;
+							$logger->log("New Guiding User " . (empty($guidingUser) ? 'none' : $guidingUser->id), PEAR_LOG_ERR);
 							// NOW login in as masquerade user
 							$logger->log("Masqueraded User " . (empty($masqueradedUser) ? 'none' : $masqueradedUser->id), PEAR_LOG_ERR);
 							$_REQUEST['username'] = $masqueradedUser->cat_username;
@@ -155,7 +156,7 @@ class MyAccount_Masquerade extends MyAccount
 							if (!empty($user) && !PEAR_Singleton::isError($user)){
 								@session_start(); // (suppress notice if the session is already started)
 								$_SESSION['guidingUserId'] = $guidingUser->id;
-								$_SESSION['activeUserId'];
+								$_SESSION['activeUserId'] = $user->id;
 								global $masqueradeMode;
 								$masqueradeMode = true;
 								return array('success' => true);
