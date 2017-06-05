@@ -136,10 +136,11 @@ class MyAccount_Masquerade extends MyAccount
 								case 'any' :
 									global $guidingUser;
 									$logger->log("Logging in with masqueraded user information", PEAR_LOG_ERR);
-									$logger->log(print_r($guidingUser, true), PEAR_LOG_ERR);
-									$logger->log(print_r($user, true), PEAR_LOG_ERR);
+									$logger->log("Guiding User " . print_r($guidingUser, true), PEAR_LOG_ERR);
+									$logger->log("User " . print_r($user, true), PEAR_LOG_ERR);
 									$guidingUser = $user;
 									// NOW login in as masquerade user
+									$logger->log("Masqueraded User " . print_r($masqueradedUser, true), PEAR_LOG_ERR);
 									$_REQUEST['username'] = $masqueradedUser->cat_username;
 									$_REQUEST['password'] = $masqueradedUser->cat_password;
 									$user                 = UserAccount::login();
