@@ -46,7 +46,5 @@ expect -re ".*password.*"
 send "$FTPPassword\r"
 expect "100%"
 close
-set timeout $wait
-puts $logFile "[clock format [clock seconds] -format "%y%m%d %H:%M:%S"] >> MARC extract retrieved from $host"
 #
 #--eof--
