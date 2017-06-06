@@ -675,17 +675,17 @@ public class CarlXExportMain {
 					Node deletedBibsNode = getChangedBibsResponseNode.getChildNodes().item(5); // 6th element of getChangedItemsResponseNode
 
 					// Updated Items
-					updatedBibs = getIDsFromNodeList(updatedBibsNode.getChildNodes());
+					getIDsFromNodeList(updatedBibs, updatedBibsNode.getChildNodes());
 					logger.debug("Found " + updatedBibs.size() + " updated bibs since " + beginTimeString);
 
 					// TODO: Process Created Bibs in the future.
 					// Created Bibs
-					createdBibs = getIDsFromNodeList(createdBibsNode.getChildNodes());
+					getIDsFromNodeList(createdBibs, createdBibsNode.getChildNodes());
 					logger.debug("Found " + createdBibs.size() + " new bibs since " + beginTimeString);
 
 					// TODO: Process Deleted Bibs in the future
 					// Deleted Bibs
-					deletedBibs = getIDsFromNodeList(deletedBibsNode.getChildNodes());
+					getIDsFromNodeList(deletedBibs, deletedBibsNode.getChildNodes());
 					logger.debug("Found " + deletedBibs.size() + " deleted bibs since " + beginTimeString);
 
 				} else {
@@ -958,13 +958,11 @@ public class CarlXExportMain {
 		return itemUpdates;
 	}
 
-	private static ArrayList<String> getIDsFromNodeList(NodeList walkThroughMe) {
+	private static void getIDsFromNodeList(ArrayList<String> arrayOfIds, NodeList walkThroughMe) {
 		Integer l       = walkThroughMe.getLength();
-		ArrayList<String> idList = new ArrayList<>();
 		for (int i = 0; i < l; i++) {
-			idList.add(walkThroughMe.item(i).getTextContent());
+			arrayOfIds.add(walkThroughMe.item(i).getTextContent());
 		}
-		return idList;
 	}
 
 	private static String formatDateFieldForMarc(String dateFormat, String date) {
