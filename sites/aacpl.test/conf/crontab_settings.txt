@@ -44,9 +44,9 @@
 #####################
 # Daily full update #
 #####################
-# Set the start for 4:30 am
-# last marc export file transfer is scheduled to start at 4am
-30 2 * * * cd /usr/local/vufind-plus/sites/aacpl.test; ./full_update.sh
+# Set the start for 12:30 am
+# last marc export file transfer is scheduled to start at midnight
+30 0 * * * cd /usr/local/vufind-plus/sites/aacpl.test; ./full_update.sh
 
 ###################
 # Pika Cron Jobs  #
