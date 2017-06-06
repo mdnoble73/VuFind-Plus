@@ -34,11 +34,10 @@ PIKASERVER=$1
 
 if [[ $# -eq 2 ]]; then
 	DBNAME=$2
-	echo "Dumping $DBNAME database"
 else
 	DBNAME="pika"
-	echo "Dumping pika database"
 fi
+echo "Dumping $DBNAME database"
 
 #-------------------------------------------------------------------------
 # declare variables
@@ -53,6 +52,7 @@ if [ ! -e "$DUMPFOLDER" ]
 then
 	DUMPFOLDER="/data/pika/${PIKASERVER}/sql_backup"
 fi
+echo "Dumping to $DUMPFOLDER"
 
 #REMOTE="10.1.2.2:/home/backup/venus"
 #LOCAL="/mnt/backup"
