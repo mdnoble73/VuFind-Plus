@@ -33,9 +33,9 @@ else
 PIKASERVER=$1
 
 if [[ $# -eq 2 ]]; then
-	DBNAME = "pika"
+	DBNAME="pika"
 else
-	DBNAME = "vufind"
+	DBNAME="vufind"
 fi
 
 #-------------------------------------------------------------------------
