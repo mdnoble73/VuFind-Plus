@@ -32,6 +32,11 @@ if [[ $# -ne 1 ]]; then
 else
 PIKASERVER=$1
 
+if [[ $# -eq 2 ]]; then
+	DBNAME = "pika"
+else
+	DBNAME = "vufind"
+fi
 
 #-------------------------------------------------------------------------
 # declare variables
@@ -52,7 +57,7 @@ fi
 #FILES="/data/vufind-plus/marmot.test/solr_searcher /data/vufind-plus/marmot.test/econtent  /var /home /etc /root /usr /bin /boot /lib /lib64 /opt /sbin"
 #TAROPT="-X /root/cron/exclude.txt --exclude-caches --ignore-failed-read --absolute-names"
 
-DATABASES="pika econtent"
+DATABASES="$DBNAME econtent"
 DUMPOPT1="-u root --events"
 DUMPOPT2="-u root --events --single-transaction"
 
