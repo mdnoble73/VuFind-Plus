@@ -26,16 +26,18 @@
 # 24 Nov 14 - v2.5.0 - sml - changed to backup pretty much everything
 #-------------------------------------------------------------------------
 
-if [[ $# -ne 1 ]]; then
+if [[ $# -eq 0 ]]; then
 	echo "Please specify the Pika instance"
 	echo "eg: $0 marmot.production"
 else
 PIKASERVER=$1
 
 if [[ $# -eq 2 ]]; then
-	DBNAME="pika"
+	DBNAME=$2
+	echo "Dumping $DBNAME database"
 else
-	DBNAME="vufind"
+	DBNAME="pika"
+	echo "Dumping pika database"
 fi
 
 #-------------------------------------------------------------------------
@@ -71,7 +73,7 @@ $LOG ">> Backup starting <<"
 #--- backup mysql --------------------------------------------
 #-------------------------------------------------------------
 $LOG "~> purge yesterdays mysql dumps"
-/bin/rm -f $DUMPFOLDER/*
+/bin/rm -f $DUMPFOLDER/mysql*
 $LOG "~> exit code $?"
 #---
 $LOG "~> dumping mysql database"
