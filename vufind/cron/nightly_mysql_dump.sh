@@ -42,6 +42,10 @@ DATE=`date +%y%m%d`
 LOG="logger -t $0 -p local5.notice "
 
 DUMPFOLDER="/data/vufind-plus/${PIKASERVER}/sql_backup"
+if [ ! -e "$DUMPFOLDER" ]
+then
+	DUMPFOLDER="/data/pika/${PIKASERVER}/sql_backup"
+fi
 
 #REMOTE="10.1.2.2:/home/backup/venus"
 #LOCAL="/mnt/backup"
