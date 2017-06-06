@@ -425,6 +425,7 @@ public class CarlXExportMain {
 		// Note: There is an Include949ItemData flag, but it hasn't been implemented by TLC yet. plb 9-15-2016
 		// Build Marc Fetching Soap Request
 		if (updatedBibs.size() > 0) {
+			logger.debug("Getting data for " + updatedBibs.size() + " updated bibs");
 			int numBibUpdates = 0;
 			try {
 				String getMarcRecordsSoapRequestStart = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:mar=\"http://tlcdelivers.com/cx/schemas/marcoutAPI\" xmlns:req=\"http://tlcdelivers.com/cx/schemas/request\">\n" +
@@ -540,6 +541,8 @@ public class CarlXExportMain {
 			} catch (Exception e) {
 				logger.error("Error Creating SOAP Request for Marc Records", e);
 			}
+		}else{
+			logger.debug("No bibs to update");
 		}
 		return errorUpdatingDatabase;
 	}
