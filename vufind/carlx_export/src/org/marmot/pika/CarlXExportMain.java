@@ -442,7 +442,7 @@ public class CarlXExportMain {
 				}
 				getMarcRecordsSoapRequest += getMarcRecordsSoapRequestEnd;
 
-				logger.debug("Getting MARC record details " + getMarcRecordsSoapRequest);
+				//logger.debug("Getting MARC record details " + getMarcRecordsSoapRequest);
 				URLPostResponse marcRecordSOAPResponse = postToURL(marcOutURL, getMarcRecordsSoapRequest, "text/xml", null, logger);
 
 				// Parse Response
@@ -461,8 +461,8 @@ public class CarlXExportMain {
 					for (int i=1; i < l; i++ ) { // (skip first node because it is the response status)
 						String currentBibID = updatedBibs.get(i-1);
 						String currentFullBibID = getFileIdForRecordNumber(currentBibID);
-						logger.debug("Updating " + currentFullBibID);
-						logger.debug("Response from CARL.X\r\n" + marcRecordSOAPResponse);
+						//logger.debug("Updating " + currentFullBibID);
+						//logger.debug("Response from CARL.X\r\n" + marcRecordSOAPResponse.getMessage());
 						Node marcRecordNode = marcRecordInfo.item(i);
 
 						// Build Marc Object from the API data
@@ -484,6 +484,8 @@ public class CarlXExportMain {
 										itemUpdates.remove(updatedItem); // remove Item Change Info
 										updatedItemIDs.remove(currentItemID); // remove itemId for list
 										logger.debug("  Updating Item " + currentItemID + " in " + currentBibID);
+									}else{
+										logger.debug("  Did not update Item because BID did not match " + updatedItem.getBID() + " != " + currentBibID);
 									}
 								} else if (deletedItemIDs.contains(currentItemID)) {
 									deletedItemIDs.remove(currentItemID); //TODO: check the API for the same BIB ID?
@@ -495,10 +497,13 @@ public class CarlXExportMain {
 									ItemChangeInfo createdItem = createdItems.get(indexOfItem);
 									if (createdItem.getBID().equals(currentBibID)) { // Double check BID in case itemIDs aren't completely unique
 										updateItemDataFieldWithChangeInfo(currentDataField, createdItem);
+
 										createdItems.remove(createdItem); // remove Item Change Info
 										createdItemIDs.remove(currentItemID); // remove itemId for list
+										logger.debug("  Created New Item " + currentItemID + " in " + currentBibID);
+									}else{
+										logger.debug("  Did not create New Item because BID did not match " + createdItem.getBID() + " != " + currentBibID);
 									}
-									logger.debug("  Created New Item " + currentItemID + " in " + currentBibID);
 								}
 								updatedMarcRecordFromAPICall.addVariableField(currentDataField);
 
