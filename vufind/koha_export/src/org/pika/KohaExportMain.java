@@ -148,7 +148,7 @@ public class KohaExportMain {
 			}
 
 		} catch (Exception e) {
-			logger.error("Unable to export holds from Sierra", e);
+			logger.error("Unable to export holds from Koha", e);
 			if (startOfHolds != null) {
 				try {
 					vufindConn.rollback(startOfHolds);
