@@ -147,7 +147,7 @@ public class CarlXExportMain {
 		// look them up within Solr as long as the item id is exported as part of the MARC record
 		if (deletedItemIDs.size() > 0 ) {
 			for (String deletedItemID : deletedItemIDs) {
-				logger.debug("Item " + deletedItemID + " should be deleted.");
+				logger.debug("Item " + deletedItemID + " should be deleted, but we didn't get a bib for it.");
 				//TODO: Now you *really* have to get the BID, dude.
 			}
 		}
@@ -253,84 +253,77 @@ public class CarlXExportMain {
 				ItemChangeInfo item = itemUpdates.get(i);
 				String currentUpdateItemID = item.getItemId();
 				String currentBibID = item.getBID();
+
 				if (!currentBibID.isEmpty()) {
-					//Pad the bib id based on what we get from the MARC export
-					while (currentBibID.length() < 10){
-						currentBibID = "0" + currentBibID;
-					}
-					currentBibID = "CARL" + currentBibID;
-					logger.debug("Updating " + currentBibID);
-					Record currentMarcRecord = loadMarc(currentBibID);
+					String fullBibID = getFileIdForRecordNumber(currentBibID);
+					logger.debug("Updating " + fullBibID);
+					Record currentMarcRecord = loadMarc(fullBibID);
 					if (currentMarcRecord != null) {
 						Boolean itemFound = false;
-						Boolean saveRecord = false;
 						List<VariableField> currentMarcDataFields = currentMarcRecord.getVariableFields(indexingProfile.itemTag);
 						for (VariableField itemFieldVar: currentMarcDataFields) {
 							DataField currentDataField = (DataField) itemFieldVar;
 							String currentItemID = currentDataField.getSubfield(indexingProfile.itemRecordNumberSubfield).getData();
 							if (currentItemID.equals(currentUpdateItemID)) { // check ItemIDs for other item matches for this bib?
 								if (item.isSuppressed()){
-									logger.debug("Suppressed Item " + currentItemID + " found on Bib " + currentBibID + "; Deleting.");
+									logger.debug("Suppressed Item " + currentItemID + " found on Bib " + fullBibID + "; Deleting.");
 									currentMarcRecord.removeVariableField(currentDataField);
 								}else{
-									logger.debug("Item " + currentItemID + " found on Bib " + currentBibID + "; Updating.");
+									logger.debug("Item " + currentItemID + " found on Bib " + fullBibID + "; Updating.");
 									currentMarcRecord.removeVariableField(currentDataField);
 									updateItemDataFieldWithChangeInfo(currentDataField, item);
 									currentMarcRecord.addVariableField(currentDataField);
+									logger.debug("Updated field\r\n" + currentDataField.toString());
 								}
-								saveRecord = true;
 								itemFound = true;
 								break;
 							} else if (createdItemIDs.contains(currentItemID)) {
-								logger.debug("New Item " + currentItemID + "found on Bib " + currentBibID + "; Updating instead.");
+								logger.debug("New Item " + currentItemID + "found on Bib " + fullBibID + "; Updating instead.");
 								Integer indexOfItem = createdItemIDs.indexOf(currentItemID);
 								ItemChangeInfo createdItem = createdItems.get(indexOfItem);
 								updateItemDataFieldWithChangeInfo(currentDataField, createdItem);
 								currentMarcRecord.addVariableField(currentDataField);
 								createdItems.remove(createdItem); // remove Item Change Info
 								createdItemIDs.remove(currentItemID); // remove itemId for list
-								saveRecord = true;
 							} else if (deletedItemIDs.contains(currentItemID)) {
 								currentMarcRecord.removeVariableField(currentDataField);
 								deletedItemIDs.remove(currentItemID); //TODO: check the API for the same BIB ID?
-								saveRecord = true;
 							}
-
 						}
+
 						if (!itemFound) {
-							logger.warn("Item "+currentUpdateItemID + "to update was not found in Marc Record" + currentBibID +"; Adding instead.");
+							logger.warn("Item "+ currentUpdateItemID + " to update was not found in Marc Record" + fullBibID +"; Adding instead.");
 							DataField itemField = createItemDataFieldWithChangeInfo(item);
 							currentMarcRecord.addVariableField(itemField);
-							saveRecord = true;
 						}else{
 							itemUpdates.remove(item);
 						}
-						if (saveRecord) {
-							saveMarc(currentMarcRecord, currentBibID);
 
-							// Mark Bib as Changed for Re-indexer
-							try {
-								logger.debug("Marking " + currentBibID + " as changed.");
-								markGroupedWorkForBibAsChangedStmt.setLong(1, updateTime);
-								markGroupedWorkForBibAsChangedStmt.setString(2, currentBibID);
-								markGroupedWorkForBibAsChangedStmt.executeUpdate();
+						saveMarc(currentMarcRecord, fullBibID);
 
-								numItemUpdates++;
-								if (numItemUpdates % 50 == 0){
-									vufindConn.commit();
-								}
-							}catch (SQLException e){
-								logger.error("Could not mark that " + currentBibID + " was changed due to error ", e);
-								errorUpdatingDatabase = true;
+						// Mark Bib as Changed for Re-indexer
+						try {
+							logger.debug("Marking " + currentBibID + " as changed.");
+							markGroupedWorkForBibAsChangedStmt.setLong(1, updateTime);
+							markGroupedWorkForBibAsChangedStmt.setString(2, currentBibID);
+							markGroupedWorkForBibAsChangedStmt.executeUpdate();
+
+							numItemUpdates++;
+							if (numItemUpdates % 50 == 0){
+								vufindConn.commit();
 							}
+						}catch (SQLException e){
+							logger.error("Could not mark that " + currentBibID + " was changed due to error ", e);
+							errorUpdatingDatabase = true;
 						}
+
 					} else {
 						// TODO: Do Marc Lookup & rebuild Marc Record?
 //						logger.warn("Existing Marc Record for BID " + currentBibID + " failed to load; Writing new record with data from API");
 						logger.warn("Existing Marc Record for BID " + currentBibID + " failed to load; Can not update item: " + currentUpdateItemID);
 					}
 				} else {
-					logger.warn("Received Item "+ currentUpdateItemID + "to update without a Bib ID. No Record was updated.");
+					logger.warn("Received Item "+ currentUpdateItemID + " to update without a Bib ID. No Record was updated.");
 				}
 			}
 
