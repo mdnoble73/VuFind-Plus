@@ -584,7 +584,7 @@ public class SierraExportMain{
 					}
 
 					//Write the new marc record
-					MarcWriter writer = new MarcStreamWriter(new FileOutputStream(marcFile, false));
+					MarcWriter writer = new MarcStreamWriter(new FileOutputStream(marcFile, true));
 					writer.write(marcRecord);
 					writer.close();
 				} else {

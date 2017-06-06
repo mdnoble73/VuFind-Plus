@@ -1477,7 +1477,7 @@ public class CarlXExportMain {
 			}
 
 		} catch (Exception e) {
-			logger.error("Unable to export holds from Sierra", e);
+			logger.error("Unable to export holds from CARL.X", e);
 			if (startOfHolds != null) {
 				try {
 					vufindConn.rollback(startOfHolds);
