@@ -467,6 +467,7 @@ public class CarlXExportMain {
 					for (int i=1; i < l; i++ ) { // (skip first node because it is the response status)
 						String currentBibID = updatedBibs.get(i);
 						logger.debug("Updating " + getFileIdForRecordNumber(currentBibID));
+						logger.debug("Response from CARL.X\r\n" + marcRecordSOAPResponse);
 						Node marcRecordNode = marcRecordInfo.item(i);
 
 						// Build Marc Object from the API data
