@@ -467,7 +467,8 @@ public class CarlXExportMain {
 					int l = marcRecordInfo.getLength();
 					for (int i=1; i < l; i++ ) { // (skip first node because it is the response status)
 						String currentBibID = updatedBibs.get(i);
-						logger.debug("Updating " + getFileIdForRecordNumber(currentBibID));
+						String currentFullBibID = getFileIdForRecordNumber(currentBibID);
+						logger.debug("Updating " + currentFullBibID);
 						logger.debug("Response from CARL.X\r\n" + marcRecordSOAPResponse);
 						Node marcRecordNode = marcRecordInfo.item(i);
 
@@ -512,16 +513,16 @@ public class CarlXExportMain {
 						} else {
 							// We lose any existing, unchanged items.
 							// TODO: Do an additional look up for Item Information ?
-							logger.warn("Existing Marc Record for BID " + currentBibID + " failed to load; Writing new record with data from API");
+							logger.warn("Existing Marc Record for BID " + currentFullBibID + " failed to load; Writing new record with data from API");
 						}
 
 						// Save Marc Record to File
-						saveMarc(updatedMarcRecordFromAPICall, currentBibID);
+						saveMarc(updatedMarcRecordFromAPICall, currentFullBibID);
 
 						// Mark Bib as Changed for Re-indexer
 						try {
 							markGroupedWorkForBibAsChangedStmt.setLong(1, updateTime);
-							markGroupedWorkForBibAsChangedStmt.setString(2, currentBibID);
+							markGroupedWorkForBibAsChangedStmt.setString(2, currentFullBibID);
 							markGroupedWorkForBibAsChangedStmt.executeUpdate();
 
 							numBibUpdates++;
@@ -529,7 +530,7 @@ public class CarlXExportMain {
 								vufindConn.commit();
 							}
 						}catch (SQLException e){
-							logger.error("Could not mark that " + currentBibID + " was changed due to error ", e);
+							logger.error("Could not mark that " + currentFullBibID + " was changed due to error ", e);
 							errorUpdatingDatabase = true;
 						}
 					}
