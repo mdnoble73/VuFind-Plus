@@ -273,7 +273,7 @@ public class CarlXExportMain {
 									currentMarcRecord.removeVariableField(currentDataField);
 									updateItemDataFieldWithChangeInfo(currentDataField, item);
 									currentMarcRecord.addVariableField(currentDataField);
-									logger.debug("Updated field\r\n" + currentDataField.toString());
+									logger.debug("Updated field\r\n" + currentDataField.toString() + "\r\n" + item.toString());
 								}
 								itemFound = true;
 								break;
@@ -292,7 +292,7 @@ public class CarlXExportMain {
 						}
 
 						if (!itemFound) {
-							logger.warn("Item "+ currentUpdateItemID + " to update was not found in Marc Record" + fullBibID +"; Adding instead.");
+							logger.warn("Item "+ currentUpdateItemID + " to update was not found in Marc Record " + fullBibID +"; Adding instead.");
 							DataField itemField = createItemDataFieldWithChangeInfo(item);
 							currentMarcRecord.addVariableField(itemField);
 						}else{
@@ -305,7 +305,7 @@ public class CarlXExportMain {
 						try {
 							logger.debug("Marking " + currentBibID + " as changed.");
 							markGroupedWorkForBibAsChangedStmt.setLong(1, updateTime);
-							markGroupedWorkForBibAsChangedStmt.setString(2, currentBibID);
+							markGroupedWorkForBibAsChangedStmt.setString(2, fullBibID);
 							markGroupedWorkForBibAsChangedStmt.executeUpdate();
 
 							numItemUpdates++;
@@ -313,14 +313,14 @@ public class CarlXExportMain {
 								vufindConn.commit();
 							}
 						}catch (SQLException e){
-							logger.error("Could not mark that " + currentBibID + " was changed due to error ", e);
+							logger.error("Could not mark that " + fullBibID + " was changed due to error ", e);
 							errorUpdatingDatabase = true;
 						}
 
 					} else {
 						// TODO: Do Marc Lookup & rebuild Marc Record?
 //						logger.warn("Existing Marc Record for BID " + currentBibID + " failed to load; Writing new record with data from API");
-						logger.warn("Existing Marc Record for BID " + currentBibID + " failed to load; Can not update item: " + currentUpdateItemID);
+						logger.warn("Existing Marc Record for BID " + fullBibID + " failed to load; Can not update item: " + currentUpdateItemID);
 					}
 				} else {
 					logger.warn("Received Item "+ currentUpdateItemID + " to update without a Bib ID. No Record was updated.");
