@@ -273,7 +273,7 @@ public class CarlXExportMain {
 									currentMarcRecord.removeVariableField(currentDataField);
 									updateItemDataFieldWithChangeInfo(currentDataField, item);
 									currentMarcRecord.addVariableField(currentDataField);
-									logger.debug("Updated field\r\n" + currentDataField.toString());
+									logger.debug("Updated field\r\n" + currentDataField.toString() + "\r\n" + item.toString());
 								}
 								itemFound = true;
 								break;
@@ -305,7 +305,7 @@ public class CarlXExportMain {
 						try {
 							logger.debug("Marking " + currentBibID + " as changed.");
 							markGroupedWorkForBibAsChangedStmt.setLong(1, updateTime);
-							markGroupedWorkForBibAsChangedStmt.setString(2, currentBibID);
+							markGroupedWorkForBibAsChangedStmt.setString(2, fullBibID);
 							markGroupedWorkForBibAsChangedStmt.executeUpdate();
 
 							numItemUpdates++;
@@ -313,7 +313,7 @@ public class CarlXExportMain {
 								vufindConn.commit();
 							}
 						}catch (SQLException e){
-							logger.error("Could not mark that " + currentBibID + " was changed due to error ", e);
+							logger.error("Could not mark that " + fullBibID + " was changed due to error ", e);
 							errorUpdatingDatabase = true;
 						}
 
