@@ -53,6 +53,8 @@ public class CarlXExportMain {
 	private static HashMap<String, TranslationMap> translationMaps = new HashMap<>();
 	private static Long lastCarlXExtractTimeVariableId = null;
 
+	private static boolean hadErrors = false;
+
 	public static void main(String[] args) {
 		serverName = args[0];
 
@@ -125,7 +127,9 @@ public class CarlXExportMain {
 
 		// Fetch Item Information for each ID
 		ArrayList<ItemChangeInfo> itemUpdates  = fetchItemInformation(updatedItemIDs);
+		if (hadErrors){ System.exit(1); }
 		ArrayList<ItemChangeInfo> createdItems = fetchItemInformation(createdItemIDs);
+		if (hadErrors){ System.exit(1); }
 
 		boolean errorUpdatingDatabase = false;
 		PreparedStatement markGroupedWorkForBibAsChangedStmt = null;
@@ -273,7 +277,7 @@ public class CarlXExportMain {
 									currentMarcRecord.removeVariableField(currentDataField);
 									updateItemDataFieldWithChangeInfo(currentDataField, item);
 									currentMarcRecord.addVariableField(currentDataField);
-									logger.debug("Updated field\r\n" + currentDataField.toString());
+									logger.debug("Updated field\r\n" + currentDataField.toString() + "\r\n" + item.toString());
 								}
 								itemFound = true;
 								break;
@@ -305,7 +309,7 @@ public class CarlXExportMain {
 						try {
 							logger.debug("Marking " + currentBibID + " as changed.");
 							markGroupedWorkForBibAsChangedStmt.setLong(1, updateTime);
-							markGroupedWorkForBibAsChangedStmt.setString(2, currentBibID);
+							markGroupedWorkForBibAsChangedStmt.setString(2, fullBibID);
 							markGroupedWorkForBibAsChangedStmt.executeUpdate();
 
 							numItemUpdates++;
@@ -313,7 +317,7 @@ public class CarlXExportMain {
 								vufindConn.commit();
 							}
 						}catch (SQLException e){
-							logger.error("Could not mark that " + currentBibID + " was changed due to error ", e);
+							logger.error("Could not mark that " + fullBibID + " was changed due to error ", e);
 							errorUpdatingDatabase = true;
 						}
 
@@ -814,144 +818,151 @@ public class CarlXExportMain {
 				getItemInformationSoapRequest += getItemInformationSoapRequestEnd;
 
 				URLPostResponse ItemInformationSOAPResponse = postToURL(marcOutURL, getItemInformationSoapRequest, "text/xml", null, logger);
+				if (ItemInformationSOAPResponse.isSuccess()) {
 
-				// Parse Response
-				Document doc                        = createXMLDocumentForSoapResponse(ItemInformationSOAPResponse);
-				Node soapEnvelopeNode               = doc.getFirstChild();
-				Node soapBodyNode                   = soapEnvelopeNode.getLastChild();
-				Node getItemInformationResponseNode = soapBodyNode.getFirstChild();
-				Node responseStatus                 = getItemInformationResponseNode.getFirstChild().getFirstChild();
-																							// There is a Response Statuses Node, which then contains the Response Status Node
-				String responseStatusCode           = responseStatus.getFirstChild().getTextContent();
-				logger.debug("Item information response " + doc.toString());
-				if (responseStatusCode.equals("0") ) { // Successful response
+					// Parse Response
+					Document doc = createXMLDocumentForSoapResponse(ItemInformationSOAPResponse);
+					Node soapEnvelopeNode = doc.getFirstChild();
+					Node soapBodyNode = soapEnvelopeNode.getLastChild();
+					Node getItemInformationResponseNode = soapBodyNode.getFirstChild();
+					Node responseStatus = getItemInformationResponseNode.getFirstChild().getFirstChild();
+					// There is a Response Statuses Node, which then contains the Response Status Node
+					String responseStatusCode = responseStatus.getFirstChild().getTextContent();
+					logger.debug("Item information response " + doc.toString());
+					if (responseStatusCode.equals("0")) { // Successful response
 
-					NodeList ItemStatuses = getItemInformationResponseNode.getChildNodes();
+						NodeList ItemStatuses = getItemInformationResponseNode.getChildNodes();
 
-					int l = ItemStatuses.getLength();
-					for (int i = 1; i < l; i++) {
-						// start with i = 1 to skip first node, because that is the response status node and not an item status
+						int l = ItemStatuses.getLength();
+						for (int i = 1; i < l; i++) {
+							// start with i = 1 to skip first node, because that is the response status node and not an item status
 
-						Node itemStatus = ItemStatuses.item(i);
-						if (itemStatus.getNodeName().contains("ItemStatus")) { // avoid other occasional nodes like "Message"
+							Node itemStatus = ItemStatuses.item(i);
+							if (itemStatus.getNodeName().contains("ItemStatus")) { // avoid other occasional nodes like "Message"
 
-							NodeList itemDetails = itemStatus.getChildNodes();
-							ItemChangeInfo currentItem = new ItemChangeInfo();
+								NodeList itemDetails = itemStatus.getChildNodes();
+								ItemChangeInfo currentItem = new ItemChangeInfo();
 
-							int dl = itemDetails.getLength();
-							for (int j = 0; j < dl; j++) {
-								Node detail = itemDetails.item(j);
-								String detailName = detail.getNodeName();
-								String detailValue = detail.getTextContent();
+								int dl = itemDetails.getLength();
+								for (int j = 0; j < dl; j++) {
+									Node detail = itemDetails.item(j);
+									String detailName = detail.getNodeName();
+									String detailValue = detail.getTextContent();
 
-								detailName = detailName.replaceFirst("ns4:", ""); // strip out namespace prefix
+									detailName = detailName.replaceFirst("ns4:", ""); // strip out namespace prefix
 
-								// Handle each detail
-								switch (detailName) {
-									case "BID":
-										currentItem.setBID(detailValue);
-										break;
-									case "ItemID":
-										currentItem.setItemId(detailValue);
-										break;
-									case "LocationCode":
-										currentItem.setShelvingLocation(detailValue);
-										break;
-									case "Status":
-										// Set itemIdentifier for logging with info that we know at this point.
-										String itemIdentifier;
-										// Use code below if we every turn on switch fullReindex (logs missing translation values)
-										if (currentItem.getBID().isEmpty()) {
-											itemIdentifier = currentItem.getItemId().isEmpty() ? "a Carl-X Item" : " for item ID " + currentItem.getItemId();
-										} else {
-											itemIdentifier = currentItem.getItemId().isEmpty() ? currentItem.getBID() + " for an unknown Carl-X Item" : currentItem.getBID() + " for item ID " + currentItem.getItemId();
-										}
-										String statusCode = translateValue("status_codes", detailValue, itemIdentifier);
-										if (statusCode.equals("U")){
-											logger.warn("Unknown status " + detailValue);
-										}
-										//TODO: If status code wasn't translate, set to Unknown (U) (Not an actual listed value)?
-										currentItem.setStatus(statusCode);
-										break;
-									case "DueDate":
-										String dueDateMarc = formatDateFieldForMarc(indexingProfile.dueDateFormat, detailValue);
-										currentItem.setDueDate(dueDateMarc);
-										break;
-									case "LastCheckinDate":
-										// There is no LastCheckinDate field in ItemInformation Call
-										String lastCheckInDateMarc = formatDateFieldForMarc(indexingProfile.lastCheckinFormat, detailValue);
-										currentItem.setLastCheckinDate(lastCheckInDateMarc);
-										break;
-									case "CreationDate":
-										String dateCreatedMarc = formatDateFieldForMarc(indexingProfile.dateCreatedFormat, detailValue);
-										currentItem.setDateCreated(dateCreatedMarc);
-										break;
-									case "CallNumber":
-									case "CallNumberFull":
-										currentItem.setCallNumber(detailValue);
-										break;
-									case "CircHistory": // total since counter reset: translating to total checkout per year
-										currentItem.setYearToDateCheckouts(detailValue);
-										break;
-									case "CumulativeHistory":
-										currentItem.setTotalCheckouts(detailValue);
-										break;
-									case "BranchCode":
-										currentItem.setLocation(detailValue);
-										break;
-									case "MediaCode":
-										currentItem.setiType(detailValue);
-										break;
-									// Fields we don't currently do anything with
-									case "Suppress":
-										//logger.debug("Suppression for item is " + detailValue);
-										currentItem.setSuppress(detailValue);
-									case "HoldsHistory": // Number of times item has gone to Hold Shelf status since counter set
-									case "InHouseCirc":
-									case "Price":
-									case "ReserveBranchCode":
-									case "ReserveType":
-									case "ReserveBranchLocation":
-									case "ReserveCallNumber":
-									case "BranchName":
-									case "BranchNumber":
-									case "StatusDate": //TODO: can we use this one?
-									case "ThereAtLeastOneNote":
-									case "Notes":
-									case "EditDate":
-									case "CNLabels":
-									case "Caption":
-									case "Number":
-									case "Part":
-									case "Volume":
-									case "Suffix":
-//									CNLabels: Labels for the 4 call number buckets
-//									Number: Third call number bucket
-//									Part: Second call number bucket
-//									Volume: First call number bucket
-//									Suffix: Fourth call number bucket
-									case "ISID":
-									case "Chronology":
-									case "Enumeration":
-									case "OwningBranchCode":
-									case "OwningBranchName":
-									case "OwningBranchNumber":
-									case "Type":
-										// Do Nothing
-										break;
-									default:
-										logger.warn("Unknown Item Detail : " + detailName + " = " + detailValue);
-										break;
+									// Handle each detail
+									switch (detailName) {
+										case "BID":
+											currentItem.setBID(detailValue);
+											break;
+										case "ItemID":
+											currentItem.setItemId(detailValue);
+											break;
+										case "LocationCode":
+											currentItem.setShelvingLocation(detailValue);
+											break;
+										case "Status":
+											// Set itemIdentifier for logging with info that we know at this point.
+											String itemIdentifier;
+											// Use code below if we every turn on switch fullReindex (logs missing translation values)
+											if (currentItem.getBID().isEmpty()) {
+												itemIdentifier = currentItem.getItemId().isEmpty() ? "a Carl-X Item" : " for item ID " + currentItem.getItemId();
+											} else {
+												itemIdentifier = currentItem.getItemId().isEmpty() ? currentItem.getBID() + " for an unknown Carl-X Item" : currentItem.getBID() + " for item ID " + currentItem.getItemId();
+											}
+											String statusCode = translateValue("status_codes", detailValue, itemIdentifier);
+											if (statusCode.equals("U")) {
+												logger.warn("Unknown status " + detailValue);
+											}
+											//TODO: If status code wasn't translate, set to Unknown (U) (Not an actual listed value)?
+											currentItem.setStatus(statusCode);
+											break;
+										case "DueDate":
+											String dueDateMarc = formatDateFieldForMarc(indexingProfile.dueDateFormat, detailValue);
+											currentItem.setDueDate(dueDateMarc);
+											break;
+										case "LastCheckinDate":
+											// There is no LastCheckinDate field in ItemInformation Call
+											String lastCheckInDateMarc = formatDateFieldForMarc(indexingProfile.lastCheckinFormat, detailValue);
+											currentItem.setLastCheckinDate(lastCheckInDateMarc);
+											break;
+										case "CreationDate":
+											String dateCreatedMarc = formatDateFieldForMarc(indexingProfile.dateCreatedFormat, detailValue);
+											currentItem.setDateCreated(dateCreatedMarc);
+											break;
+										case "CallNumber":
+										case "CallNumberFull":
+											currentItem.setCallNumber(detailValue);
+											break;
+										case "CircHistory": // total since counter reset: translating to total checkout per year
+											currentItem.setYearToDateCheckouts(detailValue);
+											break;
+										case "CumulativeHistory":
+											currentItem.setTotalCheckouts(detailValue);
+											break;
+										case "BranchCode":
+											currentItem.setLocation(detailValue);
+											break;
+										case "MediaCode":
+											currentItem.setiType(detailValue);
+											break;
+										// Fields we don't currently do anything with
+										case "Suppress":
+											//logger.debug("Suppression for item is " + detailValue);
+											currentItem.setSuppress(detailValue);
+										case "HoldsHistory": // Number of times item has gone to Hold Shelf status since counter set
+										case "InHouseCirc":
+										case "Price":
+										case "ReserveBranchCode":
+										case "ReserveType":
+										case "ReserveBranchLocation":
+										case "ReserveCallNumber":
+										case "BranchName":
+										case "BranchNumber":
+										case "StatusDate": //TODO: can we use this one?
+										case "ThereAtLeastOneNote":
+										case "Notes":
+										case "EditDate":
+										case "CNLabels":
+										case "Caption":
+										case "Number":
+										case "Part":
+										case "Volume":
+										case "Suffix":
+											//									CNLabels: Labels for the 4 call number buckets
+											//									Number: Third call number bucket
+											//									Part: Second call number bucket
+											//									Volume: First call number bucket
+											//									Suffix: Fourth call number bucket
+										case "ISID":
+										case "Chronology":
+										case "Enumeration":
+										case "OwningBranchCode":
+										case "OwningBranchName":
+										case "OwningBranchNumber":
+										case "Type":
+											// Do Nothing
+											break;
+										default:
+											logger.warn("Unknown Item Detail : " + detailName + " = " + detailValue);
+											break;
+									}
 								}
+								itemUpdates.add(currentItem);
 							}
-							itemUpdates.add(currentItem);
 						}
+					} else {
+						logger.warn("Did not get a successful SOAP response " + responseStatusCode);
+						hadErrors = true;
 					}
 				}else{
-					logger.warn("Did not get a successful SOAP response " + responseStatusCode);
+					logger.error("Did not get a successful SOAP response " + ItemInformationSOAPResponse.getResponseCode() + "\r\n" + ItemInformationSOAPResponse.getMessage());
+					hadErrors = true;
 				}
 			} catch (Exception e) {
 				logger.error("Error Retrieving SOAP updated items", e);
+				hadErrors = true;
 			}
 		}
 		return itemUpdates;
