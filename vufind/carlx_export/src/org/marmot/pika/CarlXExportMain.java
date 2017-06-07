@@ -257,17 +257,19 @@ public class CarlXExportMain {
 				ItemChangeInfo item = itemUpdates.get(i);
 				String currentUpdateItemID = item.getItemId();
 				String currentBibID = item.getBID();
+				logger.debug("Updating item " + currentUpdateItemID + " on " + currentBibID);
 
 				if (!currentBibID.isEmpty()) {
 					String fullBibID = getFileIdForRecordNumber(currentBibID);
-					logger.debug("Updating " + fullBibID);
 					Record currentMarcRecord = loadMarc(fullBibID);
 					if (currentMarcRecord != null) {
 						Boolean itemFound = false;
 						List<VariableField> currentMarcDataFields = currentMarcRecord.getVariableFields(indexingProfile.itemTag);
+						logger.debug("Found " + currentMarcDataFields.size() + " items in the bib already");
 						for (VariableField itemFieldVar: currentMarcDataFields) {
 							DataField currentDataField = (DataField) itemFieldVar;
 							String currentItemID = currentDataField.getSubfield(indexingProfile.itemRecordNumberSubfield).getData();
+							logger.debug("  Checking item " + currentItemID + " on the bib");
 							if (currentItemID.equals(currentUpdateItemID)) { // check ItemIDs for other item matches for this bib?
 								if (item.isSuppressed()){
 									logger.debug("Suppressed Item " + currentItemID + " found on Bib " + fullBibID + "; Deleting.");
@@ -296,9 +298,10 @@ public class CarlXExportMain {
 						}
 
 						if (!itemFound) {
-							logger.warn("Item "+ currentUpdateItemID + " to update was not found in Marc Record " + fullBibID +"; Adding instead.");
+							logger.warn("Item "+ currentUpdateItemID + " to update was not found in Marc Record " + fullBibID +"; Adding instead.\r\n" + item);
 							DataField itemField = createItemDataFieldWithChangeInfo(item);
 							currentMarcRecord.addVariableField(itemField);
+							logger.debug("New item field\r\n" + itemField);
 						}else{
 							itemUpdates.remove(item);
 						}
@@ -307,7 +310,7 @@ public class CarlXExportMain {
 
 						// Mark Bib as Changed for Re-indexer
 						try {
-							logger.debug("Marking " + currentBibID + " as changed.");
+							logger.debug("Marking " + fullBibID + " as changed.");
 							markGroupedWorkForBibAsChangedStmt.setLong(1, updateTime);
 							markGroupedWorkForBibAsChangedStmt.setString(2, fullBibID);
 							markGroupedWorkForBibAsChangedStmt.executeUpdate();
@@ -880,16 +883,19 @@ public class CarlXExportMain {
 											break;
 										case "DueDate":
 											String dueDateMarc = formatDateFieldForMarc(indexingProfile.dueDateFormat, detailValue);
+											logger.debug("New due date is " + dueDateMarc + " based on info from CARL.X " + detailValue);
 											currentItem.setDueDate(dueDateMarc);
 											break;
 										case "LastCheckinDate":
 											// There is no LastCheckinDate field in ItemInformation Call
 											String lastCheckInDateMarc = formatDateFieldForMarc(indexingProfile.lastCheckinFormat, detailValue);
 											currentItem.setLastCheckinDate(lastCheckInDateMarc);
+											logger.debug("New last check in date is " + lastCheckInDateMarc + " based on info from CARL.X " + detailValue);
 											break;
 										case "CreationDate":
 											String dateCreatedMarc = formatDateFieldForMarc(indexingProfile.dateCreatedFormat, detailValue);
 											currentItem.setDateCreated(dateCreatedMarc);
+											logger.debug("New date created is " + dateCreatedMarc + " based on info from CARL.X " + detailValue);
 											break;
 										case "CallNumber":
 										case "CallNumberFull":
