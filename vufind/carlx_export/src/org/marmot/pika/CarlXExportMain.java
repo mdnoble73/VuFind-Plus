@@ -491,6 +491,8 @@ public class CarlXExportMain {
 										itemUpdates.remove(updatedItem); // remove Item Change Info
 										updatedItemIDs.remove(currentItemID); // remove itemId for list
 										logger.debug("  Updating Item " + currentItemID + " in " + currentBibID);
+										logger.debug(updatedItem + "\r\n" + currentDataField);
+
 									}else{
 										logger.debug("  Did not update Item because BID did not match " + updatedItem.getBID() + " != " + currentBibID);
 									}
