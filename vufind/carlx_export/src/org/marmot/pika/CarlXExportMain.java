@@ -292,7 +292,7 @@ public class CarlXExportMain {
 						}
 
 						if (!itemFound) {
-							logger.warn("Item "+ currentUpdateItemID + " to update was not found in Marc Record" + fullBibID +"; Adding instead.");
+							logger.warn("Item "+ currentUpdateItemID + " to update was not found in Marc Record " + fullBibID +"; Adding instead.");
 							DataField itemField = createItemDataFieldWithChangeInfo(item);
 							currentMarcRecord.addVariableField(itemField);
 						}else{
@@ -320,7 +320,7 @@ public class CarlXExportMain {
 					} else {
 						// TODO: Do Marc Lookup & rebuild Marc Record?
 //						logger.warn("Existing Marc Record for BID " + currentBibID + " failed to load; Writing new record with data from API");
-						logger.warn("Existing Marc Record for BID " + currentBibID + " failed to load; Can not update item: " + currentUpdateItemID);
+						logger.warn("Existing Marc Record for BID " + fullBibID + " failed to load; Can not update item: " + currentUpdateItemID);
 					}
 				} else {
 					logger.warn("Received Item "+ currentUpdateItemID + " to update without a Bib ID. No Record was updated.");
