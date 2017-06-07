@@ -29,6 +29,8 @@
 if [[ $# -eq 0 ]]; then
 	echo "Please specify the Pika instance"
 	echo "eg: $0 marmot.production"
+	echo "If the main Pika database is not named 'pika', please specify the schema name as well"
+		echo "eg: $0 marmot.production vufind"
 else
 PIKASERVER=$1
 
