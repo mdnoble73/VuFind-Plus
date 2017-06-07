@@ -1008,6 +1008,7 @@ public class CarlXExportMain {
 
 	private static void updateItemDataFieldWithChangeInfo(DataField itemField, ItemChangeInfo changeInfo) {
 		itemField.getSubfield(indexingProfile.locationSubfield).setData(changeInfo.getLocation());
+		itemField.getSubfield(indexingProfile.shelvingLocationSubfield).setData(changeInfo.getShelvingLocation());
 		itemField.getSubfield(indexingProfile.itemStatusSubfield).setData(changeInfo.getStatus());
 		if (indexingProfile.callNumberSubfield != ' ' && !changeInfo.getCallNumber().isEmpty()) {
 			itemField.getSubfield(indexingProfile.callNumberSubfield).setData(changeInfo.getCallNumber());
