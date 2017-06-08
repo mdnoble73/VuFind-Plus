@@ -14,7 +14,7 @@ PIKASERVER=santafe.production
 PIKADBNAME=pika
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
 
-MINFILE1SIZE=$((317000000))
+MINFILE1SIZE=$((341000000))
 
 # Check if full_update is already running
 #TODO: Verify that the PID file doesn't get log-rotated

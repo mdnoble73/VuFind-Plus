@@ -60,7 +60,7 @@
 # MySQL Nightly Dump #
 ######################
 # backup important bits at 12:10am daily
-10 0 * * * /usr/local/vufind-plus/vufind/cron/nightly_mysql_dump.sh testvufind.co.wake.nc.us 2>&1 >/dev/null
+10 0 * * * /usr/local/vufind-plus/vufind/cron/nightly_mysql_dump.sh testvufind.co.wake.nc.us vufind 2>&1 >/dev/null
 
 ##########
 # Cron   #
