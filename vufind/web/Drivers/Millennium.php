@@ -901,7 +901,7 @@ class Millennium extends ScreenScrapingDriver
 			}
 			$extraPostInfo['email'] = $_REQUEST['email'];
 
-			if (isset($_REQUEST['pickupLocation'])){
+			if (!empty($_REQUEST['pickupLocation'])){
 				$pickupLocation = $_REQUEST['pickupLocation'];
 				if (strlen($pickupLocation) < 5){
 					$pickupLocation = $pickupLocation . str_repeat(' ', 5 - strlen($pickupLocation));

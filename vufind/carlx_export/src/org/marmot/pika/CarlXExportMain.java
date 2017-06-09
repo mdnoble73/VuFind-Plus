@@ -377,9 +377,10 @@ public class CarlXExportMain {
 							}
 						}
 						if (!itemFound) {
-							logger.info("Item "+ currentCreatedItemID + "to create was not found in Marc Record" + currentBibID +"; Adding instead.");
+							logger.info("Item "+ currentCreatedItemID + "to create being added to " + currentBibID);
 							DataField itemField = createItemDataFieldWithChangeInfo(item);
 							currentMarcRecord.addVariableField(itemField);
+							logger.debug(item + "\r\n" + itemField);
 							saveRecord = true;
 						}
 					} else {

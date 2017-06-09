@@ -8,7 +8,7 @@ PIKASERVER=opac.marmot.org
 PIKADBNAME=vufind
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
 
-MINFILE1SIZE=$((4050000000))
+MINFILE1SIZE=$((4000000000))
 
 # Check for conflicting processes currently running
 function checkConflictingProcesses() {
