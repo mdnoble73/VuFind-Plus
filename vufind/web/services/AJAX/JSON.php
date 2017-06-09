@@ -176,7 +176,8 @@ class AJAX_JSON extends Action {
 					$hourString = $hourObj->open;
 					list($hour, $minutes) = explode(':', $hourString);
 					if ($hour < 12){
-						$hourObj->open .= ' AM';
+						$hourObj->open = +$hour.":$minutes AM"; // remove leading zeros in the hour
+//						$hourObj->open .= ' AM';
 					}elseif ($hour == 12){
 						$hourObj->open = 'Noon';
 					}elseif ($hour == 24){
