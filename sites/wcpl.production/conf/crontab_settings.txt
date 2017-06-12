@@ -36,7 +36,7 @@
 #
 # ie :
 # git pull origin {current branch}
-# sudo crontab < /usr/local/vufind-plus/sites/wcpl.production/conf/crontab_settings.txt
+# crontab < /usr/local/vufind-plus/sites/wcpl.production/conf/crontab_settings.txt
 
 ###############
 # On Reboot
