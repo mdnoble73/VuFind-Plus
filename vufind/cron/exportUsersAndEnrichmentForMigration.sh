@@ -38,7 +38,6 @@ mysqldump --user=$1 --password=$PASSWORD --add-drop-table $DBNAME \
  user_link_blocks\
  user_list\
  user_list_entry\
- user_list_entry_backup\
  user_not_interested\
  user_rating\
  user_reading_history_work\
