@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-if [[ $# -eq 3 ]]; then
+if [[ $# -ne 3 ]]; then
 	echo "You must provide 3 parameters: username, password, Pika database name"
 fi
 USER=$1
@@ -46,4 +46,4 @@ mysqldump --user=$1 --password=$PASSWORD --add-drop-table $DBNAME \
  user_tags\
  user_work_review\
  > /data/$DBNAME.migration.sql
-
+gzip /data/$DBNAME.migration.sql
