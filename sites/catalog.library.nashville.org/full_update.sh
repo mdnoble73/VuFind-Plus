@@ -42,7 +42,8 @@ DAYOFWEEK=$(date +"%u")
 # JAMES set MIN 2017 01 31 actual extract size 823662098
 # JAMES set MIN 2017 02 01 actual extract size 817883489
 # JAMES set MIN 2017 02 17 actual extract size 816713948, expecting additional
-MINFILE1SIZE=$((810000000))
+# Pascal set MIN 2017 06 07 actual extract size 860122928, set min at 3% below this
+MINFILE1SIZE=$((834000000))
 
 # determine whether this server is production or test
 CONFIG=/usr/local/VuFind-Plus/sites/${PIKASERVER}/conf/config.pwd.ini
