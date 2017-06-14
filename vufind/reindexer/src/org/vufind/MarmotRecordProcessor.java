@@ -24,6 +24,8 @@ import java.util.*;
 public class MarmotRecordProcessor extends IIIRecordProcessor {
 	public MarmotRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
 		super(indexer, vufindConn, configIni, indexingProfileRS, logger, fullReindex);
+
+		loadOrderInformationFromExport();
 	}
 
 	protected void loadUnsuppressedPrintItems(GroupedWorkSolr groupedWork, RecordInfo recordInfo, String identifier, Record record){
