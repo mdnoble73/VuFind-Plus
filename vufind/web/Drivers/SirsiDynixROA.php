@@ -48,7 +48,7 @@ abstract class SirsiDynixROA extends HorizonAPI
 			curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($params));
 		}
 		$json = curl_exec($ch);
-		$err  = curl_getinfo($ch);
+//		$err  = curl_getinfo($ch);
 		//TODO: debugging only, comment out later.
 		$logger->log("Web service response\r\n$json", PEAR_LOG_INFO);
 		curl_close($ch);
@@ -101,7 +101,7 @@ abstract class SirsiDynixROA extends HorizonAPI
 //			$patronDescribeResponse           = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/describe', null, $sessionToken);
 //			$patronStatusInfoDescribeResponse = $this->getWebServiceResponse($webServiceURL . '/v1/user/patronStatusInfo/describe', null, $sessionToken);
 //			$userProfileDescribeResponse      = $this->getWebServiceResponse($webServiceURL . '/v1/policy/profile/describe', null, $sessionToken);
-
+			// NOt a policy
 //				$patronStatusResponse  = $this->getWebServiceResponse($webServiceURL . '/v1/user/patronStatusInfo/key/' . $userID, null, $sessionToken);
 			//TODO: This resource is currently hidden
 
@@ -1225,6 +1225,18 @@ abstract class SirsiDynixROA extends HorizonAPI
 
 					if (isset($_REQUEST['zip'])) {
 						$setField('ZIP',$_REQUEST['zip']);
+					}
+
+					// Update Home Location
+					if (!empty($_REQUEST['pickupLocation'])) {
+						$homeLibraryLocation = new Location();
+						if ($homeLibraryLocation->get('code', $_REQUEST['pickupLocation'])) {
+							$homeBranchCode = strtoupper($homeLibraryLocation->code);
+							$updatePatronInfoParameters['fields']['library'] = array(
+								'key' => $homeBranchCode,
+								'resource' => '/policy/library'
+							);
+						}
 					}
 
 					$updateAccountInfoResponse = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/key/' . $userID, $updatePatronInfoParameters, $sessionToken, 'PUT');
