@@ -100,10 +100,11 @@ public class CarlXMigration implements IProcessHandler{
 				List<VariableField> millenniumIdentifierFields = carlxRecord.getVariableFields("907");
 				for (VariableField millenniumIdentifierField : millenniumIdentifierFields){
 					String millenniumIdentifier = ((DataField)millenniumIdentifierField).getSubfield('a').getData();
+
 					if (millenniumIdentifier.matches("\\.b.*")) {
-						updateRecordNotToGroupStmt.setString(1, millenniumIdentifier);
+						updateRecordNotToGroupStmt.setString(1, carlxIdentifier);
 						updateRecordNotToGroupStmt.setString(2, "millennium");
-						updateRecordNotToGroupStmt.setString(3, carlxIdentifier);
+						updateRecordNotToGroupStmt.setString(3, millenniumIdentifier);
 						int numUpdated = updateRecordNotToGroupStmt.executeUpdate();
 						if (numUpdated == 1) {
 							processLog.incUpdated();
@@ -118,9 +119,9 @@ public class CarlXMigration implements IProcessHandler{
 					String lssControlNumber = ((DataField)lssControlNumberField).getSubfield('a').getData();
 					String lssIdentifier = lssControlNumberToUniqueId.get(lssControlNumber);
 					if (lssIdentifier != null) {
-						updateRecordNotToGroupStmt.setString(1, lssIdentifier);
+						updateRecordNotToGroupStmt.setString(1, carlxIdentifier);
 						updateRecordNotToGroupStmt.setString(2, "lss");
-						updateRecordNotToGroupStmt.setString(3, carlxIdentifier);
+						updateRecordNotToGroupStmt.setString(3, lssIdentifier);
 						int numUpdated = updateRecordNotToGroupStmt.executeUpdate();
 						if (numUpdated == 1) {
 							processLog.incUpdated();
@@ -133,6 +134,7 @@ public class CarlXMigration implements IProcessHandler{
 				}
 			}
 		}catch (Exception e){
+			logger.error("Error in fixRecordsNotToMerge", e);
 			processLog.addNote("Error in fixRecordsNotToMerge - " +  e.toString());
 			processLog.incErrors();
 		}
