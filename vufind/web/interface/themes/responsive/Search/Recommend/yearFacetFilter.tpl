@@ -26,12 +26,11 @@
 
 		{if $title == 'publishDate'}
 			<div id='yearDefaultLinks'>
-				<a onclick="$('#{$title}yearfrom').val('2010');$('#{$title}yearto').val('');" href='javascript:void(0);'>since&nbsp;2010</a>
-				&bull;
-				<a onclick="$('#{$title}yearfrom').val('2005');$('#{$title}yearto').val('');" href='javascript:void(0);'>since&nbsp;2005</a>
-				&bull;
-				<a onclick="$('#{$title}yearfrom').val('2000');$('#{$title}yearto').val('');" href='javascript:void(0);'>since&nbsp;2000</a>
-
+				{assign var=thisyear value=$smarty.now|date_format:"%Y"}
+				Published in the last:<br/>
+				<a onclick="$('#{$title}yearfrom').val('{$thisyear-1}');$('#{$title}yearto').val('');" href='javascript:void(0);'>year</a>
+				&bullet; <a onclick="$('#{$title}yearfrom').val('{$thisyear-5}');$('#{$title}yearto').val('');" href='javascript:void(0);'>5&nbsp;years</a>
+				&bullet; <a onclick="$('#{$title}yearfrom').val('{$thisyear-10}');$('#{$title}yearto').val('');" href='javascript:void(0);'>10&nbsp;years</a>
 			</div>
 		{/if}
 	</div>

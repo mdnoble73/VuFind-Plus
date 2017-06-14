@@ -10156,6 +10156,9 @@ a.browse-thumbnail-sorted.active {
       -ms-flex-positive: 1;
           flex-grow: 1;
 }
+.yearbox {
+  padding: 3px 6px;
+}
 .graph-bar {
   background-color: #088ec6;
 }
