@@ -5,8 +5,6 @@
 # James Staub, Nashville Public Library
 # Script handles all aspects of a full index including 
 # extracting data from other systems.
-# Should be called once per day from crontab
-# For Pika discovery partners using Millennium 2014 2.0.0_15
 
 # TO DO: 
 #	+ add similar isProduction logic to continuous_partial_reindex.sh

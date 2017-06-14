@@ -5,10 +5,6 @@
 # For Pika discovery partners using Millennium 2014 2.0.0_15
 
 # TO DO:
-#	+ until pika is in production, galacto is considered production
-#               and pika is considered test
-#	+ test to ensure non-production use of Millennium login/review file/export
-#		does not cause conflict with production use of those resources
 #
 # 20150818 : changes in preparation for pika moving from dev to test
 #       + eliminate checkProhibitedTimes; was not being used in continuous
