@@ -954,7 +954,7 @@ class UserAPI extends Action {
 			}else{
 				$pickupBranch = $patron->homeLocationCode;
 			}
-			$holdMessage = $this->getCatalogConnection()->placeHold($patron, $bibId, $pickupBranch);
+			$holdMessage = $patron->placeHold($bibId, $pickupBranch);
 			return $holdMessage;
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
@@ -974,7 +974,7 @@ class UserAPI extends Action {
 			}else{
 				$pickupBranch = $patron->homeLocationCode;
 			}
-			$holdMessage = $this->getCatalogConnection()->placeItemHold($patron, $bibId, $itemId, $pickupBranch);
+			$holdMessage = $patron->placeItemHold($bibId, $itemId,$pickupBranch);
 			return $holdMessage;
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
@@ -1308,10 +1308,20 @@ class UserAPI extends Action {
 	function cancelHold(){
 		$username = $_REQUEST['username'];
 		$password = $_REQUEST['password'];
+
+		// Cancel Hold requires one of these, which one depends on the ILS
+		$recordId = $cancelId = null;
+		if (!empty($_REQUEST['recordId'])) {
+			$recordId = $_REQUEST['recordId'];
+		}
+		if (!empty($_REQUEST['cancelId'])) {
+			$cancelId = $_REQUEST['cancelId'];
+		}
+
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
-			$holdMessage = $this->getCatalogConnection()->updateHoldDetailed('', $user->cat_username, 'cancel');
+			$holdMessage = $user->cancelHold($recordId, $cancelId);
 			return array('success'=> $holdMessage['success'], 'holdMessage'=>$holdMessage['message']);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
