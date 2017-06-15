@@ -234,22 +234,25 @@ abstract class SirsiDynixROA extends HorizonAPI
 					}
 					if (isset($location)) {
 						$user->homeLocationId = $location->locationId;
-						$user->myLocation1Id  = ($location->nearbyLocation1 > 0) ? $location->nearbyLocation1 : $location->locationId;
-						$user->myLocation2Id  = ($location->nearbyLocation2 > 0) ? $location->nearbyLocation2 : $location->locationId;
-
-						/** @var /Location $location */
-						//Get display name for preferred location 1
-						$myLocation1             = new Location();
-						$myLocation1->locationId = $user->myLocation1Id;
-						if ($myLocation1->find(true)) {
-							$user->myLocation1 = $myLocation1->displayName;
+						if (empty($user->myLocation1Id)) {
+							$user->myLocation1Id  = ($location->nearbyLocation1 > 0) ? $location->nearbyLocation1 : $location->locationId;
+							/** @var /Location $location */
+							//Get display name for preferred location 1
+							$myLocation1             = new Location();
+							$myLocation1->locationId = $user->myLocation1Id;
+							if ($myLocation1->find(true)) {
+								$user->myLocation1 = $myLocation1->displayName;
+							}
 						}
 
-						//Get display name for preferred location 2
-						$myLocation2             = new Location();
-						$myLocation2->locationId = $user->myLocation2Id;
-						if ($myLocation2->find(true)) {
-							$user->myLocation2 = $myLocation2->displayName;
+						if (empty($user->myLocation2Id)){
+							$user->myLocation2Id  = ($location->nearbyLocation2 > 0) ? $location->nearbyLocation2 : $location->locationId;
+							//Get display name for preferred location 2
+							$myLocation2             = new Location();
+							$myLocation2->locationId = $user->myLocation2Id;
+							if ($myLocation2->find(true)) {
+								$user->myLocation2 = $myLocation2->displayName;
+							}
 						}
 					}
 				}
@@ -291,13 +294,6 @@ abstract class SirsiDynixROA extends HorizonAPI
 				$numHoldsRequested = 0;
 				if (isset($lookupMyAccountInfoResponse->fields->holdRecordList)) {
 					foreach ($lookupMyAccountInfoResponse->fields->holdRecordList as $hold) {
-//						$holdInfo = $this->getWebServiceResponse($webServiceURL . '/ws/circulation/holdRecord/key/' . $hold->key, null, $sessionToken);
-//						//TODO include in original call
-//						if ($holdInfo->fields->status == 'BEING_HELD') {
-//							$numHoldsAvailable++;
-//						} elseif ($holdInfo->fields->status != 'EXPIRED') {
-//							$numHoldsRequested++;
-//						}
 						if ($hold->fields->status == 'BEING_HELD') {
 							$numHoldsAvailable++;
 						} elseif ($hold->fields->status != 'EXPIRED') {
