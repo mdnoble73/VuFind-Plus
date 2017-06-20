@@ -1,8 +1,6 @@
 package org.vufind;
 
 import org.apache.log4j.Logger;
-import org.apache.log4j.pattern.IntegerPatternConverter;
-import org.ini4j.Ini;
 import org.marc4j.marc.DataField;
 import org.marc4j.marc.Record;
 import org.marc4j.marc.Subfield;
@@ -21,9 +19,9 @@ import java.util.Set;
  * Date: 7/1/2016
  * Time: 11:14 AM
  */
-public class CarlXRecordProcessor extends IlsRecordProcessor {
-	public CarlXRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
-		super(indexer, vufindConn, configIni, indexingProfileRS, logger, fullReindex);
+class CarlXRecordProcessor extends IlsRecordProcessor {
+	CarlXRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
+		super(indexer, vufindConn, indexingProfileRS, logger, fullReindex);
 	}
 
 	@Override
@@ -48,7 +46,7 @@ public class CarlXRecordProcessor extends IlsRecordProcessor {
 	private static int numSampleRecordsWithMultiplePrintFormats = 0;
 	@Override
 	public void loadPrintFormatInformation(RecordInfo ilsRecord, Record record) {
-		List<DataField> items = getDataFields(record, itemTag);
+		List<DataField> items = MarcUtil.getDataFields(record, itemTag);
 		HashMap<String, Integer> printFormats = new HashMap<>();
 		for (DataField curItem : items){
 			Subfield formatField = curItem.getSubfield(formatSubfield);

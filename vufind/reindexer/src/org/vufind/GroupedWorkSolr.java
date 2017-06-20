@@ -107,58 +107,105 @@ public class GroupedWorkSolr implements Cloneable {
 	protected GroupedWorkSolr clone() throws CloneNotSupportedException{
 		GroupedWorkSolr clonedWork = (GroupedWorkSolr)super.clone();
 		//Clone collections as well
+		// noinspection unchecked
 		clonedWork.relatedRecords = (HashMap<String, RecordInfo>) relatedRecords.clone();
+		// noinspection unchecked
 		clonedWork.alternateIds = (HashSet<String>) alternateIds.clone();
+		// noinspection unchecked
 		clonedWork.primaryAuthors = (HashMap<String,Long>) primaryAuthors.clone();
+		// noinspection unchecked
 		clonedWork.authorAdditional = (HashSet<String>) authorAdditional.clone();
+		// noinspection unchecked
 		clonedWork.author2 = (HashSet<String>) author2.clone();
+		// noinspection unchecked
 		clonedWork.authAuthor2 = (HashSet<String>) authAuthor2.clone();
+		// noinspection unchecked
 		clonedWork.author2Role = (HashSet<String>) author2Role.clone();
+		// noinspection unchecked
 		clonedWork.awards = (HashSet<String>) awards.clone();
+		// noinspection unchecked
 		clonedWork.barcodes = (HashSet<String>) barcodes.clone();
+		// noinspection unchecked
 		clonedWork.contents = (HashSet<String>) contents.clone();
+		// noinspection unchecked
 		clonedWork.dateSpans = (HashSet<String>) dateSpans.clone();
+		// noinspection unchecked
 		clonedWork.description = (HashSet<String>) description.clone();
+		// noinspection unchecked
 		clonedWork.econtentDevices = (HashSet<String>) econtentDevices.clone();
+		// noinspection unchecked
 		clonedWork.editions = (HashSet<String>) editions.clone();
+		// noinspection unchecked
 		clonedWork.eras = (HashSet<String>) eras.clone();
+		// noinspection unchecked
 		clonedWork.fullTitles = (HashSet<String>) fullTitles.clone();
+		// noinspection unchecked
 		clonedWork.genres = (HashSet<String>) genres.clone();
+		// noinspection unchecked
 		clonedWork.genreFacets = (HashSet<String>) genreFacets.clone();
+		// noinspection unchecked
 		clonedWork.geographic = (HashSet<String>) geographic.clone();
+		// noinspection unchecked
 		clonedWork.geographicFacets = (HashSet<String>) geographicFacets.clone();
+		// noinspection unchecked
 		clonedWork.isbns = (HashMap<String,Long>) isbns.clone();
+		// noinspection unchecked
 		clonedWork.issns = (HashSet<String>) issns.clone();
+		// noinspection unchecked
 		clonedWork.keywords = (HashSet<String>) keywords.clone();
+		// noinspection unchecked
 		clonedWork.languages = (HashSet<String>) languages.clone();
+		// noinspection unchecked
 		clonedWork.translations = (HashSet<String>) translations.clone();
+		// noinspection unchecked
 		clonedWork.lccns = (HashSet<String>) lccns.clone();
+		// noinspection unchecked
 		clonedWork.lcSubjects = (HashSet<String>) lcSubjects.clone();
+		// noinspection unchecked
 		clonedWork.literaryFormFull = (HashMap<String,Integer>) literaryFormFull.clone();
+		// noinspection unchecked
 		clonedWork.literaryForm = (HashMap<String,Integer>) literaryForm.clone();
+		// noinspection unchecked
 		clonedWork.mpaaRatings = (HashSet<String>) mpaaRatings.clone();
+		// noinspection unchecked
 		clonedWork.oclcs = (HashSet<String>) oclcs.clone();
+		// noinspection unchecked
 		clonedWork.physicals = (HashSet<String>) physicals.clone();
+		// noinspection unchecked
 		clonedWork.publishers = (HashSet<String>) publishers.clone();
+		// noinspection unchecked
 		clonedWork.publicationDates = (HashSet<String>) publicationDates.clone();
+		// noinspection unchecked
 		clonedWork.series = (HashMap<String,String>) series.clone();
+		// noinspection unchecked
 		clonedWork.series2 = (HashSet<String>) series2.clone();
+		// noinspection unchecked
 		clonedWork.seriesWithVolume = (HashSet<String>) seriesWithVolume.clone();
+		// noinspection unchecked
 		clonedWork.targetAudienceFull = (HashSet<String>) targetAudienceFull.clone();
+		// noinspection unchecked
 		clonedWork.targetAudience = (HashSet<String>) targetAudience.clone();
+		// noinspection unchecked
 		clonedWork.titleAlt = (HashSet<String>) titleAlt.clone();
+		// noinspection unchecked
 		clonedWork.titleOld = (HashSet<String>) titleOld.clone();
+		// noinspection unchecked
 		clonedWork.titleNew = (HashSet<String>) titleNew.clone();
+		// noinspection unchecked
 		clonedWork.topics = (HashSet<String>) topics.clone();
+		// noinspection unchecked
 		clonedWork.topicFacets = (HashSet<String>) topicFacets.clone();
+		// noinspection unchecked
 		clonedWork.subjects = (HashSet<String>) subjects.clone();
+		// noinspection unchecked
 		clonedWork.upcs = (HashMap<String,Long>) upcs.clone();
+		// noinspection unchecked
 		clonedWork.systemLists = (HashSet<String>) systemLists.clone();
 
 		return clonedWork;
 	}
 
-	public SolrInputDocument getSolrDocument(int availableAtBoostValue, int ownedByBoostValue) {
+	SolrInputDocument getSolrDocument(int availableAtBoostValue, int ownedByBoostValue) {
 		SolrInputDocument doc = new SolrInputDocument();
 		//Main identification
 		doc.addField("id", id);
@@ -382,7 +429,7 @@ public class GroupedWorkSolr implements Cloneable {
 		return earliestDate;
 	}
 
-	protected void addScopedFieldsToDocument(int availableAtBoostValue, int ownedByBoostValue, SolrInputDocument doc) {
+	private void addScopedFieldsToDocument(int availableAtBoostValue, int ownedByBoostValue, SolrInputDocument doc) {
 		//Load information based on scopes.  This has some pretty severe performance implications since we potentially
 		//have a lot of scopes and a lot of items & records.
 		for (RecordInfo curRecord : relatedRecords.values()){
@@ -810,7 +857,7 @@ public class GroupedWorkSolr implements Cloneable {
 		}
 	}
 
-	static ArrayList<String> nonFictionFullLiteraryForms = new ArrayList<>();
+	private static ArrayList<String> nonFictionFullLiteraryForms = new ArrayList<>();
 	static{
 		nonFictionFullLiteraryForms.add("Non Fiction");
 		nonFictionFullLiteraryForms.add("Essays");
@@ -859,7 +906,7 @@ public class GroupedWorkSolr implements Cloneable {
 		this.id = id;
 	}
 
-	public void setTitle(String shortTitle, String displayTitle, String sortableTitle, String recordFormat) {
+	void setTitle(String shortTitle, String displayTitle, String sortableTitle, String recordFormat) {
 		if (shortTitle != null){
 			shortTitle = Util.trimTrailingPunctuation(shortTitle);
 
@@ -947,7 +994,7 @@ public class GroupedWorkSolr implements Cloneable {
 	}
 
 
-	public void setSubTitle(String subTitle) {
+	void setSubTitle(String subTitle) {
 		if (subTitle != null){
 			subTitle = Util.trimTrailingPunctuation(subTitle);
 			//TODO: determine if the subtitle should be changed?
@@ -966,23 +1013,23 @@ public class GroupedWorkSolr implements Cloneable {
 		}
 	}
 
-	public void addFullTitles(Set<String> fullTitles){
+	void addFullTitles(Set<String> fullTitles){
 		this.fullTitles.addAll(fullTitles);
 	}
 
-	public void addFullTitle(String title) {
+	void addFullTitle(String title) {
 		this.fullTitles.add(title);
 	}
 
-	public void addAlternateTitles(Set<String> altTitles){
+	void addAlternateTitles(Set<String> altTitles){
 		this.titleAlt.addAll(altTitles);
 	}
 
-	public void addOldTitles(Set<String> oldTitles) {
+	void addOldTitles(Set<String> oldTitles) {
 		this.titleOld.addAll(oldTitles);
 	}
 
-	public void addNewTitles(Set<String> newTitles){
+	void addNewTitles(Set<String> newTitles){
 		this.titleNew.addAll(newTitles);
 	}
 
@@ -994,7 +1041,7 @@ public class GroupedWorkSolr implements Cloneable {
 		}
 	}
 
-	public String getPrimaryAuthor(){
+	private String getPrimaryAuthor(){
 		String mostUsedAuthor = null;
 		long numUses = -1;
 		for (String curAuthor : primaryAuthors.keySet()){
@@ -1005,25 +1052,25 @@ public class GroupedWorkSolr implements Cloneable {
 		return mostUsedAuthor;
 	}
 
-	public void setAuthorDisplay(String newAuthor) {
+	void setAuthorDisplay(String newAuthor) {
 		this.authorDisplay = Util.trimTrailingPunctuation(newAuthor);
 	}
 
-	public void setAuthAuthor(String author) {
+	void setAuthAuthor(String author) {
 		this.authAuthor = author;
 		keywords.add(author);
 	}
 
-	public void addOclcNumbers(Set<String> oclcs) {
+	void addOclcNumbers(Set<String> oclcs) {
 		this.oclcs.addAll(oclcs);
 	}
 
-	public void addIsbns(Set<String>isbns, String format){
+	void addIsbns(Set<String>isbns, String format){
 		for (String isbn:isbns){
 			addIsbn(isbn, format);
 		}
 	}
-	public void addIsbn(String isbn, String format) {
+	void addIsbn(String isbn, String format) {
 		isbn = isbn.replaceAll("\\D", "");
 		if (isbn.length() == 10){
 			isbn = Util.convertISBN10to13(isbn);
@@ -1055,13 +1102,13 @@ public class GroupedWorkSolr implements Cloneable {
 			primaryIsbnUsageCount = isbns.get(isbn);
 		}
 	}
-	public Set<String> getIsbns(){
+	Set<String> getIsbns(){
 		return isbns.keySet();
 	}
-	public void addIssns(Set<String> issns) {
+	void addIssns(Set<String> issns) {
 		this.issns.addAll(issns);
 	}
-	public void addUpc(String upc) {
+	void addUpc(String upc) {
 		if (upcs.containsKey(upc)){
 			upcs.put(upc, upcs.get(upc) + 1);
 		}else{
@@ -1069,59 +1116,59 @@ public class GroupedWorkSolr implements Cloneable {
 		}
 	}
 
-	public void addAlternateId(String alternateId) {
+	void addAlternateId(String alternateId) {
 		this.alternateIds.add(alternateId);
 	}
 
-	public void setGroupingCategory(String groupingCategory) {
+	void setGroupingCategory(String groupingCategory) {
 		this.groupingCategory = groupingCategory;
 	}
 
-	public void setAuthorLetter(String authorLetter) {
+	void setAuthorLetter(String authorLetter) {
 		this.authorLetter = authorLetter;
 	}
 
-	public void addAuthAuthor2(Set<String> fieldList) {
+	void addAuthAuthor2(Set<String> fieldList) {
 		this.authAuthor2.addAll(fieldList);
 	}
 
-	public void addAuthor2(Set<String> fieldList) {
+	void addAuthor2(Set<String> fieldList) {
 		this.author2.addAll(fieldList);
 	}
 
-	public void addAuthor2Role(Set<String> fieldList) {
+	void addAuthor2Role(Set<String> fieldList) {
 		this.author2Role.addAll(fieldList);
 	}
 
-	public void addAuthorAdditional(Set<String> fieldList) {
+	void addAuthorAdditional(Set<String> fieldList) {
 		this.authorAdditional.addAll(fieldList);
 	}
 
-	public void addHoldings(int recordHoldings) {
+	void addHoldings(int recordHoldings) {
 		this.numHoldings += recordHoldings;
 	}
 
-	public void addPopularity(double itemPopularity) {
+	void addPopularity(double itemPopularity) {
 		this.popularity += itemPopularity;
 	}
 
-	public double getPopularity(){
+	double getPopularity(){
         return  popularity;
     }
 
-	public void addTopic(Set<String> fieldList) {
+	void addTopic(Set<String> fieldList) {
 		this.topics.addAll(Util.trimTrailingPunctuation(fieldList));
 	}
 
-	public void addTopicFacet(Set<String> fieldList) {
+	void addTopicFacet(Set<String> fieldList) {
 		this.topicFacets.addAll(Util.trimTrailingPunctuation(fieldList));
 	}
 
-	public void addSubjects(Set<String> fieldList) {
+	void addSubjects(Set<String> fieldList) {
 		this.subjects.addAll(Util.trimTrailingPunctuation(fieldList));
 	}
 
-	public void addSeries(Set<String> fieldList) {
+	void addSeries(Set<String> fieldList) {
 		for(String curField : fieldList){
 			if (!curField.equalsIgnoreCase("none")){
 				this.addSeries(curField);
@@ -1129,7 +1176,7 @@ public class GroupedWorkSolr implements Cloneable {
 		}
 	}
 
-	public void addSeries(String series) {
+	void addSeries(String series) {
 		if (series != null && !series.equalsIgnoreCase("none")){
 			series = Util.trimTrailingPunctuation(series);
 			//Remove anything in parens since it's normally just the format
@@ -1142,91 +1189,91 @@ public class GroupedWorkSolr implements Cloneable {
 			}
 		}
 	}
-	public void addSeriesWithVolume(Set<String> fieldList){
+	void addSeriesWithVolume(Set<String> fieldList){
 		seriesWithVolume.addAll(fieldList);
 	}
 
-	public void addSeriesWithVolume(String series){
+	void addSeriesWithVolume(String series){
 		if (series != null) {
 			seriesWithVolume.add(series);
 		}
 	}
 
-	public void addSeries2(Set<String> fieldList) {
+	void addSeries2(Set<String> fieldList) {
 		this.series2.addAll(fieldList);
 	}
 
-	public void addPhysical(Set<String> fieldList) {
+	void addPhysical(Set<String> fieldList) {
 		this.physicals.addAll(fieldList);
 	}
 
-	public void addDateSpan(Set<String> fieldList) {
+	void addDateSpan(Set<String> fieldList) {
 		this.dateSpans.addAll(fieldList);
 	}
 
-	public void addEditions(Set<String> fieldList) {
+	void addEditions(Set<String> fieldList) {
 		this.editions.addAll(fieldList);
 	}
 
-	public void addContents(Set<String> fieldList) {
+	void addContents(Set<String> fieldList) {
 		this.contents.addAll(fieldList);
 	}
 
-	public void addGenre(Set<String> fieldList) {
+	void addGenre(Set<String> fieldList) {
 		this.genres.addAll(Util.trimTrailingPunctuation(fieldList));
 	}
 
-	public void addGenreFacet(Set<String> fieldList) {
+	void addGenreFacet(Set<String> fieldList) {
 		this.genreFacets.addAll(Util.trimTrailingPunctuation(fieldList));
 	}
 
-	public void addGeographic(Set<String> fieldList) {
+	void addGeographic(Set<String> fieldList) {
 		this.geographic.addAll(Util.trimTrailingPunctuation(fieldList));
 	}
 
-	public void addGeographicFacet(Set<String> fieldList) {
+	void addGeographicFacet(Set<String> fieldList) {
 		this.geographicFacets.addAll(Util.trimTrailingPunctuation(fieldList));
 	}
 
-	public void addEra(Set<String> fieldList) {
+	void addEra(Set<String> fieldList) {
 		this.eras.addAll(Util.trimTrailingPunctuation(fieldList));
 	}
 
-	public void setLanguageBoost(Long languageBoost) {
+	void setLanguageBoost(Long languageBoost) {
 		if (languageBoost > this.languageBoost){
 			this.languageBoost = languageBoost;
 		}
 	}
 
-	public void setLanguageBoostSpanish(Long languageBoostSpanish) {
+	void setLanguageBoostSpanish(Long languageBoostSpanish) {
 		if (languageBoostSpanish > this.languageBoostSpanish){
 			this.languageBoostSpanish = languageBoostSpanish;
 		}
 	}
 
-	public void setLanguages(HashSet<String> languages) {
+	void setLanguages(HashSet<String> languages) {
 		this.languages.addAll(languages);
 	}
 
-	public void setTranslations(HashSet<String> translations){
+	void setTranslations(HashSet<String> translations){
 		this.translations.addAll(translations);
 	}
 
-	public void addPublishers(Set<String> publishers) {
+	void addPublishers(Set<String> publishers) {
 		this.publishers.addAll(publishers);
 	}
 
-	public void addPublisher(String publisher){
+	void addPublisher(String publisher){
 		this.publishers.add(publisher);
 	}
 
-	public void addPublicationDates(Set<String> publicationDate) {
+	void addPublicationDates(Set<String> publicationDate) {
 		for (String pubDate : publicationDate){
 			addPublicationDate(pubDate);
 		}
 	}
 
-	public void addPublicationDate(String publicationDate){
+	void addPublicationDate(String publicationDate){
 		String cleanDate = Util.cleanDate(publicationDate);
 		if (cleanDate != null){
 			this.publicationDates.add(cleanDate);
@@ -1238,19 +1285,19 @@ public class GroupedWorkSolr implements Cloneable {
 		}
 	}
 
-	public void addLiteraryForms(HashSet<String> literaryForms) {
+	void addLiteraryForms(HashSet<String> literaryForms) {
 		for (String curLiteraryForm : literaryForms){
 			this.addLiteraryForm(curLiteraryForm);
 		}
 	}
 
-	public void addLiteraryForms(HashMap<String, Integer> literaryForms) {
+	void addLiteraryForms(HashMap<String, Integer> literaryForms) {
 		for (String curLiteraryForm : literaryForms.keySet()){
 			this.addLiteraryForm(curLiteraryForm, literaryForms.get(curLiteraryForm));
 		}
 	}
 
-	public void addLiteraryForm(String literaryForm, int count) {
+	private void addLiteraryForm(String literaryForm, int count) {
 		literaryForm = literaryForm.trim();
 		if (this.literaryForm.containsKey(literaryForm)){
 			Integer numMatches = this.literaryForm.get(literaryForm);
@@ -1260,23 +1307,23 @@ public class GroupedWorkSolr implements Cloneable {
 		}
 	}
 
-	public void addLiteraryForm(String literaryForm) {
+	void addLiteraryForm(String literaryForm) {
 		addLiteraryForm(literaryForm, 1);
 	}
 
-	public void addLiteraryFormsFull(HashMap<String, Integer> literaryFormsFull) {
+	void addLiteraryFormsFull(HashMap<String, Integer> literaryFormsFull) {
 		for (String curLiteraryForm : literaryFormsFull.keySet()){
 			this.addLiteraryFormFull(curLiteraryForm, literaryFormsFull.get(curLiteraryForm));
 		}
 	}
 
-	public void addLiteraryFormsFull(HashSet<String> literaryFormsFull) {
+	void addLiteraryFormsFull(HashSet<String> literaryFormsFull) {
 		for (String curLiteraryForm : literaryFormsFull){
 			this.addLiteraryFormFull(curLiteraryForm);
 		}
 	}
 
-	public void addLiteraryFormFull(String literaryForm, int count) {
+	private void addLiteraryFormFull(String literaryForm, int count) {
 		literaryForm = literaryForm.trim();
 		if (this.literaryFormFull.containsKey(literaryForm)){
 			Integer numMatches = this.literaryFormFull.get(literaryForm);
@@ -1286,23 +1333,23 @@ public class GroupedWorkSolr implements Cloneable {
 		}
 	}
 
-	public void addLiteraryFormFull(String literaryForm) {
+	void addLiteraryFormFull(String literaryForm) {
 		this.addLiteraryFormFull(literaryForm, 1);
 	}
 
-	public void addTargetAudiences(HashSet<String> target_audience) {
+	void addTargetAudiences(HashSet<String> target_audience) {
 		targetAudience.addAll(target_audience);
 	}
 
-	public void addTargetAudience(String target_audience) {
+	void addTargetAudience(String target_audience) {
 		targetAudience.add(target_audience);
 	}
 
-	public void addTargetAudiencesFull(HashSet<String> target_audience_full) {
+	void addTargetAudiencesFull(HashSet<String> target_audience_full) {
 		targetAudienceFull.addAll(target_audience_full);
 	}
 
-	public void addTargetAudienceFull(String target_audience) {
+	void addTargetAudienceFull(String target_audience) {
 		targetAudienceFull.add(target_audience);
 	}
 
@@ -1329,73 +1376,73 @@ public class GroupedWorkSolr implements Cloneable {
 		return ratingFacet;
 	}
 
-	public void addMpaaRating(String mpaaRating) {
+	void addMpaaRating(String mpaaRating) {
 		this.mpaaRatings.add(mpaaRating);
 	}
 
-	public void addBarcodes(Set<String> barcodeList) {
+	void addBarcodes(Set<String> barcodeList) {
 		this.barcodes.addAll(barcodeList);
 	}
 
-	public void setRating(float rating) {
+	void setRating(float rating) {
 		this.rating = rating;
 	}
 
-	public void setLexileScore(String lexileScore) {
+	void setLexileScore(String lexileScore) {
 		this.lexileScore = lexileScore;
 	}
 
-	public void setLexileCode(String lexileCode) {
+	void setLexileCode(String lexileCode) {
 		this.lexileCode = lexileCode;
 	}
 
-	public void addAwards(Set<String> awards) {
+	void addAwards(Set<String> awards) {
 		this.awards.addAll(Util.trimTrailingPunctuation(awards));
 	}
 
-	public void setAcceleratedReaderInterestLevel(String acceleratedReaderInterestLevel) {
+	void setAcceleratedReaderInterestLevel(String acceleratedReaderInterestLevel) {
 		if (acceleratedReaderInterestLevel != null){
 			this.acceleratedReaderInterestLevel = acceleratedReaderInterestLevel;
 		}
 	}
 
-	public void setAcceleratedReaderReadingLevel(String acceleratedReaderReadingLevel) {
+	void setAcceleratedReaderReadingLevel(String acceleratedReaderReadingLevel) {
 		if (acceleratedReaderReadingLevel != null){
 			this.acceleratedReaderReadingLevel = acceleratedReaderReadingLevel;
 		}
 	}
 
-	public void setAcceleratedReaderPointValue(String acceleratedReaderPointValue) {
+	void setAcceleratedReaderPointValue(String acceleratedReaderPointValue) {
 		if (acceleratedReaderPointValue != null){
 			this.acceleratedReaderPointValue = acceleratedReaderPointValue;
 		}
 	}
 
-	public void setCallNumberA(String callNumber) {
+	void setCallNumberA(String callNumber) {
 		if (callNumber != null && callNumberA == null){
 			this.callNumberA = callNumber;
 		}
 	}
-	public void setCallNumberFirst(String callNumber) {
+	void setCallNumberFirst(String callNumber) {
 		if (callNumber != null && callNumberFirst == null){
 			this.callNumberFirst = callNumber;
 		}
 	}
-	public void setCallNumberSubject(String callNumber) {
+	void setCallNumberSubject(String callNumber) {
 		if (callNumber != null && callNumberSubject == null){
 			this.callNumberSubject = callNumber;
 		}
 	}
 
-	public void addEContentDevices(HashSet<String> devices){
+	void addEContentDevices(HashSet<String> devices){
 		this.econtentDevices.addAll(Util.trimTrailingPunctuation(devices));
 	}
 
-	public void addKeywords(String keywords){
+	void addKeywords(String keywords){
 		this.keywords.add(keywords);
 	}
 
-	public void addDescription(String description, @NotNull String recordFormat){
+	void addDescription(String description, @NotNull String recordFormat){
 		if (description == null || description.length() == 0){
 			return;
 		}
@@ -1437,7 +1484,7 @@ public class GroupedWorkSolr implements Cloneable {
 		}
 	}
 
-	public RecordInfo addRelatedRecord(String source, String recordIdentifier){
+	RecordInfo addRelatedRecord(String source, String recordIdentifier){
 		String recordIdentifierWithType = source + ":" + recordIdentifier;
 		if (relatedRecords.containsKey(recordIdentifierWithType)){
 			return relatedRecords.get(recordIdentifierWithType);
@@ -1448,23 +1495,23 @@ public class GroupedWorkSolr implements Cloneable {
 		}
 	}
 
-	public void addLCSubjects(Set<String> lcSubjects) {
+	void addLCSubjects(Set<String> lcSubjects) {
 		this.lcSubjects.addAll(Util.trimTrailingPunctuation(lcSubjects));
 	}
 
-	public void addBisacSubjects(Set<String> bisacSubjects) {
+	void addBisacSubjects(Set<String> bisacSubjects) {
 		this.bisacSubjects.addAll(Util.trimTrailingPunctuation(bisacSubjects));
 	}
 
-	public void addSystemLists(Set<String> systemLists) {
+	void addSystemLists(Set<String> systemLists) {
 		this.systemLists.addAll(systemLists);
 	}
 
-	public void removeRelatedRecord(RecordInfo recordInfo) {
+	void removeRelatedRecord(RecordInfo recordInfo) {
 		this.relatedRecords.remove(recordInfo.getFullIdentifier());
 	}
 
-	public void updateIndexingStats(TreeMap<String, ScopedIndexingStats> indexingStats) {
+	void updateIndexingStats(TreeMap<String, ScopedIndexingStats> indexingStats) {
 		//Update total works
 		for (Scope scope: groupedWorkIndexer.getScopes()){
 			HashSet<RecordInfo> relatedRecordsForScope = new HashSet<>();
@@ -1484,7 +1531,7 @@ public class GroupedWorkSolr implements Cloneable {
 		}
 	}
 
-	public boolean getIsLibraryOwned(Scope scope){
+	boolean getIsLibraryOwned(Scope scope){
 		HashSet<RecordInfo> relatedRecordsForScope = new HashSet<>();
 		HashSet<ItemInfo> relatedItems = new HashSet<>();
 		loadRelatedRecordsAndItemsForScope(scope, relatedRecordsForScope, relatedItems);
@@ -1500,7 +1547,11 @@ public class GroupedWorkSolr implements Cloneable {
 
 
 
-	public int getNumRecords() {
+	int getNumRecords() {
 		return this.relatedRecords.size();
+	}
+
+	HashSet<String> getTargetAudiences() {
+		return targetAudience;
 	}
 }

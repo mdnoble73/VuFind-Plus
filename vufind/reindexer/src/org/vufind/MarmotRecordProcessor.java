@@ -1,7 +1,6 @@
 package org.vufind;
 
 import org.apache.log4j.Logger;
-import org.ini4j.Ini;
 import org.marc4j.marc.DataField;
 import org.marc4j.marc.Record;
 import org.marc4j.marc.Subfield;
@@ -21,15 +20,15 @@ import java.util.*;
  * Date: 2/21/14
  * Time: 3:00 PM
  */
-public class MarmotRecordProcessor extends IIIRecordProcessor {
-	public MarmotRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
-		super(indexer, vufindConn, configIni, indexingProfileRS, logger, fullReindex);
+class MarmotRecordProcessor extends IIIRecordProcessor {
+	MarmotRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
+		super(indexer, vufindConn, indexingProfileRS, logger, fullReindex);
 
 		loadOrderInformationFromExport();
 	}
 
 	protected void loadUnsuppressedPrintItems(GroupedWorkSolr groupedWork, RecordInfo recordInfo, String identifier, Record record){
-		List<DataField> itemRecords = getDataFields(record, itemTag);
+		List<DataField> itemRecords = MarcUtil.getDataFields(record, itemTag);
 		for (DataField itemField : itemRecords){
 			if (!isItemSuppressed(itemField)){
 				//Check to see if the item has an eContent indicator
@@ -72,7 +71,7 @@ public class MarmotRecordProcessor extends IIIRecordProcessor {
 	protected boolean isItemSuppressed(DataField curItem) {
 		boolean suppressed = false;
 		Subfield icode2Subfield = curItem.getSubfield(iCode2Subfield);
-		if (icode2Subfield != null){
+		if (icode2Subfield != null) {
 			String icode2 = icode2Subfield.getData().toLowerCase().trim();
 			Subfield locationCodeSubfield = curItem.getSubfield(locationSubfieldIndicator);
 			if (locationCodeSubfield != null) {
@@ -81,16 +80,12 @@ public class MarmotRecordProcessor extends IIIRecordProcessor {
 				suppressed = icode2.equals("n") || icode2.equals("x") || locationCode.equals("zzzz") || icode2.equals("q") || icode2.equals("z") || icode2.equals("y") || icode2.equals("a");
 			}
 		}
-		if (suppressed){
-			return suppressed;
-		}else{
-			return super.isItemSuppressed(curItem);
-		}
+		return suppressed || super.isItemSuppressed(curItem);
 	}
 
 	@Override
 	protected List<RecordInfo> loadUnsuppressedEContentItems(GroupedWorkSolr groupedWork, String identifier, Record record){
-		List<DataField> itemRecords = getDataFields(record, itemTag);
+		List<DataField> itemRecords = MarcUtil.getDataFields(record, itemTag);
 		List<RecordInfo> unsuppressedEcontentRecords = new ArrayList<>();
 		for (DataField itemField : itemRecords){
 			if (!isItemSuppressed(itemField)){

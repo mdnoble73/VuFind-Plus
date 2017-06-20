@@ -22,11 +22,11 @@ import java.util.Set;
  * Date: 2/21/14
  * Time: 3:00 PM
  */
-public class AspencatRecordProcessor extends IlsRecordProcessor {
+class AspencatRecordProcessor extends IlsRecordProcessor {
 	private HashSet<String> inTransitItems = new HashSet<>();
 	private HashSet<String> onHoldShelfItems = new HashSet<>();
-	public AspencatRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
-		super(indexer, vufindConn, configIni, indexingProfileRS, logger, fullReindex);
+	AspencatRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
+		super(indexer, vufindConn, indexingProfileRS, logger, fullReindex);
 
 		//Connect to the AspenCat database
 		Connection kohaConn;
@@ -66,16 +66,12 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 
 	@Override
 	protected boolean isItemAvailable(ItemInfo itemInfo) {
-		if (inTransitItems.contains(itemInfo.getItemIdentifier())){
-			return false;
-		}
-		return itemInfo.getStatusCode().equals("On Shelf") ||
-				itemInfo.getStatusCode().equals("Library Use Only");
+		return !inTransitItems.contains(itemInfo.getItemIdentifier()) && (itemInfo.getStatusCode().equals("On Shelf") || itemInfo.getStatusCode().equals("Library Use Only"));
 	}
 
 	@Override
 	public void loadPrintFormatInformation(RecordInfo recordInfo, Record record) {
-		Set<String> printFormatsRaw = getFieldList(record, itemTag + iTypeSubfield);
+		Set<String> printFormatsRaw = MarcUtil.getFieldList(record, itemTag + iTypeSubfield);
 		HashSet<String> printFormats = new HashSet<>();
 		for (String curFormat : printFormatsRaw){
 			printFormats.add(curFormat.toLowerCase());
@@ -203,7 +199,7 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 	}
 
 	protected void loadUnsuppressedPrintItems(GroupedWorkSolr groupedWork, RecordInfo recordInfo, String identifier, Record record){
-		List<DataField> itemRecords = getDataFields(record, itemTag);
+		List<DataField> itemRecords = MarcUtil.getDataFields(record, itemTag);
 		for (DataField itemField : itemRecords){
 			if (!isItemSuppressed(itemField)){
 				//Check to see if the item has an eContent indicator
@@ -222,7 +218,7 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 	}
 
 	protected List<RecordInfo> loadUnsuppressedEContentItems(GroupedWorkSolr groupedWork, String identifier, Record record){
-		List<DataField> itemRecords = getDataFields(record, itemTag);
+		List<DataField> itemRecords = MarcUtil.getDataFields(record, itemTag);
 		List<RecordInfo> unsuppressedEcontentRecords = new ArrayList<>();
 		for (DataField itemField : itemRecords){
 			if (!isItemSuppressed(itemField)){
@@ -322,25 +318,21 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 		if (curItem.getSubfield('i') != null) {
 			suppressed = curItem.getSubfield('i').getData().equals("1");
 		}
-		if (!suppressed && curItem.getSubfield(iTypeSubfield) != null){
+		if (!suppressed && curItem.getSubfield(iTypeSubfield) != null) {
 			suppressed = curItem.getSubfield(iTypeSubfield).getData().equalsIgnoreCase("ill");
 		}
-		if (curItem.getSubfield('0') != null){
-			if (curItem.getSubfield('0').getData().equals("1")){
+		if (curItem.getSubfield('0') != null) {
+			if (curItem.getSubfield('0').getData().equals("1")) {
 				suppressed = true;
 			}
 		}
-		if (curItem.getSubfield('1') != null){
+		if (curItem.getSubfield('1') != null) {
 			String fieldData = curItem.getSubfield('1').getData().toLowerCase();
-			if (fieldData.equals("lost") || fieldData.equals("missing") || fieldData.equals("longoverdue") || fieldData.equals("trace")){
+			if (fieldData.equals("lost") || fieldData.equals("missing") || fieldData.equals("longoverdue") || fieldData.equals("trace")) {
 				suppressed = true;
 			}
 		}
-		if (suppressed){
-			return true;
-		} else {
-			return super.isItemSuppressed(curItem);
-		}
+		return suppressed || super.isItemSuppressed(curItem);
 	}
 
 	protected String getShelfLocationForItem(ItemInfo itemInfo, DataField itemField, String identifier) {

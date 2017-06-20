@@ -2,16 +2,13 @@ package org.vufind;
 
 import au.com.bytecode.opencsv.CSVReader;
 import org.apache.log4j.Logger;
-import org.ini4j.Ini;
 import org.marc4j.marc.DataField;
 
 import java.io.File;
 import java.io.FileReader;
 import java.sql.Connection;
 import java.sql.ResultSet;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashMap;
 
 /**
@@ -21,11 +18,11 @@ import java.util.HashMap;
  * Date: 7/8/2015
  * Time: 4:43 PM
  */
-public class NashvilleSchoolsRecordProcessor extends IlsRecordProcessor {
+class NashvilleSchoolsRecordProcessor extends IlsRecordProcessor {
 
 	private HashMap<String, LSSItemInformation> allItemInformation = new HashMap<>();
-	public NashvilleSchoolsRecordProcessor(GroupedWorkIndexer groupedWorkIndexer, Connection vufindConn, Ini configIni, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
-		super(groupedWorkIndexer, vufindConn, configIni, indexingProfileRS, logger, fullReindex);
+	NashvilleSchoolsRecordProcessor(GroupedWorkIndexer groupedWorkIndexer, Connection vufindConn, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
+		super(groupedWorkIndexer, vufindConn, indexingProfileRS, logger, fullReindex);
 
 		//Load item information
 		String itemInfoPath = "";
@@ -107,10 +104,6 @@ public class NashvilleSchoolsRecordProcessor extends IlsRecordProcessor {
 	protected boolean isItemSuppressed(DataField curItem) {
 		//Suppress if the barcode is null or blank
 		String barcode = getItemSubfieldData(barcodeSubfield, curItem);
-		if (barcode == null || barcode.length() == 0){
-			return true;
-		}else{
-			return super.isItemSuppressed(curItem);
-		}
+		return barcode == null || barcode.length() == 0 || super.isItemSuppressed(curItem);
 	}
 }

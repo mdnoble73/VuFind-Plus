@@ -1,7 +1,6 @@
 package org.vufind;
 
 import org.apache.log4j.Logger;
-import org.ini4j.Ini;
 import org.marc4j.marc.DataField;
 import org.marc4j.marc.Record;
 import org.marc4j.marc.Subfield;
@@ -19,10 +18,10 @@ import java.util.regex.Pattern;
  * Date: 4/25/14
  * Time: 11:02 AM
  */
-public class WCPLRecordProcessor extends IlsRecordProcessor {
+class WCPLRecordProcessor extends IlsRecordProcessor {
 	private PreparedStatement getDateAddedStmt;
-	public WCPLRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
-		super(indexer, vufindConn, configIni, indexingProfileRS, logger, fullReindex);
+	WCPLRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
+		super(indexer, vufindConn, indexingProfileRS, logger, fullReindex);
 
 		try{
 			getDateAddedStmt = vufindConn.prepareStatement("SELECT dateFirstDetected FROM ils_marc_checksums WHERE ilsId = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
@@ -31,7 +30,7 @@ public class WCPLRecordProcessor extends IlsRecordProcessor {
 		}
 	}
 
-	Pattern availableStati = Pattern.compile("^(csa|dc|fd|i|int|os|s|ref|rs|rw|st)$");
+	private Pattern availableStati = Pattern.compile("^(csa|dc|fd|i|int|os|s|ref|rs|rw|st)$");
 	@Override
 	protected boolean isItemAvailable(ItemInfo itemInfo) {
 		boolean available = false;
@@ -44,7 +43,7 @@ public class WCPLRecordProcessor extends IlsRecordProcessor {
 
 	@Override
 	public void loadPrintFormatInformation(RecordInfo ilsRecord, Record record) {
-		Set<String> printFormatsRaw = getFieldList(record, "949c");
+		Set<String> printFormatsRaw = MarcUtil.getFieldList(record, "949c");
 		HashSet<String> printFormats = new HashSet<>();
 		for (String curFormat : printFormatsRaw){
 			printFormats.add(curFormat.toLowerCase());
@@ -69,7 +68,7 @@ public class WCPLRecordProcessor extends IlsRecordProcessor {
 
 	@Override
 	protected void loadSystemLists(GroupedWorkSolr groupedWork, Record record) {
-		groupedWork.addSystemLists(this.getFieldList(record, "449a"));
+		groupedWork.addSystemLists(MarcUtil.getFieldList(record, "449a"));
 	}
 
 	protected boolean isItemSuppressed(DataField curItem) {

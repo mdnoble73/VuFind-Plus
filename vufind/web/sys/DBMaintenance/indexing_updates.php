@@ -286,6 +286,30 @@ function getIndexingUpdates() {
 				)
 		),
 
+			'records_to_include_2017-06' => array(
+					'title' => 'Records To Include Updates 2017.06',
+					'description' => 'Additional control over what is included, URL rewriting.',
+					'sql' => array(
+							"ALTER TABLE library_records_to_include ADD COLUMN iType VARCHAR(100)",
+							"ALTER TABLE library_records_to_include ADD COLUMN audience VARCHAR(100)",
+							"ALTER TABLE library_records_to_include ADD COLUMN format VARCHAR(100)",
+							"ALTER TABLE library_records_to_include ADD COLUMN marcTagToMatch VARCHAR(100)",
+							"ALTER TABLE library_records_to_include ADD COLUMN marcValueToMatch VARCHAR(100)",
+							"ALTER TABLE library_records_to_include ADD COLUMN includeExcludeMatches TINYINT default 1",
+							"ALTER TABLE library_records_to_include ADD COLUMN urlToMatch VARCHAR(100)",
+							"ALTER TABLE library_records_to_include ADD COLUMN urlReplacement VARCHAR(100)",
+
+							"ALTER TABLE location_records_to_include ADD COLUMN iType VARCHAR(100)",
+							"ALTER TABLE location_records_to_include ADD COLUMN audience VARCHAR(100)",
+							"ALTER TABLE location_records_to_include ADD COLUMN format VARCHAR(100)",
+							"ALTER TABLE location_records_to_include ADD COLUMN marcTagToMatch VARCHAR(100)",
+							"ALTER TABLE location_records_to_include ADD COLUMN marcValueToMatch VARCHAR(100)",
+							"ALTER TABLE location_records_to_include ADD COLUMN includeExcludeMatches TINYINT default 1",
+							"ALTER TABLE location_records_to_include ADD COLUMN urlToMatch VARCHAR(100)",
+							"ALTER TABLE location_records_to_include ADD COLUMN urlReplacement VARCHAR(100)",
+					)
+			),
+
 	);
 }
 

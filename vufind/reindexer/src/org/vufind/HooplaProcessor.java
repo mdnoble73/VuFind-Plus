@@ -1,14 +1,11 @@
 package org.vufind;
 
 import org.apache.log4j.Logger;
-import org.ini4j.Ini;
 import org.marc4j.MarcPermissiveStreamReader;
 import org.marc4j.marc.Record;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.InputStream;
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.util.Date;
 import java.util.HashSet;
@@ -56,7 +53,7 @@ class HooplaProcessor extends MarcRecordProcessor {
 	private Record loadMarcRecordFromDisk(String identifier){
 		Record record = null;
 		//Load the marc record from disc
-		String individualFilename = getFileForIlsRecord(identifier);;
+		String individualFilename = getFileForIlsRecord(identifier);
 		try {
 			byte[] fileContents = Util.readFileBytes(individualFilename);
 			InputStream inputStream = new ByteArrayInputStream(fileContents);
@@ -92,8 +89,10 @@ class HooplaProcessor extends MarcRecordProcessor {
 	@Override
 	protected void updateGroupedWorkSolrDataBasedOnMarc(GroupedWorkSolr groupedWork, Record record, String identifier) {
 		//First get format
-		String format = getFirstFieldVal(record, "099a");
-		format = format.replace(" hoopla", "");
+		String format = MarcUtil.getFirstFieldVal(record, "099a");
+		if (format != null) {
+			format = format.replace(" hoopla", "");
+		}
 
 		//Do updates based on the overall bib (shared regardless of scoping)
 		updateGroupedWorkSolrDataBasedOnStandardMarcData(groupedWork, record, null, identifier, format);
@@ -106,11 +105,11 @@ class HooplaProcessor extends MarcRecordProcessor {
 		String formatBoostStr = indexer.translateSystemValue("format_boost_hoopla", format, identifier);
 		Long formatBoost = Long.parseLong(formatBoostStr);
 
-		String fullDescription = Util.getCRSeparatedString(getFieldList(record, "520a"));
+		String fullDescription = Util.getCRSeparatedString(MarcUtil.getFieldList(record, "520a"));
 		groupedWork.addDescription(fullDescription, format);
 
 		//Load editions
-		Set<String> editions = getFieldList(record, "250a");
+		Set<String> editions = MarcUtil.getFieldList(record, "250a");
 		String primaryEdition = null;
 		if (editions.size() > 0) {
 			primaryEdition = editions.iterator().next();
@@ -135,7 +134,7 @@ class HooplaProcessor extends MarcRecordProcessor {
 		}
 
 		//Load physical description
-		Set<String> physicalDescriptions = getFieldList(record, "300abcefg:530abcd");
+		Set<String> physicalDescriptions = MarcUtil.getFieldList(record, "300abcefg:530abcd");
 		String physicalDescription = null;
 		if (physicalDescriptions.size() > 0){
 			physicalDescription = physicalDescriptions.iterator().next();
@@ -174,10 +173,25 @@ class HooplaProcessor extends MarcRecordProcessor {
 		itemInfo.setDateAdded(dateAdded);
 
 		recordInfo.addItem(itemInfo);
+		loadScopeInfoForEContentItem(groupedWork, recordInfo, itemInfo, record);
 
+
+		//TODO: Determine how to find popularity for Hoopla titles.
+		//Right now the information is not exported from Hoopla.  We could load based on clicks
+		//From Pika to Hoopla, but that wouldn't count plays directly within the app
+		//(which may be ok).
+		groupedWork.addPopularity(1);
+
+		//Related Record
+		groupedWork.addRelatedRecord("hoopla", identifier);
+	}
+
+	private void loadScopeInfoForEContentItem(GroupedWorkSolr groupedWork, RecordInfo recordInfo, ItemInfo itemInfo, Record record) {
 		//Figure out ownership information
 		for (Scope curScope: indexer.getScopes()){
-			if (curScope.isItemPartOfScope("hoopla", "", "", false, false, true)){
+			String originalUrl = itemInfo.geteContentUrl();
+			Scope.InclusionResult result = curScope.isItemPartOfScope("hoopla", "", "", null, groupedWork.getTargetAudiences(), recordInfo.getPrimaryFormat(), false, false, true, record, originalUrl);
+			if (result.isIncluded){
 				ScopingInfo scopingInfo = itemInfo.addScope(curScope);
 				scopingInfo.setAvailable(true);
 				scopingInfo.setStatus("Available Online");
@@ -192,16 +206,11 @@ class HooplaProcessor extends MarcRecordProcessor {
 				if (curScope.isLibraryScope()) {
 					 scopingInfo.setLibraryOwned(curScope.isItemOwnedByScope("hoopla", "", ""));
 				}
+				//Check to see if we need to do url rewriting
+				if (!originalUrl.equals(result.localUrl)){
+					scopingInfo.setLocalUrl(result.localUrl);
+				}
 			}
 		}
-
-		//TODO: Determine how to find popularity for Hoopla titles.
-		//Right now the information is not exported from Hoopla.  We could load based on clicks
-		//From Pika to Hoopla, but that wouldn't count plays directly within the app
-		//(which may be ok).
-		groupedWork.addPopularity(1);
-
-		//Related Record
-		groupedWork.addRelatedRecord("hoopla", identifier);
 	}
 }

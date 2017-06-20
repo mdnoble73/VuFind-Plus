@@ -1,7 +1,6 @@
 package org.vufind;
 
 import org.apache.log4j.Logger;
-import org.ini4j.Ini;
 import org.marc4j.marc.Record;
 
 import java.sql.Connection;
@@ -18,8 +17,8 @@ import java.util.*;
  */
 class SideLoadedEContentProcessor extends IlsRecordProcessor{
 	private PreparedStatement getDateAddedStmt;
-	SideLoadedEContentProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
-		super(indexer, vufindConn, configIni, indexingProfileRS, logger, fullReindex);
+	SideLoadedEContentProcessor(GroupedWorkIndexer indexer, Connection vufindConn, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
+		super(indexer, vufindConn, indexingProfileRS, logger, fullReindex);
 
 		try{
 			getDateAddedStmt = vufindConn.prepareStatement("SELECT dateFirstDetected FROM ils_marc_checksums WHERE ilsId = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
@@ -56,7 +55,7 @@ class SideLoadedEContentProcessor extends IlsRecordProcessor{
 			updateGroupedWorkSolrDataBasedOnStandardMarcData(groupedWork, record, recordInfo.getRelatedItems(), identifier, primaryFormat);
 
 			//Special processing for ILS Records
-			String fullDescription = Util.getCRSeparatedString(getFieldList(record, "520a"));
+			String fullDescription = Util.getCRSeparatedString(MarcUtil.getFieldList(record, "520a"));
 			for (RecordInfo ilsRecord : allRelatedRecords) {
 				String primaryFormatForRecord = ilsRecord.getPrimaryFormat();
 				if (primaryFormatForRecord == null){
@@ -78,6 +77,8 @@ class SideLoadedEContentProcessor extends IlsRecordProcessor{
 			loadPopularity(groupedWork, identifier);
 
 			groupedWork.addHoldings(1);
+
+			scopeItems(recordInfo, groupedWork, record);
 		}catch (Exception e){
 			logger.error("Error updating grouped work for MARC record with identifier " + identifier, e);
 		}
@@ -115,25 +116,6 @@ class SideLoadedEContentProcessor extends IlsRecordProcessor{
 		loadEContentFormatInformation(record, relatedRecord, itemInfo);
 
 		itemInfo.setDetailedStatus("Available Online");
-		//Determine which scopes this title belongs to
-		for (Scope curScope : indexer.getScopes()){
-			if (curScope.isItemPartOfScope(profileType, itemLocation, "", false, false, true)){
-				ScopingInfo scopingInfo = itemInfo.addScope(curScope);
-				scopingInfo.setAvailable(true);
-				scopingInfo.setStatus("Available Online");
-				scopingInfo.setGroupedStatus("Available Online");
-				scopingInfo.setHoldable(false);
-				if (curScope.isLocationScope()) {
-					scopingInfo.setLocallyOwned(curScope.isItemOwnedByScope(profileType, itemLocation, ""));
-					if (curScope.getLibraryScope() != null) {
-						scopingInfo.setLibraryOwned(curScope.getLibraryScope().isItemOwnedByScope(profileType, itemLocation, ""));
-					}
-				}
-				if (curScope.isLibraryScope()) {
-					scopingInfo.setLibraryOwned(curScope.isItemOwnedByScope(profileType, itemLocation, ""));
-				}
-			}
-		}
 
 		return relatedRecord;
 	}

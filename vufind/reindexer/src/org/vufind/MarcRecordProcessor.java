@@ -2,7 +2,6 @@ package org.vufind;
 
 import org.apache.log4j.Logger;
 import org.marc4j.marc.*;
-import org.solrmarc.tools.Utils;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -16,14 +15,14 @@ import java.util.regex.PatternSyntaxException;
  * Date: 9/29/2014
  * Time: 12:01 PM
  */
-public abstract class MarcRecordProcessor {
+abstract class MarcRecordProcessor {
 	protected Logger logger;
 	protected GroupedWorkIndexer indexer;
-	Pattern mpaaRatingRegex1 = null;
-	Pattern mpaaRatingRegex2 = null;
+	private Pattern mpaaRatingRegex1 = null;
+	private Pattern mpaaRatingRegex2 = null;
 	private HashSet<String> unknownSubjectForms = new HashSet<>();
 
-	public MarcRecordProcessor(GroupedWorkIndexer indexer, Logger logger) {
+	MarcRecordProcessor(GroupedWorkIndexer indexer, Logger logger) {
 		this.indexer = indexer;
 		this.logger = logger;
 	}
@@ -38,21 +37,21 @@ public abstract class MarcRecordProcessor {
 	public abstract void processRecord(GroupedWorkSolr groupedWork, String identifier);
 
 	protected void loadSubjects(GroupedWorkSolr groupedWork, Record record){
-		groupedWork.addSubjects(getAllSubfields(record, "600[abcdefghjklmnopqrstuvxyz]:610[abcdefghjklmnopqrstuvxyz]:611[acdefghklnpqstuvxyz]:630[abfghklmnoprstvxyz]:650[abcdevxyz]:651[abcdevxyz]:655[abcvxyz]:690[axyz]", " -- "));
-		groupedWork.addTopic(getFieldList(record, "600abcdefghjklmnopqrstuvxyz:610abcdefghjklmnopqrstuvxyz:611acdefghklnpqstuvxyz:630abfghklmnoprstvxyz:650abcdevxyz:651abcdevxyz:690axyz"));
-		groupedWork.addTopicFacet(getFieldList(record, "600a:600x:610x:611x:630a:630x:648x:650a:650x:651x:655x"));
+		groupedWork.addSubjects(MarcUtil.getAllSubfields(record, "600[abcdefghjklmnopqrstuvxyz]:610[abcdefghjklmnopqrstuvxyz]:611[acdefghklnpqstuvxyz]:630[abfghklmnoprstvxyz]:650[abcdevxyz]:651[abcdevxyz]:655[abcvxyz]:690[axyz]", " -- "));
+		groupedWork.addTopic(MarcUtil.getFieldList(record, "600abcdefghjklmnopqrstuvxyz:610abcdefghjklmnopqrstuvxyz:611acdefghklnpqstuvxyz:630abfghklmnoprstvxyz:650abcdevxyz:651abcdevxyz:690axyz"));
+		groupedWork.addTopicFacet(MarcUtil.getFieldList(record, "600a:600x:610x:611x:630a:630x:648x:650a:650x:651x:655x"));
 		//Add lc subjects
 		groupedWork.addLCSubjects(getLCSubjects(record));
 		//Add bisac subjects
 		groupedWork.addBisacSubjects(getBisacSubjects(record));
-		groupedWork.addGenre(getFieldList(record, "655abcvxyz"));
-		groupedWork.addGenreFacet(getFieldList(record, "600v:610v:611v:630v:648v:650v:651v:655a:655v"));
-		groupedWork.addGeographic(getFieldList(record, "651avxyz"));
-		groupedWork.addGeographicFacet(getFieldList(record, "600z:610z:611z:630z:648z:650z:651a:651z:655z"));
-		groupedWork.addEra(getFieldList(record, "600d:610y:611y:630y:648a:648y:650y:651y:655y"));
+		groupedWork.addGenre(MarcUtil.getFieldList(record, "655abcvxyz"));
+		groupedWork.addGenreFacet(MarcUtil.getFieldList(record, "600v:610v:611v:630v:648v:650v:651v:655a:655v"));
+		groupedWork.addGeographic(MarcUtil.getFieldList(record, "651avxyz"));
+		groupedWork.addGeographicFacet(MarcUtil.getFieldList(record, "600z:610z:611z:630z:648z:650z:651a:651z:655z"));
+		groupedWork.addEra(MarcUtil.getFieldList(record, "600d:610y:611y:630y:648a:648y:650y:651y:655y"));
 	}
 
-	protected void updateGroupedWorkSolrDataBasedOnStandardMarcData(GroupedWorkSolr groupedWork, Record record, HashSet<ItemInfo> printItems, String identifier, String format) {
+	void updateGroupedWorkSolrDataBasedOnStandardMarcData(GroupedWorkSolr groupedWork, Record record, HashSet<ItemInfo> printItems, String identifier, String format) {
 		loadTitles(groupedWork, record, format);
 		loadAuthors(groupedWork, record, identifier);
 		loadSubjects(groupedWork, record);
@@ -66,11 +65,11 @@ public abstract class MarcRecordProcessor {
 
 			}
 		}*/
-		List<DataField> seriesFields = getDataFields(record, "830");
+		List<DataField> seriesFields = MarcUtil.getDataFields(record, "830");
 		HashSet<String> seriesWithVolumes = new HashSet<>();
 		Pattern subfields830Pattern = Pattern.compile("[ap]");
 		for (DataField seriesField : seriesFields){
-			String series = Util.trimTrailingPunctuation(getSpecifiedSubfieldsAsString(seriesField, subfields830Pattern,"")).toString();
+			String series = Util.trimTrailingPunctuation(MarcUtil.getSpecifiedSubfieldsAsString(seriesField, subfields830Pattern,"")).toString();
 			//Remove anything in parens since it's normally just the format
 			series = series.replaceAll("\\s+\\(.*?\\)", "");
 			//Remove the word series at the end since this gets cataloged inconsistently
@@ -79,12 +78,12 @@ public abstract class MarcRecordProcessor {
 				//Separate out the volume so we can link specially
 				series += "|" + seriesField.getSubfield('v').getData();
 			}
-			seriesWithVolumes.add(series.toString());
+			seriesWithVolumes.add(series);
 		}
-		seriesFields = getDataFields(record, "800");
+		seriesFields = MarcUtil.getDataFields(record, "800");
 		Pattern subfields800Pattern = Pattern.compile("[pqt]");
 		for (DataField seriesField : seriesFields){
-			String series = Util.trimTrailingPunctuation(getSpecifiedSubfieldsAsString(seriesField, subfields800Pattern,"")).toString();
+			String series = Util.trimTrailingPunctuation(MarcUtil.getSpecifiedSubfieldsAsString(seriesField, subfields800Pattern,"")).toString();
 			//Remove anything in parens since it's normally just the format
 			series = series.replaceAll("\\s+\\(.*?\\)", "");
 			//Remove the word series at the end since this gets cataloged inconsistently
@@ -94,18 +93,18 @@ public abstract class MarcRecordProcessor {
 				//Separate out the volume so we can link specially
 				series += "|" + seriesField.getSubfield('v').getData();
 			}
-			seriesWithVolumes.add(series.toString());
+			seriesWithVolumes.add(series);
 		}
 		groupedWork.addSeriesWithVolume(seriesWithVolumes);
 
-		groupedWork.addSeries(getFieldList(record, "830ap:800pqt"));
-		groupedWork.addSeries2(getFieldList(record, "490a"));
-		groupedWork.addDateSpan(getFieldList(record, "362a"));
-		groupedWork.addContents(getFieldList(record, "505a:505t"));
-		groupedWork.addIssns(getFieldList(record, "022a"));
-		groupedWork.addOclcNumbers(getFieldList(record, "035a"));
-		groupedWork.addIsbns(getFieldList(record, "020a"), format);
-		List<DataField> upcFields = getDataFields(record, "024");
+		groupedWork.addSeries(MarcUtil.getFieldList(record, "830ap:800pqt"));
+		groupedWork.addSeries2(MarcUtil.getFieldList(record, "490a"));
+		groupedWork.addDateSpan(MarcUtil.getFieldList(record, "362a"));
+		groupedWork.addContents(MarcUtil.getFieldList(record, "505a:505t"));
+		groupedWork.addIssns(MarcUtil.getFieldList(record, "022a"));
+		groupedWork.addOclcNumbers(MarcUtil.getFieldList(record, "035a"));
+		groupedWork.addIsbns(MarcUtil.getFieldList(record, "020a"), format);
+		List<DataField> upcFields = MarcUtil.getDataFields(record, "024");
 		for (DataField upcField : upcFields){
 			if (upcField.getIndicator1() == '1' && upcField.getSubfield('a') != null){
 				groupedWork.addUpc(upcField.getSubfield('a').getData());
@@ -121,11 +120,11 @@ public abstract class MarcRecordProcessor {
 		/*groupedWork.setAcceleratedReaderInterestLevel(getAcceleratedReaderInterestLevel(record));
 		groupedWork.setAcceleratedReaderReadingLevel(getAcceleratedReaderReadingLevel(record));
 		groupedWork.setAcceleratedReaderPointValue(getAcceleratedReaderPointLevel(record));*/
-		groupedWork.addKeywords(getAllSearchableFields(record, 100, 900));
+		groupedWork.addKeywords(MarcUtil.getAllSearchableFields(record, 100, 900));
 	}
 
-	protected void loadAwards(GroupedWorkSolr groupedWork, Record record){
-		Set<String> awardFields = getFieldList(record, "586a");
+	void loadAwards(GroupedWorkSolr groupedWork, Record record){
+		Set<String> awardFields = MarcUtil.getFieldList(record, "586a");
 		HashSet<String> awards = new HashSet<>();
 		for (String award : awardFields){
 			//Normalize the award name
@@ -153,7 +152,7 @@ public abstract class MarcRecordProcessor {
 
 	protected Set<String> getBisacSubjects(Record record){
 		HashSet<String> bisacSubjects = new HashSet<>();
-		List<DataField> fields = getDataFields(record, "650");
+		List<DataField> fields = MarcUtil.getDataFields(record, "650");
 		for (DataField field : fields){
 			if (field.getIndicator2() == '0' || field.getIndicator2() == '1') {
 				continue;
@@ -175,9 +174,9 @@ public abstract class MarcRecordProcessor {
 	}
 
 
-	protected Set<String> getLCSubjects(Record record) {
+	Set<String> getLCSubjects(Record record) {
 		HashSet<String> lcSubjects = new HashSet<>();
-		List<DataField> fields = getDataFields(record, "650");
+		List<DataField> fields = MarcUtil.getDataFields(record, "650");
 		for (DataField field : fields){
 			if (field.getIndicator2() == '0' || field.getIndicator2() == '1'){
 				if (field.getSubfield('2') != null){
@@ -200,8 +199,8 @@ public abstract class MarcRecordProcessor {
 
 	protected abstract void updateGroupedWorkSolrDataBasedOnMarc(GroupedWorkSolr groupedWork, Record record, String identifier);
 
-	protected void loadEditions(GroupedWorkSolr groupedWork, Record record, HashSet<RecordInfo> ilsRecords) {
-		Set<String> editions = getFieldList(record, "250a");
+	void loadEditions(GroupedWorkSolr groupedWork, Record record, HashSet<RecordInfo> ilsRecords) {
+		Set<String> editions = MarcUtil.getFieldList(record, "250a");
 		if (editions.size() > 0) {
 			String edition = editions.iterator().next();
 			for (RecordInfo ilsRecord : ilsRecords) {
@@ -211,8 +210,8 @@ public abstract class MarcRecordProcessor {
 		groupedWork.addEditions(editions);
 	}
 
-	protected void loadPhysicalDescription(GroupedWorkSolr groupedWork, Record record, HashSet<RecordInfo> ilsRecords) {
-		Set<String> physicalDescriptions = getFieldList(record, "300abcefg:530abcd");
+	void loadPhysicalDescription(GroupedWorkSolr groupedWork, Record record, HashSet<RecordInfo> ilsRecords) {
+		Set<String> physicalDescriptions = MarcUtil.getFieldList(record, "300abcefg:530abcd");
 		if (physicalDescriptions.size() > 0){
 			String physicalDescription = physicalDescriptions.iterator().next();
 			for(RecordInfo ilsRecord : ilsRecords){
@@ -222,8 +221,8 @@ public abstract class MarcRecordProcessor {
 		groupedWork.addPhysical(physicalDescriptions);
 	}
 
-	protected String getCallNumberSubject(Record record, String fieldSpec) {
-		String val = getFirstFieldVal(record, fieldSpec);
+	String getCallNumberSubject(Record record, String fieldSpec) {
+		String val = MarcUtil.getFirstFieldVal(record, fieldSpec);
 
 		if (val != null) {
 			String[] callNumberSubject = val.toUpperCase().split("[^A-Z]+");
@@ -234,7 +233,7 @@ public abstract class MarcRecordProcessor {
 		return null;
 	}
 
-	public String getMpaaRating(Record record) {
+	String getMpaaRating(Record record) {
 		if (mpaaRatingRegex1 == null) {
 			mpaaRatingRegex1 = Pattern.compile(
 					"(?:.*?)Rated\\s(G|PG-13|PG|R|NC-17|NR|X)(?:.*)", Pattern.CANON_EQ);
@@ -243,7 +242,7 @@ public abstract class MarcRecordProcessor {
 			mpaaRatingRegex2 = Pattern.compile(
 					"(?:.*?)(G|PG-13|PG|R|NC-17|NR|X)\\sRated(?:.*)", Pattern.CANON_EQ);
 		}
-		String val = getFirstFieldVal(record, "521a");
+		String val = MarcUtil.getFirstFieldVal(record, "521a");
 
 		if (val != null) {
 			if (val.matches("Rated\\sNR\\.?|Not Rated\\.?|NR")) {
@@ -378,7 +377,7 @@ public abstract class MarcRecordProcessor {
 		HashMap<String, Integer> literaryFormsWithCount = new HashMap<>();
 		HashMap<String, Integer> literaryFormsFull = new HashMap<>();
 		//Check the subjects
-		Set<String> subjectFormData = getFieldList(record, "650v:651v");
+		Set<String> subjectFormData = MarcUtil.getFieldList(record, "650v:651v");
 		for(String subjectForm : subjectFormData){
 			subjectForm = Util.trimTrailingPunctuation(subjectForm);
 			if (subjectForm.equalsIgnoreCase("Fiction")
@@ -489,7 +488,7 @@ public abstract class MarcRecordProcessor {
 		}
 
 		//Check the subjects
-		Set<String> subjectGenreData = getFieldList(record, "655a");
+		Set<String> subjectGenreData = MarcUtil.getFieldList(record, "655a");
 		for(String subjectForm : subjectGenreData) {
 			subjectForm = Util.trimTrailingPunctuation(subjectForm).toLowerCase();
 			if (subjectForm.startsWith("instructional film")
@@ -556,22 +555,22 @@ public abstract class MarcRecordProcessor {
 		}
 		//Try to get from 260
 		if (publicationDates.size() ==0) {
-			publicationDates.addAll(getFieldList(record, "260c"));
+			publicationDates.addAll(MarcUtil.getFieldList(record, "260c"));
 		}
 		//Try to get from 008, but only need to do if we don't have anything else
 		if (publicationDates.size() == 0) {
-			publicationDates.add(getFirstFieldVal(record, "008[7-10]"));
+			publicationDates.add(MarcUtil.getFirstFieldVal(record, "008[7-10]"));
 		}
 
 		return publicationDates;
 	}
 
-	public Set<String> getPublishers(Record record){
+	Set<String> getPublishers(Record record){
 		Set<String> publisher = new LinkedHashSet<>();
 		//First check for 264 fields
 		@SuppressWarnings("unchecked")
 
-		List<DataField> rdaFields = getDataFields(record, "264");
+		List<DataField> rdaFields = MarcUtil.getDataFields(record, "264");
 		if (rdaFields.size() > 0){
 			for (DataField curField : rdaFields){
 				if (curField.getIndicator2() == '1'){
@@ -582,14 +581,14 @@ public abstract class MarcRecordProcessor {
 				}
 			}
 		}
-		publisher.addAll(getFieldList(record, "260b"));
+		publisher.addAll(MarcUtil.getFieldList(record, "260b"));
 		return publisher;
 	}
 
-	protected String languageFields = "008[35-37]";
-	protected String translationFields = "041b:041d:041h:041j";
-	protected void loadLanguageDetails(GroupedWorkSolr groupedWork, Record record, HashSet<RecordInfo> ilsRecords, String identifier) {
-		Set <String> languages = getFieldList(record, languageFields);
+	String languageFields = "008[35-37]";
+	String translationFields = "041b:041d:041h:041j";
+	void loadLanguageDetails(GroupedWorkSolr groupedWork, Record record, HashSet<RecordInfo> ilsRecords, String identifier) {
+		Set <String> languages = MarcUtil.getFieldList(record, languageFields);
 		HashSet<String> translatedLanguages = new HashSet<>();
 		boolean isFirstLanguage = true;
 		for (String language : languages){
@@ -614,7 +613,7 @@ public abstract class MarcRecordProcessor {
 		}
 		groupedWork.setLanguages(translatedLanguages);
 
-		Set<String> translations = getFieldList(record, translationFields);
+		Set<String> translations = MarcUtil.getFieldList(record, translationFields);
 		translatedLanguages = new HashSet<>();
 		for (String translation : translations) {
 			String translatedLanguage = indexer.translateSystemValue("language", translation, identifier);
@@ -625,27 +624,27 @@ public abstract class MarcRecordProcessor {
 
 	protected void loadAuthors(GroupedWorkSolr groupedWork, Record record, String identifier) {
 		//auth_author = 100abcd, first
-		groupedWork.setAuthAuthor(this.getFirstFieldVal(record, "100abcd"));
+		groupedWork.setAuthAuthor(MarcUtil.getFirstFieldVal(record, "100abcd"));
 		//author = a, first
 		//MDN 2/6/2016 - Do not use 710 because it is not truly the author.  This has the potential
 		//of showing some disconnects with how records are grouped, but improves the display of the author
 		//710 is still indexed as part of author 2 #ARL-146
 		//groupedWork.setAuthor(this.getFirstFieldVal(record, "100abcdq:110ab:710a"));
-		groupedWork.setAuthor(this.getFirstFieldVal(record, "100abcdq:110ab"));
+		groupedWork.setAuthor(MarcUtil.getFirstFieldVal(record, "100abcdq:110ab"));
 		//author-letter = 100a, first
-		groupedWork.setAuthorLetter(this.getFirstFieldVal(record, "100a"));
+		groupedWork.setAuthorLetter(MarcUtil.getFirstFieldVal(record, "100a"));
 		//auth_author2 = 700abcd
-		groupedWork.addAuthAuthor2(this.getFieldList(record, "700abcd"));
+		groupedWork.addAuthAuthor2(MarcUtil.getFieldList(record, "700abcd"));
 		//author2 = 110ab:111ab:700abcd:710ab:711ab:800a
-		groupedWork.addAuthor2(this.getFieldList(record, "110ab:111ab:700abcd:710ab:711ab:800a"));
+		groupedWork.addAuthor2(MarcUtil.getFieldList(record, "110ab:111ab:700abcd:710ab:711ab:800a"));
 		//author_additional = 505r:245c
-		groupedWork.addAuthorAdditional(this.getFieldList(record, "505r:245c"));
+		groupedWork.addAuthorAdditional(MarcUtil.getFieldList(record, "505r:245c"));
 		//Load contributors with role
-		List<DataField> contributorFields = this.getDataFields(record, new String[]{"700","710"});
+		List<DataField> contributorFields = MarcUtil.getDataFields(record, new String[]{"700","710"});
 		HashSet<String> contributors = new HashSet<>();
 		Pattern contributorSubfieldPattern = Pattern.compile("[abcdetmnr]");
 		for (DataField contributorField : contributorFields){
-			StringBuilder contributor = getSpecifiedSubfieldsAsString(contributorField, contributorSubfieldPattern, "");
+			StringBuilder contributor = MarcUtil.getSpecifiedSubfieldsAsString(contributorField, contributorSubfieldPattern, "");
 			if (contributorField.getTag().equals("700") && contributorField.getSubfield('4') != null){
 				String role = indexer.translateSystemValue("contributor_role", Util.trimTrailingPunctuation(contributorField.getSubfield('4').getData()), identifier);
 				contributor.append("|" + role);
@@ -657,34 +656,34 @@ public abstract class MarcRecordProcessor {
 		//author_display = 100a:110a:260b:710a:245c, first
 		//#ARL-95 Do not show display author from the 710 or from the 245c since neither are truly authors
 		//#ARL-200 Do not show display author from the 260b since it is also not the author
-		String displayAuthor = this.getFirstFieldVal(record, "100a:110ab");
+		String displayAuthor = MarcUtil.getFirstFieldVal(record, "100a:110ab");
 		if (displayAuthor != null && displayAuthor.indexOf(';') > 0){
 			displayAuthor = displayAuthor.substring(0, displayAuthor.indexOf(';') -1);
 		}
 		groupedWork.setAuthorDisplay(displayAuthor);
 	}
 
-	protected void loadTitles(GroupedWorkSolr groupedWork, Record record, String format) {
+	void loadTitles(GroupedWorkSolr groupedWork, Record record, String format) {
 		//title (full title done by index process by concatenating short and subtitle
 
 		//title short
-		groupedWork.setTitle(this.getFirstFieldVal(record, "245a"), this.getFirstFieldVal(record, "245abnp"), this.getSortableTitle(record), format);
+		groupedWork.setTitle(MarcUtil.getFirstFieldVal(record, "245a"), MarcUtil.getFirstFieldVal(record, "245abnp"), this.getSortableTitle(record), format);
 		//title sub
 		//MDN 2/6/2016 add np to subtitle #ARL-163
-		groupedWork.setSubTitle(this.getFirstFieldVal(record, "245bnp"));
+		groupedWork.setSubTitle(MarcUtil.getFirstFieldVal(record, "245bnp"));
 		//title full
-		groupedWork.addFullTitles(this.getAllSubfields(record, "245", " "));
+		groupedWork.addFullTitles(MarcUtil.getAllSubfields(record, "245", " "));
 		//title alt
-		groupedWork.addAlternateTitles(this.getFieldList(record, "130adfgklnpst:240a:246a:700tnr:730adfgklnpst:740a"));
+		groupedWork.addAlternateTitles(MarcUtil.getFieldList(record, "130adfgklnpst:240a:246a:700tnr:730adfgklnpst:740a"));
 		//title old
-		groupedWork.addOldTitles(this.getFieldList(record, "780ast"));
+		groupedWork.addOldTitles(MarcUtil.getFieldList(record, "780ast"));
 		//title new
-		groupedWork.addNewTitles(this.getFieldList(record, "785ast"));
+		groupedWork.addNewTitles(MarcUtil.getFieldList(record, "785ast"));
 	}
 
 	protected void loadBibCallNumbers(GroupedWorkSolr groupedWork, Record record, String identifier) {
-		groupedWork.setCallNumberA(getFirstFieldVal(record, "099a:090a:050a"));
-		String firstCallNumber = getFirstFieldVal(record, "099a[0]:090a[0]:050a[0]");
+		groupedWork.setCallNumberA(MarcUtil.getFirstFieldVal(record, "099a:090a:050a"));
+		String firstCallNumber = MarcUtil.getFirstFieldVal(record, "099a[0]:090a[0]:050a[0]");
 		if (firstCallNumber != null){
 			groupedWork.setCallNumberFirst(indexer.translateSystemValue("callnumber", firstCallNumber, identifier));
 		}
@@ -694,445 +693,8 @@ public abstract class MarcRecordProcessor {
 		}
 	}
 
-	protected String getFirstFieldVal(Record record, String fieldSpec) {
-		Set<String> result = getFieldList(record, fieldSpec);
-		if (result.size() == 0){
-			return null;
-		}else{
-			return result.iterator().next();
-		}
-	}
-
-	protected List<DataField> getDataFields(Record marcRecord, String tag) {
-		List variableFields = marcRecord.getVariableFields(tag);
-		List<DataField> variableFieldsReturn = new ArrayList<>();
-		for (Object variableField : variableFields){
-			if (variableField instanceof DataField){
-				variableFieldsReturn.add((DataField)variableField);
-			}
-		}
-		return variableFieldsReturn;
-	}
-
-	protected List<DataField> getDataFields(Record marcRecord, String[] tags) {
-		List variableFields = marcRecord.getVariableFields(tags);
-		List<DataField> variableFieldsReturn = new ArrayList<>();
-		for (Object variableField : variableFields){
-			if (variableField instanceof DataField){
-				variableFieldsReturn.add((DataField)variableField);
-			}
-		}
-		return variableFieldsReturn;
-	}
-
-	protected ControlField getControlField(Record marcRecord, String tag){
-		List variableFields = marcRecord.getVariableFields(tag);
-		ControlField variableFieldReturn = null;
-		for (Object variableField : variableFields){
-			if (variableField instanceof ControlField){
-				variableFieldReturn = (ControlField)variableField;
-			}
-		}
-		return variableFieldReturn;
-	}
-
-	/**
-	 * Loops through all datafields and creates a field for "keywords"
-	 * searching. Shameless stolen from Vufind Indexer Custom Code
-	 *
-	 * @param lowerBound
-	 *          - the "lowest" marc field to include (e.g. 100)
-	 * @param upperBound
-	 *          - one more than the "highest" marc field to include (e.g. 900 will
-	 *          include up to 899).
-	 * @return a string containing ALL subfields of ALL marc fields within the
-	 *         range indicated by the bound string arguments.
-	 */
-	@SuppressWarnings("unchecked")
-	public String getAllSearchableFields(Record record, int lowerBound, int upperBound) {
-		StringBuilder buffer = new StringBuilder("");
-
-		List<DataField> fields = record.getDataFields();
-		for (DataField field : fields) {
-			// Get all fields starting with the 100 and ending with the 839
-			// This will ignore any "code" fields and only use textual fields
-			int tag = localParseInt(field.getTag(), -1);
-			if ((tag >= lowerBound) && (tag < upperBound)) {
-				// Loop through subfields
-				List<Subfield> subfields = field.getSubfields();
-				for (Subfield subfield : subfields) {
-					if (buffer.length() > 0)
-						buffer.append(" ");
-					buffer.append(subfield.getData());
-				}
-			}
-		}
-
-		return buffer.toString();
-	}
-
-	/**
-	 * return an int for the passed string
-	 *
-	 * @param str The String value of the integer to prompt
-	 * @param defValue
-	 *          - default value, if string doesn't parse into int
-	 */
-	private int localParseInt(String str, int defValue) {
-		int value = defValue;
-		try {
-			value = Integer.parseInt(str);
-		} catch (NumberFormatException nfe) {
-			// provided value is not valid numeric string
-			// Ignoring it and moving happily on.
-		}
-		return (value);
-	}
-
-	/**
-	 * Get Set of Strings as indicated by tagStr. For each field spec in the
-	 * tagStr that is NOT about bytes (i.e. not a 008[7-12] type fieldspec), the
-	 * result string is the concatenation of all the specific subfields.
-	 *
-	 * @param record
-	 *          - the marc record object
-	 * @param tagStr
-	 *          string containing which field(s)/subfield(s) to use. This is a
-	 *          series of: marc "tag" string (3 chars identifying a marc field,
-	 *          e.g. 245) optionally followed by characters identifying which
-	 *          subfields to use. Separator of colon indicates a separate value,
-	 *          rather than concatenation. 008[5-7] denotes bytes 5-7 of the 008
-	 *          field (0 based counting) 100[a-cf-z] denotes the bracket pattern
-	 *          is a regular expression indicating which subfields to include.
-	 *          Note: if the characters in the brackets are digits, it will be
-	 *          interpreted as particular bytes, NOT a pattern. 100abcd denotes
-	 *          subfields a, b, c, d are desired.
-	 * @return the contents of the indicated marc field(s)/subfield(s), as a set
-	 *         of Strings.
-	 */
-	protected Set<String> getFieldList(Record record, String tagStr) {
-		String[] tags = tagStr.split(":");
-		Set<String> result = new LinkedHashSet<>();
-		for (String tag1 : tags) {
-			// Check to ensure tag length is at least 3 characters
-			if (tag1.length() < 3) {
-				System.err.println("Invalid tag specified: " + tag1);
-				continue;
-			}
-
-			// Get Field Tag
-			String tag = tag1.substring(0, 3);
-			boolean linkedField = false;
-			if (tag.equals("LNK")) {
-				tag = tag1.substring(3, 6);
-				linkedField = true;
-			}
-			// Process Subfields
-			String subfield = tag1.substring(3);
-			boolean havePattern = false;
-			int subend = 0;
-			// brackets indicate parsing for individual characters or as pattern
-			int bracket = tag1.indexOf('[');
-			if (bracket != -1) {
-				String sub[] = tag1.substring(bracket + 1).split("[\\]\\[\\-, ]+");
-				try {
-					// if bracket expression is digits, expression is treated as character
-					// positions
-					int substart = Integer.parseInt(sub[0]);
-					subend = (sub.length > 1) ? Integer.parseInt(sub[1]) + 1
-							: substart + 1;
-					String subfieldWObracket = subfield.substring(0, bracket - 3);
-					result.addAll(getSubfieldDataAsSet(record, tag, subfieldWObracket,
-							substart, subend));
-				} catch (NumberFormatException e) {
-					// assume brackets expression is a pattern such as [a-z]
-					havePattern = true;
-				}
-			}
-			if (subend == 0) // don't want specific characters.
-			{
-				String separator = null;
-				if (subfield.indexOf('\'') != -1) {
-					separator = subfield.substring(subfield.indexOf('\'') + 1,
-							subfield.length() - 1);
-					subfield = subfield.substring(0, subfield.indexOf('\''));
-				}
-
-				if (havePattern)
-					if (linkedField)
-						result.addAll(getLinkedFieldValue(record, tag, subfield, separator));
-					else
-						result.addAll(getAllSubfields(record, tag + subfield, separator));
-				else if (linkedField)
-					result.addAll(getLinkedFieldValue(record, tag, subfield, separator));
-				else
-					result.addAll(getSubfieldDataAsSet(record, tag, subfield, separator));
-			}
-		}
-		return result;
-	}
-
-	/**
-	 * Get the specified substring of subfield values from the specified MARC
-	 * field, returned as a set of strings to become lucene document field values
-	 *
-	 * @param record
-	 *          - the marc record object
-	 * @param fldTag
-	 *          - the field name, e.g. 008
-	 * @param subfield
-	 *          - the string containing the desired subfields
-	 * @param beginIx
-	 *          - the beginning index of the substring of the subfield value
-	 * @param endIx
-	 *          - the ending index of the substring of the subfield value
-	 * @return the result set of strings
-	 */
-	@SuppressWarnings("unchecked")
-	protected Set<String> getSubfieldDataAsSet(Record record, String fldTag, String subfield, int beginIx, int endIx) {
-		Set<String> resultSet = new LinkedHashSet<>();
-
-		// Process Leader
-		if (fldTag.equals("000")) {
-			resultSet.add(record.getLeader().toString().substring(beginIx, endIx));
-			return resultSet;
-		}
-
-		// Loop through Data and Control Fields
-		List<VariableField> varFlds = record.getVariableFields(fldTag);
-		for (VariableField vf : varFlds) {
-			if (!isControlField(fldTag) && subfield != null) {
-				// Data Field
-				DataField dfield = (DataField) vf;
-				if (subfield.length() > 1) {
-					// automatic concatenation of grouped subFields
-					StringBuilder buffer = new StringBuilder("");
-					List<Subfield> subFields = dfield.getSubfields();
-					for (Subfield sf : subFields) {
-						if (subfield.indexOf(sf.getCode()) != -1
-								&& sf.getData().length() >= endIx) {
-							if (buffer.length() > 0)
-								buffer.append(" ");
-							buffer.append(sf.getData().substring(beginIx, endIx));
-						}
-					}
-					resultSet.add(buffer.toString());
-				} else {
-					// get all instances of the single subfield
-					List<Subfield> subFlds = dfield.getSubfields(subfield.charAt(0));
-					for (Subfield sf : subFlds) {
-						if (sf.getData().length() >= endIx)
-							resultSet.add(sf.getData().substring(beginIx, endIx));
-					}
-				}
-			} else // Control Field
-			{
-				String cfldData = ((ControlField) vf).getData();
-				if (cfldData.length() >= endIx)
-					resultSet.add(cfldData.substring(beginIx, endIx));
-			}
-		}
-		return resultSet;
-	}
-
-	/**
-	 * Get the specified subfields from the specified MARC field, returned as a
-	 * set of strings to become lucene document field values
-	 *
-	 * @param fldTag
-	 *          - the field name, e.g. 245
-	 * @param subfieldsStr
-	 *          - the string containing the desired subfields
-	 * @param separator
-	 *          - the separator string to insert between subfield items (if null,
-	 *          a " " will be used)
-	 * @return a Set of String, where each string is the concatenated contents of
-	 *          all the desired subfield values from a single instance of the
-	 *          fldTag
-	 */
-	@SuppressWarnings("unchecked")
-	protected Set<String> getSubfieldDataAsSet(Record record, String fldTag, String subfieldsStr, String separator) {
-		Set<String> resultSet = new LinkedHashSet<>();
-
-		// Process Leader
-		if (fldTag.equals("000")) {
-			resultSet.add(record.getLeader().toString());
-			return resultSet;
-		}
-
-		// Loop through Data and Control Fields
-		// int iTag = new Integer(fldTag).intValue();
-		List<VariableField> varFlds = record.getVariableFields(fldTag);
-		if (varFlds == null){
-			return resultSet;
-		}
-		for (VariableField vf : varFlds) {
-			if (!isControlField(fldTag) && subfieldsStr != null) {
-				// DataField
-				DataField dfield = (DataField) vf;
-
-				if (subfieldsStr.length() > 1 || separator != null) {
-					// concatenate subfields using specified separator or space
-					StringBuilder buffer = new StringBuilder("");
-					List<Subfield> subFields = dfield.getSubfields();
-					for (Subfield sf : subFields) {
-						if (subfieldsStr.indexOf(sf.getCode()) != -1) {
-							if (buffer.length() > 0) {
-								buffer.append(separator != null ? separator : " ");
-							}
-							buffer.append(sf.getData().trim());
-						}
-					}
-					if (buffer.length() > 0){
-						resultSet.add(buffer.toString());
-					}
-				} else if (subfieldsStr.length() == 1) {
-					// get all instances of the single subfield
-					List<Subfield> subFields = dfield.getSubfields(subfieldsStr.charAt(0));
-					for (Subfield sf : subFields) {
-						resultSet.add(sf.getData().trim());
-					}
-				} else {
-					logger
-							.warn("No subfield provided when getting getSubfieldDataAsSet for "
-									+ fldTag);
-				}
-			} else {
-				// Control Field
-				resultSet.add(((ControlField) vf).getData().trim());
-			}
-		}
-		return resultSet;
-	}
-
-	protected boolean isControlField(String fieldTag) {
-		return fieldTag.matches("00[0-9]");
-	}
-
-	/**
-	 * Given a tag for a field, and a list (or regex) of one or more subfields get
-	 * any linked 880 fields and include the appropriate subfields as a String
-	 * value in the result set.
-	 *
-	 * @param tag
-	 *          - the marc field for which 880s are sought.
-	 * @param subfield
-	 *          - The subfield(s) within the 880 linked field that should be
-	 *          returned [a-cf-z] denotes the bracket pattern is a regular
-	 *          expression indicating which subfields to include from the linked
-	 *          880. Note: if the characters in the brackets are digits, it will
-	 *          be interpreted as particular bytes, NOT a pattern 100abcd denotes
-	 *          subfields a, b, c, d are desired from the linked 880.
-	 * @param separator
-	 *          - the separator string to insert between subfield items (if null,
-	 *          a " " will be used)
-	 *
-	 * @return set of Strings containing the values of the designated 880
-	 *         field(s)/subfield(s)
-	 */
-	@SuppressWarnings("unchecked")
-	public Set<String> getLinkedFieldValue(Record record, String tag, String subfield, String separator) {
-		// assume brackets expression is a pattern such as [a-z]
-		Set<String> result = new LinkedHashSet<>();
-		Pattern subfieldPattern = null;
-		if (subfield.indexOf('[') != -1) {
-			subfieldPattern = Pattern.compile(subfield);
-		}
-		List<VariableField> fields = record.getVariableFields("880");
-		for (VariableField vf : fields) {
-			DataField dfield = (DataField) vf;
-			Subfield link = dfield.getSubfield('6');
-			if (link != null && link.getData().startsWith(tag)) {
-				List<Subfield> subList = dfield.getSubfields();
-				StringBuilder buf = new StringBuilder("");
-				for (Subfield subF : subList) {
-					boolean addIt = false;
-					if (subfieldPattern != null) {
-						Matcher matcher = subfieldPattern.matcher("" + subF.getCode());
-						// matcher needs a string, hence concat with empty
-						// string
-						if (matcher.matches())
-							addIt = true;
-					} else {
-						// a list a subfields
-						if (subfield.indexOf(subF.getCode()) != -1)
-							addIt = true;
-					}
-					if (addIt) {
-						if (buf.length() > 0)
-							buf.append(separator != null ? separator : " ");
-						buf.append(subF.getData().trim());
-					}
-				}
-				if (buf.length() > 0)
-					result.add(Utils.cleanData(buf.toString()));
-			}
-		}
-		return (result);
-	}
-
-	/**
-	 * extract all the subfields requested in requested marc fields. Each instance
-	 * of each marc field will be put in a separate result (but the subfields will
-	 * be concatenated into a single value for each marc field)
-	 *
-	 * @param fieldSpec
-	 *          - the desired marc fields and subfields as given in the
-	 *          xxx_index.properties file
-	 * @param separator
-	 *          - the character to use between subfield values in the solr field
-	 *          contents
-	 * @return Set of values (as strings) for solr field
-	 */
-	@SuppressWarnings("unchecked")
-	public Set<String> getAllSubfields(Record record, String fieldSpec, String separator) {
-		Set<String> result = new LinkedHashSet<>();
-
-		String[] fldTags = fieldSpec.split(":");
-		for (String fldTag1 : fldTags) {
-			// Check to ensure tag length is at least 3 characters
-			if (fldTag1.length() < 3) {
-				System.err.println("Invalid tag specified: " + fldTag1);
-				continue;
-			}
-
-			String fldTag = fldTag1.substring(0, 3);
-
-			String subfldTags = fldTag1.substring(3);
-
-			List<VariableField> marcFieldList = record.getVariableFields(fldTag);
-			if (!marcFieldList.isEmpty()) {
-				Pattern subfieldPattern = Pattern
-						.compile(subfldTags.length() == 0 ? "." : subfldTags);
-				for (VariableField vf : marcFieldList) {
-					DataField marcField = (DataField) vf;
-
-					StringBuilder buffer = getSpecifiedSubfieldsAsString(marcField, subfieldPattern, separator);
-					if (buffer.length() > 0)
-						result.add(Utils.cleanData(buffer.toString()));
-				}
-			}
-		}
-
-		return result;
-	}
-
-	protected StringBuilder getSpecifiedSubfieldsAsString(DataField marcField, Pattern subfieldPattern, String separator) {
-		StringBuilder buffer = new StringBuilder("");
-		List<Subfield> subFields = marcField.getSubfields();
-		for (Subfield subfield : subFields) {
-			Matcher matcher = subfieldPattern.matcher("" + subfield.getCode());
-			if (matcher.matches()) {
-				if (buffer.length() > 0)
-					buffer.append(separator != null ? separator : " ");
-				buffer.append(subfield.getData().trim());
-			}
-		}
-		return buffer;
-	}
-
-	protected void loadEContentUrl(Record record, ItemInfo itemInfo) {
-		List<DataField> urlFields = getDataFields(record, "856");
+	void loadEContentUrl(Record record, ItemInfo itemInfo) {
+		List<DataField> urlFields = MarcUtil.getDataFields(record, "856");
 		for (DataField urlField : urlFields){
 			//load url into the item
 			if (urlField.getSubfield('u') != null){
@@ -1156,14 +718,14 @@ public abstract class MarcRecordProcessor {
 	 *         with non-filing characters omitted. Null returned if no title can
 	 *         be found.
 	 */
-	public String getSortableTitle(Record record) {
+	String getSortableTitle(Record record) {
 		DataField titleField = (DataField) record.getVariableField("245");
 		if (titleField == null || titleField.getSubfield('a') == null)
 			return "";
 
 		int nonFilingInt = getInd2AsInt(titleField);
 
-		String title = getFirstFieldVal(record, "245abnp");
+		String title = MarcUtil.getFirstFieldVal(record, "245abnp");
 		title = title.toLowerCase();
 
 		// Skip non-filing chars, if possible.
@@ -1183,7 +745,7 @@ public abstract class MarcRecordProcessor {
 	 *          a DataField
 	 * @return the integer (0-9, 0 if blank or other) in the 2nd indicator
 	 */
-	protected int getInd2AsInt(DataField df) {
+	int getInd2AsInt(DataField df) {
 		char ind2char = df.getIndicator2();
 		int result = 0;
 		if (Character.isDigit(ind2char))

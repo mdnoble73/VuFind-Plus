@@ -1,7 +1,6 @@
 package org.vufind;
 
 import org.apache.log4j.Logger;
-import org.ini4j.Ini;
 import org.marc4j.marc.DataField;
 import org.marc4j.marc.Record;
 import org.marc4j.marc.Subfield;
@@ -20,14 +19,14 @@ import java.util.Set;
  * Date: 2/21/14
  * Time: 3:00 PM
  */
-public class NashvilleRecordProcessor extends IIIRecordProcessor {
-	public NashvilleRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
-		super(indexer, vufindConn, configIni, indexingProfileRS, logger, fullReindex);
+class NashvilleRecordProcessor extends IIIRecordProcessor {
+	NashvilleRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
+		super(indexer, vufindConn, indexingProfileRS, logger, fullReindex);
 	}
 
 	@Override
 	public void loadPrintFormatInformation(RecordInfo ilsRecord, Record record) {
-		Set<String> printFormatsRaw = getFieldList(record, "998d");
+		Set<String> printFormatsRaw = MarcUtil.getFieldList(record, "998d");
 		HashSet<String> printFormats = new HashSet<>();
 		for (String curFormat : printFormatsRaw){
 			printFormats.add(curFormat.toLowerCase());
@@ -71,18 +70,14 @@ public class NashvilleRecordProcessor extends IIIRecordProcessor {
 		}
 		String locationCode = locationCodeSubfield.getData().trim();
 
-		if (locationCode.matches(".*sup")){
-			return true;
-		}else{
-			return super.isItemSuppressed(curItem);
-		}
+		return locationCode.matches(".*sup") || super.isItemSuppressed(curItem);
 	}
 
 	protected List<RecordInfo> loadUnsuppressedEContentItems(GroupedWorkSolr groupedWork, String identifier, Record record){
 		List<RecordInfo> unsuppressedEcontentRecords = new ArrayList<>();
 
 		//Check to see if we should add a supplemental record:
-		String url = getFirstFieldVal(record, "856u");
+		String url = MarcUtil.getFirstFieldVal(record, "856u");
 		if (url == null){
 			return  unsuppressedEcontentRecords;
 		}
@@ -93,7 +88,7 @@ public class NashvilleRecordProcessor extends IIIRecordProcessor {
 				url.contains("purl.access.gpo.gov")
 				){
 			//Much of the econtent for flatirons has no items.  Need to determine the location based on the 907b field
-			String eContentLocation = getFirstFieldVal(record, "945l");
+			String eContentLocation = MarcUtil.getFirstFieldVal(record, "945l");
 			if (eContentLocation == null && (url.contains("purl.fdlp.gov") || url.contains("purl.access.gpo.gov"))){
 				eContentLocation = "mndoc";
 			}
@@ -127,26 +122,6 @@ public class NashvilleRecordProcessor extends IIIRecordProcessor {
 				relatedRecord.setFormatBoost(1);
 
 				itemInfo.setDetailedStatus("Available Online");
-
-				//Determine which scopes this title belongs to
-				for (Scope curScope : indexer.getScopes()){
-					if (curScope.isItemPartOfScope(profileType, eContentLocation, "", false, false, true)){
-						ScopingInfo scopingInfo = itemInfo.addScope(curScope);
-						scopingInfo.setAvailable(true);
-						scopingInfo.setStatus("Available Online");
-						scopingInfo.setGroupedStatus("Available Online");
-						scopingInfo.setHoldable(false);
-						if (curScope.isLocationScope()) {
-							scopingInfo.setLocallyOwned(curScope.isItemOwnedByScope(profileType, eContentLocation, ""));
-							if (curScope.getLibraryScope() != null) {
-								scopingInfo.setLibraryOwned(curScope.getLibraryScope().isItemOwnedByScope(profileType, eContentLocation, ""));
-							}
-						}
-						if (curScope.isLibraryScope()) {
-							scopingInfo.setLibraryOwned(curScope.isItemOwnedByScope(profileType, eContentLocation, ""));
-						}
-					}
-				}
 
 				unsuppressedEcontentRecords.add(relatedRecord);
 			}else{

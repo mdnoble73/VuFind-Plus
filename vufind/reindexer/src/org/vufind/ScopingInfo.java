@@ -8,7 +8,7 @@ package org.vufind;
  * Date: 7/14/2015
  * Time: 9:51 PM
  */
-public class ScopingInfo {
+class ScopingInfo {
 	private ItemInfo item;
 	private Scope scope;
 	private String status;
@@ -21,8 +21,9 @@ public class ScopingInfo {
 	private boolean libraryOwned;
 	private String holdablePTypes;
 	private String bookablePTypes;
+	private String localUrl;
 
-	public ScopingInfo(Scope scope, ItemInfo item){
+	ScopingInfo(Scope scope, ItemInfo item){
 		this.item = item;
 		this.scope = scope;
 	}
@@ -31,15 +32,15 @@ public class ScopingInfo {
 		this.status = status;
 	}
 
-	public void setHoldablePTypes(String holdablePTypes) {
+	void setHoldablePTypes(String holdablePTypes) {
 		this.holdablePTypes = holdablePTypes;
 	}
 
-	public void setBookablePTypes(String bookablePTypes) {
+	void setBookablePTypes(String bookablePTypes) {
 		this.bookablePTypes = bookablePTypes;
 	}
 
-	public void setGroupedStatus(String groupedStatus) {
+	void setGroupedStatus(String groupedStatus) {
 		this.groupedStatus = groupedStatus;
 	}
 
@@ -51,15 +52,15 @@ public class ScopingInfo {
 		this.available = available;
 	}
 
-	public void setHoldable(boolean holdable) {
+	void setHoldable(boolean holdable) {
 		this.holdable = holdable;
 	}
 
-	public boolean isLocallyOwned() {
+	boolean isLocallyOwned() {
 		return locallyOwned;
 	}
 
-	public void setLocallyOwned(boolean locallyOwned) {
+	void setLocallyOwned(boolean locallyOwned) {
 		this.locallyOwned = locallyOwned;
 	}
 
@@ -67,38 +68,42 @@ public class ScopingInfo {
 		return scope;
 	}
 
-	public void setBookable(boolean bookable) {
+	void setBookable(boolean bookable) {
 		this.bookable = bookable;
 	}
 
-	public void setInLibraryUseOnly(boolean inLibraryUseOnly) {
+	void setInLibraryUseOnly(boolean inLibraryUseOnly) {
 		this.inLibraryUseOnly = inLibraryUseOnly;
 	}
 
-	public boolean isLibraryOwned() {
+	boolean isLibraryOwned() {
 		return libraryOwned;
 	}
 
-	public void setLibraryOwned(boolean libraryOwned) {
+	void setLibraryOwned(boolean libraryOwned) {
 		this.libraryOwned = libraryOwned;
 	}
 
-	public String getScopingDetails(){
+	String getScopingDetails(){
 		String itemIdentifier = item.getItemIdentifier();
 		if (itemIdentifier == null) itemIdentifier = "";
-		return new StringBuilder().append(item.getFullRecordIdentifier()).append("|")
-				.append(itemIdentifier).append("|")
-				.append(groupedStatus).append("|")
-				.append(status).append("|")
-				.append(locallyOwned).append("|")
-				.append(available).append("|")
-				.append(holdable).append("|")
-				.append(bookable).append("|")
-				.append(inLibraryUseOnly).append("|")
-				.append(libraryOwned).append("|")
-				.append(Util.getCleanDetailValue(holdablePTypes)).append("|")
-				.append(Util.getCleanDetailValue(bookablePTypes)).append("|")
-				.toString()
+		return item.getFullRecordIdentifier() + "|" +
+				itemIdentifier + "|" +
+				groupedStatus + "|" +
+				status + "|" +
+				locallyOwned + "|" +
+				available + "|" +
+				holdable + "|" +
+				bookable + "|" +
+				inLibraryUseOnly + "|" +
+				libraryOwned + "|" +
+				Util.getCleanDetailValue(holdablePTypes) + "|" +
+				Util.getCleanDetailValue(bookablePTypes) + "|" +
+				Util.getCleanDetailValue(localUrl) + "|"
 				;
+	}
+
+	void setLocalUrl(String localUrl) {
+		this.localUrl = localUrl;
 	}
 }

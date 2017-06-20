@@ -40,7 +40,7 @@ public class OwnershipRule {
 		}
 		boolean isOwned = false;
 		if (this.recordType.equals(recordType)){
-			isOwned = locationCodePattern.matcher(locationCode).lookingAt() && subLocationCodePattern.matcher(subLocationCode).lookingAt();
+			isOwned = locationCodePattern.matcher(locationCode).lookingAt() && (subLocationCode == null || subLocationCodePattern.matcher(subLocationCode).lookingAt());
 		}
 		ownershipResults.put(key, isOwned);
 		return  isOwned;
