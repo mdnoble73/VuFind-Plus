@@ -298,7 +298,7 @@ public class CarlXExportMain {
 						}
 
 						if (!itemFound) {
-							logger.warn("Item "+ currentUpdateItemID + " to update was not found in Marc Record " + fullBibID +"; Adding instead.\r\n" + item);
+							logger.debug("Item "+ currentUpdateItemID + " to update was not found in Marc Record " + fullBibID +"; Adding instead.\r\n" + item);
 							DataField itemField = createItemDataFieldWithChangeInfo(item);
 							currentMarcRecord.addVariableField(itemField);
 							logger.debug("New item field\r\n" + itemField);
