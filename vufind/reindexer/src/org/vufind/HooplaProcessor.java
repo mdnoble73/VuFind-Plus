@@ -207,7 +207,7 @@ class HooplaProcessor extends MarcRecordProcessor {
 					 scopingInfo.setLibraryOwned(curScope.isItemOwnedByScope("hoopla", "", ""));
 				}
 				//Check to see if we need to do url rewriting
-				if (!originalUrl.equals(result.localUrl)){
+				if (originalUrl != null && !originalUrl.equals(result.localUrl)){
 					scopingInfo.setLocalUrl(result.localUrl);
 				}
 			}
