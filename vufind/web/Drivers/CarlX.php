@@ -760,6 +760,14 @@ class CarlX extends SIP2Driver{
 
 			}
 
+			if (!empty($_REQUEST['pickupLocation'])) {
+				$homeLocation = new Location();
+				if ($homeLocation->get('code', $_REQUEST['pickupLocation'])) {
+					$homeBranchCode = strtoupper($_REQUEST['pickupLocation']);
+					$request->Patron->DefaultBranch = $homeBranchCode;
+				}
+			}
+
 			$result = $this->doSoapRequest('updatePatron', $request, $this->patronWsdl, $this->genericResponseSOAPCallOptions);
 
 			if (is_null($result)) {
