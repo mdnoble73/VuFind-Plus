@@ -1413,7 +1413,7 @@ public class CarlXExportMain {
 					"<soapenv:Body>\n" +
 					"<mar:GetMARCRecordsRequest>\n" +
 					"<mar:BID>" + BibID + "</mar:BID>" +
-			"		<mar:Include949ItemData>0</mar:Include949ItemData>\n" +
+					"		<mar:Include949ItemData>0</mar:Include949ItemData>\n" +
 					"<mar:IncludeOnlyUnsuppressed>0</mar:IncludeOnlyUnsuppressed>\n" +
 					"<mar:Modifiers>\n" +
 					"</mar:Modifiers>\n" +
@@ -1422,26 +1422,30 @@ public class CarlXExportMain {
 					"</soapenv:Envelope>";
 
 			URLPostResponse marcRecordSOAPResponse = postToURL(marcOutURL, getMarcRecordsSoapRequest, "text/xml", null, logger);
+			if (marcRecordSOAPResponse.isSuccess()) {
 
-			// Parse Response
-			Document doc                    = createXMLDocumentForSoapResponse(marcRecordSOAPResponse);
-			Node soapEnvelopeNode           = doc.getFirstChild();
-			Node soapBodyNode               = soapEnvelopeNode.getLastChild();
-			Node getMarcRecordsResponseNode = soapBodyNode.getFirstChild();
-			NodeList marcRecordInfo         = getMarcRecordsResponseNode.getChildNodes();
-			Node marcRecordsResponseStatus  = getMarcRecordsResponseNode.getFirstChild().getFirstChild();
-			String responseStatusCode       = marcRecordsResponseStatus.getFirstChild().getTextContent();
+				// Parse Response
+				Document doc = createXMLDocumentForSoapResponse(marcRecordSOAPResponse);
+				Node soapEnvelopeNode = doc.getFirstChild();
+				Node soapBodyNode = soapEnvelopeNode.getLastChild();
+				Node getMarcRecordsResponseNode = soapBodyNode.getFirstChild();
+				NodeList marcRecordInfo = getMarcRecordsResponseNode.getChildNodes();
+				Node marcRecordsResponseStatus = getMarcRecordsResponseNode.getFirstChild().getFirstChild();
+				String responseStatusCode = marcRecordsResponseStatus.getFirstChild().getTextContent();
 
-			if (responseStatusCode.equals("0") ) { // Successful response
+				if (responseStatusCode.equals("0")) { // Successful response
 					Node marcRecordNode = marcRecordInfo.item(1);
 
 					// Build Marc Object from the API data
 					marcRecordFromAPICall = buildMarcRecordFromAPIResponse(marcRecordNode, BibID);
-			} else {
-				String shortErrorMessage = marcRecordsResponseStatus.getChildNodes().item(2).getTextContent();
-				logger.error("Error Response for API call for getting Marc Records : " + shortErrorMessage);
+				} else {
+					String shortErrorMessage = marcRecordsResponseStatus.getChildNodes().item(2).getTextContent();
+					logger.error("Error Response for API call for getting Marc Records : " + shortErrorMessage);
+				}
+			}else{
+				//Call failed
 			}
-		} catch (Exception e) {
+		} catch(Exception e){
 			logger.error("Error Creating SOAP Request for Marc Records", e);
 		}
 		return marcRecordFromAPICall;
