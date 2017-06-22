@@ -694,29 +694,21 @@ abstract class SirsiDynixROA extends HorizonAPI
 	 * @param   User $patron The User to place a hold for
 	 * @param   string $recordId The id of the bib record
 	 * @param   string $itemId The id of the item to hold
-	 * @param   string $comment Any comment regarding the hold or recall
+	 * @param   string $campus The Pickup Location
 	 * @param   string $type Whether to place a hold or recall
 	 * @return  mixed               True if successful, false if unsuccessful
 	 *                              If an error occurs, return a PEAR_Error
 	 * @access  public
 	 */
-	function placeItemHold($patron, $recordId, $itemId, $comment = '', $type = 'request')
+	function placeItemHold($patron, $recordId, $itemId, $campus = null, $type = 'request')
 	{
-		global $configArray;
-
-		$userId = $patron->id;
 
 		//Get the session token for the user
-		if (isset(SirsiDynixROA::$sessionIdsForUsers[$userId])) {
-			$sessionToken = SirsiDynixROA::$sessionIdsForUsers[$userId];
-		} else {
-			//Log the user in
-			list($userValid, $sessionToken) = $this->loginViaWebService($patron->cat_username, $patron->cat_password);
-			if (!$userValid) {
-				return array(
-					'success' => false,
-					'message' => 'Sorry, it does not look like you are logged in currently.  Please login and try again');
-			}
+		$sessionToken = $this->getSessionToken($patron);
+		if (!$sessionToken) {
+			return array(
+				'success' => false,
+				'message' => 'Sorry, it does not look like you are logged in currently.  Please login and try again');
 		}
 
 		// Retrieve Full Marc Record
@@ -728,6 +720,7 @@ abstract class SirsiDynixROA extends HorizonAPI
 			$title = $record->getTitle();
 		}
 
+		global $configArray;
 		if ($configArray['Catalog']['offline']) {
 			require_once ROOT_DIR . '/sys/OfflineHold.php';
 			$offlineHold                = new OfflineHold();
@@ -759,10 +752,8 @@ abstract class SirsiDynixROA extends HorizonAPI
 				return $result;
 
 			} else {
-				if (isset($_REQUEST['campus'])) {
-					$campus = trim($_REQUEST['campus']);
-				} else {
-					$campus = $patron->homeLocationId;
+				if (empty($campus)) {
+					$campus = $patron->homeLocationCode;
 				}
 				//create the hold using the web service
 				$webServiceURL = $this->getWebServiceURL();
