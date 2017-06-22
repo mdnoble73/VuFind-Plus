@@ -389,7 +389,7 @@ public class CarlXExportMain {
 							currentMarcRecord.addVariableField(itemField);
 							saveRecord = true;
 						} else {
-							logger.error("Failed to load new marc record " + currentBibID + " from API call for created Item " + currentCreatedItemID);
+							logger.error("Failed to load new marc record " + currentBibID + " (" + shortBib + ") from API call for created Item " + currentCreatedItemID);
 						}
 					}
 					if (saveRecord) {
@@ -450,100 +450,105 @@ public class CarlXExportMain {
 
 				//logger.debug("Getting MARC record details " + getMarcRecordsSoapRequest);
 				URLPostResponse marcRecordSOAPResponse = postToURL(marcOutURL, getMarcRecordsSoapRequest, "text/xml", null, logger);
+				if (marcRecordSOAPResponse.isSuccess()) {
 
-				// Parse Response
-				Document doc                    = createXMLDocumentForSoapResponse(marcRecordSOAPResponse);
-				logger.debug("MARC record response " + doc.toString());
-				Node soapEnvelopeNode           = doc.getFirstChild();
-				Node soapBodyNode               = soapEnvelopeNode.getLastChild();
-				Node getMarcRecordsResponseNode = soapBodyNode.getFirstChild();
-				NodeList marcRecordInfo         = getMarcRecordsResponseNode.getChildNodes();
-				Node marcRecordsResponseStatus  = getMarcRecordsResponseNode.getFirstChild().getFirstChild();
-				String responseStatusCode       = marcRecordsResponseStatus.getFirstChild().getTextContent();
+					// Parse Response
+					Document doc = createXMLDocumentForSoapResponse(marcRecordSOAPResponse);
+					logger.debug("MARC record response " + doc.toString());
+					Node soapEnvelopeNode = doc.getFirstChild();
+					Node soapBodyNode = soapEnvelopeNode.getLastChild();
+					Node getMarcRecordsResponseNode = soapBodyNode.getFirstChild();
+					NodeList marcRecordInfo = getMarcRecordsResponseNode.getChildNodes();
+					Node marcRecordsResponseStatus = getMarcRecordsResponseNode.getFirstChild().getFirstChild();
+					String responseStatusCode = marcRecordsResponseStatus.getFirstChild().getTextContent();
 
-				if (responseStatusCode.equals("0") ) { // Successful response
+					if (responseStatusCode.equals("0")) { // Successful response
 
-					int l = marcRecordInfo.getLength();
-					for (int i=1; i < l; i++ ) { // (skip first node because it is the response status)
-						String currentBibID = updatedBibs.get(i-1);
-						String currentFullBibID = getFileIdForRecordNumber(currentBibID);
-						//logger.debug("Updating " + currentFullBibID);
-						//logger.debug("Response from CARL.X\r\n" + marcRecordSOAPResponse.getMessage());
-						Node marcRecordNode = marcRecordInfo.item(i);
+						int l = marcRecordInfo.getLength();
+						for (int i = 1; i < l; i++) { // (skip first node because it is the response status)
+							String currentBibID = updatedBibs.get(i - 1);
+							String currentFullBibID = getFileIdForRecordNumber(currentBibID);
+							//logger.debug("Updating " + currentFullBibID);
+							//logger.debug("Response from CARL.X\r\n" + marcRecordSOAPResponse.getMessage());
+							Node marcRecordNode = marcRecordInfo.item(i);
 
-						// Build Marc Object from the API data
-						Record updatedMarcRecordFromAPICall = buildMarcRecordFromAPIResponse(marcRecordNode, currentBibID);
+							// Build Marc Object from the API data
+							Record updatedMarcRecordFromAPICall = buildMarcRecordFromAPIResponse(marcRecordNode, currentBibID);
 
-						Record currentMarcRecord            = loadMarc(currentBibID);
-						if (currentMarcRecord != null) {
-							Integer indexOfItem;
-							List<VariableField> currentMarcDataFields = currentMarcRecord.getVariableFields(indexingProfile.itemTag);
-							for (VariableField itemFieldVar: currentMarcDataFields) {
-								DataField currentDataField = (DataField) itemFieldVar;
-								String currentItemID = currentDataField.getSubfield(indexingProfile.itemRecordNumberSubfield).getData();
-								if (updatedItemIDs.contains(currentItemID)) {
-									// Add current Item Change Info instead
-									indexOfItem = updatedItemIDs.indexOf(currentItemID);
-									ItemChangeInfo updatedItem = itemUpdates.get(indexOfItem);
-									if (updatedItem.getBID().equals(currentBibID)) { // Double check BID in case itemIDs aren't completely unique
-										updateItemDataFieldWithChangeInfo(currentDataField, updatedItem);
-										itemUpdates.remove(updatedItem); // remove Item Change Info
-										updatedItemIDs.remove(currentItemID); // remove itemId for list
-										logger.debug("  Updating Item " + currentItemID + " in " + currentBibID);
-										logger.debug(updatedItem + "\r\n" + currentDataField);
+							Record currentMarcRecord = loadMarc(currentBibID);
+							if (currentMarcRecord != null) {
+								Integer indexOfItem;
+								List<VariableField> currentMarcDataFields = currentMarcRecord.getVariableFields(indexingProfile.itemTag);
+								for (VariableField itemFieldVar : currentMarcDataFields) {
+									DataField currentDataField = (DataField) itemFieldVar;
+									String currentItemID = currentDataField.getSubfield(indexingProfile.itemRecordNumberSubfield).getData();
+									if (updatedItemIDs.contains(currentItemID)) {
+										// Add current Item Change Info instead
+										indexOfItem = updatedItemIDs.indexOf(currentItemID);
+										ItemChangeInfo updatedItem = itemUpdates.get(indexOfItem);
+										if (updatedItem.getBID().equals(currentBibID)) { // Double check BID in case itemIDs aren't completely unique
+											updateItemDataFieldWithChangeInfo(currentDataField, updatedItem);
+											itemUpdates.remove(updatedItem); // remove Item Change Info
+											updatedItemIDs.remove(currentItemID); // remove itemId for list
+											logger.debug("  Updating Item " + currentItemID + " in " + currentBibID);
+											logger.debug(updatedItem + "\r\n" + currentDataField);
 
-									}else{
-										logger.debug("  Did not update Item because BID did not match " + updatedItem.getBID() + " != " + currentBibID);
+										} else {
+											logger.debug("  Did not update Item because BID did not match " + updatedItem.getBID() + " != " + currentBibID);
+										}
+									} else if (deletedItemIDs.contains(currentItemID)) {
+										deletedItemIDs.remove(currentItemID); //TODO: check the API for the same BIB ID?
+										logger.debug("  Deleted Item " + currentItemID + " in " + currentBibID);
+										continue; // Skip adding this item into the Marc Object
+									} else if (createdItemIDs.contains(currentItemID)) {
+										// This shouldn't happen, but in case it does
+										indexOfItem = createdItemIDs.indexOf(currentItemID);
+										ItemChangeInfo createdItem = createdItems.get(indexOfItem);
+										if (createdItem.getBID().equals(currentBibID)) { // Double check BID in case itemIDs aren't completely unique
+											updateItemDataFieldWithChangeInfo(currentDataField, createdItem);
+
+											createdItems.remove(createdItem); // remove Item Change Info
+											createdItemIDs.remove(currentItemID); // remove itemId for list
+											logger.debug("  Created New Item " + currentItemID + " in " + currentBibID);
+										} else {
+											logger.debug("  Did not create New Item because BID did not match " + createdItem.getBID() + " != " + currentBibID);
+										}
 									}
-								} else if (deletedItemIDs.contains(currentItemID)) {
-									deletedItemIDs.remove(currentItemID); //TODO: check the API for the same BIB ID?
-									logger.debug("  Deleted Item " + currentItemID + " in " + currentBibID);
-									continue; // Skip adding this item into the Marc Object
-								} else if (createdItemIDs.contains(currentItemID)) {
-									// This shouldn't happen, but in case it does
-									indexOfItem = createdItemIDs.indexOf(currentItemID);
-									ItemChangeInfo createdItem = createdItems.get(indexOfItem);
-									if (createdItem.getBID().equals(currentBibID)) { // Double check BID in case itemIDs aren't completely unique
-										updateItemDataFieldWithChangeInfo(currentDataField, createdItem);
+									updatedMarcRecordFromAPICall.addVariableField(currentDataField);
 
-										createdItems.remove(createdItem); // remove Item Change Info
-										createdItemIDs.remove(currentItemID); // remove itemId for list
-										logger.debug("  Created New Item " + currentItemID + " in " + currentBibID);
-									}else{
-										logger.debug("  Did not create New Item because BID did not match " + createdItem.getBID() + " != " + currentBibID);
-									}
 								}
-								updatedMarcRecordFromAPICall.addVariableField(currentDataField);
-
+							} else {
+								// We lose any existing, unchanged items.
+								// TODO: Do an additional look up for Item Information ?
+								logger.warn("Existing Marc Record for BID " + currentFullBibID + " failed to load; Writing new record with data from API");
 							}
-						} else {
-							// We lose any existing, unchanged items.
-							// TODO: Do an additional look up for Item Information ?
-							logger.warn("Existing Marc Record for BID " + currentFullBibID + " failed to load; Writing new record with data from API");
+
+							// Save Marc Record to File
+							saveMarc(updatedMarcRecordFromAPICall, currentFullBibID);
+
+							// Mark Bib as Changed for Re-indexer
+							try {
+								markGroupedWorkForBibAsChangedStmt.setLong(1, updateTime);
+								markGroupedWorkForBibAsChangedStmt.setString(2, currentFullBibID);
+								markGroupedWorkForBibAsChangedStmt.executeUpdate();
+
+								numBibUpdates++;
+								if (numBibUpdates % 50 == 0) {
+									vufindConn.commit();
+								}
+							} catch (SQLException e) {
+								logger.error("Could not mark that " + currentFullBibID + " was changed due to error ", e);
+								errorUpdatingDatabase = true;
+							}
 						}
 
-						// Save Marc Record to File
-						saveMarc(updatedMarcRecordFromAPICall, currentFullBibID);
-
-						// Mark Bib as Changed for Re-indexer
-						try {
-							markGroupedWorkForBibAsChangedStmt.setLong(1, updateTime);
-							markGroupedWorkForBibAsChangedStmt.setString(2, currentFullBibID);
-							markGroupedWorkForBibAsChangedStmt.executeUpdate();
-
-							numBibUpdates++;
-							if (numBibUpdates % 50 == 0){
-								vufindConn.commit();
-							}
-						}catch (SQLException e){
-							logger.error("Could not mark that " + currentFullBibID + " was changed due to error ", e);
-							errorUpdatingDatabase = true;
-						}
+					} else {
+						String shortErrorMessage = marcRecordsResponseStatus.getChildNodes().item(2).getTextContent();
+						logger.error("Error Response for API call for getting Marc Records : " + shortErrorMessage);
 					}
-
-				} else {
-					String shortErrorMessage = marcRecordsResponseStatus.getChildNodes().item(2).getTextContent();
-					logger.error("Error Response for API call for getting Marc Records : " + shortErrorMessage);
+				}else{
+					logger.error("API call for getting Marc Records Failed: " + marcRecordSOAPResponse.getResponseCode() + marcRecordSOAPResponse.getMessage());
+					hadErrors = true;
 				}
 			} catch (Exception e) {
 				logger.error("Error Creating SOAP Request for Marc Records", e);
@@ -1332,7 +1337,7 @@ public class CarlXExportMain {
 				rd.close();
 				retVal = new URLPostResponse(true, 200, response.toString());
 			} else {
-				logger.error("Received error " + conn.getResponseCode() + " posting to " + url);
+				logger.error("Received error " + conn.getResponseCode() + " posting to " + url + " data " + postData);
 				logger.info(postData);
 				// Get any errors
 				BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
