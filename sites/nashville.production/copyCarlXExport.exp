@@ -40,11 +40,13 @@ while {![eof $fd]} {
 }
 
 set timeout 2400
-spawn scp $FTPUser@$FTPHost:/carl.output/fullExport $localPath/fullExport.mrc
+spawn scp $FTPUser@$FTPHost:/carl.output/fullExport.gz $localPath/fullExport.mrc.gz
 set timeout -1
 expect -re ".*password.*"
 send "$FTPPassword\r"
 expect "100%"
+close
+spawn gzip -d $localPath/fullExport.mrc.gz
 close
 #
 #--eof--
