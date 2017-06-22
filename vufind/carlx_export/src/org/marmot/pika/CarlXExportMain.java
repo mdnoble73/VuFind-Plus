@@ -164,7 +164,6 @@ public class CarlXExportMain {
 			}
 		}
 
-
 		//TODO: Process New Bibs
 		if (createdBibs.size() > 0){
 			logger.debug("There are " + createdBibs.size() + " that still need to be processed");
@@ -196,8 +195,6 @@ public class CarlXExportMain {
 			props.setProperty("password", dbPassword);
 			carlxConn = DriverManager.getConnection(url, props);
 
-			//TODO: Figure out how to get orders
-
 			exportHolds(carlxConn, vufindConn);
 
 			//Close CarlX connection
@@ -208,10 +205,10 @@ public class CarlXExportMain {
 			e.printStackTrace();
 		}
 
-		if (vufindConn != null) {
+
 			try {
 				// Wrap Up
-				if (!errorUpdatingDatabase) {
+				if (!errorUpdatingDatabase && !hadErrors) {
 					//Update the last extract time
 					Long finishTime = new Date().getTime() / 1000;
 					if (lastCarlXExtractTimeVariableId != null) {
@@ -227,7 +224,7 @@ public class CarlXExportMain {
 						insertVariableStmt.close();
 					}
 				} else {
-					logger.error("There was an error updating the database, not setting last extract time.");
+					logger.error("There was an error updating during the extract, not setting last extract time.");
 				}
 
 			try{
@@ -241,7 +238,7 @@ public class CarlXExportMain {
 			logger.error("MySQL Error: " + e.toString());
 		}
 
-	}
+
 		Date currentTime = new Date();
 		logger.info(currentTime.toString() + ": Finished CarlX Extract");
 	}
@@ -341,6 +338,7 @@ public class CarlXExportMain {
 				String currentCreatedItemID = item.getItemId();
 				String currentBibID = item.getBID();
 				if (!currentBibID.isEmpty()) {
+					String shortBib = currentBibID;
 					//Pad the bib id based on what we get from the MARC export
 					while (currentBibID.length() < 10){
 						currentBibID = "0" + currentBibID;
@@ -385,7 +383,7 @@ public class CarlXExportMain {
 						}
 					} else {
 						logger.debug("Existing Marc Record for BID " + currentBibID + " failed to load; Creating new Marc Record for new item: " + currentCreatedItemID);
-						currentMarcRecord = buildMarcRecordFromAPICall(currentBibID);  //TODO: Collect BIDs and do a bulk call instead?
+						currentMarcRecord = buildMarcRecordFromAPICall(shortBib);  //TODO: Collect BIDs and do a bulk call instead?
 						if (currentMarcRecord != null) {
 							DataField itemField = createItemDataFieldWithChangeInfo(item);
 							currentMarcRecord.addVariableField(itemField);
@@ -1444,6 +1442,7 @@ public class CarlXExportMain {
 				}
 			}else{
 				//Call failed
+				hadErrors = true;
 			}
 		} catch(Exception e){
 			logger.error("Error Creating SOAP Request for Marc Records", e);
