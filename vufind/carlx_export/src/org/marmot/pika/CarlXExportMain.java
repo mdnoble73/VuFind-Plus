@@ -1361,7 +1361,7 @@ public class CarlXExportMain {
 			}
 
 		} catch (SocketTimeoutException e){
-			logger.error("Timeout connecting to URL (" + url + ")", e);
+			logger.error("Timeout connecting to URL (" + url + ") data " + postData, e);
 			retVal = new URLPostResponse(false, -1, "Timeout connecting to URL (" + url + ")");
 		} catch (MalformedURLException e) {
 			logger.error("URL to post (" + url + ") is malformed", e);
