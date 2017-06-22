@@ -340,9 +340,9 @@ abstract class SirsiDynixROA extends HorizonAPI
 	private function getStaffSessionToken() {
 		global $configArray;
 		$staffSessionToken = false;
-		$selfRegStaffUser     = $configArray['Catalog']['selfRegStaffUser'];
-		$selfRegStaffPassword = $configArray['Catalog']['selfRegStaffPassword'];
-		if (!empty($selfRegStaffUser) && !empty($selfRegStaffPassword)) {
+		if (!empty($configArray['Catalog']['selfRegStaffUser']) && !empty( $configArray['Catalog']['selfRegStaffPassword'])) {
+			$selfRegStaffUser     = $configArray['Catalog']['selfRegStaffUser'];
+			$selfRegStaffPassword = $configArray['Catalog']['selfRegStaffPassword'];
 			list(, $staffSessionToken) = $this->loginViaWebService($selfRegStaffUser, $selfRegStaffPassword);
 		}
 		return $staffSessionToken;
