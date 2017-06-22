@@ -131,7 +131,6 @@ public class CarlXExportMain {
 		ArrayList<ItemChangeInfo> createdItems = fetchItemInformation(createdItemIDs);
 		if (hadErrors){ System.exit(1); }
 
-		boolean errorUpdatingDatabase = false;
 		PreparedStatement markGroupedWorkForBibAsChangedStmt = null;
 		try {
 			vufindConn.setAutoCommit(false); // turn off for updating grouped worked for re-indexing
@@ -142,7 +141,7 @@ public class CarlXExportMain {
 
 
 		// Update Changed Bibs //
-		errorUpdatingDatabase = updateBibRecords(vufindConn, updateTime, updatedBibs, updatedItemIDs, createdItemIDs, deletedItemIDs, itemUpdates, createdItems, errorUpdatingDatabase, markGroupedWorkForBibAsChangedStmt);
+		boolean errorUpdatingDatabase = updateBibRecords(vufindConn, updateTime, updatedBibs, updatedItemIDs, createdItemIDs, deletedItemIDs, itemUpdates, createdItems, markGroupedWorkForBibAsChangedStmt);
 		logger.debug("Done updating Bib Records");
 		errorUpdatingDatabase = updateChangedItems(vufindConn, updateTime, createdItemIDs, deletedItemIDs, itemUpdates, createdItems, errorUpdatingDatabase, markGroupedWorkForBibAsChangedStmt);
 		logger.debug("Done updating Item Records");
@@ -187,7 +186,7 @@ public class CarlXExportMain {
 		if (url.startsWith("\"")){
 			url = url.substring(1, url.length() - 1);
 		}
-		Connection carlxConn = null;
+		Connection carlxConn;
 		try{
 			//Open the connection to the database
 			Properties props = new Properties();
@@ -210,7 +209,6 @@ public class CarlXExportMain {
 				// Wrap Up
 				if (!errorUpdatingDatabase && !hadErrors) {
 					//Update the last extract time
-					Long finishTime = new Date().getTime() / 1000;
 					if (lastCarlXExtractTimeVariableId != null) {
 						PreparedStatement updateVariableStmt = vufindConn.prepareStatement("UPDATE variables set value = ? WHERE id = ?");
 						updateVariableStmt.setLong(1, updateTime);
@@ -389,7 +387,7 @@ public class CarlXExportMain {
 							currentMarcRecord.addVariableField(itemField);
 							saveRecord = true;
 						} else {
-							logger.error("Failed to load new marc record " + currentBibID + " (" + shortBib + ") from API call for created Item " + currentCreatedItemID);
+							logger.info("Failed to load new marc record " + currentBibID + " (" + shortBib + ") from API call for created Item " + currentCreatedItemID);
 						}
 					}
 					if (saveRecord) {
@@ -419,10 +417,11 @@ public class CarlXExportMain {
 		return errorUpdatingDatabase;
 	}
 
-	private static boolean updateBibRecords(Connection vufindConn, long updateTime, ArrayList<String> updatedBibs, ArrayList<String> updatedItemIDs, ArrayList<String> createdItemIDs, ArrayList<String> deletedItemIDs, ArrayList<ItemChangeInfo> itemUpdates, ArrayList<ItemChangeInfo> createdItems, boolean errorUpdatingDatabase, PreparedStatement markGroupedWorkForBibAsChangedStmt) {
+	private static boolean updateBibRecords(Connection vufindConn, long updateTime, ArrayList<String> updatedBibs, ArrayList<String> updatedItemIDs, ArrayList<String> createdItemIDs, ArrayList<String> deletedItemIDs, ArrayList<ItemChangeInfo> itemUpdates, ArrayList<ItemChangeInfo> createdItems, PreparedStatement markGroupedWorkForBibAsChangedStmt) {
 		// Fetch new Marc Data
 		// Note: There is an Include949ItemData flag, but it hasn't been implemented by TLC yet. plb 9-15-2016
 		// Build Marc Fetching Soap Request
+		boolean errorUpdatingDatabase = false;
 		if (updatedBibs.size() > 0) {
 			logger.debug("Getting data for " + updatedBibs.size() + " updated bibs");
 			int numBibUpdates = 0;
@@ -669,7 +668,7 @@ public class CarlXExportMain {
 
 		URLPostResponse SOAPResponse = postToURL(marcOutURL, changedMarcSoapRequest, "text/xml", null, logger);
 		if (SOAPResponse.isSuccess()) {
-			String totalBibs = "0";
+			String totalBibs;
 
 			// Read SOAP Response for Changed Bibs
 			try {
@@ -1337,7 +1336,7 @@ public class CarlXExportMain {
 				rd.close();
 				retVal = new URLPostResponse(true, 200, response.toString());
 			} else {
-				logger.error("Received error " + conn.getResponseCode() + " posting to " + url + " data " + postData);
+				logger.info("Received error " + conn.getResponseCode() + " posting to " + url + " data " + postData);
 				logger.info(postData);
 				// Get any errors
 				BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
