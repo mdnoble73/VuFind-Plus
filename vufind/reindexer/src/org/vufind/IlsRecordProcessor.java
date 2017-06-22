@@ -365,7 +365,7 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 			scopeItems(recordInfo, groupedWork, record);
 		}catch (Exception e){
-			logger.error("Error updating grouped work for MARC record with identifier " + identifier, e);
+			logger.error("Error updating grouped work " + groupedWork.getId() + " for MARC record with identifier " + identifier, e);
 		}
 	}
 
@@ -820,7 +820,11 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		String itemLocation = itemInfo.getLocationCode();
 		String originalUrl = itemInfo.geteContentUrl();
 		for (Scope curScope : indexer.getScopes()){
-			Scope.InclusionResult result = curScope.isItemPartOfScope(profileType, itemLocation, "", null, groupedWork.getTargetAudiences(), itemInfo.getFormat(), false, false, true, record, originalUrl);
+			String format = itemInfo.getFormat();
+			if (format == null){
+				format = itemInfo.getRecordInfo().getPrimaryFormat();
+			}
+			Scope.InclusionResult result = curScope.isItemPartOfScope(profileType, itemLocation, "", null, groupedWork.getTargetAudiences(), format, false, false, true, record, originalUrl);
 			if (result.isIncluded){
 				ScopingInfo scopingInfo = itemInfo.addScope(curScope);
 				scopingInfo.setAvailable(true);
