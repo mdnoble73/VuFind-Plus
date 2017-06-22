@@ -337,6 +337,132 @@ abstract class SirsiDynixROA extends HorizonAPI
 		}
 	}
 
+	private function getStaffSessionToken() {
+		global $configArray;
+		$staffSessionToken = false;
+		$selfRegStaffUser     = $configArray['Catalog']['selfRegStaffUser'];
+		$selfRegStaffPassword = $configArray['Catalog']['selfRegStaffPassword'];
+		if (!empty($selfRegStaffUser) && !empty($selfRegStaffPassword)) {
+			list(, $staffSessionToken) = $this->loginViaWebService($selfRegStaffUser, $selfRegStaffPassword);
+		}
+		return $staffSessionToken;
+		}
+
+	function selfRegister()
+	{
+		$sessionToken = $this->getStaffSessionToken();
+
+		if (!empty($sessionToken)) {
+			$webServiceURL            = $this->getWebServiceURL();
+			$patronDescribeResponse   = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/describe');
+			$address1DescribeResponse = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/address1/describe');
+			$addressDescribeResponse  = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/address/describe');
+
+			$createPatronInfoParameters                               = array(
+				'fields' => array(),
+				//			'key' => $userID,
+				'resource' => '/user/patron',
+			);
+			$preferredAddress                                         = 1;
+			$createPatronInfoParameters['fields']['preferredAddress'] = $preferredAddress;
+
+			// Build Address Field with existing data
+			$index = 0;
+
+			// Closure to handle the data structure of the address parameters to pass onto the ILS
+			$setField = function ($key, $value) use (&$createPatronInfoParameters, $preferredAddress, &$index) {
+				static $parameterIndex = array();
+
+				$addressField                = 'address' . $preferredAddress;
+				$patronAddressPolicyResource = '/policy/patron' . ucfirst($addressField);
+
+				$l                                                       = array_key_exists($key, $parameterIndex) ? $parameterIndex[$key] : $index++;
+				$createPatronInfoParameters['fields'][$addressField][$l] = array(
+					'resource' => '/user/patron/' . $addressField,
+					'fields' => array(
+						'code' => array(
+							'key' => $key,
+							'resource' => $patronAddressPolicyResource
+						),
+						'data' => $value
+					)
+				);
+				$parameterIndex[$key]                                    = $l;
+
+			};
+
+			if (!empty($_REQUEST['firstName'])) {
+				$createPatronInfoParameters['fields']['firstName'] = trim($_REQUEST['firstName']);
+			}
+			if (!empty($_REQUEST['middleName'])) {
+				$createPatronInfoParameters['fields']['middleName'] = trim($_REQUEST['middleName']);
+			}
+			if (!empty($_REQUEST['lastName'])) {
+				$createPatronInfoParameters['fields']['lastName'] = trim($_REQUEST['lastName']);
+			}
+			if (!empty($_REQUEST['suffix'])) {
+				$createPatronInfoParameters['fields']['suffix'] = trim($_REQUEST['suffix']);
+			}
+			if (!empty($_REQUEST['birthDate'])) {
+				$birthdate = date_create_from_format('m-d-Y', trim($_REQUEST['birthDate']));
+				$createPatronInfoParameters['fields']['birthDate'] = $birthdate->format('Y-m-d');
+			}
+			if (!empty($_REQUEST['pin'])) {
+				//TODO: check pin matches
+				$createPatronInfoParameters['fields']['pin'] = trim($_REQUEST['pin']);
+			}
+
+
+			// Update Address Field with new data supplied by the user
+			if (isset($_REQUEST['email'])) {
+				$setField('EMAIL', $_REQUEST['email']);
+			}
+
+			if (isset($_REQUEST['phone'])) {
+				$setField('PHONE', $_REQUEST['phone']);
+			}
+
+			if (isset($_REQUEST['address'])) {
+				$setField('STREET', $_REQUEST['address']);
+			}
+
+			if (isset($_REQUEST['city']) && isset($_REQUEST['state'])) {
+				$setField('CITY/STATE', $_REQUEST['city'] . ' ' . $_REQUEST['state']);
+			}
+
+			if (isset($_REQUEST['zip'])) {
+				$setField('ZIP', $_REQUEST['zip']);
+			}
+
+			// Update Home Location
+			if (!empty($_REQUEST['pickupLocation'])) {
+				$homeLibraryLocation = new Location();
+				if ($homeLibraryLocation->get('code', $_REQUEST['pickupLocation'])) {
+					$homeBranchCode                                  = strtoupper($homeLibraryLocation->code);
+					$createPatronInfoParameters['fields']['library'] = array(
+						'key' => $homeBranchCode,
+						'resource' => '/policy/library'
+					);
+				}
+			}
+
+			$createNewPatronResponse = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/', $createPatronInfoParameters, $sessionToken, 'POST');
+
+			if (isset($createNewPatronResponse->messageList)) {
+				foreach ($createNewPatronResponse->messageList as $message) {
+					$updateErrors[] = $message->message;
+				}
+				global $logger;
+				$logger->log('Symphony Driver - Patron Info Update Error - Error from ILS : ' . implode(';', $updateErrors), PEAR_LOG_ERR);
+			}
+
+			//TODO: Return results
+		} else {
+			// Error: unable to login in staff user
+		}
+	}
+
+
 	protected function loginViaWebService($username, $password)
 	{
 		global $configArray;
@@ -709,11 +835,11 @@ abstract class SirsiDynixROA extends HorizonAPI
 
 	function cancelHold($patron, $recordId, $cancelId)
 	{
-		$sessionToken = $this->getSessionToken($patron);
+		$sessionToken = $this->getStaffSessionToken();
 		if (!$sessionToken) {
 			return array(
 				'success' => false,
-				'message' => 'Sorry, it does not look like you are logged in currently.  Please login and try again');
+				'message' => 'Sorry, we could not connect to the circulation system.');
 		}
 
 		//create the hold using the web service
