@@ -45,6 +45,10 @@ public class ItemInfo {
 		this.recordInfo = recordInfo;
 	}
 
+	public RecordInfo getRecordInfo(){
+		return recordInfo;
+	}
+
 	public String getCollection() {
 		return collection;
 	}

@@ -106,7 +106,7 @@ class InclusionRule {
 				isIncluded =  false;
 			}else if (locationCodePattern.matcher(locationCode).lookingAt() &&
 					subLocationCodePattern.matcher(subLocationCode).lookingAt() &&
-					formatPattern.matcher(format).lookingAt()
+					(formatPattern.matcher(format).lookingAt())
 					){
 
 				//We got a match based on location check formats iTypes etc
