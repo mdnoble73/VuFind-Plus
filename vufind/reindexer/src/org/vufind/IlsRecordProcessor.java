@@ -543,7 +543,7 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				scopingInfo.setHoldable(true);
 				scopingInfo.setStatus("On Order");
 				scopingInfo.setGroupedStatus("On Order");
-				if (!originalUrl.equals(result.localUrl)){
+				if (originalUrl != null && !originalUrl.equals(result.localUrl)){
 					scopingInfo.setLocalUrl(result.localUrl);
 				}
 			}
