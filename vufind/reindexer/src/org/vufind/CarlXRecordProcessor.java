@@ -111,7 +111,7 @@ class CarlXRecordProcessor extends IlsRecordProcessor {
 		//For Nashville CARL.X, load audiences based on location code rather than based on the 008 and 006 fields
 		HashSet<String> targetAudiences = new HashSet<>();
 		for (ItemInfo printItem : printItems){
-			String location = printItem.getLocationCode();
+			String location = printItem.getShelfLocationCode();
 			if (location != null) {
 				//Get the first character from the location
 				if (location.length() > 0){
