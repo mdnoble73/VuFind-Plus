@@ -88,6 +88,12 @@ class User extends DB_DataObject
 
 	private $data = array();
 
+	// CarlX Option
+	public $availableHoldNotice;
+	public $comingDueNotice;
+	public $phoneType;
+
+
 
 	/* the code above is auto generated do not remove the tag below */
 	###END_AUTOCODE
@@ -579,10 +585,10 @@ class User extends DB_DataObject
 	function updateOverDriveOptions(){
 		if (isset($_REQUEST['promptForOverdriveEmail']) && ($_REQUEST['promptForOverdriveEmail'] == 'yes' || $_REQUEST['promptForOverdriveEmail'] == 'on')){
 			// if set check & on check must be combined because checkboxes/radios don't report 'offs'
-				$this->promptForOverdriveEmail = 1;
-			}else{
-				$this->promptForOverdriveEmail = 0;
-			}
+			$this->promptForOverdriveEmail = 1;
+		}else{
+			$this->promptForOverdriveEmail = 0;
+		}
 		if (isset($_REQUEST['overdriveEmail'])){
 			$this->overdriveEmail = strip_tags($_REQUEST['overdriveEmail']);
 		}

@@ -184,6 +184,22 @@ class MyAccount_Profile extends MyAccount
 		$millenniumNoAddress = $canUpdateContactInfo && !$canUpdateAddress && in_array($ils, array('Millennium', 'Sierra'));
 		$interface->assign('millenniumNoAddress', $millenniumNoAddress);
 
+
+		// CarlX Specific Options
+		if ($ils == 'CarlX') {
+			// Get Phone Types
+			$phoneTypes = array();
+			/** @var CarlX $driver */
+			$driver        = CatalogFactory::getCatalogConnectionInstance();
+			$rawPhoneTypes = $driver->getPhoneTypeList();
+			foreach ($rawPhoneTypes as $rawPhoneTypeSubArray){
+				foreach ($rawPhoneTypeSubArray as $phoneType => $phoneTypeLabel) {
+					$phoneTypes["$phoneType"] = $phoneTypeLabel;
+				}
+			}
+			$interface->assign('phoneTypes', $phoneTypes);
+		}
+
 		$this->display('profile.tpl', 'Account Settings');
 	}
 
