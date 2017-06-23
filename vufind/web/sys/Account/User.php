@@ -89,6 +89,7 @@ class User extends DB_DataObject
 	private $data = array();
 
 	// CarlX Option
+	public $emailReceiptFlag;
 	public $availableHoldNotice;
 	public $comingDueNotice;
 	public $phoneType;
