@@ -210,7 +210,7 @@
 															<label for="optOut" class="btn btn-sm btn-default {if $profile->notices == 'opted out'}active{/if}"><input type="radio" value="opted out" id="optOut" name="notices" {if $profile->notices == 'opted out'}checked="checked"{/if}> Opt-out</label>
 													</div>
 												{else}
-													{$profile->noticePreferenceLabel|escape}
+													{$profile->notices}
 												{/if}
 											</div>
 										</div>
