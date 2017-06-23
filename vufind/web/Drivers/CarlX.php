@@ -78,7 +78,7 @@ class CarlX extends SIP2Driver{
 						$user->trackReadingHistory = $result->Patron->LoanHistoryOptInFlag;
 					}
 
-					$user->availableHoldnotice = $result->Patron->SendHoldAvailableFlag;
+					$user->availableHoldNotice = $result->Patron->SendHoldAvailableFlag;
 					$user->comingDueNotice     = $result->Patron->SendComingDueFlag;
 					$user->phoneType           = $result->Patron->PhoneType;
 
