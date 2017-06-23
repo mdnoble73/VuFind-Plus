@@ -841,7 +841,7 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 					scopingInfo.setLibraryOwned(curScope.isItemOwnedByScope(profileType, itemLocation, ""));
 				}
 				//Check to see if we need to do url rewriting
-				if (!originalUrl.equals(result.localUrl)){
+				if (originalUrl != null && !originalUrl.equals(result.localUrl)){
 					scopingInfo.setLocalUrl(result.localUrl);
 				}
 			}
@@ -1541,8 +1541,6 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				printFormats.add("Blu-ray");
 			}else if (titleMedium.contains("dvd")){
 				printFormats.add("DVD");
-			}else if (titleMedium.contains("cd")){
-				printFormats.add("CompactDisc");
 			}
 
 		}
