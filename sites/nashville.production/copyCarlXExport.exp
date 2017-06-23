@@ -65,14 +65,16 @@ while {$size1 != $size2} {
 			sleep 10
 			continue
 		}
+
 		-re "fullExport\.gz\[^ ]+ +\[^ ]+ +\[^ ]+ +\[^ ]+ +\(\[^ ]+) +(\[^ ]+) (\[0-9]+) .+fullExport\.gz" {
-			# Compare date NOW against file mtime date
-			#puts "MTIME: $expect_out(2,string) $expect_out(3,string)"
-			#puts "NOW: [clock format [clock seconds] -format {%b %d}]"
-			if {[clock format [clock seconds] -format {%b %d}] ne "$expect_out(2,string) $expect_out(3,string)"} {
-				sleep 10
-				continue
-			}
+
+#			# Compare date NOW against file mtime date # COMMENTED OUT 20170623 - date check during full_update.sh
+#			#puts "MTIME: $expect_out(2,string) $expect_out(3,string)"
+#			#puts "NOW: [clock format [clock seconds] -format {%b %d}]"
+#			if {[clock format [clock seconds] -format {%b %d}] ne "$expect_out(2,string) $expect_out(3,string)"} {
+#				sleep 10
+#				continue
+#			}
 			
 			# Deterimine whether file is growing
 			set size2 $expect_out(1,string)
@@ -92,7 +94,7 @@ expect "100%*"
 expect $prompt
 close
 
-spawn gzip -df $localPath/fullExport.gz
+spawn gunzip -fN $localPath/fullExport.gz
 expect eof
 
 spawn mv -f $localPath/fullExport $localPath/fullExport.mrc
