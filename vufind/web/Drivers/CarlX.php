@@ -78,6 +78,10 @@ class CarlX extends SIP2Driver{
 						$user->trackReadingHistory = $result->Patron->LoanHistoryOptInFlag;
 					}
 
+					$user->availableHoldnotice = $result->Patron->SendHoldAvailableFlag;
+					$user->comingDueNotice     = $result->Patron->SendComingDueFlag;
+					$user->phoneType           = $result->Patron->PhoneType;
+
 					$homeBranchCode = strtolower($result->Patron->DefaultBranch);
 					$location = new Location();
 					$location->code = $homeBranchCode;
@@ -743,21 +747,29 @@ class CarlX extends SIP2Driver{
 			$request->Patron->Addresses->Address->State       = $_REQUEST['state'];
 			$request->Patron->Addresses->Address->PostalCode  = $_REQUEST['zip'];
 
-			if (isset($_REQUEST['notices'])){
-//				$noticeLabels = array(
-//					//'-' => 'Mail',  // officially None in Sierra, as in No Preference Selected.
-//					'-' => '',        // notification will generally be based on what information is available so can't determine here. plb 12-02-2014
-//					'a' => 'Mail',    // officially Print in Sierra
-//					'p' => 'Telephone',
-//					'z' => 'E-mail',
-//				);
 
+				if (isset($_REQUEST['availableHoldNotice']) && ($_REQUEST['availableHoldNotice'] == 'yes' || $_REQUEST['availableHoldNotice'] == 'on')){
+					// if set check & on check must be combined because checkboxes/radios don't report 'offs'
+					$request->Patron->SendHoldAvailableFlag = 1;
+				}else{
+					$request->Patron->SendHoldAvailableFlag = 0;
+				}
+				if (isset($_REQUEST['comingDueNotice']) && ($_REQUEST['comingDueNotice'] == 'yes' || $_REQUEST['comingDueNotice'] == 'on')){
+					// if set check & on check must be combined because checkboxes/radios don't report 'offs'
+					$request->Patron->SendComingDueFlag = 1;
+				}else{
+					$request->Patron->SendComingDueFlag = 0;
+				}
+				if (isset($_REQUEST['phoneType'])) {
+					$request->Patron->PhoneType = $_REQUEST['phoneType'];
+				}
+
+			if (isset($_REQUEST['notices'])){
 				if ($_REQUEST['notices'] == 'z') {
 					$request->Patron->EmailNotices = 'send email';
 				} else {
 					$request->Patron->EmailNotices = 'do not send email';
 				}
-
 			}
 
 			if (!empty($_REQUEST['pickupLocation'])) {
@@ -1225,7 +1237,9 @@ class CarlX extends SIP2Driver{
 		return $result;
 	}
 
-	private function getPhoneTypeList() {
+	public function getPhoneTypeList() {
+		// TODO: Store in memcache
+
 		$request             = new stdClass();
 		$request->Modifiers  = '';
 

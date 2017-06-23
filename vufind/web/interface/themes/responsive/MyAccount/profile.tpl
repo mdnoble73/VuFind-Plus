@@ -203,6 +203,50 @@
 											{/if}
 										</div>
 									</div>
+
+									{if $ils == 'CarlX'} {* CarlX Notification Options *}
+									<div class="form-group">
+										<div class="col-xs-4"><label for="availableHoldNotice" class="control-label">{translate text='Send a notice when a hold is available'}:</label></div>
+										<div class="col-xs-8">
+											{if $edit == true}
+												<input type="checkbox" name="availableHoldNotice" id="availableHoldNotice" {if $profile->availableHoldNotice==1}checked='checked'{/if} data-switch="">
+											{else}
+												{if $profile->availableHoldNotice==0}No{else}Yes{/if}
+											{/if}
+										</div>
+									</div>
+
+									<div class="form-group">
+										<div class="col-xs-4"><label for="comingDueNotice" class="control-label">{translate text='Send a notice when a title is coming due'}:</label></div>
+										<div class="col-xs-8">
+											{if $edit == true}
+												<input type="checkbox" name="comingDueNotice" id="comingDueNotice" {if $profile->comingDueNotice==1}checked='checked'{/if} data-switch="">
+											{else}
+												{if $profile->comingDueNotice==0}No{else}Yes{/if}
+											{/if}
+										</div>
+									</div>
+
+										<div class="form-group">
+											<div class="col-xs-4"><label for="phoneType" class="">{translate text='Phone Type'}:</label></div>
+											<div class="col-xs-8">
+												{if $edit == true && $canUpdateContactInfo == true}
+													<select name="phoneType" id="phoneType" class="form-control">
+														{if count($phoneTypes) > 0}
+															{foreach from=$phoneTypes item=phoneTypeLabel key=phoneType}
+																<option value="{$phoneType}" {if $phoneType == $profile->phoneType}selected="selected"{/if}>{$phoneTypeLabel}</option>
+															{/foreach}
+														{else}
+															<option></option>
+														{/if}
+													</select>
+												{else}
+													{assign var=i value=$profile->phoneType}
+													{$phoneTypes[$i]}
+												{/if}
+											</div>
+										</div>
+									{/if}
 								{/if}
 
 								{if $showSMSNoticesInProfile}
