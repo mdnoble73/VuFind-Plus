@@ -159,12 +159,8 @@ class CarlX extends SIP2Driver{
 						}
 					}
 
-					if ($result->Patron->EmailNotices == 'send email') {
-						$user->notices = 'z';
-						$user->noticePreferenceLabel = 'E-mail';
-					} elseif ($result->Patron->EmailNotices == 'do not send email' || $result->Patron->EmailNotices == 'opted out') {
-						$user->notices = '-';
-						$user->noticePreferenceLabel = null;
+					if (isset($result->Patron->EmailNotices)) {
+						$user->notices = $result->Patron->EmailNotices;
 					}
 
 					$user->patronType  = $result->Patron->PatronType; // Example: "ADULT"
@@ -765,11 +761,7 @@ class CarlX extends SIP2Driver{
 				}
 
 			if (isset($_REQUEST['notices'])){
-				if ($_REQUEST['notices'] == 'z') {
-					$request->Patron->EmailNotices = 'send email';
-				} else {
-					$request->Patron->EmailNotices = 'do not send email';
-				}
+				$request->Patron->EmailNotices = $_REQUEST['notices'];
 			}
 
 			if (!empty($_REQUEST['pickupLocation'])) {
