@@ -106,4 +106,22 @@ class CarlXRecordProcessor extends IlsRecordProcessor {
 		}
 		ilsRecord.setFormatBoost(formatBoost);
 	}
+
+	protected void loadTargetAudiences(GroupedWorkSolr groupedWork, Record record, HashSet<ItemInfo> printItems, String identifier) {
+		//For Nashville CARL.X, load audiences based on location code rather than based on the 008 and 006 fields
+		HashSet<String> targetAudiences = new HashSet<>();
+		for (ItemInfo printItem : printItems){
+			String location = printItem.getLocationCode();
+			if (location != null) {
+				//Get the first character from the location
+				if (location.length() > 0){
+					targetAudiences.add(location.substring(0, 1));
+				}
+			}
+		}
+
+		HashSet<String> translatedAudiences = translateCollection("target_audience", targetAudiences, identifier);
+		groupedWork.addTargetAudiences(translatedAudiences);
+		groupedWork.addTargetAudiencesFull(translatedAudiences);
+	}
 }
