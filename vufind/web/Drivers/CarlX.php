@@ -78,6 +78,7 @@ class CarlX extends SIP2Driver{
 						$user->trackReadingHistory = $result->Patron->LoanHistoryOptInFlag;
 					}
 
+					$user->emailReceiptFlag    = $result->Patron->EmailReceiptFlag;
 					$user->availableHoldNotice = $result->Patron->SendHoldAvailableFlag;
 					$user->comingDueNotice     = $result->Patron->SendComingDueFlag;
 					$user->phoneType           = $result->Patron->PhoneType;
@@ -744,6 +745,12 @@ class CarlX extends SIP2Driver{
 			$request->Patron->Addresses->Address->PostalCode  = $_REQUEST['zip'];
 
 
+				if (isset($_REQUEST['emailReceiptFlag']) && ($_REQUEST['emailReceiptFlag'] == 'yes' || $_REQUEST['emailReceiptFlag'] == 'on')){
+					// if set check & on check must be combined because checkboxes/radios don't report 'offs'
+					$request->Patron->EmailReceiptFlag = 1;
+				}else{
+					$request->Patron->EmailReceiptFlag = 0;
+				}
 				if (isset($_REQUEST['availableHoldNotice']) && ($_REQUEST['availableHoldNotice'] == 'yes' || $_REQUEST['availableHoldNotice'] == 'on')){
 					// if set check & on check must be combined because checkboxes/radios don't report 'offs'
 					$request->Patron->SendHoldAvailableFlag = 1;
