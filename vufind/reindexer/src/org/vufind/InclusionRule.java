@@ -125,7 +125,6 @@ class InclusionRule {
 			}else{
 				isIncluded = false;
 			}
-			inclusionCache.put(key, isIncluded);
 		}else{
 			isIncluded = inclusionCache.get(key);
 		}
@@ -139,9 +138,12 @@ class InclusionRule {
 				}
 			}
 			if (hasMatch){
-				return includeExcludeMatches;
+				isIncluded = includeExcludeMatches;
+			}else{
+				isIncluded = false;
 			}
 		}
+		inclusionCache.put(key, isIncluded);
 		return inclusionCache.get(key);
 	}
 
