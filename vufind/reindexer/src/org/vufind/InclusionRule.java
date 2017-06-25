@@ -149,7 +149,7 @@ class InclusionRule {
 		if (urlToMatch == null || urlToMatch.length() == 0 || urlReplacement == null || urlReplacement.length() == 0){
 			return url;
 		}else{
-			return url.replaceAll(urlToMatch, urlReplacement);
+			return url.replaceFirst(urlToMatch, urlReplacement);
 		}
 	}
 }
