@@ -325,6 +325,7 @@ function updateConfigForScoping($configArray) {
 				//The subdomain can also indicate a location.
 				$Location = new Location();
 				$Location->whereAdd("code = '$subdomain'");
+				$Location->whereAdd("subdomain = '$subdomain'", 'OR');
 				$Location->find();
 				if ($Location->N == 1) {
 					$Location->fetch();

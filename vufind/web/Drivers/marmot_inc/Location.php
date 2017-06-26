@@ -17,6 +17,7 @@ class Location extends DB_DataObject
 
 	public $__table = 'location';   // table name
 	public $locationId;				//int(11)
+	public $subdomain;
 	public $code;					//varchar(5)
 	public $subLocation;
 	public $displayName;			//varchar(40)
@@ -146,6 +147,8 @@ class Location extends DB_DataObject
 		$browseCategoryInstructions = 'For more information on how to setup browse categories, see the <a href="https://docs.google.com/document/d/11biGMw6UDKx9UBiDCCj_GBmatx93UlJBLMESNf_RtDU">online documentation</a>.';
 
 		$structure = array(
+				'locationId' => array('property'=>'locationId', 'type'=>'label', 'label'=>'Location Id', 'description'=>'The unique id of the location within the database'),
+				'subdomain' => array('property'=>'subdomain', 'type'=>'text', 'label'=>'Subdomain', 'description'=>'The subdomain to use while identifying this branch.  Can be left if it matches the code.', 'required'=>false),
 				'code' => array('property'=>'code', 'type'=>'text', 'label'=>'Code', 'description'=>'The code for use when communicating with the ILS', 'required'=>true),
 				'subLocation' => array('property'=>'subLocation', 'type'=>'text', 'label'=>'Sub Location Code', 'description'=>'The sub location or collection used to identify this '),
 				'displayName' => array('property'=>'displayName', 'type'=>'text', 'label'=>'Display Name', 'description'=>'The full name of the location for display to the user', 'size'=>'40'),
