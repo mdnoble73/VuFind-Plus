@@ -130,6 +130,12 @@
 55 3 1 * * /root/cron/fortlewis_goldrush.exp /data/vufind-plus/marmot.ftp/split_marc/fortlewis_goldrush.marc
 #-----------
 
+###############################################
+# Secure copy cmu.mrc to cmuvufind.marmot.org #
+###############################################
+# scp cmu marc records to cmuvufind.marmot.org daily at 5.05 AM
+05 5 * * * /root/cron/cmu_secure_copy_marc.sh
+
 
 
 #
