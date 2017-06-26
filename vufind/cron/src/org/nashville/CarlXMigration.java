@@ -19,6 +19,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -30,6 +31,7 @@ public class CarlXMigration implements IProcessHandler{
 	private String lssExportLocation;
 	private String carlxExportLocation;
 	private HashMap<String, CarlXPatronMap> patronMap = new HashMap<>();
+	private HashMap<String, HashSet<String>> millenniumBarcodesByPType = new HashMap<>();
 	private boolean deleteMissingUsers;
 
 	public void doCronProcess(String servername, Ini configIni, Profile.Section processSettings, Connection vufindConn, Connection econtentConn, CronLogEntry cronEntry, Logger logger) {
@@ -41,6 +43,12 @@ public class CarlXMigration implements IProcessHandler{
 		}
 		if (!loadPatronMappingFile(logger)){
 			processLog.addNote("Unable to load patron mapping information");
+			processLog.incErrors();
+			return;
+		}
+
+		if (!loadMillenniumPatronFile(logger)){
+			processLog.addNote("Unable to load millennium patron barcodes");
 			processLog.incErrors();
 			return;
 		}
@@ -58,6 +66,39 @@ public class CarlXMigration implements IProcessHandler{
 
 		processLog.setFinished();
 		processLog.saveToDatabase(vufindConn, logger);
+	}
+
+	private boolean loadMillenniumPatronFile(Logger logger) {
+		File millenniumBarcodesFile = new File("/data/pika/nashville.production/migration_files/PATRON_PIKA.txt");
+		if (!millenniumBarcodesFile.exists()){
+			return false;
+		}else{
+			try {
+				CSVReader reader = new CSVReader(new FileReader(millenniumBarcodesFile), '|');
+				String[] csvValues = reader.readNext();
+				//Skip the header
+				csvValues = reader.readNext();
+				while (csvValues != null){
+					//This only has the map from the system the patron was created within.
+					HashSet<String> barcodesByPNumber;
+					String pNumber = csvValues[1];
+					pNumber = pNumber.replace("p", "");
+					pNumber = pNumber.substring(0, pNumber.length() - 1);
+					if (millenniumBarcodesByPType.containsKey(pNumber)){
+						barcodesByPNumber = millenniumBarcodesByPType.get(pNumber);
+					}else{
+						barcodesByPNumber = new HashSet<>();
+						millenniumBarcodesByPType.put(pNumber, barcodesByPNumber);
+					}
+					barcodesByPNumber.add(csvValues[0]);
+					csvValues = reader.readNext();
+				}
+				return true;
+			}catch (Exception e){
+				logger.error("Error reading millennium patron file", e);
+				return false;
+			}
+		}
 	}
 
 	private boolean loadPatronMappingFile(Logger logger) {
@@ -104,6 +145,19 @@ public class CarlXMigration implements IProcessHandler{
 					migratedUserInformation = patronMap.get("lss-" + userBarcode);
 					if (migratedUserInformation != null){
 						logger.debug("Found migration information from lss");
+					}else{
+						HashSet<String> alternateBarcodes = millenniumBarcodesByPType.get(oldUniqueId);
+						if (alternateBarcodes != null) {
+							for (String alternateBarcode : alternateBarcodes) {
+								migratedUserInformation = patronMap.get("lss-" + alternateBarcode);
+								if (migratedUserInformation != null) {
+									logger.debug("Found migration information from lss based on alternate barcode");
+									break;
+								}
+							}
+						//}else{
+							//logger.warn("Did not find alternate barcodes for " + oldUniqueId);
+						}
 					}
 				}
 				if (migratedUserInformation == null){
