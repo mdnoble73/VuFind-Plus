@@ -144,7 +144,7 @@ cd /data/vufind-plus/accelerated_reader; curl --remote-name --remote-time --sile
 /usr/local/vufind-plus/sites/flatirons.test/moveFullExport.sh flatirons_sideload/ebrary/broomfield ebrary/mde >> ${OUTPUT_FILE}
 
 #Colorado State Goverment Documents Updates
-curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/colorado_gov_docs/marc/fullexport.mrc http://cassini.marmot.org/colorado_state_docs.mrc
+curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/colorado_gov_docs/marc/fullexport.mrc https://cassini.marmot.org/colorado_state_docs.mrc
 
 #Do a full extract from OverDrive just once a week to catch anything that doesn't
 #get caught in the regular extract
