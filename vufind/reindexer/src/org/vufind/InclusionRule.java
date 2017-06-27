@@ -125,26 +125,24 @@ class InclusionRule {
 			}else{
 				isIncluded = false;
 			}
+			//Make sure not to cache marc tag determination
+			inclusionCache.put(key, isIncluded);
 		}else{
 			isIncluded = inclusionCache.get(key);
 		}
-		if (isIncluded && marcTagToMatch.length() > 0){
+		//Make sure not to cache marc tag determination
+		if (isIncluded && marcTagToMatch.length() > 0) {
 			boolean hasMatch = false;
 			Set<String> marcValuesToCheck = MarcUtil.getFieldList(marcRecord, marcTagToMatch);
-			for (String marcValueToCheck : marcValuesToCheck){
-				if (marcValueToMatchPattern.matcher(marcValueToCheck).lookingAt()){
+			for (String marcValueToCheck : marcValuesToCheck) {
+				if (marcValueToMatchPattern.matcher(marcValueToCheck).lookingAt()) {
 					hasMatch = true;
 					break;
 				}
 			}
-			if (hasMatch){
-				isIncluded = includeExcludeMatches;
-			}else{
-				isIncluded = false;
-			}
+			isIncluded = hasMatch && includeExcludeMatches;
 		}
-		inclusionCache.put(key, isIncluded);
-		return inclusionCache.get(key);
+		return isIncluded;
 	}
 
 	String getLocalUrl(String url){
