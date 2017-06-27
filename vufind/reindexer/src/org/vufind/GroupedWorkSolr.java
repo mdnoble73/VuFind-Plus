@@ -570,7 +570,7 @@ public class GroupedWorkSolr implements Cloneable {
 
 			//We do different ownership display depending on if this is eContent or not
 			String owningLocationValue = curScopeDetails.getFacetLabel();
-			if (curItem.getSubLocation() != null){
+			if (curItem.getSubLocation() != null && curItem.getSubLocation().length() > 0){
 				//owningLocationValue += " - " + curItem.getSubLocation();
 				owningLocationValue = curItem.getSubLocation();
 			}
