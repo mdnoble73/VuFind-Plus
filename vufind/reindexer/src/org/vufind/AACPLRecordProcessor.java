@@ -51,9 +51,7 @@ class AACPLRecordProcessor extends IlsRecordProcessor {
 		}
 		if (collectionSubfield != ' '){
 			Subfield collectionSubfieldValue = curItem.getSubfield(collectionSubfield);
-			if (collectionSubfieldValue == null){
-				return true;
-			}else{
+			if (collectionSubfieldValue != null){
 				if (collectionSubfieldValue.getData().trim().matches(collectionsToSuppress)){
 					return true;
 				}
