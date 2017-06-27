@@ -74,9 +74,9 @@ $LOG ">> Backup starting <<"
 #-------------------------------------------------------------
 #--- backup mysql --------------------------------------------
 #-------------------------------------------------------------
-$LOG "~> purge yesterdays mysql dumps"
-/bin/rm -f $DUMPFOLDER/mysql*
-$LOG "~> exit code $?"
+#$LOG "~> purge yesterdays mysql dumps"
+#/bin/rm -f $DUMPFOLDER/*
+#$LOG "~> exit code $?"
 #---
 $LOG "~> dumping mysql database"
 mysqldump $DUMPOPT1 mysql > $DUMPFOLDER/mysql.$DATE.mysql.dump
@@ -91,7 +91,10 @@ do
   mysqldump $DUMPOPT2 $DB > $DUMPFOLDER/$DB.$DATE.mysql.dump
   $LOG "~> exit code $?"
   $LOG "~> change permissions on dump file"
-  chmod 400 $DUMPFOLDER/mysql.$DATE.mysql.dump
+  chmod 400 $DUMPFOLDER/$DB.$DATE.mysql.dump
+  $LOG "~> exit code $?"
+  $LOG "~> compressing dump file"
+  gzip -c $DUMPFOLDER/$DB.$DATE.mysql.dump > $DUMPFOLDER/$DB.$DATE.mysql.dump.gz
   $LOG "~> exit code $?"
 done
 
@@ -123,6 +126,19 @@ done
 #  fi
 #fi
 #-------------------------------------------------------------
+
+# Delete dump files older than 3 days
+# $DUMPFOLDER/$DB.$DATE.mysql.dump
+#uncompressed files
+  $LOG "~> deleting dump files older than three days"
+
+find $DUMPFOLDER/ -mindepth 1 -maxdepth 1 -name *.mysql.dump -type f -mtime +3 -delete
+  $LOG "~> exit code $?"
+#compressed files
+find $DUMPFOLDER/ -mindepth 1 -maxdepth 1 -name *.mysql.dump.gz -type f -mtime +3 -delete
+  $LOG "~> exit code $?"
+
+
 $LOG ">> Backup complete <<"
 exit 0
 fi
