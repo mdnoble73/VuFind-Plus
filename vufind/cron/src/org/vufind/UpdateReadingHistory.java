@@ -201,7 +201,7 @@ public class UpdateReadingHistory implements IProcessHandler {
 			processLog.incErrors();
 			hadError = true;
 		} catch (IOException e) {
-			logger.error("Unable to retrieve information from patron API for " + cat_username + ": " + e.toString());
+			logger.error("Unable to retrieve information from patron API for " + cat_username /*+ ": " + e.toString()*/);
 			processLog.incErrors();
 			hadError = true;
 		}
@@ -311,7 +311,7 @@ public class UpdateReadingHistory implements IProcessHandler {
 			logger.error("Bad url for patron API " + e.toString());
 			processLog.incErrors();
 		} catch (IOException e) {
-			logger.error("Unable to retrieve information from patron API for " + cat_username + ": " + e.toString());
+			logger.error("Unable to retrieve information from patron API for " + cat_username /*+ ": " + e.toString()*/);
 			processLog.incErrors();
 		}
 	}
