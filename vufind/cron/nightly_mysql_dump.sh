@@ -94,7 +94,7 @@ do
   chmod 400 $DUMPFOLDER/$DB.$DATE.mysql.dump
   $LOG "~> exit code $?"
   $LOG "~> compressing dump file"
-  gzip -c $DUMPFOLDER/$DB.$DATE.mysql.dump > $DUMPFOLDER/$DB.$DATE.mysql.dump.gz
+  gzip $DUMPFOLDER/$DB.$DATE.mysql.dump
   $LOG "~> exit code $?"
 done
 
