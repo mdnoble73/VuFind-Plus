@@ -547,7 +547,9 @@ public class CarlXExportMain {
 					}
 				}else{
 					logger.error("API call for getting Marc Records Failed: " + marcRecordSOAPResponse.getResponseCode() + marcRecordSOAPResponse.getMessage());
-					hadErrors = true;
+					if (marcRecordSOAPResponse.getResponseCode() != 500){
+						hadErrors = true;
+					}
 				}
 			} catch (Exception e) {
 				logger.error("Error Creating SOAP Request for Marc Records", e);

@@ -123,7 +123,7 @@ abstract class MarcRecordProcessor {
 		groupedWork.addKeywords(MarcUtil.getAllSearchableFields(record, 100, 900));
 	}
 
-	void loadAwards(GroupedWorkSolr groupedWork, Record record){
+	private void loadAwards(GroupedWorkSolr groupedWork, Record record){
 		Set<String> awardFields = MarcUtil.getFieldList(record, "586a");
 		HashSet<String> awards = new HashSet<>();
 		for (String award : awardFields){
@@ -174,7 +174,7 @@ abstract class MarcRecordProcessor {
 	}
 
 
-	Set<String> getLCSubjects(Record record) {
+	private Set<String> getLCSubjects(Record record) {
 		HashSet<String> lcSubjects = new HashSet<>();
 		List<DataField> fields = MarcUtil.getDataFields(record, "650");
 		for (DataField field : fields){
@@ -221,7 +221,7 @@ abstract class MarcRecordProcessor {
 		groupedWork.addPhysical(physicalDescriptions);
 	}
 
-	String getCallNumberSubject(Record record, String fieldSpec) {
+	private String getCallNumberSubject(Record record, String fieldSpec) {
 		String val = MarcUtil.getFirstFieldVal(record, fieldSpec);
 
 		if (val != null) {
@@ -233,7 +233,7 @@ abstract class MarcRecordProcessor {
 		return null;
 	}
 
-	String getMpaaRating(Record record) {
+	private String getMpaaRating(Record record) {
 		if (mpaaRatingRegex1 == null) {
 			mpaaRatingRegex1 = Pattern.compile(
 					"(?:.*?)Rated\\s(G|PG-13|PG|R|NC-17|NR|X)(?:.*)", Pattern.CANON_EQ);
@@ -510,7 +510,7 @@ abstract class MarcRecordProcessor {
 		}
 	}
 
-	protected void loadPublicationDetails(GroupedWorkSolr groupedWork, Record record, HashSet<RecordInfo> ilsRecords) {
+	void loadPublicationDetails(GroupedWorkSolr groupedWork, Record record, HashSet<RecordInfo> ilsRecords) {
 		//Load publishers
 		Set<String> publishers = this.getPublishers(record);
 		groupedWork.addPublishers(publishers);
@@ -533,7 +533,7 @@ abstract class MarcRecordProcessor {
 
 	}
 
-	public Set<String> getPublicationDates(Record record) {
+	Set<String> getPublicationDates(Record record) {
 		@SuppressWarnings("unchecked")
 		List<VariableField> rdaFields = record.getVariableFields("264");
 		HashSet<String> publicationDates = new HashSet<>();
@@ -586,7 +586,7 @@ abstract class MarcRecordProcessor {
 	}
 
 	String languageFields = "008[35-37]";
-	String translationFields = "041b:041d:041h:041j";
+
 	void loadLanguageDetails(GroupedWorkSolr groupedWork, Record record, HashSet<RecordInfo> ilsRecords, String identifier) {
 		Set <String> languages = MarcUtil.getFieldList(record, languageFields);
 		HashSet<String> translatedLanguages = new HashSet<>();
@@ -613,6 +613,7 @@ abstract class MarcRecordProcessor {
 		}
 		groupedWork.setLanguages(translatedLanguages);
 
+		String translationFields = "041b:041d:041h:041j";
 		Set<String> translations = MarcUtil.getFieldList(record, translationFields);
 		translatedLanguages = new HashSet<>();
 		for (String translation : translations) {
@@ -622,7 +623,7 @@ abstract class MarcRecordProcessor {
 		groupedWork.setTranslations(translatedLanguages);
 	}
 
-	protected void loadAuthors(GroupedWorkSolr groupedWork, Record record, String identifier) {
+	private void loadAuthors(GroupedWorkSolr groupedWork, Record record, String identifier) {
 		//auth_author = 100abcd, first
 		groupedWork.setAuthAuthor(MarcUtil.getFirstFieldVal(record, "100abcd"));
 		//author = a, first
@@ -647,7 +648,7 @@ abstract class MarcRecordProcessor {
 			StringBuilder contributor = MarcUtil.getSpecifiedSubfieldsAsString(contributorField, contributorSubfieldPattern, "");
 			if (contributorField.getTag().equals("700") && contributorField.getSubfield('4') != null){
 				String role = indexer.translateSystemValue("contributor_role", Util.trimTrailingPunctuation(contributorField.getSubfield('4').getData()), identifier);
-				contributor.append("|" + role);
+				contributor.append("|").append(role);
 			}
 			contributors.add(contributor.toString());
 		}
@@ -663,7 +664,7 @@ abstract class MarcRecordProcessor {
 		groupedWork.setAuthorDisplay(displayAuthor);
 	}
 
-	void loadTitles(GroupedWorkSolr groupedWork, Record record, String format) {
+	private void loadTitles(GroupedWorkSolr groupedWork, Record record, String format) {
 		//title (full title done by index process by concatenating short and subtitle
 
 		//title short
@@ -681,7 +682,7 @@ abstract class MarcRecordProcessor {
 		groupedWork.addNewTitles(MarcUtil.getFieldList(record, "785ast"));
 	}
 
-	protected void loadBibCallNumbers(GroupedWorkSolr groupedWork, Record record, String identifier) {
+	private void loadBibCallNumbers(GroupedWorkSolr groupedWork, Record record, String identifier) {
 		groupedWork.setCallNumberA(MarcUtil.getFirstFieldVal(record, "099a:090a:050a"));
 		String firstCallNumber = MarcUtil.getFirstFieldVal(record, "099a[0]:090a[0]:050a[0]");
 		if (firstCallNumber != null){
@@ -718,7 +719,7 @@ abstract class MarcRecordProcessor {
 	 *         with non-filing characters omitted. Null returned if no title can
 	 *         be found.
 	 */
-	String getSortableTitle(Record record) {
+	private String getSortableTitle(Record record) {
 		DataField titleField = (DataField) record.getVariableField("245");
 		if (titleField == null || titleField.getSubfield('a') == null)
 			return "";
@@ -726,6 +727,9 @@ abstract class MarcRecordProcessor {
 		int nonFilingInt = getInd2AsInt(titleField);
 
 		String title = MarcUtil.getFirstFieldVal(record, "245abnp");
+		if (title == null){
+			return null;
+		}
 		title = title.toLowerCase();
 
 		// Skip non-filing chars, if possible.
@@ -745,7 +749,7 @@ abstract class MarcRecordProcessor {
 	 *          a DataField
 	 * @return the integer (0-9, 0 if blank or other) in the 2nd indicator
 	 */
-	int getInd2AsInt(DataField df) {
+	private int getInd2AsInt(DataField df) {
 		char ind2char = df.getIndicator2();
 		int result = 0;
 		if (Character.isDigit(ind2char))
