@@ -340,15 +340,27 @@ class CarlX extends SIP2Driver{
 		}
 
 		// There are exceptions in the Soap Client that need to be caught for smooth functioning
-		try {
-			$this->soapClient = new SoapClient($WSDL, $soapRequestOptions);
-			$result = $this->soapClient->$requestName($request);
-		} catch (SoapFault $e) {
-			global $logger;
-			$logger->log("Soap Client error in CarlX: while calling $requestName ".$e->getMessage(), PEAR_LOG_ERR);
+		$soapRequestOptions['connection_timeout'] = 5;
+		$connectionPassed = false;
+		$numTries = 0;
+		$result = false;
+		while (!$connectionPassed && $numTries < 3){
+			try {
+				$this->soapClient = new SoapClient($WSDL, $soapRequestOptions);
+				$result = $this->soapClient->$requestName($request);
+				$connectionPassed = true;
+			} catch (SoapFault $e) {
+				global $logger;
+				$logger->log("Soap Client error in CarlX: while calling $requestName ".$e->getMessage() . " try $numTries", PEAR_LOG_ERR);
+				$logger->log($request, PEAR_LOG_ERR);
+			}
+			$numTries++;
+		}
+		if (!$connectionPassed){
 			return false;
 		}
-	return $result;
+
+		return $result;
 	}
 
 	/**
