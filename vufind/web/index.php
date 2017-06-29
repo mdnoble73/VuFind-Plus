@@ -632,7 +632,7 @@ if (!is_dir(ROOT_DIR . "/services/$module")){
 	$interface->assign('action',null);
 	$interface->assign('showBreadcrumbs', false);
 	$interface->assign('sidebar', 'Search/home-sidebar.tpl');
-	$interface->setTemplate('Error/404.tpl');
+	$interface->setTemplate('../Error/404.tpl');
 	$interface->setPageTitle('Page Not Found');
 	$interface->display('layout.tpl');
 }else if (is_readable("services/$module/$action.php")) {
