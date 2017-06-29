@@ -340,7 +340,7 @@ class CarlX extends SIP2Driver{
 		}
 
 		// There are exceptions in the Soap Client that need to be caught for smooth functioning
-		$soapRequestOptions['connection_timeout'] = 5;
+		$soapRequestOptions['connection_timeout'] = 2;
 		$connectionPassed = false;
 		$numTries = 0;
 		$result = false;
