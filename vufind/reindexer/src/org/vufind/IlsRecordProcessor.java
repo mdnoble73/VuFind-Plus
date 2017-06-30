@@ -363,6 +363,13 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			numPrintItems = checkForNonSuppressedItemlessBib(numPrintItems);
 			groupedWork.addHoldings(numPrintItems + recordInfo.getNumCopiesOnOrder());
 
+			for (ItemInfo curItem : recordInfo.getRelatedItems()){
+				String itemIdentifier = curItem.getItemIdentifier();
+				if (itemIdentifier.length() > 0) {
+					groupedWork.addAlternateId(itemIdentifier);
+				}
+			}
+
 			scopeItems(recordInfo, groupedWork, record);
 		}catch (Exception e){
 			logger.error("Error updating grouped work " + groupedWork.getId() + " for MARC record with identifier " + identifier, e);
