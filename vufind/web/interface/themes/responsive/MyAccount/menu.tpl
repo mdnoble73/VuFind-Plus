@@ -65,22 +65,22 @@
 
 						<div class="myAccountLink{if $action=="CheckedOut"} active{/if}">
 							<a href="{$path}/MyAccount/CheckedOut" id="checkedOut">
-								Checked Out Titles <span class="badge">{$user->getNumCheckedOutTotal()}</span>
+								Checked Out Titles {if !$offline}<span class="badge">{$user->getNumCheckedOutTotal()}</span>{/if}
 							</a>
 						</div>
 						<div class="myAccountLink{if $action=="Holds"} active{/if}">
 							<a href="{$path}/MyAccount/Holds" id="holds">
-								Titles On Hold <span class="badge">{$user->getNumHoldsTotal()}</span>
+								Titles On Hold {if !$offline}<span class="badge">{$user->getNumHoldsTotal()}</span>
 								{if $user->getNumHoldsAvailableTotal() && $user->getNumHoldsAvailableTotal() > 0}
 									&nbsp;<span class="label label-success">{$user->getNumHoldsAvailableTotal()} ready for pick up</span>
-								{/if}
+								{/if}{/if}
 							</a>
 						</div>
 
 						{if $enableMaterialsBooking}
 						<div class="myAccountLink{if $action=="Bookings"} active{/if}">
 							<a href="{$path}/MyAccount/Bookings" id="bookings">
-								Scheduled Items  <span class="badge">{$user->getNumBookingsTotal()}</span>
+								Scheduled Items  {if !$offline}<span class="badge">{$user->getNumBookingsTotal()}</span>{/if}
 							</a>
 						</div>
 						{/if}

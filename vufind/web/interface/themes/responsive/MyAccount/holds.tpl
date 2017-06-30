@@ -16,6 +16,9 @@
 			{if $libraryHoursMessage}
 				<div class="libraryHours alert alert-success">{$libraryHoursMessage}</div>
 			{/if}
+	{if $offline}
+		<div class="alert alert-warning"><strong>The library system is currently offline.</strong> We are unable to retrieve information about your holds at this time.</div>
+	{else}
 
 		<p id="overdrive_holds_inclusion_notice">
 			{translate text="Items on hold includes titles in Overdrive."}
@@ -81,7 +84,7 @@
 
 			{/if}
 		{/foreach}
-
+	{/if}
 	{else} {* Check to see if user is logged in *}
 		You must login to view this information. Click <a href="{$path}/MyAccount/Login">here</a> to login.
 	{/if}

@@ -11,6 +11,9 @@
 	{include file="MyAccount/availableHoldsNotice.tpl"}
 
 	<h2>{translate text='Fines'}</h2>
+{if $offline}
+	<div class="alert alert-warning"><strong>The library system is currently offline.</strong> We are unable to retrieve information about your {translate text='Fines'|lower} at this time.</div>
+{else}
 
 	{if count($userFines) > 0}
 
@@ -106,6 +109,7 @@
 	{else}
 		<p class="alert alert-success">You do not have any fines within the system.</p>
 	{/if}
+{/if}
 {else}
 	You must login to view this information. Click <a href="{$path}/MyAccount/Login">here</a> to login.
 {/if}
