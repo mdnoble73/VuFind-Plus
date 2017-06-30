@@ -457,6 +457,13 @@ abstract class IslandoraDriver extends RecordInterface {
 		return $this->fullTitle;
 	}
 
+	public function getSubTitle() {
+		$titleInfo = $this->getModsValue('titleInfo','mods');
+		$subTitle = $this->getModsValue('subTitle','mods', $titleInfo);
+
+		return $subTitle;
+	}
+
 	/**
 	 * Assign necessary Smarty variables and return a template name to
 	 * load in order to display the Table of Contents extracted from the
@@ -3010,11 +3017,9 @@ abstract class IslandoraDriver extends RecordInterface {
 		return null;
 	}
 
-	public function getBrandingInformation() {
-		if (!$this->loadedBrandingFromCollection){
-			$this->loadRelatedEntities();
-			$this->loadedBrandingFromCollection = true;
-
+	private $contributingLibrary = false;
+	public function getContributingLibrary() {
+		if ($this->contributingLibrary === false){
 			//Get the contributing institution
 			list($namespace) = explode(':', $this->getUniqueID());
 			$contributingLibrary = new Library();
@@ -3037,16 +3042,35 @@ abstract class IslandoraDriver extends RecordInterface {
 				$islandoraCache->pid = $contributingLibraryPid;
 				if ($islandoraCache->find(true) && !empty($islandoraCache->mediumCoverUrl)){
 					$imageUrl = $islandoraCache->mediumCoverUrl;
+					$libraryTitle = $islandoraCache->title;
 				}else{
 					$imageUrl = $fedoraUtils->getObjectImageUrl($fedoraUtils->getObject($contributingLibraryPid), 'medium');
+					$libraryTitle = $fedoraUtils->getObjectLabel($contributingLibraryPid);
 				}
-				$this->brandingEntities[$contributingLibraryPid] = array(
-						'label' => 'Contributed by ' . $islandoraCache->title,
+				$this->contributingLibrary = array(
+						'label' => 'Contributed by ' . $libraryTitle,
 						'image' => $imageUrl,
 						'link' => "/Archive/$contributingLibraryPid/Organization",
 						'sortIndex' => 9,
-						'pid' => $contributingLibraryPid
+						'pid' => $contributingLibraryPid,
+						'libraryName' => $libraryTitle,
+						'baseUrl' => 'https://' . $contributingLibrary->subdomain . '.marmot.org', //TODO: This needs to change for other libraries
 				);
+			}else{
+				$this->contributingLibrary = null;
+			}
+		}
+		return $this->contributingLibrary;
+	}
+	public function getBrandingInformation() {
+		if (!$this->loadedBrandingFromCollection){
+			$this->loadRelatedEntities();
+			$this->loadedBrandingFromCollection = true;
+
+			//Get the contributing institution
+			$contributingLibrary = $this->getContributingLibrary();
+			if ($contributingLibrary){
+				$this->brandingEntities[$contributingLibrary['pid']] = $contributingLibrary;
 			}
 
 			$collections = $this->getRelatedCollections();

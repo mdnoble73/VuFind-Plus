@@ -71,7 +71,6 @@ class ItemAPI extends Action {
 
 	function launch()
 	{
-		global $configArray;
 		$method = $_REQUEST['method'];
 		// Connect to Catalog
 		if ($method != 'getBookcoverById' && $method != 'getBookCover'){
