@@ -41,12 +41,18 @@ public class CarlXMigration implements IProcessHandler{
 			processLog.incErrors();
 			processLog.saveToDatabase(vufindConn, logger);
 			return;
+		}else{
+			processLog.addNote("Loaded configuration");
+			processLog.saveToDatabase(vufindConn, logger);
 		}
 		if (!loadPatronMappingFile(logger)){
 			processLog.addNote("Unable to load patron mapping information");
 			processLog.incErrors();
 			processLog.saveToDatabase(vufindConn, logger);
 			return;
+		}else{
+			processLog.addNote("Loaded patron mapping information");
+			processLog.saveToDatabase(vufindConn, logger);
 		}
 
 		if (!loadMillenniumPatronFile(logger)){
@@ -54,6 +60,9 @@ public class CarlXMigration implements IProcessHandler{
 			processLog.incErrors();
 			processLog.saveToDatabase(vufindConn, logger);
 			return;
+		}else{
+			processLog.addNote("Loaded millennium patron barcodes");
+			processLog.saveToDatabase(vufindConn, logger);
 		}
 
 		if (!setupUserMigrationStatements(vufindConn, logger)){
@@ -61,6 +70,9 @@ public class CarlXMigration implements IProcessHandler{
 			processLog.incErrors();
 			processLog.saveToDatabase(vufindConn, logger);
 			return;
+		}else{
+			processLog.addNote("Setup user migration statements");
+			processLog.saveToDatabase(vufindConn, logger);
 		}
 
 		updateLssUsers(processLog, vufindConn, logger);
