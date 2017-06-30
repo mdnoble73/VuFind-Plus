@@ -788,23 +788,28 @@ class UserAPI extends Action {
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function getPatronCheckedOutItems(){
-		if (isset($_REQUEST['username'])){
-			$username = $_REQUEST['username'];
-		}else{
-			$username = '';
-		}
-		if (isset($_REQUEST['password'])){
-			$password = $_REQUEST['password'];
-		}else{
-			$password = '';
-		}
-		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR_Singleton::isError($user)){
-			$allCheckedOut = $user->getMyCheckouts(false);
+		global $configArray;
+		if ($configArray['Catalog']['offline']) {
+			return array('success'=>false, 'message'=>'Circulation system is offline');
+		} else {
+			if (isset($_REQUEST['username'])){
+				$username = $_REQUEST['username'];
+			}else{
+				$username = '';
+			}
+			if (isset($_REQUEST['password'])){
+				$password = $_REQUEST['password'];
+			}else{
+				$password = '';
+			}
+			$user = UserAccount::validateAccount($username, $password);
+			if ($user && !PEAR_Singleton::isError($user)) {
+				$allCheckedOut = $user->getMyCheckouts(false);
 
-			return array('success'=>true, 'checkedOutItems'=>$allCheckedOut);
-		}else{
-			return array('success'=>false, 'message'=>'Login unsuccessful');
+				return array('success' => true, 'checkedOutItems' => $allCheckedOut);
+			} else {
+				return array('success' => false, 'message' => 'Login unsuccessful');
+			}
 		}
 	}
 
@@ -1480,16 +1485,21 @@ class UserAPI extends Action {
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function getPatronReadingHistory(){
-		$username = $_REQUEST['username'];
-		$password = $_REQUEST['password'];
-		global $user;
-		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR_Singleton::isError($user)){
-			$readingHistory = $this->getCatalogConnection()->getReadingHistory($user);
+		global $configArray;
+		if ($configArray['Catalog']['offline']) {
+			return array('success'=>false, 'message'=>'Circulation system is offline');
+		} else {
+			$username = $_REQUEST['username'];
+			$password = $_REQUEST['password'];
+			global $user;
+			$user = UserAccount::validateAccount($username, $password);
+			if ($user && !PEAR_Singleton::isError($user)) {
+				$readingHistory = $this->getCatalogConnection()->getReadingHistory($user);
 
-			return array('success'=>true, 'readingHistory'=>$readingHistory['titles']);
-		}else{
-			return array('success'=>false, 'message'=>'Login unsuccessful');
+				return array('success' => true, 'readingHistory' => $readingHistory['titles']);
+			} else {
+				return array('success' => false, 'message' => 'Login unsuccessful');
+			}
 		}
 	}
 
