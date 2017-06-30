@@ -835,7 +835,7 @@ class Solr implements IndexEngine {
 							continue;
 						}
 					}elseif($field == 'alternate_ids'){
-						if (!preg_match('/^"?(\d+|.b\d+|[A-F0-9]{8}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{12}|MWT\d+)"?$/i', $fieldValue)){
+						if (!preg_match('/^"?(\d+|.b\d+|[A-F0-9]{8}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{12}|MWT\d+|CARL\d+)"?$/i', $fieldValue)){
 							continue;
 						}
 					}elseif($field == 'issn'){
