@@ -118,7 +118,7 @@ public class CarlXMigration implements IProcessHandler{
 	}
 
 	private boolean loadPatronMappingFile(Logger logger) {
-		File patronMappingFile = new File("/data/pika/nashville.production/migration_files/Pika Patron Cross Reference_full.csv");
+		File patronMappingFile = new File("/data/pika/nashville.production/migration_files/PIKA Patron Cross Reference_full.csv");
 		if (!patronMappingFile.exists()){
 			return false;
 		}else{
