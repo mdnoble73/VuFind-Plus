@@ -63,10 +63,10 @@ public class CarlXMigration implements IProcessHandler{
 			return;
 		}
 
-		updateLssUsers(vufindConn, logger);
-		updateMillenniumUsers(vufindConn, logger);
+		updateLssUsers(processLog, vufindConn, logger);
+		updateMillenniumUsers(processLog, vufindConn, logger);
 
-		fixBibLinks(vufindConn, logger);
+		fixBibLinks(processLog, vufindConn, logger);
 
 		processLog.setFinished();
 		processLog.saveToDatabase(vufindConn, logger);
@@ -129,13 +129,18 @@ public class CarlXMigration implements IProcessHandler{
 		}
 	}
 
-	private void updateMillenniumUsers(Connection vufindConn, Logger logger){
+	private void updateMillenniumUsers(CronProcessLogEntry processLog, Connection vufindConn, Logger logger){
 		//Get a list of all Millennium users
 		try {
+			processLog.addNote("Starting to update millennium users");
+			processLog.saveToDatabase(vufindConn, logger);
 			PreparedStatement millenniumUsersStmt = vufindConn.prepareStatement("SELECT id, username, cat_username FROM user where source = 'ils'");
 			PreparedStatement updateMillenniumUserStmt = vufindConn.prepareStatement("UPDATE user SET username = ?, cat_username = ?, source = 'carlx' where id = ? and source = 'ils'");
 
 			ResultSet millenniumUsersRS = millenniumUsersStmt.executeQuery();
+			int numUpdates = 0;
+			int numMerges = 0;
+			int numDeletes = 0;
 			while (millenniumUsersRS.next()){
 				String userBarcode = millenniumUsersRS.getString("cat_username");
 				String oldUniqueId = millenniumUsersRS.getString("username");
@@ -169,6 +174,7 @@ public class CarlXMigration implements IProcessHandler{
 					if (deleteMissingUsers){
 						deletePatronStmt.setLong(1, userId);
 						deletePatronStmt.executeUpdate();
+						numDeletes++;
 					}
 				}else {
 					try {
@@ -178,24 +184,35 @@ public class CarlXMigration implements IProcessHandler{
 							updateMillenniumUserStmt.setString(2, migratedUserInformation.getPatronId());
 							updateMillenniumUserStmt.setLong(3, userId);
 							updateMillenniumUserStmt.executeUpdate();
+							numUpdates++;
+						}else{
+							numMerges++;
 						}
 					}catch (Exception e){
 						logger.error("Error updating millennium users with barcode " + userBarcode + " patron id " + oldUniqueId, e);
 					}
 				}
 			}
+			processLog.addUpdates(numUpdates + numMerges + numDeletes);
+			processLog.addNote("Finished processing millennium users.  " + numUpdates + " updated, " + numMerges + " merged, " + numDeletes + " deleted");
+			processLog.saveToDatabase(vufindConn, logger);
 		}catch (Exception e){
 			logger.error("Error updating millennium users", e);
+			processLog.addNote("Error updating millennium users" +  e.toString());
+			processLog.saveToDatabase(vufindConn, logger);
 		}
 	}
 
-	private void updateLssUsers(Connection vufindConn, Logger logger) {
+	private void updateLssUsers(CronProcessLogEntry processLog, Connection vufindConn, Logger logger) {
 		//Get a list of all LSS users
 		try {
+			processLog.addNote("Starting to update LSS users");
+			processLog.saveToDatabase(vufindConn, logger);
 			PreparedStatement lssUsersStmt = vufindConn.prepareStatement("SELECT id, username, cat_username FROM user where source = 'lss'");
 			PreparedStatement updateLssUserStmt = vufindConn.prepareStatement("UPDATE user SET username = ?, cat_username = ?, source = 'carlx' where id = ? and source = 'lss'");
 
 			ResultSet lssUsersRS = lssUsersStmt.executeQuery();
+			int numUpdates = 0;
 			while (lssUsersRS.next()){
 				String userBarcode = lssUsersRS.getString("cat_username");
 				//String oldUniqueId = lssUsersRS.getString("username");
@@ -217,11 +234,17 @@ public class CarlXMigration implements IProcessHandler{
 						updateLssUserStmt.setString(2, migratedUserInformation.getPatronId());
 						updateLssUserStmt.setLong(3, userId);
 						updateLssUserStmt.executeUpdate();
+						numUpdates++;
 					}
 				}
 			}
+			processLog.addUpdates(numUpdates);
+			processLog.addNote("Finished updating LSS users");
+			processLog.saveToDatabase(vufindConn, logger);
 		}catch (Exception e){
 			logger.error("Error updating lss users", e);
+			processLog.addNote("Error updating lss users" + e.toString());
+			processLog.saveToDatabase(vufindConn, logger);
 		}
 	}
 
@@ -419,24 +442,27 @@ public class CarlXMigration implements IProcessHandler{
 	/**
 	 * Correct records not to merge and reading history data so the newly merged records in CARL.X are referenced
 	 *
+	 * @param processLog
 	 * @param vufindConn The connection to the Pika database
 	 * @param logger     The logger for reporting errors
 	 */
-	private void fixBibLinks(Connection vufindConn, Logger logger) {
+	private void fixBibLinks(CronProcessLogEntry processLog, Connection vufindConn, Logger logger) {
 		//Get the export file from CARL.X
+		processLog.addNote("Starting to fix bib record links");
+		processLog.saveToDatabase(vufindConn, logger);
 		File carlXExport = new File(carlxExportLocation);
 		if (!carlXExport.exists()){
 			logger.warn("Could not find carlx export in " + carlxExportLocation);
-			processLog.addNote("Could not find carlx export in " + carlxExportLocation);
-			processLog.incErrors();
+			this.processLog.addNote("Could not find carlx export in " + carlxExportLocation);
+			this.processLog.incErrors();
 			return;
 		}
 		//Get the old LSS export
 		File lssExport = new File(lssExportLocation);
 		if (!lssExport.exists()){
 			logger.warn("Could not find LSS export in " + lssExportLocation);
-			processLog.addNote("Could not find LSS export in " + lssExportLocation);
-			processLog.incErrors();
+			this.processLog.addNote("Could not find LSS export in " + lssExportLocation);
+			this.processLog.incErrors();
 			return;
 		}
 
@@ -463,8 +489,8 @@ public class CarlXMigration implements IProcessHandler{
 
 		}catch (Exception e){
 			logger.error("Error in fixBibLinks" ,  e);
-			processLog.addNote("Error in fixBibLinks - " +  e.toString());
-			processLog.incErrors();
+			this.processLog.addNote("Error in fixBibLinks - " +  e.toString());
+			this.processLog.incErrors();
 		}
 
 		//Loop through all records
@@ -489,16 +515,16 @@ public class CarlXMigration implements IProcessHandler{
 						updateRecordNotToGroupStmt.setString(3, millenniumIdentifier);
 						int numUpdated = updateRecordNotToGroupStmt.executeUpdate();
 						if (numUpdated == 1) {
-							processLog.incUpdated();
-							processLog.addNote("Updated Millennium identifier " + millenniumIdentifier + " to " + carlxIdentifier + " in records not to group");
+							this.processLog.incUpdated();
+							this.processLog.addNote("Updated Millennium identifier " + millenniumIdentifier + " to " + carlxIdentifier + " in records not to group");
 						}
 
 						updateReadingHistoryStmt.setString(1, "carlx:" + carlxIdentifier);
 						updateReadingHistoryStmt.setString(2, "millennium:" + millenniumIdentifier);
 						numUpdated = updateReadingHistoryStmt.executeUpdate();
 						if (numUpdated == 1) {
-							processLog.incUpdated();
-							processLog.addNote("Updated Millennium identifier " + millenniumIdentifier + " to " + carlxIdentifier + " in reading history " + numUpdated);
+							this.processLog.incUpdated();
+							this.processLog.addNote("Updated Millennium identifier " + millenniumIdentifier + " to " + carlxIdentifier + " in reading history " + numUpdated);
 						}
 					}else{
 						logger.debug("Invalid millennium identifer");
@@ -514,16 +540,16 @@ public class CarlXMigration implements IProcessHandler{
 						updateRecordNotToGroupStmt.setString(3, lssIdentifier);
 						int numUpdated = updateRecordNotToGroupStmt.executeUpdate();
 						if (numUpdated == 1) {
-							processLog.incUpdated();
-							processLog.addNote("Updated LSS identifier " + lssIdentifier + " to " + carlxIdentifier + " in records not to group");
+							this.processLog.incUpdated();
+							this.processLog.addNote("Updated LSS identifier " + lssIdentifier + " to " + carlxIdentifier + " in records not to group");
 						}
 
 						updateReadingHistoryStmt.setString(1, "carlx:" + carlxIdentifier);
 						updateReadingHistoryStmt.setString(2, "lss:" + lssIdentifier);
 						numUpdated = updateReadingHistoryStmt.executeUpdate();
 						if (numUpdated == 1) {
-							processLog.incUpdated();
-							processLog.addNote("Updated Millennium identifier " + lssIdentifier + " to " + carlxIdentifier + " in reading history " + numUpdated);
+							this.processLog.incUpdated();
+							this.processLog.addNote("Updated Millennium identifier " + lssIdentifier + " to " + carlxIdentifier + " in reading history " + numUpdated);
 						}
 					}else{
 						//It looks like there is more than just control numbers from LSS here so this is normal.
@@ -533,9 +559,12 @@ public class CarlXMigration implements IProcessHandler{
 			}
 		}catch (Exception e){
 			logger.error("Error in fixBibLinks", e);
-			processLog.addNote("Error in fixBibLinks - " +  e.toString());
-			processLog.incErrors();
+			this.processLog.addNote("Error in fixBibLinks - " +  e.toString());
+			this.processLog.incErrors();
 		}
+
+		processLog.addNote("Finished fixing bib record links");
+		processLog.saveToDatabase(vufindConn, logger);
 	}
 
 	private boolean loadConfig(Ini configIni, Profile.Section processSettings) {
