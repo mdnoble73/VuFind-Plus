@@ -86,7 +86,7 @@
 						{/if}
 						<div class="myAccountLink{if $action=="ReadingHistory"} active{/if}">
 							<a href="{$path}/MyAccount/ReadingHistory">
-								Reading History {if $user->readingHistorySize}<span class="badge">{$user->readingHistorySize}</span>{/if}
+								Reading History {if !$offline}{if $user->readingHistorySize}<span class="badge">{$user->readingHistorySize}</span>{/if}{/if}
 							</a>
 						</div>
 
