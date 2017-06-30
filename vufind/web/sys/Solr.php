@@ -831,11 +831,11 @@ class Solr implements IndexEngine {
 							}
 						}
 					}elseif($field == 'id'){
-						if (!preg_match('/^"?(\d+|.b\d+|[A-F0-9]{8}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{12})"?$/i', $fieldValue)){
+						if (!preg_match('/^"?(\d+|.[boi]\d+|[A-F0-9]{8}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{12})"?$/i', $fieldValue)){
 							continue;
 						}
 					}elseif($field == 'alternate_ids'){
-						if (!preg_match('/^"?(\d+|\.?[boi]\d+|[A-F0-9]{8}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{12}|MWT\d+|CARL\d+)"?$/i', $fieldValue)){
+						if (!preg_match('/^"?(\d+|.?[boi]\d+|[A-F0-9]{8}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{12}|MWT\d+|CARL\d+)"?$/i', $fieldValue)){
 							continue;
 						}
 					}elseif($field == 'issn'){
