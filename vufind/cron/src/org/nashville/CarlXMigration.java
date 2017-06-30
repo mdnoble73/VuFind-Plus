@@ -35,27 +35,31 @@ public class CarlXMigration implements IProcessHandler{
 	private boolean deleteMissingUsers;
 
 	public void doCronProcess(String servername, Ini configIni, Profile.Section processSettings, Connection vufindConn, Connection econtentConn, CronLogEntry cronEntry, Logger logger) {
-		processLog = new CronProcessLogEntry(cronEntry.getLogEntryId(), "Import Steamboat Genealogy");
+		processLog = new CronProcessLogEntry(cronEntry.getLogEntryId(), "CarlX Migration");
 		if (!loadConfig(configIni, processSettings)){
 			processLog.addNote("Unable to load configuration");
 			processLog.incErrors();
+			processLog.saveToDatabase(vufindConn, logger);
 			return;
 		}
 		if (!loadPatronMappingFile(logger)){
 			processLog.addNote("Unable to load patron mapping information");
 			processLog.incErrors();
+			processLog.saveToDatabase(vufindConn, logger);
 			return;
 		}
 
 		if (!loadMillenniumPatronFile(logger)){
 			processLog.addNote("Unable to load millennium patron barcodes");
 			processLog.incErrors();
+			processLog.saveToDatabase(vufindConn, logger);
 			return;
 		}
 
 		if (!setupUserMigrationStatements(vufindConn, logger)){
 			processLog.addNote("Unable to setup user migration statements");
 			processLog.incErrors();
+			processLog.saveToDatabase(vufindConn, logger);
 			return;
 		}
 
