@@ -16,10 +16,13 @@
 			{if $libraryHoursMessage}
 				<div class="libraryHours alert alert-success">{$libraryHoursMessage}</div>
 			{/if}
+	{if $offline}
+		<div class="alert alert-warning"><strong>The library system is currently offline.</strong> We are unable to retrieve information about your holds at this time.</div>
+	{else}
 
-			<p>
-				{translate text="Items on hold includes titles in Overdrive."}
-			</p>
+		<p id="overdrive_holds_inclusion_notice">
+			{translate text="Items on hold includes titles in Overdrive."}
+		</p>
 
 			{foreach from=$recordList item=sectionData key=sectionKey}
 				<h3>{if $sectionKey == 'available'}Holds - Ready{else}Holds - Not Ready{/if}</h3>
@@ -83,15 +86,9 @@
 						{translate text='You do not have any pending holds.'}
 					{/if}
 
-				{/if}
-			{/foreach}
-		</div>
-{* Holds not displayed in a html table, so this code does not apply any more.
-		<script type="text/javascript">
-			$(function() {literal} { {/literal}
-				$("#holdsTableavailable").tablesorter({literal}{cssAsc: 'sortAscHeader', cssDesc: 'sortDescHeader', cssHeader: 'unsortedHeader', headers: { 0: { sorter: false}, 3: {sorter : 'date'}, 4: {sorter : 'date'}, 7: { sorter: false} } }{/literal});
-			{literal} }); {/literal}
-		</script>*}
+			{/if}
+		{/foreach}
+	{/if}
 	{else} {* Check to see if user is logged in *}
 		You must login to view this information. Click <a href="{$path}/MyAccount/Login">here</a> to login.
 	{/if}

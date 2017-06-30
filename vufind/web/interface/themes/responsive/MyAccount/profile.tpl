@@ -13,6 +13,9 @@
 			{include file="MyAccount/availableHoldsNotice.tpl"}
 
 				<h2>{translate text='Account Settings'}</h2>
+		{if $offline}
+			<div class="alert alert-warning"><strong>The library system is currently offline.</strong> We are unable to retrieve information about your {translate text='Account Settings'|lower} at this time.</div>
+		{else}
 
 			{if $profileUpdateErrors}
 				{foreach from=$profileUpdateErrors item=errorMsg}
@@ -335,7 +338,7 @@
 					</div>
 				</div>
 
-				{if $allowPinReset}
+				{if $allowPinReset && !$offline}
 					<div class="panel active">
 						<a data-toggle="collapse" data-parent="#account-settings-accordion" href="#pinPanel">
 							<div class="panel-heading">
@@ -663,7 +666,7 @@
 				$(function(){ $('input[type="checkbox"][data-switch]').bootstrapSwitch()});
 				{/literal}
 			</script>
-
+		{/if}
 		{else}
 			<div class="page">
 				You must login to view this information. Click <a href="{$path}/MyResearch/Login">here</a> to login.

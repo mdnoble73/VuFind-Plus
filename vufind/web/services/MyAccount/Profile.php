@@ -136,6 +136,7 @@ class MyAccount_Profile extends MyAccount
 				$interface->assign('edit', true);
 			} else {
 				$interface->assign('edit', false);
+
 			}
 
 
@@ -186,7 +187,7 @@ class MyAccount_Profile extends MyAccount
 
 
 		// CarlX Specific Options
-		if ($ils == 'CarlX') {
+		if ($ils == 'CarlX' && !$configArray['Catalog']['offline']) {
 			// Get Phone Types
 			$phoneTypes = array();
 			/** @var CarlX $driver */
