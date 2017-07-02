@@ -59,7 +59,7 @@ while {$size1 != $size2} {
 	#result should look like
 	#ls: cannot access fullExport.gz: No such file or directory
 	# OR
-	#ls -l fullExport.gz\r\n-rw-r--r--    1 appmgr      dba      304939812 Jun 22 22:10 fullExport.gz\r\nsftp>
+	#-rw-r--r--    1 appmgr      dba      304939812 Jun 22 22:10 fullExport.gz\r\nsftp>
 
 	expect {
 		"No such file or directory" {
@@ -67,7 +67,7 @@ while {$size1 != $size2} {
 			continue
 		}
 
-		-re "fullExport\.gz\[^ ]+ +\[^ ]+ +\[^ ]+ +\[^ ]+ +\(\[^ ]+) +(\[^ ]+) (\[0-9]+) .+fullExport\.gz" {
+		-re "\[^ ]+ +\[^ ]+ +\[^ ]+ +\[^ ]+ +\(\[^ ]+) +(\[^ ]+) (\[0-9]+) .+fullExport\.gz" {
 
 #			# Compare date NOW against file mtime date # COMMENTED OUT 20170623 - date check during full_update.sh
 #			#puts "MTIME: $expect_out(2,string) $expect_out(3,string)"
