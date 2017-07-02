@@ -52,7 +52,7 @@ spawn sftp $FTPUser@$FTPHost:/carl.output/
 expect "$FTPUser@$FTPHost\'s password:*"
 send "$FTPPassword\r"
 expect $prompt
-send "cd /carl.output/utilities/marcout/pika"
+send "cd /carl.output/utilities/marcout/pika\r"
 
 while {$size1 != $size2} {
 	send "ls -l fullExport.gz\r"
