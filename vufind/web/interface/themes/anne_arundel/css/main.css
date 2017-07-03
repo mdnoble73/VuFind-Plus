@@ -10169,6 +10169,9 @@ a.browse-thumbnail-sorted.active {
       -ms-flex-positive: 1;
           flex-grow: 1;
 }
+.yearbox {
+  padding: 3px 6px;
+}
 .graph-bar {
   background-color: #088ec6;
 }
@@ -10965,4 +10968,34 @@ fieldset[disabled] .btn-masquerade.active {
 }
 #browse-sub-category-menu button.selected {
   background-color: #558aa2;
+}
+#account-settings-accordion .panel-heading,
+#more-details-accordion .panel-heading,
+.sidebar-links .panel-heading,
+#account-settings-accordion .panel-heading {
+  background: #e7e7e7;
+}
+#account-settings-accordion .active .panel-heading,
+#more-details-accordion .active .panel-heading,
+.sidebar-links .active .panel-heading,
+#account-settings-accordion .active .panel-heading {
+  background: #54879F;
+}
+#account-settings-accordion .panel,
+#more-details-accordion .panel,
+.sidebar-links .panel,
+#account-settings-accordion .panel,
+#account-settings-accordion .panel-heading,
+#more-details-accordion .panel-heading,
+.sidebar-links .panel-heading,
+#account-settings-accordion .panel-heading {
+  border-radius: 0;
+}
+.facetTitle,
+.exploreMoreTitle {
+  background: #e8e8e8;
+}
+.sidebar-label,
+.sidebar-button {
+  background: #414141;
 }

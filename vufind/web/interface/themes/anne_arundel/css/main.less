@@ -7,21 +7,6 @@
 
 
 
-
-// This vertically centers #library-name-header (taken from https://css-tricks.com/centering-in-the-unknown/)
-// looks to only work when the library name doesn't wrap
-//#headingInfo:before {
-//  content: '';
-//  display: inline-block;
-//  height: 100%;
-//  vertical-align: middle;
-//  margin-right: -0.25em; // Adjusts for spacing
-//}
-//#headingInfo {
-//  display: inline-block;
-//  vertical-align: middle;
-//}
-
 .header-login-button-mixin(@header-buttons-background-color); // to match logo. plb 3-31-2015
 
 .header-button {
@@ -130,4 +115,26 @@
   button.selected {
     background-color: @selectedCategoryColor;
   }
+}
+
+
+// Remove gradients from accordions & facets ///
+#account-settings-accordion, #more-details-accordion, .sidebar-links, #account-settings-accordion {
+  .panel-heading{
+    background: @accordion-header-bg-color;
+  }
+  .active .panel-heading{
+    background: @accordion-active-header-backgroundcolor;
+  }
+  .panel,.panel-heading {
+    border-radius: 0;
+  }
+}
+.facetTitle, .exploreMoreTitle{
+  background: #e8e8e8;
+
+}
+.sidebar-label, .sidebar-button {
+  //background: #7c7c7d;
+  background: #414141;
 }
