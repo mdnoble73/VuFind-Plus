@@ -513,6 +513,7 @@ public class CarlXMigration implements IProcessHandler{
 			MarcPermissiveStreamReader carlxReader = new MarcPermissiveStreamReader(new FileInputStream(carlXExport), true, true);
 			//Check the 907 (millennium) and 908 (LSS)
 			//Update the old within the records not to group based on the 910
+			logger.warn("Starting to process records from carlx");
 			int numProcessed = 0;
 			while (carlxReader.hasNext()){
 				Record carlxRecord = carlxReader.next();
@@ -530,6 +531,7 @@ public class CarlXMigration implements IProcessHandler{
 						if (numUpdated == 1) {
 							this.processLog.incUpdated();
 							this.processLog.addNote("Updated Millennium identifier " + millenniumIdentifier + " to " + carlxIdentifier + " in records not to group");
+							logger.warn("Updated Millennium identifier " + millenniumIdentifier + " to " + carlxIdentifier + " in records not to group");
 						}
 
 						updateReadingHistoryStmt.setString(1, "carlx:" + carlxIdentifier);
@@ -538,6 +540,7 @@ public class CarlXMigration implements IProcessHandler{
 						if (numUpdated == 1) {
 							this.processLog.incUpdated();
 							this.processLog.addNote("Updated Millennium identifier " + millenniumIdentifier + " to " + carlxIdentifier + " in reading history " + numUpdated);
+							logger.warn("Updated Millennium identifier " + millenniumIdentifier + " to " + carlxIdentifier + " in reading history " + numUpdated);
 						}
 					}else{
 						logger.debug("Invalid millennium identifer");
@@ -555,6 +558,7 @@ public class CarlXMigration implements IProcessHandler{
 						if (numUpdated == 1) {
 							this.processLog.incUpdated();
 							this.processLog.addNote("Updated LSS identifier " + lssIdentifier + " to " + carlxIdentifier + " in records not to group");
+							logger.warn("Updated LSS identifier " + lssIdentifier + " to " + carlxIdentifier + " in records not to group");
 						}
 
 						updateReadingHistoryStmt.setString(1, "carlx:" + carlxIdentifier);
@@ -563,6 +567,7 @@ public class CarlXMigration implements IProcessHandler{
 						if (numUpdated == 1) {
 							this.processLog.incUpdated();
 							this.processLog.addNote("Updated Millennium identifier " + lssIdentifier + " to " + carlxIdentifier + " in reading history " + numUpdated);
+							logger.warn("Updated Millennium identifier " + lssIdentifier + " to " + carlxIdentifier + " in reading history " + numUpdated);
 						}
 					}else{
 						//It looks like there is more than just control numbers from LSS here so this is normal.
