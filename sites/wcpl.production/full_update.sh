@@ -9,7 +9,7 @@
 # For Pika discovery partners using Millennium 2011 1.6_3
 
 # this version emails script output as a round finishes
-EMAIL=root@amalthea.marmot.org
+EMAIL=root@amalthea.marmot.org,wake.pika@wakegov.com
 PIKASERVER=wcpl.production
 PIKADBNAME=pika
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
