@@ -513,6 +513,7 @@ public class CarlXMigration implements IProcessHandler{
 			MarcPermissiveStreamReader carlxReader = new MarcPermissiveStreamReader(new FileInputStream(carlXExport), true, true);
 			//Check the 907 (millennium) and 908 (LSS)
 			//Update the old within the records not to group based on the 910
+			int numProcessed = 0;
 			while (carlxReader.hasNext()){
 				Record carlxRecord = carlxReader.next();
 				VariableField carlXIdentifierField = carlxRecord.getVariableField("910");
@@ -567,6 +568,10 @@ public class CarlXMigration implements IProcessHandler{
 						//It looks like there is more than just control numbers from LSS here so this is normal.
 						logger.debug("Did not find an identifier for lss control number " + lssControlNumber);
 					}
+				}
+				numProcessed++;
+				if (numProcessed % 10000 == 0){
+					logger.warn("Processed " + numProcessed + " records");
 				}
 			}
 		}catch (Exception e){
