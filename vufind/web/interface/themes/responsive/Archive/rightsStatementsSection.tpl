@@ -26,7 +26,7 @@
 	<div class="row">
 		<div class="result-label col-sm-4">rightsstatements.org statement:</div>
 		<div class="result-value col-sm-8">
-			<a href='{$rightsStatementOrg}'>
+			<a href='{$rightsStatementOrg}' target="_blank">
 				{$rightsStatementOrg|translate}
 			</a>
 		</div>
