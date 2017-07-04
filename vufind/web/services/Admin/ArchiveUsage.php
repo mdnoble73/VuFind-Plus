@@ -8,6 +8,7 @@
  */
 require_once ROOT_DIR . '/services/Admin/Admin.php';
 require_once ROOT_DIR . '/sys/ArchiveSubject.php';
+require_once ROOT_DIR . '/services/API/ArchiveAPI.php';
 class Admin_ArchiveUsage extends Admin_Admin{
 
 	function launch() {
@@ -18,8 +19,11 @@ class Admin_ArchiveUsage extends Admin_Admin{
 		$archiveLibraries->orderBy('displayName');
 		$archiveLibraries->find();
 
-		$usageByNamespace = array();
+		//Get the number of records contributed to DPLA
+		$archiveAPI = new API_ArchiveAPI();
+		$dplaUsage = $archiveAPI->getDPLACounts();
 
+		$usageByNamespace = array();
 		while ($archiveLibraries->fetch()){
 			/** @var SearchObject_Islandora $searchObject */
 			$searchObject = SearchObjectFactory::initSearchObject('Islandora');
@@ -36,8 +40,13 @@ class Admin_ArchiveUsage extends Admin_Admin{
 			$usageByNamespace[$archiveLibraries->ilsCode] = array(
 					'displayName' => $archiveLibraries->displayName,
 					'numObjects' => 0,
+					'numDpla' => 0,
 					'driveSpace' => 0
 			);
+
+			if (isset($dplaUsage[$archiveLibraries->archiveNamespace])){
+				$usageByNamespace[$archiveLibraries->ilsCode]['numDpla'] = $dplaUsage[$archiveLibraries->archiveNamespace];
+			}
 
 			$response = $searchObject->processSearch(true, false);
 			if ($response && $response['response']['numFound'] > 0) {
@@ -55,7 +64,6 @@ class Admin_ArchiveUsage extends Admin_Admin{
 						$response = $searchObject->processSearch(true, false);
 					}
 				}
-
 			}
 
 			$diskSpace = $usageByNamespace[$archiveLibraries->ilsCode]['driveSpace'];

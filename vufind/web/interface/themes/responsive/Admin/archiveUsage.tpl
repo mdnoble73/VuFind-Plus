@@ -6,6 +6,7 @@
 			<tr>
 				<th><label title='Library'>Library</label></th>
 				<th><label title='Num Objects'>Num Objects</label></th>
+				<th><label title='Num in DPLA'>Num in DPLA</label></th>
 				<th><label title='Disk Space'>Disk Space Used</label></th>
 			</tr>
 			</thead>
@@ -14,6 +15,7 @@
 					<tr class='{cycle values="odd,even"}'>
 						<td>{$libraryData.displayName}</td>
 						<td>{$libraryData.numObjects}</td>
+						<td>{$libraryData.numDpla}</td>
 						<td>{$libraryData.driveSpace}</td>
 					</tr>
 				{/foreach}
