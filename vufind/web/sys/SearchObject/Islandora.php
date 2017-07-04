@@ -1577,6 +1577,7 @@ class SearchObject_Islandora extends SearchObject_Base
 		}
 		$filters[] = "!PID:demo\\:*";
 		$filters[] = "!PID:testCollection\\:*";
+		$filters[] = "!PID:testcollection\\:*";
 		$filters[] = "!PID:marmot\\:*";
 		$filters[] = "!PID:ssb\\:*";
 		$filters[] = "!PID:mandala\\:*";

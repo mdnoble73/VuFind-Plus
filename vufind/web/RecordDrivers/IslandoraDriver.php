@@ -1125,11 +1125,14 @@ abstract class IslandoraDriver extends RecordInterface {
 						$parentObject = $fedoraUtils->getObject($collectionInfo['object']['value']);
 						/** @var IslandoraDriver $parentDriver */
 						$parentDriver = RecordDriverFactory::initRecordDriver($parentObject);
-						if ($parentDriver){
+						if ($parentDriver && $parentDriver instanceof IslandoraDriver){
 							$this->relatedCollections = $parentDriver->getRelatedCollections();
 							if (count($this->relatedCollections) != 0){
 								break;
 							}
+						}else{
+							global $logger;
+							$logger->log("Incorrect driver type for " . $collectionInfo['object']['value'], PEAR_LOG_DEBUG);
 						}
 					}
 				}
