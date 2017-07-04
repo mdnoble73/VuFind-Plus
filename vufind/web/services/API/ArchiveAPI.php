@@ -43,7 +43,7 @@ class API_ArchiveAPI extends Action {
 		$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
 		$searchObject->addHiddenFilter('!mods_extension_marmotLocal_pikaOptions_showInSearchResults_ms', "no");
 		$searchObject->addHiddenFilter('RELS_EXT_hasModel_uri_ms', '"info:fedora/islandora:collectionCModel"');
-		$searchObject->addHiddenFilter('!mods_extension_marmotLocal_pikaOptions_dpla_s', "no");
+		$searchObject->addHiddenFilter('mods_extension_marmotLocal_pikaOptions_dpla_s', "yes");
 		$searchCollectionsResult = $searchObject->processSearch(true, false);
 		$collectionsToInclude = array();
 		$ancestors = "";
@@ -64,7 +64,8 @@ class API_ArchiveAPI extends Action {
 		$searchObject->init();
 		$searchObject->setPrimarySearch(true);
 		$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
-		$searchObject->addFilter("!mods_extension_marmotLocal_pikaOptions_showInSearchResults_ms:no OR mods_extension_marmotLocal_pikaOptions_showInSearchResults_ms:yes OR ($ancestors)");
+		$searchObject->addHiddenFilter('!mods_extension_marmotLocal_pikaOptions_showInSearchResults_ms', "no");
+		$searchObject->addFilter("mods_extension_marmotLocal_pikaOptions_dpla_s:yes OR (!mods_extension_marmotLocal_pikaOptions_dpla_s:no AND ($ancestors))");
 		$searchObject->addHiddenFilter('!PID', "person*");
 		$searchObject->addHiddenFilter('!PID', "event*");
 		$searchObject->addHiddenFilter('!PID', "organization*");
@@ -170,6 +171,7 @@ class API_ArchiveAPI extends Action {
 			if (isset($doc['mods_accessCondition_rightsHolder_entityTitle_ms'])){
 				$dplaDoc['rightsHolder'] = $doc['mods_accessCondition_rightsHolder_entityTitle_ms'];
 			}
+			$dplaDoc['includeInDPLA'] = isset($doc['mods_extension_marmotLocal_pikaOptions_dpla_s']) ? $doc['mods_extension_marmotLocal_pikaOptions_dpla_s'] : 'default';
 			$dplaDocs[] = $dplaDoc;
 		}
 
@@ -186,8 +188,10 @@ class API_ArchiveAPI extends Action {
 				'numResults' => $summary['resultTotal'],
 				'numPages' => ceil($summary['resultTotal'] / $pageSize),
 				'recordsByLibrary' => $recordsByLibrary,
+				'includedCollections' => $collectionsToInclude,
 				'docs' => $dplaDocs,
 		);
+
 		return $results;
 	}
 
