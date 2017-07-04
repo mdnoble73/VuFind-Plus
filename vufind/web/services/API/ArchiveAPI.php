@@ -46,7 +46,13 @@ class API_ArchiveAPI extends Action {
 
 			//Get the owning library
 			$dplaDoc = array();
-			$dplaDoc['dataProvider'] = $contributingLibrary['libraryName'];
+			if ($contributingLibrary == null){
+				list($namespace) = explode(':', $record->getUniqueID());
+				$dplaDoc['dataProvider'] = $namespace;
+			}else{
+				$dplaDoc['dataProvider'] = $contributingLibrary['libraryName'];
+			}
+
 			$dplaDoc['isShownAt'] = $contributingLibrary['baseUrl'] . $record->getLinkUrl();
 			if (isset($doc['mods_accessCondition_marmot_rightsStatementOrg_t'])){
 				$dplaDoc['rights'] = $doc['mods_accessCondition_marmot_rightsStatementOrg_t'];
@@ -62,7 +68,13 @@ class API_ArchiveAPI extends Action {
 			}
 
 			$dplaDoc['preview'] = $record->getBookcoverUrl('small');
-			$dplaDoc['dateCreated'] = $record->getDateCreated();
+			//Reformat back to YYYY-MM-DD
+			$formattedDate = DateTime::createFromFormat('m/d/Y', $record->getDateCreated());
+			if ($formattedDate != false) {
+				$dateCreated = $formattedDate->format('Y-m-d');
+				$dplaDoc['dateCreated'] = $dateCreated;
+			}
+
 			$relatedPlaces = $record->getRelatedPlaces();
 			$dplaRelatedPlaces = array();
 			foreach ($relatedPlaces as $relatedPlace){
