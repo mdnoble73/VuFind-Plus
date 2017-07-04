@@ -27,9 +27,9 @@
 				<div id="myAccountPanel" class="panel-collapse collapse{if  $displaySidebarMenu || $curSection} in{/if}">
 					<div class="panel-body">
 						{assign var="totalFines" value=$user->getTotalFines()}
-						{if $totalFines > 0 || ($showExpirationWarnings && $user->expireClose)}
+						{if ($totalFines > 0 && $showFines) || ($showExpirationWarnings && $user->expireClose)}
 							<div id="myAccountFines">
-								{if $totalFines > 0}
+								{if $totalFines > 0 && $showFines}
 									{if $showEcommerceLink && $totalFines > $minimumFineAmount}
 										<div class="myAccountLink">
 											<a href="{$ecommerceLink}" target="_blank"{if $showRefreshAccountButton} onclick="VuFind.Account.ajaxLightbox('{$path}/AJAX/JSON?method=getPayFinesAfterAction')"{/if}  style="color:red; font-weight:bold;">
@@ -57,7 +57,7 @@
 												Your library card will expire on {$user->expires}.
 											{/if}
 										</a>
-							</div>
+									</div>
 								{/if}
 							</div>
 							<hr class="menu">
