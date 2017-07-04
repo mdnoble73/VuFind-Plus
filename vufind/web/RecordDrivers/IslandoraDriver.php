@@ -2887,6 +2887,14 @@ abstract class IslandoraDriver extends RecordInterface {
 
 		$limitationsNotes = $this->getModsValue('limitationsNotes', 'marmot');
 		$interface->assign('limitationsNotes', $limitationsNotes);
+
+		$rightsStatementOrg = $this->getModsValue('rightsStatementOrg', 'marmot');
+		if ($rightsStatementOrg == null){
+			$rightsStatementOrg = 'http://rightsstatements.org/page/CNE/1.0/?language=en';
+		}
+		$translatedStatement = translate($rightsStatementOrg);
+		$interface->assign('rightsStatementOrg', $rightsStatementOrg);
+		$interface->assign('translatedStatement', $translatedStatement);
 	}
 
 	protected $pidsOfChildContainers = null;
