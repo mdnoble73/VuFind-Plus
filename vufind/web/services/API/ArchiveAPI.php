@@ -15,7 +15,7 @@ class API_ArchiveAPI extends Action {
 		header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 		header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 
-		if (is_callable(array($this, $method))) {
+		if ($method != 'getDPLASearchResults' && is_callable(array($this, $method))) {
 			$output = json_encode(array('result'=>$this->$method()));
 		} else {
 			$output = json_encode(array('error'=>"invalid_method '$method'"));
@@ -34,66 +34,8 @@ class API_ArchiveAPI extends Action {
 		$pageSize = isset($_REQUEST['pageSize']) ? $_REQUEST['pageSize'] : 100;
 		$changesSince = isset($_REQUEST['changesSince']) ? $_REQUEST['changesSince'] : null;
 		$namespace = isset($_REQUEST['namespace']) ? $_REQUEST['namespace'] : null;
+		list($searchObject, $collectionsToInclude, $searchResult) = $this->getDPLASearchResults($namespace, $changesSince, $curPage, $pageSize);
 
-		//Query for collections that should not be exported to DPLA
-		/** @var SearchObject_Islandora $searchObject */
-		$searchObject = SearchObjectFactory::initSearchObject('Islandora');
-		$searchObject->init();
-		$searchObject->setPrimarySearch(false);
-		$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
-		$searchObject->addHiddenFilter('!mods_extension_marmotLocal_pikaOptions_showInSearchResults_ms', "no");
-		$searchObject->addHiddenFilter('RELS_EXT_hasModel_uri_ms', '"info:fedora/islandora:collectionCModel"');
-		$searchObject->addHiddenFilter('mods_extension_marmotLocal_pikaOptions_dpla_s', "yes");
-		$searchCollectionsResult = $searchObject->processSearch(true, false);
-		$collectionsToInclude = array();
-		$ancestors = "";
-
-		foreach ($searchCollectionsResult['response']['docs'] as $doc){
-			$collectionsToInclude[] = $doc['PID'];
-			if (strlen($ancestors) > 0){
-				$ancestors .= ' OR ';
-			}
-			$ancestors .= 'ancestors_ms:"' . $doc['PID'] . '"';
-		}
-
-
-		//Query Solr for the records to export
-		// Initialise from the current search globals
-		/** @var SearchObject_Islandora $searchObject */
-		$searchObject = SearchObjectFactory::initSearchObject('Islandora');
-		$searchObject->init();
-		$searchObject->setPrimarySearch(true);
-		$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
-		$searchObject->addHiddenFilter('!mods_extension_marmotLocal_pikaOptions_showInSearchResults_ms', "no");
-		$searchObject->addFilter("mods_extension_marmotLocal_pikaOptions_dpla_s:yes OR (!mods_extension_marmotLocal_pikaOptions_dpla_s:no AND ($ancestors))");
-		$searchObject->addHiddenFilter('!PID', "person*");
-		$searchObject->addHiddenFilter('!PID', "event*");
-		$searchObject->addHiddenFilter('!PID', "organization*");
-		$searchObject->addHiddenFilter('!PID', "place*");
-		$searchObject->addHiddenFilter('!RELS_EXT_hasModel_uri_ms', '"info:fedora/islandora:collectionCModel"');
-		$searchObject->addHiddenFilter('!RELS_EXT_hasModel_uri_ms', '"info:fedora/islandora:pageCModel"');
-		if ($namespace != null){
-			$searchObject->addHiddenFilter('namespace_ms', $namespace);
-		}
-
-		//Filter to only see DPLA records
-		if ($changesSince != null){
-			$searchObject->addHiddenFilter('fgs_lastModifiedDate_dt', "[$changesSince TO *]");
-		}
-		$searchObject->addFieldsToReturn(array(
-				'mods_accessCondition_marmot_rightsStatementOrg_t',
-				'mods_accessCondition_rightsHolder_entityTitle_ms',
-				'mods_extension_marmotLocal_hasCreator_entityTitle_ms',
-				'mods_physicalDescription_extent_s',
-				'mods_extension_marmotLocal_pikaOptions_dpla_s',
-		));
-		$searchObject->setPage($curPage);
-		$searchObject->setLimit($pageSize);
-		$searchObject->clearFacets();
-		$searchObject->addFacet('namespace_ms');
-		$searchObject->setSort("fgs_lastModifiedDate_dt asc");
-
-		$searchResult = $searchObject->processSearch(true, false);
 		$dplaDocs = array();
 
 		foreach ($searchResult['response']['docs'] as $doc){
@@ -216,5 +158,100 @@ class API_ArchiveAPI extends Action {
 		}else{
 			return "Unknown";
 		}
+	}
+
+	/**
+	 * @param $namespace
+	 * @param $changesSince
+	 * @param $curPage
+	 * @param $pageSize
+	 * @return array
+	 */
+	private function getDPLASearchResults($namespace, $changesSince, $curPage, $pageSize)
+	{
+//Query for collections that should not be exported to DPLA
+		/** @var SearchObject_Islandora $searchObject */
+		$searchObject = SearchObjectFactory::initSearchObject('Islandora');
+		$searchObject->init();
+		$searchObject->setPrimarySearch(false);
+		$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
+		$searchObject->addHiddenFilter('!mods_extension_marmotLocal_pikaOptions_showInSearchResults_ms', "no");
+		$searchObject->addHiddenFilter('RELS_EXT_hasModel_uri_ms', '"info:fedora/islandora:collectionCModel"');
+		$searchObject->addHiddenFilter('mods_extension_marmotLocal_pikaOptions_dpla_s', "yes");
+		$searchObject->setPage(1);
+		$searchObject->setLimit(100);
+		$searchCollectionsResult = $searchObject->processSearch(true, false);
+		$collectionsToInclude = array();
+		$ancestors = "";
+
+		foreach ($searchCollectionsResult['response']['docs'] as $doc) {
+			$collectionsToInclude[] = $doc['PID'];
+			if (strlen($ancestors) > 0) {
+				$ancestors .= ' OR ';
+			}
+			$ancestors .= 'ancestors_ms:"' . $doc['PID'] . '"';
+		}
+
+
+		//Query Solr for the records to export
+		// Initialise from the current search globals
+		/** @var SearchObject_Islandora $searchObject */
+		$searchObject = SearchObjectFactory::initSearchObject('Islandora');
+		$searchObject->init();
+		$searchObject->setPrimarySearch(true);
+		$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
+		$searchObject->addHiddenFilter('!mods_extension_marmotLocal_pikaOptions_showInSearchResults_ms', "no");
+		if ($ancestors){
+			$searchObject->addFilter("mods_extension_marmotLocal_pikaOptions_dpla_s:yes OR (!mods_extension_marmotLocal_pikaOptions_dpla_s:no AND ($ancestors))");
+		}else{
+			$searchObject->addFilter("mods_extension_marmotLocal_pikaOptions_dpla_s:yes");
+		}
+		$searchObject->addHiddenFilter('!PID', "person*");
+		$searchObject->addHiddenFilter('!PID', "event*");
+		$searchObject->addHiddenFilter('!PID', "organization*");
+		$searchObject->addHiddenFilter('!PID', "place*");
+		$searchObject->addHiddenFilter('!RELS_EXT_hasModel_uri_ms', '"info:fedora/islandora:collectionCModel"');
+		$searchObject->addHiddenFilter('!RELS_EXT_hasModel_uri_ms', '"info:fedora/islandora:pageCModel"');
+		if ($namespace != null) {
+			$searchObject->addHiddenFilter('namespace_ms', $namespace);
+		}
+
+		//Filter to only see DPLA records
+		if ($changesSince != null) {
+			$searchObject->addHiddenFilter('fgs_lastModifiedDate_dt', "[$changesSince TO *]");
+		}
+		$searchObject->addFieldsToReturn(array(
+				'mods_accessCondition_marmot_rightsStatementOrg_t',
+				'mods_accessCondition_rightsHolder_entityTitle_ms',
+				'mods_extension_marmotLocal_hasCreator_entityTitle_ms',
+				'mods_physicalDescription_extent_s',
+				'mods_extension_marmotLocal_pikaOptions_dpla_s',
+		));
+		$searchObject->setPage($curPage);
+		$searchObject->setLimit($pageSize);
+		$searchObject->clearFacets();
+		$searchObject->addFacet('namespace_ms');
+		$searchObject->setSort("fgs_lastModifiedDate_dt asc");
+
+		$searchResult = $searchObject->processSearch(true, false);
+		return array($searchObject, $collectionsToInclude, $searchResult);
+	}
+
+	public function getDPLACounts(){
+		$curPage = isset($_REQUEST['page']) ? $_REQUEST['page'] : 1;
+		$pageSize = isset($_REQUEST['pageSize']) ? $_REQUEST['pageSize'] : 100;
+		$changesSince = isset($_REQUEST['changesSince']) ? $_REQUEST['changesSince'] : null;
+		$namespace = isset($_REQUEST['namespace']) ? $_REQUEST['namespace'] : null;
+		list($searchObject, $collectionsToInclude, $searchResult) = $this->getDPLASearchResults($namespace, $changesSince, $curPage, $pageSize);
+
+		$recordsByLibrary = array();
+		if (isset($searchResult['facet_counts'])){
+			$namespaceFacet = $searchResult['facet_counts']['facet_fields']['namespace_ms'];
+			foreach($namespaceFacet as $facetInfo){
+				$recordsByLibrary[$facetInfo[0]] = $facetInfo[1];
+			}
+		}
+
+		return $recordsByLibrary;
 	}
 }
