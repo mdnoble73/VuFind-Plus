@@ -433,7 +433,7 @@ class CarlX extends SIP2Driver{
 					$curHold['expire']             = strtotime($expireDate); // give a time stamp  // use this for available holds
 					$curHold['reactivate']         = null;
 					$curHold['reactivateTime']     = null;
-					$curHold['frozen']             = $hold->Suspended == true;
+					$curHold['frozen']             = isset($hold->Suspended) && ($hold->Suspended == true);
 					$curHold['cancelable']         = true; //TODO: Can Cancel Available Holds?
 					$curHold['freezeable']         = false;
 
