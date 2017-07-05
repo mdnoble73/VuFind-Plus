@@ -888,6 +888,11 @@ function loadModuleActionId(){
 		$_GET['action'] = $matches[2];
 		$_REQUEST['module'] = $matches[1];
 		$_REQUEST['action'] = $matches[2];
+	}elseif (preg_match("/([^\/?]+)\/?/", $requestURI, $matches)){
+		$_GET['module'] = $matches[1];
+		$_GET['action'] = 'Home';
+		$_REQUEST['module'] = $matches[1];
+		$_REQUEST['action'] = 'Home';
 	}
 	//Correct some old actions
 	if (isset($_GET['action'])) {
