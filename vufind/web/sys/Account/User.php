@@ -88,6 +88,13 @@ class User extends DB_DataObject
 
 	private $data = array();
 
+	// CarlX Option
+	public $emailReceiptFlag;
+	public $availableHoldNotice;
+	public $comingDueNotice;
+	public $phoneType;
+
+
 
 	/* the code above is auto generated do not remove the tag below */
 	###END_AUTOCODE
@@ -579,10 +586,10 @@ class User extends DB_DataObject
 	function updateOverDriveOptions(){
 		if (isset($_REQUEST['promptForOverdriveEmail']) && ($_REQUEST['promptForOverdriveEmail'] == 'yes' || $_REQUEST['promptForOverdriveEmail'] == 'on')){
 			// if set check & on check must be combined because checkboxes/radios don't report 'offs'
-				$this->promptForOverdriveEmail = 1;
-			}else{
-				$this->promptForOverdriveEmail = 0;
-			}
+			$this->promptForOverdriveEmail = 1;
+		}else{
+			$this->promptForOverdriveEmail = 0;
+		}
 		if (isset($_REQUEST['overdriveEmail'])){
 			$this->overdriveEmail = strip_tags($_REQUEST['overdriveEmail']);
 		}
@@ -605,22 +612,31 @@ class User extends DB_DataObject
 
 		//Make sure the selected location codes are in the database.
 		if (isset($_POST['myLocation1'])){
-			$location = new Location();
-			$location->get('locationId', $_POST['myLocation1'] );
-			if ($location->N != 1) {
-				PEAR_Singleton::raiseError('The 1st location could not be found in the database.');
-			} else {
+			if ($_POST['myLocation1'] == 0){
 				$this->myLocation1Id = $_POST['myLocation1'];
+			}else{
+				$location = new Location();
+				$location->get('locationId', $_POST['myLocation1'] );
+				if ($location->N != 1) {
+					PEAR_Singleton::raiseError('The 1st location could not be found in the database.');
+				} else {
+					$this->myLocation1Id = $_POST['myLocation1'];
+				}
 			}
 		}
 		if (isset($_POST['myLocation2'])){
-			$location = new Location();
-			$location->get('locationId', $_POST['myLocation2'] );
-			if ($location->N != 1) {
-				PEAR_Singleton::raiseError('The 2nd location could not be found in the database.');
-			} else {
+			if ($_POST['myLocation2'] == 0){
 				$this->myLocation2Id = $_POST['myLocation2'];
+			}else{
+				$location = new Location();
+				$location->get('locationId', $_POST['myLocation2'] );
+				if ($location->N != 1) {
+					PEAR_Singleton::raiseError('The 2nd location could not be found in the database.');
+				} else {
+					$this->myLocation2Id = $_POST['myLocation2'];
+				}
 			}
+
 		}
 
 		$this->noPromptForUserReviews = (isset($_POST['noPromptForUserReviews']) && $_POST['noPromptForUserReviews'] == 'on')? 1 : 0;
@@ -949,6 +965,7 @@ class User extends DB_DataObject
 	 */
 	function placeHold($recordId, $pickupBranch, $cancelDate = null) {
 		$result = $this->getCatalogDriver()->placeHold($this, $recordId, $pickupBranch, $cancelDate);
+		$this->updateAltLocationForHold($pickupBranch);
 		if ($result['success']){
 			$this->clearCache();
 		}
@@ -957,6 +974,7 @@ class User extends DB_DataObject
 
 	function placeVolumeHold($recordId, $volumeId, $pickupBranch, $cancelDate = null){
 		$result = $this->getCatalogDriver()->placeVolumeHold($this, $recordId, $volumeId, $pickupBranch, $cancelDate);
+		$this->updateAltLocationForHold($pickupBranch);
 		if ($result['success']){
 			$this->clearCache();
 		}
@@ -969,6 +987,29 @@ class User extends DB_DataObject
 			$this->clearCache();
 		}
 		return $result;
+	}
+
+	function updateAltLocationForHold($pickupBranch){
+		if ($this->homeLocationCode != $pickupBranch) {
+			global $logger;
+			$logger->log("The selected pickup branch is not the user's home location, checking to see if we need to set an alternate branch", PEAR_LOG_INFO);
+			$location = new Location();
+			$location->code = $pickupBranch;
+			if ($location->find(true)) {
+				$logger->log("Found the location for the pickup branch $pickupBranch {$location->locationId}", PEAR_LOG_INFO);
+				if ($this->myLocation1Id == 0) {
+					$logger->log("Alternate location 1 is blank updating that", PEAR_LOG_INFO);
+					$this->myLocation1Id = $location->locationId;
+					$this->update();
+				} else if ($this->myLocation2Id == 0 && $location->locationId != $this->myLocation1Id) {
+					$logger->log("Alternate location 2 is blank updating that", PEAR_LOG_INFO);
+					$this->myLocation2Id = $location->locationId;
+					$this->update();
+				}
+			}else{
+				$logger->log("Could not find location for $pickupBranch", PEAR_LOG_ERR);
+			}
+		}
 	}
 
 	function cancelBookedMaterial($cancelId){
@@ -1015,6 +1056,7 @@ class User extends DB_DataObject
 	 */
 	function placeItemHold($recordId, $itemId, $pickupBranch) {
 		$result = $this->getCatalogDriver()->placeItemHold($this, $recordId, $itemId, $pickupBranch);
+		$this->updateAltLocationForHold($pickupBranch);
 		if ($result['success']){
 			$this->clearCache();
 		}

@@ -18,9 +18,14 @@
 
 				<h3>My Scheduled Items</h3>
 
-			<p class="alert alert-info">
-						{translate text="booking summary"}
-				</p>
+	{if $offline}
+		<div class="alert alert-warning"><strong>The library system is currently offline.</strong> We are unable to retrieve information about your scheduled items at this time.</div>
+	{else}
+
+		<p class="alert alert-info">
+			{translate text="booking summary"}
+		</p>
+
 			{if $recordList}
 					<div class="striped">
 						{foreach from=$recordList item=record name="recordLoop"}
@@ -45,7 +50,7 @@
 				{else} {* Check to see if records are available *}
 						{translate text='You do not have any items scheduled.'}
 			{/if}
-
+	{/if}
 		</div>
 		{* TODO: sorting Bookings listings *}
 {*		<script type="text/javascript">

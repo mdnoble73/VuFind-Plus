@@ -32,9 +32,97 @@ public class DatabaseCleanup implements IProcessHandler {
 		cleanupReadingHistory(vufindConn, logger, processLog);
 		cleanupIndexingReports(configIni, vufindConn, logger, processLog);
 		removeOldMaterialsRequests(vufindConn, logger, processLog);
+		removeUserDataForDeletedUsers(vufindConn, logger, processLog);
 
 		processLog.setFinished();
 		processLog.saveToDatabase(vufindConn, logger);
+	}
+
+	private void removeUserDataForDeletedUsers(Connection vufindConn, Logger logger, CronProcessLogEntry processLog) {
+		try {
+			int numUpdates = vufindConn.prepareStatement("DELETE FROM user_link where primaryAccountId NOT IN (select id from user)").executeUpdate();
+			if (numUpdates > 0){
+				processLog.incUpdated();
+				processLog.addNote("Deleted " + numUpdates + " user links where the primary account does not exist");
+			}
+
+			numUpdates = vufindConn.prepareStatement("DELETE FROM user_link where linkedAccountId NOT IN (select id from user)").executeUpdate();
+			if (numUpdates > 0){
+				processLog.incUpdated();
+				processLog.addNote("Deleted " + numUpdates + " user links where the linked account does not exist");
+			}
+
+			numUpdates = vufindConn.prepareStatement("DELETE FROM user_link_blocks where primaryAccountId NOT IN (select id from user)").executeUpdate();
+			if (numUpdates > 0){
+				processLog.incUpdated();
+				processLog.addNote("Deleted " + numUpdates + " user link blocks where the primary account does not exist");
+			}
+
+			numUpdates = vufindConn.prepareStatement("DELETE FROM user_link_blocks where blockedLinkAccountId NOT IN (select id from user)").executeUpdate();
+			if (numUpdates > 0){
+				processLog.incUpdated();
+				processLog.addNote("Deleted " + numUpdates + " user link blocks where the blocked account does not exist");
+			}
+
+			numUpdates = vufindConn.prepareStatement("DELETE FROM user_list where public = 0 and user_id NOT IN (select id from user)").executeUpdate();
+			if (numUpdates > 0){
+				processLog.incUpdated();
+				processLog.addNote("Deleted " + numUpdates + " user_list where the user does not exist");
+			}
+
+			numUpdates = vufindConn.prepareStatement("DELETE FROM user_not_interested where userId NOT IN (select id from user)").executeUpdate();
+			if (numUpdates > 0){
+				processLog.incUpdated();
+				processLog.addNote("Deleted " + numUpdates + " user_not_interested where the user does not exist");
+			}
+
+			numUpdates = vufindConn.prepareStatement("DELETE FROM user_reading_history_work where userId NOT IN (select id from user)").executeUpdate();
+			if (numUpdates > 0){
+				processLog.incUpdated();
+				processLog.addNote("Deleted " + numUpdates + " user_reading_history_work where the user does not exist");
+			}
+
+			numUpdates = vufindConn.prepareStatement("DELETE FROM user_roles where userId NOT IN (select id from user)").executeUpdate();
+			if (numUpdates > 0){
+				processLog.incUpdated();
+				processLog.addNote("Deleted " + numUpdates + " user_roles where the user does not exist");
+			}
+
+			numUpdates = vufindConn.prepareStatement("DELETE FROM search where user_id NOT IN (select id from user)").executeUpdate();
+			if (numUpdates > 0){
+				processLog.incUpdated();
+				processLog.addNote("Deleted " + numUpdates + " search where the user does not exist");
+			}
+
+			numUpdates = vufindConn.prepareStatement("DELETE FROM user_staff_settings where userId NOT IN (select id from user)").executeUpdate();
+			if (numUpdates > 0){
+				processLog.incUpdated();
+				processLog.addNote("Deleted " + numUpdates + " user_staff_settings where the user does not exist");
+			}
+
+			numUpdates = vufindConn.prepareStatement("DELETE FROM user_tags where userId NOT IN (select id from user)").executeUpdate();
+			if (numUpdates > 0){
+				processLog.incUpdated();
+				processLog.addNote("Deleted " + numUpdates + " user_tags where the user does not exist");
+			}
+
+			numUpdates = vufindConn.prepareStatement("DELETE FROM user_work_review where userId NOT IN (select id from user)").executeUpdate();
+			if (numUpdates > 0){
+				processLog.incUpdated();
+				processLog.addNote("Deleted " + numUpdates + " user_work_review where the user does not exist");
+			}
+
+			numUpdates = vufindConn.prepareStatement("UPDATE browse_category SET userID = null where userId NOT IN (select id from user)").executeUpdate();
+			if (numUpdates > 0){
+				processLog.incUpdated();
+				processLog.addNote("Deleted " + numUpdates + " user_work_review where the user does not exist");
+			}
+		}catch (Exception e){
+			processLog.incErrors();
+			processLog.addNote("Unable to cleanup user data for deleted users. " + e.toString());
+			logger.error("Error cleaning up user data for deleted users", e);
+			processLog.saveToDatabase(vufindConn, logger);
+		}
 	}
 
 	private void removeOldMaterialsRequests(Connection vufindConn, Logger logger, CronProcessLogEntry processLog) {
@@ -69,19 +157,22 @@ public class DatabaseCleanup implements IProcessHandler {
 					libraryLocations += libraryLocationsRS.getString("locationId");
 				}
 
-				//Delete records for that library
-				PreparedStatement requestsToDeleteStmt = vufindConn.prepareStatement("SELECT materials_request.id from materials_request INNER JOIN materials_request_status on materials_request.status = materials_request_status.id INNER JOIN user on createdBy = user.id where isOpen = 0 and user.homeLocationId IN (" + libraryLocations + ") AND dateCreated < ?");
+				if (libraryLocations.length() > 0) {
+					//Delete records for that library
+					PreparedStatement requestsToDeleteStmt = vufindConn.prepareStatement("SELECT materials_request.id from materials_request INNER JOIN materials_request_status on materials_request.status = materials_request_status.id INNER JOIN user on createdBy = user.id where isOpen = 0 and user.homeLocationId IN (" + libraryLocations + ") AND dateCreated < ?");
 
-				Long now = new Date().getTime() / 1000;
-				Long earliestDateToPreserve = now - (daysToPreserve * 24 * 60 * 60);
-				requestsToDeleteStmt.setLong(1, earliestDateToPreserve);
+					Long now = new Date().getTime() / 1000;
+					Long earliestDateToPreserve = now - (daysToPreserve * 24 * 60 * 60);
+					requestsToDeleteStmt.setLong(1, earliestDateToPreserve);
 
-				ResultSet requestsToDeleteRS = requestsToDeleteStmt.executeQuery();
-				while (requestsToDeleteRS.next()){
-					requestToDeleteStmt.setLong(1, requestsToDeleteRS.getLong(1));
-					int numUpdates = requestToDeleteStmt.executeUpdate();
-					processLog.addUpdates(numUpdates);
-					numDeletions += numUpdates;
+					ResultSet requestsToDeleteRS = requestsToDeleteStmt.executeQuery();
+					while (requestsToDeleteRS.next()) {
+						requestToDeleteStmt.setLong(1, requestsToDeleteRS.getLong(1));
+						int numUpdates = requestToDeleteStmt.executeUpdate();
+						processLog.addUpdates(numUpdates);
+						numDeletions += numUpdates;
+					}
+					requestsToDeleteStmt.close();
 				}
 			}
 			librariesListRS.close();

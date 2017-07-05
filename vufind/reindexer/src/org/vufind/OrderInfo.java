@@ -1,21 +1,14 @@
 package org.vufind;
 
-public class OrderInfo {
-	private String recordId;
+class OrderInfo {
 	private String orderRecordId;
 	private String status;
 	private String locationCode;
 	private int numCopies;
-	public String getRecordId() {
-		return recordId;
-	}
-	public void setRecordId(String recordId) {
-		this.recordId = recordId;
-	}
-	public String getOrderRecordId() {
+	String getOrderRecordId() {
 		return orderRecordId;
 	}
-	public void setOrderRecordId(String orderRecordId) {
+	void setOrderRecordId(String orderRecordId) {
 		this.orderRecordId = orderRecordId;
 	}
 	
@@ -32,11 +25,11 @@ public class OrderInfo {
 		this.locationCode = locationCode;
 	}
 
-	public int getNumCopies() {
+	int getNumCopies() {
 		return numCopies;
 	}
 
-	public void setNumCopies(int numCopies) {
+	void setNumCopies(int numCopies) {
 		this.numCopies = numCopies;
 	}
 }

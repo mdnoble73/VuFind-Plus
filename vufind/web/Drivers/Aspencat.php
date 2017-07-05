@@ -530,21 +530,25 @@ class Aspencat implements DriverInterface{
 							}
 							if (isset($location)) {
 								$user->homeLocationId = $location->locationId;
-								$user->myLocation1Id  = ($location->nearbyLocation1 > 0) ? $location->nearbyLocation1 : $location->locationId;
-								$user->myLocation2Id  = ($location->nearbyLocation2 > 0) ? $location->nearbyLocation2 : $location->locationId;
-
-								//Get display name for preferred location 1
-								$myLocation1 = new Location();
-								$myLocation1->locationId = $user->myLocation1Id;
-								if ($myLocation1->find(true)) {
-									$user->myLocation1 = $myLocation1->displayName;
+								if (empty($user->myLocation1Id)) {
+									$user->myLocation1Id  = ($location->nearbyLocation1 > 0) ? $location->nearbyLocation1 : $location->locationId;
+									/** @var /Location $location */
+									//Get display name for preferred location 1
+									$myLocation1             = new Location();
+									$myLocation1->locationId = $user->myLocation1Id;
+									if ($myLocation1->find(true)) {
+										$user->myLocation1 = $myLocation1->displayName;
+									}
 								}
 
-								//Get display name for preferred location 2
-								$myLocation2 = new Location();
-								$myLocation2->locationId = $user->myLocation2Id;
-								if ($myLocation2->find(true)) {
-									$user->myLocation2 = $myLocation2->displayName;
+								if (empty($user->myLocation2Id)){
+									$user->myLocation2Id  = ($location->nearbyLocation2 > 0) ? $location->nearbyLocation2 : $location->locationId;
+									//Get display name for preferred location 2
+									$myLocation2             = new Location();
+									$myLocation2->locationId = $user->myLocation2Id;
+									if ($myLocation2->find(true)) {
+										$user->myLocation2 = $myLocation2->displayName;
+									}
 								}
 							}
 						}

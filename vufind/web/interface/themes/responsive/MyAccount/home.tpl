@@ -10,6 +10,10 @@
 
 			<h3>{translate text='Account Summary'}</h3>
 			<div>
+				{if $offline}
+				<div class="alert alert-warning"><strong>The library system is currently offline.</strong> We are unable to retrieve information about your check outs and holds at this time.</div>
+				{else}
+
 				You currently have:
 				<ul>
 					<li><strong>{$profile->getNumCheckedOutTotal()}</strong> titles <a href="{$path}/MyAccount/CheckedOut">checked out</a></li>
@@ -18,7 +22,7 @@
 				{* TODO: Show an alert if any titles are expired or are going to expire *}
 				{* TODO: Show an alert if any titles ready for pickup *}
 			</div>
-
+				{/if}
 			{if $showRatings}
 				<h3>{translate text='Recommended for you'}</h3>
 				{if !$hasRatings}

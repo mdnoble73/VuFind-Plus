@@ -23,4 +23,13 @@
 		<div><em>{if $rightsEffectiveDate}Rights statement effective {$rightsEffectiveDate}.  {/if}{if $rightsEffectiveDate}Rights statement expires {$rightsExpirationDate}.  {/if}</em></div>
 	{/if}
 
+	<div class="row">
+		<div class="result-label col-sm-4">rightsstatements.org statement:</div>
+		<div class="result-value col-sm-8">
+			<a href='{$rightsStatementOrg}' target="_blank">
+				{$rightsStatementOrg|translate}
+			</a>
+		</div>
+	</div>
+
 {/strip}

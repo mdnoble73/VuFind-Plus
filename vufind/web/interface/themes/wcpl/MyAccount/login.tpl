@@ -1,19 +1,29 @@
 {strip}
 
-	{* TODO: This is a temporary template for Wake County. It Should be deleted once the Email Pin problem is resolved. *}
+{* TODO: Wake County and Symphony Systems use Email Reset Pin. Default uses Email Pin. *}
 
-	<div id="page-content" class="col-xs-12">
-		<h2>{translate text='Login to your account'}</h2>
-		<div id="loginFormWrapper">
-			{if $message}{* Errors for Full Login Page *}
-				<p class="alert alert-danger" id="loginError" >{$message|translate}</p>
-			{else}
-				<p class="alert alert-danger" id="loginError" style="display: none"></p>
-			{/if}
-			<p class="alert alert-danger" id="cookiesError" style="display: none">It appears that you do not have cookies enabled on this computer.  Cookies are required to access account information.</p>
-			<p class="alert alert-info" id="loading" style="display: none">
-				Logging you in now. Please wait.
-			</p>
+<div id="page-content" class="col-xs-12">
+	<h2>{translate text='Login to your account'}</h2>
+	<div id="loginFormWrapper">
+		{if $message}{* Errors for Full Login Page *}
+			<p class="alert alert-danger" id="loginError" >{$message|translate}</p>
+		{else}
+			<p class="alert alert-danger" id="loginError" style="display: none"></p>
+		{/if}
+		<p class="alert alert-danger" id="cookiesError" style="display: none">It appears that you do not have cookies enabled on this computer.  Cookies are required to access account information.</p>
+		<p class="alert alert-info" id="loading" style="display: none">
+			Logging you in now. Please wait.
+		</p>
+		{if $offline && !$enableLoginWhileOffline}
+			<div class="alert alert-warning">
+				<p>
+					The Library’s accounts system is down. Tech support is working to assess and fix the problem as quickly as possible.
+				</p>
+				<p>
+					Thank you for your patience and understanding.
+				</p>
+			</div>
+		{else}
 			<form method="post" action="{$path}/MyAccount/Home" id="loginForm" class="form-horizontal">
 				<div id="missingLoginPrompt" style="display: none">Please enter both {$usernameLabel} and {$passwordLabel}.</div>
 				<div id="loginFormFields">
@@ -29,7 +39,12 @@
 							<input type="password" name="password" id="password" size="28" onkeypress="return VuFind.submitOnEnter(event, '#loginForm');" class="form-control">
 							{if $showForgotPinLink}
 								<p class="help-block">
-									<strong>Forgot PIN?</strong> <a href="{$path}/MyAccount/EmailResetPin">Reset My PIN</a>
+									<strong>Forgot PIN?</strong>&nbsp;
+									{if $useEmailResetPin}
+										<a href="{$path}/MyAccount/EmailResetPin">Reset My PIN</a>
+									{else}
+										<a href="{$path}/MyAccount/EmailPin">E-mail my PIN</a>
+									{/if}
 								</p>
 							{/if}
 
@@ -72,8 +87,9 @@
 
 				</div>
 			</form>
-		</div>
+		{/if}
 	</div>
+</div>
 {/strip}
 {literal}
 <script type="text/javascript">

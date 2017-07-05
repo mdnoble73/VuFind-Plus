@@ -1,7 +1,6 @@
 package org.vufind;
 
 import org.apache.log4j.Logger;
-import org.ini4j.Ini;
 import org.marc4j.marc.DataField;
 import org.marc4j.marc.Record;
 import org.marc4j.marc.Subfield;
@@ -18,9 +17,9 @@ import java.util.*;
  * Date: 12/29/2014
  * Time: 10:25 AM
  */
-public class FlatironsRecordProcessor extends IIIRecordProcessor{
-	public FlatironsRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
-		super(indexer, vufindConn, configIni, indexingProfileRS, logger, fullReindex);
+class FlatironsRecordProcessor extends IIIRecordProcessor{
+	FlatironsRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
+		super(indexer, vufindConn, indexingProfileRS, logger, fullReindex);
 		loadOrderInformationFromExport();
 	}
 
@@ -75,7 +74,7 @@ public class FlatironsRecordProcessor extends IIIRecordProcessor{
 			}
 			if (itemRecords.size() == 0){
 				//Much of the econtent for flatirons has no items.  Need to determine the location based on the 907b field
-				String eContentLocation = getFirstFieldVal(record, "907b");
+				String eContentLocation = MarcUtil.getFirstFieldVal(record, "907b");
 				if (eContentLocation != null) {
 					ItemInfo itemInfo = new ItemInfo();
 					itemInfo.setIsEContent(true);
@@ -108,26 +107,6 @@ public class FlatironsRecordProcessor extends IIIRecordProcessor{
 
 					itemInfo.setDetailedStatus("Available Online");
 
-					//Determine which scopes this title belongs to
-					for (Scope curScope : indexer.getScopes()){
-						if (curScope.isItemPartOfScope(profileType, eContentLocation, "", false, false, true)){
-							ScopingInfo scopingInfo = itemInfo.addScope(curScope);
-							scopingInfo.setAvailable(true);
-							scopingInfo.setStatus("Available Online");
-							scopingInfo.setGroupedStatus("Available Online");
-							scopingInfo.setHoldable(false);
-							if (curScope.isLocationScope()) {
-								scopingInfo.setLocallyOwned(curScope.isItemOwnedByScope(profileType, eContentLocation, ""));
-								if (curScope.getLibraryScope() != null) {
-									scopingInfo.setLibraryOwned(curScope.getLibraryScope().isItemOwnedByScope(profileType, eContentLocation, ""));
-								}
-							}
-							if (curScope.isLibraryScope()) {
-								scopingInfo.setLibraryOwned(curScope.isItemOwnedByScope(profileType, eContentLocation, ""));
-							}
-						}
-					}
-
 					unsuppressedEcontentRecords.add(relatedRecord);
 				}
 			}
@@ -147,9 +126,14 @@ public class FlatironsRecordProcessor extends IIIRecordProcessor{
 			}
 		}
 
-		String bibFormat = getFirstFieldVal(record, "998e").trim();
+		String bibFormat = MarcUtil.getFirstFieldVal(record, "998e");
+		if (bibFormat != null){
+			bibFormat = bibFormat.trim();
+		}else{
+			return false;
+		}
 		boolean isEContentBibFormat = bibFormat.equals("3") || bibFormat.equals("t") || bibFormat.equals("m") || bibFormat.equals("w") || bibFormat.equals("u");
-		String url = getFirstFieldVal(record, "856u");
+		String url = MarcUtil.getFirstFieldVal(record, "856u");
 		boolean has856 = url != null;
 		if (isEContentBibFormat && has856){
 			//Suppress if the url is an overdrive or hoopla url
@@ -186,7 +170,12 @@ public class FlatironsRecordProcessor extends IIIRecordProcessor{
 
 	protected void loadEContentFormatInformation(Record record, RecordInfo econtentRecord, ItemInfo econtentItem) {
 		//Load the eContent Format from the mat type
-		String bibFormat = getFirstFieldVal(record, "998e").trim();
+		String bibFormat = MarcUtil.getFirstFieldVal(record, "998e");
+		if (bibFormat != null){
+			bibFormat = bibFormat.trim();
+		}else{
+			bibFormat = "";
+		}
 		String format;
 		switch (bibFormat){
 			case "3":
@@ -272,7 +261,7 @@ public class FlatironsRecordProcessor extends IIIRecordProcessor{
 		private List<RecordInfo> unsuppressedEcontentRecords;
 		private boolean isEContent;
 
-		public IsRecordEContent(Record record) {
+		IsRecordEContent(Record record) {
 			this.record = record;
 		}
 
@@ -280,25 +269,30 @@ public class FlatironsRecordProcessor extends IIIRecordProcessor{
 			return url;
 		}
 
-		public List<DataField> getItemRecords() {
+		List<DataField> getItemRecords() {
 			return itemRecords;
 		}
 
-		public List<RecordInfo> getUnsuppressedEcontentRecords() {
+		List<RecordInfo> getUnsuppressedEcontentRecords() {
 			return unsuppressedEcontentRecords;
 		}
 
-		public boolean isEContent() {
+		boolean isEContent() {
 			return isEContent;
 		}
 
-		public IsRecordEContent invoke() {
-			String bibFormat = getFirstFieldVal(record, "998e").trim();
+		IsRecordEContent invoke() {
+			String bibFormat = MarcUtil.getFirstFieldVal(record, "998e");
+			if (bibFormat != null){
+				bibFormat = bibFormat.trim();
+			}else{
+				bibFormat = "";
+			}
 			boolean isEContentBibFormat = bibFormat.equals("3") || bibFormat.equals("t") || bibFormat.equals("m") || bibFormat.equals("w") || bibFormat.equals("u");
-			url = getFirstFieldVal(record, "856u");
+			url = MarcUtil.getFirstFieldVal(record, "856u");
 			boolean has856 = url != null;
 
-			itemRecords = getDataFields(record, itemTag);
+			itemRecords = MarcUtil.getDataFields(record, itemTag);
 			unsuppressedEcontentRecords = new ArrayList<>();
 
 			isEContent = false;
@@ -315,7 +309,7 @@ public class FlatironsRecordProcessor extends IIIRecordProcessor{
 							break;
 						}else{
 							//Check the 962
-							List<DataField> additionalLinks = getDataFields(record, "962");
+							List<DataField> additionalLinks = MarcUtil.getDataFields(record, "962");
 							for (DataField additionalLink : additionalLinks){
 								if (additionalLink.getSubfield('u') != null){
 									url = additionalLink.getSubfield('u').getData();

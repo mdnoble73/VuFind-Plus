@@ -95,7 +95,7 @@ class I18N_Translator
 		} else {
 			return new PEAR_Error("Cannot open $path for reading");
 		}
-		
+
 		//Check for a more specific language file for the site
 		global $serverName;
 		$serverLangPath = $configArray['Site']['local'] . '/../../sites/' . $serverName . '/lang';
@@ -147,12 +147,15 @@ class I18N_Translator
 		if (is_array($contents)) {
 			foreach($contents as $current) {
 				// Split the string on the equals sign, keeping a max of two chunks:
-				$parts = explode('=', $current, 2);
-				$key = trim($parts[0]);
+				$lastEqualSign = strrpos($current, '=');
+				$key = substr($current, 0, $lastEqualSign);
+				$key = trim($key);
+				$key = preg_replace('/^\"?(.*?)\"?$/', '$1', $key);
 				if (!empty($key) && substr($key, 0, 1) != ';') {
 					// Trim outermost double quotes off the value if present:
-					if (isset($parts[1])) {
-						$value = preg_replace('/^\"?(.*?)\"?$/', '$1', trim($parts[1]));
+					$value = trim(substr($current, $lastEqualSign + 1));
+					if (isset($value)) {
+						$value = preg_replace('/^\"?(.*?)\"?$/', '$1', $value);
 
 						// Store the key/value pair (allow empty values -- sometimes
 						// we want to replace a language token with a blank string):

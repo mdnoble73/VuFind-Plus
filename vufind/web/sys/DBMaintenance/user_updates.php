@@ -2,7 +2,7 @@
 /**
  * Updates related to user tables for cleanliness
  *
- * @category VuFind-Plus-2014 
+ * @category VuFind-Plus-2014
  * @author Mark Noble <mark@marmot.org>
  * Date: 7/29/14
  * Time: 2:42 PM
@@ -139,6 +139,14 @@ function getUserUpdates(){
 					DEFAULT CHARACTER SET = utf8;"
 			),
 		),
+
+			'user_reading_history_index_source_id' => array(
+					'title' => 'Index source Id in user reading history',
+					'description' => 'Index source Id in user reading history',
+					'sql' => array(
+							"ALTER TABLE user_reading_history_work ADD INDEX sourceId(sourceId)"
+					),
+			),
 
 	);
 }

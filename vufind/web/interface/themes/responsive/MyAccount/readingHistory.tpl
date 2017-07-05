@@ -1,6 +1,5 @@
 <div class="col-xs-12">
 {if $user->cat_username}
-	{strip}
 
 	{if $profile->web_note}
 		<div class="row">
@@ -18,6 +17,10 @@
 		{include file="MyAccount/switch-linked-user-form.tpl" label="View Reading History for" actionPath="/MyAccount/ReadingHistory"}
 
 	<br>
+		{if $offline}
+		<div class="alert alert-warning"><strong>The library system is currently offline.</strong> We are unable to retrieve information about your reading history at this time.</div>
+		{else}
+			{strip}
 
 		{if $masqueradeMode && !$allowReadingHistoryDisplayInMasqueradeMode}
 			<div class="row">
@@ -257,7 +260,9 @@
 			</div>
 		</form>
 	{/if}
+
 	{/strip}
+			{/if}
 {else}
 	<div class="page">
 		You must login to view this information. Click <a href="{$path}/MyAccount/Login">here</a> to login.

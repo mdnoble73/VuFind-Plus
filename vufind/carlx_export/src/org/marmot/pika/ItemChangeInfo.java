@@ -20,6 +20,7 @@ public class ItemChangeInfo {
 	private String yearToDateCheckouts;
 	private String shelvingLocation;
 	private String iType;
+	private boolean suppress;
 
 
 	public String getItemId() {
@@ -121,5 +122,31 @@ public class ItemChangeInfo {
 
 	public void setiType(String iType) {
 		this.iType = iType;
+	}
+
+	public void setSuppress(String suppress) {
+		this.suppress = suppress.equalsIgnoreCase("true");
+	}
+
+	public boolean isSuppressed(){
+		return this.suppress;
+	}
+
+	public String toString(){
+		StringBuilder aboutMe = new StringBuilder();
+		aboutMe.append("Item ID: ").append(itemId).append("\r\n");
+		aboutMe.append("BID: ").append(BID).append("\r\n");
+		aboutMe.append("location: ").append(location).append("\r\n");
+		aboutMe.append("status: ").append(status).append("\r\n");
+		aboutMe.append("dueDate: ").append(dueDate).append("\r\n");
+		aboutMe.append("lastCheckinDate: ").append(lastCheckinDate).append("\r\n");
+		aboutMe.append("dateCreated: ").append(dateCreated).append("\r\n");
+		aboutMe.append("callNumber: ").append(callNumber).append("\r\n");
+		aboutMe.append("totalCheckouts: ").append(totalCheckouts).append("\r\n");
+		aboutMe.append("yearToDateCheckouts: ").append(yearToDateCheckouts).append("\r\n");
+		aboutMe.append("shelvingLocation: ").append(shelvingLocation).append("\r\n");
+		aboutMe.append("iType: ").append(iType).append("\r\n");
+		aboutMe.append("suppress: ").append(suppress).append("\r\n");
+		return aboutMe.toString();
 	}
 }

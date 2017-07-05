@@ -788,23 +788,28 @@ class UserAPI extends Action {
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function getPatronCheckedOutItems(){
-		if (isset($_REQUEST['username'])){
-			$username = $_REQUEST['username'];
-		}else{
-			$username = '';
-		}
-		if (isset($_REQUEST['password'])){
-			$password = $_REQUEST['password'];
-		}else{
-			$password = '';
-		}
-		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR_Singleton::isError($user)){
-			$allCheckedOut = $user->getMyCheckouts(false);
+		global $configArray;
+		if ($configArray['Catalog']['offline']) {
+			return array('success'=>false, 'message'=>'Circulation system is offline');
+		} else {
+			if (isset($_REQUEST['username'])){
+				$username = $_REQUEST['username'];
+			}else{
+				$username = '';
+			}
+			if (isset($_REQUEST['password'])){
+				$password = $_REQUEST['password'];
+			}else{
+				$password = '';
+			}
+			$user = UserAccount::validateAccount($username, $password);
+			if ($user && !PEAR_Singleton::isError($user)) {
+				$allCheckedOut = $user->getMyCheckouts(false);
 
-			return array('success'=>true, 'checkedOutItems'=>$allCheckedOut);
-		}else{
-			return array('success'=>false, 'message'=>'Login unsuccessful');
+				return array('success' => true, 'checkedOutItems' => $allCheckedOut);
+			} else {
+				return array('success' => false, 'message' => 'Login unsuccessful');
+			}
 		}
 	}
 
@@ -954,7 +959,7 @@ class UserAPI extends Action {
 			}else{
 				$pickupBranch = $patron->homeLocationCode;
 			}
-			$holdMessage = $this->getCatalogConnection()->placeHold($patron, $bibId, $pickupBranch);
+			$holdMessage = $patron->placeHold($bibId, $pickupBranch);
 			return $holdMessage;
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
@@ -974,7 +979,7 @@ class UserAPI extends Action {
 			}else{
 				$pickupBranch = $patron->homeLocationCode;
 			}
-			$holdMessage = $this->getCatalogConnection()->placeItemHold($patron, $bibId, $itemId, $pickupBranch);
+			$holdMessage = $patron->placeItemHold($bibId, $itemId,$pickupBranch);
 			return $holdMessage;
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
@@ -1308,10 +1313,20 @@ class UserAPI extends Action {
 	function cancelHold(){
 		$username = $_REQUEST['username'];
 		$password = $_REQUEST['password'];
+
+		// Cancel Hold requires one of these, which one depends on the ILS
+		$recordId = $cancelId = null;
+		if (!empty($_REQUEST['recordId'])) {
+			$recordId = $_REQUEST['recordId'];
+		}
+		if (!empty($_REQUEST['cancelId'])) {
+			$cancelId = $_REQUEST['cancelId'];
+		}
+
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
-			$holdMessage = $this->getCatalogConnection()->updateHoldDetailed('', $user->cat_username, 'cancel');
+			$holdMessage = $user->cancelHold($recordId, $cancelId);
 			return array('success'=> $holdMessage['success'], 'holdMessage'=>$holdMessage['message']);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
@@ -1470,16 +1485,21 @@ class UserAPI extends Action {
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function getPatronReadingHistory(){
-		$username = $_REQUEST['username'];
-		$password = $_REQUEST['password'];
-		global $user;
-		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR_Singleton::isError($user)){
-			$readingHistory = $this->getCatalogConnection()->getReadingHistory($user);
+		global $configArray;
+		if ($configArray['Catalog']['offline']) {
+			return array('success'=>false, 'message'=>'Circulation system is offline');
+		} else {
+			$username = $_REQUEST['username'];
+			$password = $_REQUEST['password'];
+			global $user;
+			$user = UserAccount::validateAccount($username, $password);
+			if ($user && !PEAR_Singleton::isError($user)) {
+				$readingHistory = $this->getCatalogConnection()->getReadingHistory($user);
 
-			return array('success'=>true, 'readingHistory'=>$readingHistory['titles']);
-		}else{
-			return array('success'=>false, 'message'=>'Login unsuccessful');
+				return array('success' => true, 'readingHistory' => $readingHistory['titles']);
+			} else {
+				return array('success' => false, 'message' => 'Login unsuccessful');
+			}
 		}
 	}
 

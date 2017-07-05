@@ -17,6 +17,7 @@ class Location extends DB_DataObject
 
 	public $__table = 'location';   // table name
 	public $locationId;				//int(11)
+	public $subdomain;
 	public $code;					//varchar(5)
 	public $subLocation;
 	public $displayName;			//varchar(40)
@@ -146,6 +147,8 @@ class Location extends DB_DataObject
 		$browseCategoryInstructions = 'For more information on how to setup browse categories, see the <a href="https://docs.google.com/document/d/11biGMw6UDKx9UBiDCCj_GBmatx93UlJBLMESNf_RtDU">online documentation</a>.';
 
 		$structure = array(
+				'locationId' => array('property'=>'locationId', 'type'=>'label', 'label'=>'Location Id', 'description'=>'The unique id of the location within the database'),
+				'subdomain' => array('property'=>'subdomain', 'type'=>'text', 'label'=>'Subdomain', 'description'=>'The subdomain to use while identifying this branch.  Can be left if it matches the code.', 'required'=>false),
 				'code' => array('property'=>'code', 'type'=>'text', 'label'=>'Code', 'description'=>'The code for use when communicating with the ILS', 'required'=>true),
 				'subLocation' => array('property'=>'subLocation', 'type'=>'text', 'label'=>'Sub Location Code', 'description'=>'The sub location or collection used to identify this '),
 				'displayName' => array('property'=>'displayName', 'type'=>'text', 'label'=>'Display Name', 'description'=>'The full name of the location for display to the user', 'size'=>'40'),
@@ -380,6 +383,8 @@ class Location extends DB_DataObject
 	function getPickupBranches($patronProfile, $selectedBranchId = null, $isLinkedUser = false) {
 		// Note: Some calls to this function will set $patronProfile to false. (No Patron is logged in)
 		// For Example: MaterialsRequest_NewRequest
+		$homeLibaryInList = false;
+		$alternateLibraryInList = false;
 
 		//Get the library for the patron's home branch.
 		/** @var Library $librarySingleton */
@@ -431,31 +436,35 @@ class Location extends DB_DataObject
 		$physicalLocation = $this->getPhysicalLocation();
 		$locationList = array();
 		while ($this->fetch()) {
-			if (!empty($selectedBranchId) && $this->locationId == $selectedBranchId){
-				$selected = 'selected';
-			}else{
-				$selected = '';
-			}
-			$this->selected = $selected;
-			// Each location is prepended with a number to keep precedence for given locations when sorted by ksort below
-			if (isset($physicalLocation) && $physicalLocation->locationId == $this->locationId){
-				//If the user is in a branch, those holdings come first.
-				$locationList['1' . $this->displayName] = clone $this;
-			} else if (!empty($patronProfile) &&  $this->locationId == $patronProfile->homeLocationId){
-				//Next come the user's home branch if the user is logged in or has the home_branch cookie set.
-				$locationList['21' . $this->displayName] = clone $this;
-			} else if (isset($patronProfile->myLocation1Id) && $this->locationId == $patronProfile->myLocation1Id){
-				//Next come nearby locations for the user
-				$locationList['3' . $this->displayName] = clone $this;
-			} else if (isset($patronProfile->myLocation2Id) && $this->locationId == $patronProfile->myLocation2Id){
-				//Next come nearby locations for the user
-				$locationList['4' . $this->displayName] = clone $this;
-			} else if (isset($homeLibrary) && $this->libraryId == $homeLibrary->libraryId){
-				//Other locations that are within the same library system
-				$locationList['5' . $this->displayName] = clone $this;
-			} else {
-				//Finally, all other locations are shown sorted alphabetically.
-				$locationList['6' . $this->displayName] = clone $this;
+			if (($this->validHoldPickupBranch == 1) || ($this->validHoldPickupBranch == 0 && !empty($patronProfile) && $patronProfile->homeLocationId == $this->locationId)){
+				if (!empty($selectedBranchId) && $this->locationId == $selectedBranchId) {
+					$selected = 'selected';
+				} else {
+					$selected = '';
+				}
+				$this->selected = $selected;
+				// Each location is prepended with a number to keep precedence for given locations when sorted by ksort below
+				if (isset($physicalLocation) && $physicalLocation->locationId == $this->locationId) {
+					//If the user is in a branch, those holdings come first.
+					$locationList['1' . $this->displayName] = clone $this;
+				} else if (!empty($patronProfile) && $this->locationId == $patronProfile->homeLocationId) {
+					//Next come the user's home branch if the user is logged in or has the home_branch cookie set.
+					$locationList['21' . $this->displayName] = clone $this;
+					$homeLibaryInList = true;
+				} else if (isset($patronProfile->myLocation1Id) && $this->locationId == $patronProfile->myLocation1Id) {
+					//Next come nearby locations for the user
+					$locationList['3' . $this->displayName] = clone $this;
+					$alternateLibraryInList = true;
+				} else if (isset($patronProfile->myLocation2Id) && $this->locationId == $patronProfile->myLocation2Id) {
+					//Next come nearby locations for the user
+					$locationList['4' . $this->displayName] = clone $this;
+				} else if (isset($homeLibrary) && $this->libraryId == $homeLibrary->libraryId) {
+					//Other locations that are within the same library system
+					$locationList['5' . $this->displayName] = clone $this;
+				} else {
+					//Finally, all other locations are shown sorted alphabetically.
+					$locationList['6' . $this->displayName] = clone $this;
+				}
 			}
 		}
 		ksort($locationList);
@@ -485,12 +494,17 @@ class Location extends DB_DataObject
 						if (!$isLinkedUser) {
 							$homeLocation->selected                         = true;
 							$locationList['1' . $homeLocation->displayName] = clone $homeLocation;
+							$homeLibaryInList = true;
 						} else {
 							$locationList['22' . $homeLocation->displayName] = clone $homeLocation;
 						}
 					}
 				}
 			}
+		}
+
+		if (!$homeLibaryInList && !$alternateLibraryInList && !$isLinkedUser){
+			$locationList['0default'] = "Please Select a Location";
 		}
 
 		return $locationList;

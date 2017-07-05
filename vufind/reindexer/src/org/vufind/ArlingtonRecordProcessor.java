@@ -1,7 +1,6 @@
 package org.vufind;
 
 import org.apache.log4j.Logger;
-import org.ini4j.Ini;
 import org.marc4j.marc.DataField;
 import org.marc4j.marc.Record;
 import org.marc4j.marc.Subfield;
@@ -18,10 +17,10 @@ import java.util.*;
  * Date: 10/15/2015
  * Time: 9:48 PM
  */
-public class ArlingtonRecordProcessor extends IIIRecordProcessor {
+class ArlingtonRecordProcessor extends IIIRecordProcessor {
 
-	public ArlingtonRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
-		super(indexer, vufindConn, configIni, indexingProfileRS, logger, fullReindex);
+	ArlingtonRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
+		super(indexer, vufindConn, indexingProfileRS, logger, fullReindex);
 
 		languageFields = "008[35-37]";
 
@@ -66,7 +65,7 @@ public class ArlingtonRecordProcessor extends IIIRecordProcessor {
 			}
 		}
 		if (literaryForm == null){
-			Set<String> bibLocations = getFieldList(record, "998a");
+			Set<String> bibLocations = MarcUtil.getFieldList(record, "998a");
 			for (String bibLocation : bibLocations){
 			  if (bibLocation.length() <= 5) {
 				  literaryForm = getLiteraryFormForLocation(bibLocation);
@@ -107,7 +106,7 @@ public class ArlingtonRecordProcessor extends IIIRecordProcessor {
 			if (addTargetAudienceBasedOnLocationCode(targetAudiences, locationCode)) break;
 		}
 		if (targetAudiences.size() == 0){
-			Set<String> bibLocations = getFieldList(record, "998a");
+			Set<String> bibLocations = MarcUtil.getFieldList(record, "998a");
 			for (String bibLocation : bibLocations){
 				if (bibLocation.length() <= 5) {
 					if (addTargetAudienceBasedOnLocationCode(targetAudiences, bibLocation)) break;
@@ -141,11 +140,9 @@ public class ArlingtonRecordProcessor extends IIIRecordProcessor {
 
 	/**
 	 * Load format information for the record.  For arlington, we will load from the material type (998d)
-	 * @param recordInfo
-	 * @param record
 	 */
 	public void loadPrintFormatInformation(RecordInfo recordInfo, Record record){
-		String matType = getFirstFieldVal(record, "998d");
+		String matType = MarcUtil.getFirstFieldVal(record, "998d");
 		String translatedFormat = translateValue("format", matType, recordInfo.getRecordIdentifier());
 		String translatedFormatCategory = translateValue("format_category", matType, recordInfo.getRecordIdentifier());
 		recordInfo.addFormat(translatedFormat);
@@ -164,10 +161,10 @@ public class ArlingtonRecordProcessor extends IIIRecordProcessor {
 	protected void loadUnsuppressedPrintItems(GroupedWorkSolr groupedWork, RecordInfo recordInfo, String identifier, Record record){
 		super.loadUnsuppressedPrintItems(groupedWork, recordInfo, identifier, record);
 		if (recordInfo.getNumPrintCopies() == 0){
-			String matType = getFirstFieldVal(record, "998d");
-			if (matType.equals("w") || matType.equals("b")){
+			String matType = MarcUtil.getFirstFieldVal(record, "998d");
+			if (matType != null && (matType.equals("w") || matType.equals("b"))){
 				//We may have multiple items
-				Set<String> locationFields = getFieldList(record, "998a");
+				Set<String> locationFields = MarcUtil.getFieldList(record, "998a");
 				for(String locationField: locationFields){
 					ItemInfo itemInfo = new ItemInfo();
 					//Load base information from the Marc Record
@@ -194,46 +191,58 @@ public class ArlingtonRecordProcessor extends IIIRecordProcessor {
 					itemInfo.setStatusCode(itemStatus);
 					itemInfo.setDetailedStatus(itemStatus);
 
-					//Determine Availability
-					boolean available = isItemAvailable(itemInfo);
-
-					//Determine which scopes have access to this record
-					String displayStatus = getDisplayStatus(itemInfo, recordInfo.getRecordIdentifier());
-					String groupedDisplayStatus = getDisplayGroupedStatus(itemInfo, recordInfo.getRecordIdentifier());
-					String overiddenStatus = getOverriddenStatus(itemInfo, true);
-					if (overiddenStatus != null && !overiddenStatus.equals("On Shelf") && !overiddenStatus.equals("Library Use Only") && !overiddenStatus.equals("Available Online")){
-						available = false;
-					}
-
-					for (Scope curScope : indexer.getScopes()) {
-						//Check to see if the record is holdable for this scope
-						if (curScope.isItemPartOfScope(profileType, locationCode, "", false, false, false)){
-							ScopingInfo scopingInfo = itemInfo.addScope(curScope);
-							scopingInfo.setAvailable(available);
-							scopingInfo.setHoldable(false);
-							scopingInfo.setHoldablePTypes("");
-							scopingInfo.setBookable(false);
-							scopingInfo.setBookablePTypes("");
-
-							scopingInfo.setInLibraryUseOnly(determineLibraryUseOnly(itemInfo, curScope));
-
-							scopingInfo.setStatus(displayStatus);
-							scopingInfo.setGroupedStatus(groupedDisplayStatus);
-							if (curScope.isLocationScope()) {
-								scopingInfo.setLocallyOwned(curScope.isItemOwnedByScope(profileType, locationCode, ""));
-								if (curScope.getLibraryScope() != null) {
-									scopingInfo.setLibraryOwned(curScope.getLibraryScope().isItemOwnedByScope(profileType, locationCode, ""));
-								}
-							}
-							if (curScope.isLibraryScope()) {
-								scopingInfo.setLibraryOwned(curScope.isItemOwnedByScope(profileType, locationCode, ""));
-							}
-						}
-					}
-
 					groupedWork.addKeywords(locationCode);
 
 					recordInfo.addItem(itemInfo);
+				}
+			}
+		}
+	}
+
+	//TODO: Can this use the main method?
+	@Override
+	void loadScopeInfoForPrintIlsItem(RecordInfo recordInfo, HashSet<String> audiences, ItemInfo itemInfo, Record record) {
+		//Determine Availability
+		boolean available = isItemAvailable(itemInfo);
+
+		//Determine which scopes have access to this record
+		String displayStatus = getDisplayStatus(itemInfo, recordInfo.getRecordIdentifier());
+		String groupedDisplayStatus = getDisplayGroupedStatus(itemInfo, recordInfo.getRecordIdentifier());
+		String overiddenStatus = getOverriddenStatus(itemInfo, true);
+		if (overiddenStatus != null && !overiddenStatus.equals("On Shelf") && !overiddenStatus.equals("Library Use Only") && !overiddenStatus.equals("Available Online")){
+			available = false;
+		}
+
+		String itemLocation = itemInfo.getLocationCode();
+
+		String originalUrl = itemInfo.geteContentUrl();
+		for (Scope curScope : indexer.getScopes()) {
+			//Check to see if the record is holdable for this scope
+			Scope.InclusionResult result = curScope.isItemPartOfScope(profileType, itemLocation, "", itemInfo.getIType(), audiences, recordInfo.getPrimaryFormat(), false, false, false, record, originalUrl);
+			if (result.isIncluded){
+				ScopingInfo scopingInfo = itemInfo.addScope(curScope);
+				scopingInfo.setAvailable(available);
+				scopingInfo.setHoldable(false);
+				scopingInfo.setHoldablePTypes("");
+				scopingInfo.setBookable(false);
+				scopingInfo.setBookablePTypes("");
+
+				scopingInfo.setInLibraryUseOnly(determineLibraryUseOnly(itemInfo, curScope));
+
+				scopingInfo.setStatus(displayStatus);
+				scopingInfo.setGroupedStatus(groupedDisplayStatus);
+				if (curScope.isLocationScope()) {
+					scopingInfo.setLocallyOwned(curScope.isItemOwnedByScope(profileType, itemLocation, ""));
+					if (curScope.getLibraryScope() != null) {
+						scopingInfo.setLibraryOwned(curScope.getLibraryScope().isItemOwnedByScope(profileType, itemLocation, ""));
+					}
+				}
+				if (curScope.isLibraryScope()) {
+					scopingInfo.setLibraryOwned(curScope.isItemOwnedByScope(profileType, itemLocation, ""));
+				}
+				//Check to see if we need to do url rewriting
+				if (!originalUrl.equals(result.localUrl)){
+					scopingInfo.setLocalUrl(result.localUrl);
 				}
 			}
 		}
@@ -243,16 +252,16 @@ public class ArlingtonRecordProcessor extends IIIRecordProcessor {
 	protected List<RecordInfo> loadUnsuppressedEContentItems(GroupedWorkSolr groupedWork, String identifier, Record record){
 		List<RecordInfo> unsuppressedEcontentRecords = new ArrayList<>();
 		//For arlington, eContent will always have no items on the bib record.
-		List<DataField> items = getDataFields(record, itemTag);
+		List<DataField> items = MarcUtil.getDataFields(record, itemTag);
 		if (items.size() > 0){
 			return unsuppressedEcontentRecords;
 		}else{
 			//No items so we can continue on.
 			//Check the mat type
-			String matType = getFirstFieldVal(record, "998d");
+			String matType = MarcUtil.getFirstFieldVal(record, "998d");
 			//Get the bib location
 			String bibLocation = null;
-			Set<String> bibLocations = getFieldList(record, "998a");
+			Set<String> bibLocations = MarcUtil.getFieldList(record, "998a");
 			for (String tmpBibLocation : bibLocations){
 				if (tmpBibLocation.matches("[a-zA-Z]{1,5}")){
 					bibLocation = tmpBibLocation;
@@ -263,17 +272,17 @@ public class ArlingtonRecordProcessor extends IIIRecordProcessor {
 				}
 			}
 			//Get the url
-			String url = getFirstFieldVal(record, "856u");
+			String url = MarcUtil.getFirstFieldVal(record, "856u");
 
 			if (url != null && !url.toLowerCase().contains("lib.overdrive.com")){
 				//Get the econtent source
 				String urlLower = url.toLowerCase();
 				String econtentSource;
-				String specifiedSource = getFirstFieldVal(record, "856x");
+				String specifiedSource = MarcUtil.getFirstFieldVal(record, "856x");
 				if (specifiedSource != null){
 					econtentSource = specifiedSource;
 				}else {
-					String urlText = getFirstFieldVal(record, "856z");
+					String urlText = MarcUtil.getFirstFieldVal(record, "856z");
 					if (urlText != null) {
 						urlText = urlText.toLowerCase();
 						if (urlText.contains("gale virtual reference library")) {
@@ -320,26 +329,6 @@ public class ArlingtonRecordProcessor extends IIIRecordProcessor {
 
 				itemInfo.setDetailedStatus("Available Online");
 
-				//Determine which scopes this title belongs to
-				for (Scope curScope : indexer.getScopes()){
-					if (curScope.isItemPartOfScope(profileType, bibLocation, "", false, false, true)){
-						ScopingInfo scopingInfo = itemInfo.addScope(curScope);
-						scopingInfo.setAvailable(true);
-						scopingInfo.setStatus("Available Online");
-						scopingInfo.setGroupedStatus("Available Online");
-						scopingInfo.setHoldable(false);
-						if (curScope.isLocationScope()) {
-							scopingInfo.setLocallyOwned(curScope.isItemOwnedByScope(profileType, bibLocation, ""));
-							if (curScope.getLibraryScope() != null) {
-								scopingInfo.setLibraryOwned(curScope.getLibraryScope().isItemOwnedByScope(profileType, bibLocation, ""));
-							}
-						}
-						if (curScope.isLibraryScope()) {
-							scopingInfo.setLibraryOwned(curScope.isItemOwnedByScope(profileType, bibLocation, ""));
-						}
-					}
-				}
-
 				unsuppressedEcontentRecords.add(relatedRecord);
 			}
 		}
@@ -377,18 +366,16 @@ public class ArlingtonRecordProcessor extends IIIRecordProcessor {
 
 	/**
 	 * For Arlington do not load Bisac Subjects and load full stings with subfields for topics
-	 * @param record
-	 * @return
 	 */
 	protected void loadSubjects(GroupedWorkSolr groupedWork, Record record){
 		HashSet<String> validSubjects = new HashSet<>();
-		getSubjectValues(getDataFields(record, "600"), validSubjects);
-		getSubjectValues(getDataFields(record, "610"), validSubjects);
-		getSubjectValues(getDataFields(record, "611"), validSubjects);
-		getSubjectValues(getDataFields(record, "630"), validSubjects);
-		getSubjectValues(getDataFields(record, "650"), validSubjects);
-		getSubjectValues(getDataFields(record, "651"), validSubjects);
-		getSubjectValues(getDataFields(record, "690"), validSubjects);
+		getSubjectValues(MarcUtil.getDataFields(record, "600"), validSubjects);
+		getSubjectValues(MarcUtil.getDataFields(record, "610"), validSubjects);
+		getSubjectValues(MarcUtil.getDataFields(record, "611"), validSubjects);
+		getSubjectValues(MarcUtil.getDataFields(record, "630"), validSubjects);
+		getSubjectValues(MarcUtil.getDataFields(record, "650"), validSubjects);
+		getSubjectValues(MarcUtil.getDataFields(record, "651"), validSubjects);
+		getSubjectValues(MarcUtil.getDataFields(record, "690"), validSubjects);
 
 		groupedWork.addSubjects(validSubjects);
 		//Add lc subjects
@@ -412,7 +399,7 @@ public class ArlingtonRecordProcessor extends IIIRecordProcessor {
 				}
 			}
 			if (okToInclude){
-				StringBuffer subjectValue = new StringBuffer();
+				StringBuilder subjectValue = new StringBuilder();
 				for (Subfield curSubfield : curSubject.getSubfields()){
 					if (curSubfield.getCode() != '2' && curSubfield.getCode() != '0'){
 						if (subjectValue.length() > 0){

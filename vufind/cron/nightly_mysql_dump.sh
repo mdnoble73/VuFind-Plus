@@ -26,12 +26,20 @@
 # 24 Nov 14 - v2.5.0 - sml - changed to backup pretty much everything
 #-------------------------------------------------------------------------
 
-if [[ $# -ne 1 ]]; then
+if [[ $# -eq 0 ]]; then
 	echo "Please specify the Pika instance"
 	echo "eg: $0 marmot.production"
+	echo "If the main Pika database is not named 'pika', please specify the schema name as well"
+		echo "eg: $0 marmot.production vufind"
 else
 PIKASERVER=$1
 
+if [[ $# -eq 2 ]]; then
+	DBNAME=$2
+else
+	DBNAME="pika"
+fi
+echo "Dumping $DBNAME database"
 
 #-------------------------------------------------------------------------
 # declare variables
@@ -42,13 +50,18 @@ DATE=`date +%y%m%d`
 LOG="logger -t $0 -p local5.notice "
 
 DUMPFOLDER="/data/vufind-plus/${PIKASERVER}/sql_backup"
+if [ ! -e "$DUMPFOLDER" ]
+then
+	DUMPFOLDER="/data/pika/${PIKASERVER}/sql_backup"
+fi
+echo "Dumping to $DUMPFOLDER"
 
 #REMOTE="10.1.2.2:/home/backup/venus"
 #LOCAL="/mnt/backup"
 #FILES="/data/vufind-plus/marmot.test/solr_searcher /data/vufind-plus/marmot.test/econtent  /var /home /etc /root /usr /bin /boot /lib /lib64 /opt /sbin"
 #TAROPT="-X /root/cron/exclude.txt --exclude-caches --ignore-failed-read --absolute-names"
 
-DATABASES="pika econtent"
+DATABASES="$DBNAME econtent"
 DUMPOPT1="-u root --events"
 DUMPOPT2="-u root --events --single-transaction"
 
@@ -61,9 +74,9 @@ $LOG ">> Backup starting <<"
 #-------------------------------------------------------------
 #--- backup mysql --------------------------------------------
 #-------------------------------------------------------------
-$LOG "~> purge yesterdays mysql dumps"
-/bin/rm -f $DUMPFOLDER/*
-$LOG "~> exit code $?"
+#$LOG "~> purge yesterdays mysql dumps"
+#/bin/rm -f $DUMPFOLDER/*
+#$LOG "~> exit code $?"
 #---
 $LOG "~> dumping mysql database"
 mysqldump $DUMPOPT1 mysql > $DUMPFOLDER/mysql.$DATE.mysql.dump
@@ -78,7 +91,10 @@ do
   mysqldump $DUMPOPT2 $DB > $DUMPFOLDER/$DB.$DATE.mysql.dump
   $LOG "~> exit code $?"
   $LOG "~> change permissions on dump file"
-  chmod 400 $DUMPFOLDER/mysql.$DATE.mysql.dump
+  chmod 400 $DUMPFOLDER/$DB.$DATE.mysql.dump
+  $LOG "~> exit code $?"
+  $LOG "~> compressing dump file"
+  gzip $DUMPFOLDER/$DB.$DATE.mysql.dump
   $LOG "~> exit code $?"
 done
 
@@ -110,6 +126,19 @@ done
 #  fi
 #fi
 #-------------------------------------------------------------
+
+# Delete dump files older than 3 days
+# $DUMPFOLDER/$DB.$DATE.mysql.dump
+#uncompressed files
+  $LOG "~> deleting dump files older than three days"
+
+find $DUMPFOLDER/ -mindepth 1 -maxdepth 1 -name *.mysql.dump -type f -mtime +3 -delete
+  $LOG "~> exit code $?"
+#compressed files
+find $DUMPFOLDER/ -mindepth 1 -maxdepth 1 -name *.mysql.dump.gz -type f -mtime +3 -delete
+  $LOG "~> exit code $?"
+
+
 $LOG ">> Backup complete <<"
 exit 0
 fi

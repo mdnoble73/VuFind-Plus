@@ -591,7 +591,7 @@ class sip2
         'PatronUpdate'      => substr($response, 6, 1),  /* is patron status updating by the SC allowed ? (status update ok)*/
         'Offline'           => substr($response, 7, 1),
         'Timeout'           => substr($response, 8, 3),
-        'Retries'           => substr($response, 11, 3), 
+        'Retries'           => substr($response, 11, 3),
         'TransactionDate'   => substr($response, 14, 18),
         'Protocol'          => substr($response, 32, 4),
 		);
@@ -709,7 +709,7 @@ class sip2
         'Ok'                => substr($response, 2, 1),
         'available'         => substr($response, 3, 1),
         'TransactionDate'   => substr($response, 4, 18),
-        'ExpirationDate'    => substr($response, 22, 18)			
+        'ExpirationDate'    => substr($response, 22, 18)
 		);
 
 
@@ -764,6 +764,7 @@ class sip2
 		$nr         = '';
 
 		$this->_debugmsg('SIP2: Sending SIP2 request...');
+		$this->_debugmsg($message);
 		socket_write($this->socket, $message, strlen($message));
 		$this->Sleep();
 
@@ -796,7 +797,7 @@ class sip2
 				/* try again */
 				$this->_debugmsg("SIP2: Message failed CRC check, retrying ({$this->retry})");
 
-				$this->get_message($message);
+				$result = $this->get_message($message);
 			} else {
 				/* give up */
 				$this->_debugmsg("SIP2: Failed to get valid CRC after {$this->maxretry} retries.");
@@ -830,8 +831,8 @@ class sip2
 		$this->_debugmsg( "SIP2: Attempting to connect to '$address' on port '{$this->port}'...");
 
 		//Set SIP timeouts
-		socket_set_option($this->socket, SOL_SOCKET, SO_RCVTIMEO, array('sec' => 0, 'usec' => 250));
-		socket_set_option($this->socket, SOL_SOCKET, SO_SNDTIMEO, array('sec' => 0, 'usec' => 250));
+		socket_set_option($this->socket, SOL_SOCKET, SO_RCVTIMEO, array('sec' => 2, 'usec' => 500));
+		socket_set_option($this->socket, SOL_SOCKET, SO_SNDTIMEO, array('sec' => 2, 'usec' => 500));
 		//Make the socket blocking so we can ensure we get responses without rewriting everything.
 		socket_set_block($this->socket);
 
@@ -997,7 +998,9 @@ class sip2
 	function _debugmsg($message) {
 		/* custom debug function,  why repeat the check for the debug flag in code... */
 		if ($this->debug) {
-			trigger_error( $message, E_USER_NOTICE);
+			global $logger;
+			$logger->log( $message, PEAR_LOG_ERR);
+			//echo($message . "<br/>\r\n");
 		}
 	}
 

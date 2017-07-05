@@ -111,15 +111,26 @@ rm /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
 
 #truncate the output file so you don't spend a week debugging an error from a week ago!
 : > $OUTPUT_FILE;
+/usr/local/vufind-plus/sites/${PIKASERVER}/moveFullExport.sh aacpl/symphony aacpl.test >> ${OUTPUT_FILE}
 
 #Restart Solr
 cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 
+#Zinio
+/usr/local/vufind-plus/sites/${PIKASERVER}/moveFullExport.sh aacpl/zinio zinio/aacpl >> ${OUTPUT_FILE}
+
+# Safari
+/usr/local/vufind-plus/sites/${PIKASERVER}/moveFullExport.sh aacpl/safari safari/aacpl >> ${OUTPUT_FILE}
+
+#Extract from Hoopla
+#cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE}
+cd /usr/local/vufind-plus/vufind/cron;./GetHooplaFromMarmot.sh >> ${OUTPUT_FILE}
+
 #Extract Lexile Data
-cd /data/vufind-plus/; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/lexileTitles.txt http://cassini.marmot.org/lexileTitles.txt
+cd /data/vufind-plus/; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/lexileTitles.txt https://cassini.marmot.org/lexileTitles.txt
 
 #Extract AR Data
-cd /data/vufind-plus/accelerated_reader; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/accelerated_reader/RLI-ARDataTAB.txt http://cassini.marmot.org/RLI-ARDataTAB.txt
+cd /data/vufind-plus/accelerated_reader; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/accelerated_reader/RLI-ARDataTAB.txt https://cassini.marmot.org/RLI-ARDataTAB.txt
 
 
 #Do a full extract from OverDrive just once a week to catch anything that doesn't
@@ -134,7 +145,7 @@ fi
 #Extract from ILS
 #Copy extracts from FTP Server
 mount 10.1.2.6:/ftp/aacpl /mnt/ftp
-FILE1=$(find /mnt/ftp/ -name pika*.mrc -mtime -1 | sort -n | tail -1)
+FILE1=$(find /mnt/ftp/symphony -name pika*.mrc -mtime -1 | sort -n | tail -1)
 cp $FILE1 /data/vufind-plus/${PIKASERVER}/marc/fullexport.mrc
 umount /mnt/ftp
 

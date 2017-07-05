@@ -78,6 +78,11 @@ class CarlX extends SIP2Driver{
 						$user->trackReadingHistory = $result->Patron->LoanHistoryOptInFlag;
 					}
 
+					$user->emailReceiptFlag    = $result->Patron->EmailReceiptFlag;
+					$user->availableHoldNotice = $result->Patron->SendHoldAvailableFlag;
+					$user->comingDueNotice     = $result->Patron->SendComingDueFlag;
+					$user->phoneType           = $result->Patron->PhoneType;
+
 					$homeBranchCode = strtolower($result->Patron->DefaultBranch);
 					$location = new Location();
 					$location->code = $homeBranchCode;
@@ -108,21 +113,25 @@ class CarlX extends SIP2Driver{
 						}
 						if (isset($location)) {
 							$user->homeLocationId = $location->locationId;
-							$user->myLocation1Id  = ($location->nearbyLocation1 > 0) ? $location->nearbyLocation1 : $location->locationId;
-							$user->myLocation2Id  = ($location->nearbyLocation2 > 0) ? $location->nearbyLocation2 : $location->locationId;
-
-							//Get display name for preferred location 1
-							$myLocation1 = new Location();
-							$myLocation1->locationId = $user->myLocation1Id;
-							if ($myLocation1->find(true)) {
-								$user->myLocation1 = $myLocation1->displayName;
+							if (empty($user->myLocation1Id)) {
+								$user->myLocation1Id  = ($location->nearbyLocation1 > 0) ? $location->nearbyLocation1 : $location->locationId;
+								/** @var /Location $location */
+								//Get display name for preferred location 1
+								$myLocation1             = new Location();
+								$myLocation1->locationId = $user->myLocation1Id;
+								if ($myLocation1->find(true)) {
+									$user->myLocation1 = $myLocation1->displayName;
+								}
 							}
 
-							//Get display name for preferred location 2
-							$myLocation2 = new Location();
-							$myLocation2->locationId = $user->myLocation2Id;
-							if ($myLocation2->find(true)) {
-								$user->myLocation2 = $myLocation2->displayName;
+							if (empty($user->myLocation2Id)){
+								$user->myLocation2Id  = ($location->nearbyLocation2 > 0) ? $location->nearbyLocation2 : $location->locationId;
+								//Get display name for preferred location 2
+								$myLocation2             = new Location();
+								$myLocation2->locationId = $user->myLocation2Id;
+								if ($myLocation2->find(true)) {
+									$user->myLocation2 = $myLocation2->displayName;
+								}
 							}
 						}
 					}
@@ -151,12 +160,8 @@ class CarlX extends SIP2Driver{
 						}
 					}
 
-					if ($result->Patron->EmailNotices == 'send email') {
-						$user->notices = 'z';
-						$user->noticePreferenceLabel = 'E-mail';
-					} elseif ($result->Patron->EmailNotices == 'do not send email' || $result->Patron->EmailNotices == 'opted out') {
-						$user->notices = '-';
-						$user->noticePreferenceLabel = null;
+					if (isset($result->Patron->EmailNotices)) {
+						$user->notices = $result->Patron->EmailNotices;
 					}
 
 					$user->patronType  = $result->Patron->PatronType; // Example: "ADULT"
@@ -178,13 +183,14 @@ class CarlX extends SIP2Driver{
 
 					//Load summary information for number of holds, checkouts, etc
 					$patronSummaryRequest = new stdClass();
-					$patronSummaryRequest->PatronID  = $username;
+					$patronSummaryRequest->SearchType = 'Patron ID';
+					$patronSummaryRequest->SearchID  = $username;
 					$patronSummaryRequest->Modifiers = '';
 
 					$patronSummaryResponse = $this->doSoapRequest('getPatronSummaryOverview', $patronSummaryRequest, $this->patronWsdl);
 
-					if (!empty($patronSummaryRequest) && is_object($patronSummaryRequest)) {
-						$user->numCheckedOutIls     = $patronSummaryResponse->ChargedItemsCount;
+					if (!empty($patronSummaryResponse) && is_object($patronSummaryResponse)) {
+						$user->numCheckedOutIls     = $patronSummaryResponse->ChargedItemsCount + $patronSummaryResponse->OverdueItemsCount;
 						$user->numHoldsAvailableIls = $patronSummaryResponse->HoldItemsCount;
 						$user->numHoldsRequestedIls = $patronSummaryResponse->UnavailableHoldsCount;
 						$user->numHoldsIls          = $user->numHoldsAvailableIls + $user->numHoldsRequestedIls;
@@ -225,9 +231,7 @@ class CarlX extends SIP2Driver{
 	 * @return boolean true if the driver can renew all titles in a single pass
 	 */
 	public function hasFastRenewAll() {
-		// TODO: Implement hasFastRenewAll() method.
-		// TODO: There is a Renew All through SIP, this should become true
-		return false;
+		return true;
 	}
 
 	/**
@@ -237,8 +241,86 @@ class CarlX extends SIP2Driver{
 	 * @return mixed
 	 */
 	public function renewAll($patron) {
-		// TODO: Implement renewAll() method.
-		return false;
+		global $configArray;
+		global $logger;
+
+		//renew the item via SIP 2
+		require_once ROOT_DIR . '/sys/SIP2.php';
+		$mysip = new sip2();
+		$mysip->hostname = $configArray['SIP2']['host'];
+		$mysip->port = $configArray['SIP2']['port'];
+
+		$renew_result = array(
+				'success' => false,
+				'message' => array(),
+				'Renewed' => 0,
+				'Unrenewed' => $patron->numCheckedOutIls,
+				'Total' => $patron->numCheckedOutIls
+		);
+		if ($mysip->connect()) {
+			//send selfcheck status message
+			$in = $mysip->msgSCStatus();
+			$msg_result = $mysip->get_message($in);
+			// Make sure the response is 98 as expected
+			if (preg_match("/^98/", $msg_result)) {
+				$result = $mysip->parseACSStatusResponse($msg_result);
+
+				//  Use result to populate SIP2 settings
+				// These settings don't seem to apply to the CarlX Sandbox. pascal 7-12-2016
+				if (isset($result['variable']['AO'][0])){
+					$mysip->AO = $result['variable']['AO'][0]; /* set AO to value returned */
+				}else{
+					$mysip->AO = 'NASH'; /* set AO to value returned */
+				}
+				if (isset($result['variable']['AN'][0])) {
+					$mysip->AN = $result['variable']['AN'][0]; /* set AN to value returned */
+				}else{
+					$mysip->AN = '';
+				}
+
+				$mysip->patron    = $patron->cat_username;
+				$mysip->patronpwd = $patron->cat_password;
+
+				$in = $mysip->msgRenewAll();
+				//print_r($in . '<br/>');
+				$msg_result = $mysip->get_message($in);
+				//print_r($msg_result);
+
+				if (preg_match("/^66/", $msg_result)) {
+					$result = $mysip->parseRenewAllResponse($msg_result);
+					$logger->log("Renew all response\r\n" . print_r($msg_result, true), PEAR_LOG_ERR);
+
+					$renew_result['success'] = ($result['fixed']['Ok'] == 1);
+					$renew_result['Renewed'] = ltrim($result['fixed']['Renewed'], '0');
+					if (strlen($renew_result['Renewed']) == 0){
+						$renew_result['Renewed'] = 0;
+					}
+
+					$renew_result['Unrenewed'] = ltrim($result['fixed']['Unrenewed'], '0');
+					if (strlen($renew_result['Unrenewed']) == 0){
+						$renew_result['Unrenewed'] = 0;
+					}
+					if (isset($result['variable']['AF'])){
+						$renew_result['message'][] = $result['variable']['AF'][0];
+					}
+
+					if ($renew_result['Unrenewed'] > 0){
+						$renew_result['message'] = array_merge($renew_result['message'], $result['variable']['BN']);
+					}
+				}else{
+					$logger->log("Invalid message returned from SIP server '$msg_result''", PEAR_LOG_ERR);
+					$renew_result['message'] = array("Invalid message returned from SIP server");
+				}
+			}else{
+				$logger->log("Could not authenticate with the SIP server", PEAR_LOG_ERR);
+				$renew_result['message'] = array("Could not authenticate with the SIP server");
+			}
+		}else{
+			$logger->log("Could not connect to the SIP server", PEAR_LOG_ERR);
+			$renew_result['message'] = array("Could not connect to circulation server, please try again later.");
+		}
+
+		return $renew_result;
 	}
 
 	private $genericResponseSOAPCallOptions = array(
@@ -258,15 +340,27 @@ class CarlX extends SIP2Driver{
 		}
 
 		// There are exceptions in the Soap Client that need to be caught for smooth functioning
-		try {
-			$this->soapClient = new SoapClient($WSDL, $soapRequestOptions);
-			$result = $this->soapClient->$requestName($request);
-		} catch (SoapFault $e) {
-			global $logger;
-			$logger->log('Soap Client error in CarlX: '.$e->getMessage(), PEAR_LOG_ERR);
+		$soapRequestOptions['connection_timeout'] = 3;
+		$connectionPassed = false;
+		$numTries = 0;
+		$result = false;
+		while (!$connectionPassed && $numTries < 3){
+			try {
+				$this->soapClient = new SoapClient($WSDL, $soapRequestOptions);
+				$result = $this->soapClient->$requestName($request);
+				$connectionPassed = true;
+			} catch (SoapFault $e) {
+				global $logger;
+				$logger->log("Soap Client error in CarlX: while calling $requestName ".$e->getMessage() . " try $numTries", PEAR_LOG_ERR);
+				$logger->log($request, PEAR_LOG_ERR);
+			}
+			$numTries++;
+		}
+		if (!$connectionPassed){
 			return false;
 		}
-	return $result;
+
+		return $result;
 	}
 
 	/**
@@ -279,14 +373,8 @@ class CarlX extends SIP2Driver{
 	 * @return mixed
 	 */
 	public function renewItem($patron, $recordId, $itemId=null, $itemIndex=null) {
-		// For CarlX RecordId is the same as the itemId
-
 		// Renew Via SIP
-		return $result = $this->renewItemViaSIP($patron, $recordId);
-
-		// For an AlternateSIP Port
-//		$useAlternateSIP = false;
-//		$result = $this->renewItemViaSIP($patron, $itemId, $useAlternateSIP);
+		return $result = $this->renewItemViaSIP($patron, $itemId);
 	}
 
 	private $holdStatusCodes = array(
@@ -345,7 +433,7 @@ class CarlX extends SIP2Driver{
 					$curHold['expire']             = strtotime($expireDate); // give a time stamp  // use this for available holds
 					$curHold['reactivate']         = null;
 					$curHold['reactivateTime']     = null;
-					$curHold['frozen']             = $hold->Suspended == true;
+					$curHold['frozen']             = isset($hold->Suspended) && ($hold->Suspended == true);
 					$curHold['cancelable']         = true; //TODO: Can Cancel Available Holds?
 					$curHold['freezeable']         = false;
 
@@ -531,13 +619,33 @@ class CarlX extends SIP2Driver{
 
 		//Search for the patron in the database
 		$result = $this->getPatronTransactions($user);
+		//global $logger;
+		//$logger->log("Patron Transactions\r\n" . print_r($result, true), PEAR_LOG_ERR );
 
-		if ($result && !empty($result->ChargeItems->ChargeItem)) {
-			if (!is_array($result->ChargeItems->ChargeItem)) {
-				// Structure an single entry as an array of one.
-				$result->ChargeItems->ChargeItem = array($result->ChargeItems->ChargeItem);
+		$itemsToLoad = array();
+		if (!$result){
+			global $logger;
+			$logger->log('Failed to retrieve user Check outs from CarlX API call.', PEAR_LOG_WARNING);
+		}else{
+			//TLC provides both ChargeItems and OverdueItems as separate elements, we can combine for loading
+			if (!empty($result->ChargeItems->ChargeItem)) {
+				if (!is_array($result->ChargeItems->ChargeItem)) {
+					// Structure an single entry as an array of one.
+					$itemsToLoad[] = $result->ChargeItems->ChargeItem;
+				}else{
+					$itemsToLoad = $result->ChargeItems->ChargeItem;
+				}
 			}
-			foreach ($result->ChargeItems->ChargeItem as $chargeItem) {
+			if (!empty($result->OverdueItems->OverdueItem)) {
+				if (!is_array($result->OverdueItems->OverdueItem)) {
+					// Structure an single entry as an array of one.
+					$itemsToLoad[] = $result->OverdueItems->OverdueItem;
+				}else{
+					$itemsToLoad = $result->OverdueItems->OverdueItem;
+				}
+			}
+
+			foreach ($itemsToLoad as $chargeItem) {
 				$carlID = $this->fullCarlIDfromBID($chargeItem->BID);
 				$dueDate = strstr($chargeItem->DueDate, 'T', true);
 				$curTitle['checkoutSource']  = 'ILS';
@@ -545,13 +653,14 @@ class CarlX extends SIP2Driver{
 				$curTitle['shortId']         = $chargeItem->BID;
 				$curTitle['id']              = $chargeItem->BID;
 				$curTitle['barcode']         = $chargeItem->ItemNumber;   // Barcode & ItemNumber are the same for CarlX
+				$curTitle['itemid']          = $chargeItem->ItemNumber;
 				$curTitle['title']           = $chargeItem->Title;
 				$curTitle['author']          = $chargeItem->Author;
 				$curTitle['dueDate']         = strtotime($dueDate);
 				$curTitle['checkoutdate']    = strstr($chargeItem->TransactionDate, 'T', true);
-				$curTitle['renewCount']      = $chargeItem->RenewalCount;
+				$curTitle['renewCount']      = isset($chargeItem->RenewalCount) ? $chargeItem->RenewalCount : 0;
 				$curTitle['canrenew']        = true;
-				$curTitle['renewIndicator']  = null;
+				$curTitle['renewIndicator']  = $chargeItem->ItemNumber;
 
 				$curTitle['format']          = 'Unknown';
 				if (!empty($carlID)){
@@ -578,13 +687,9 @@ class CarlX extends SIP2Driver{
 				$checkedOutTitles[] = $curTitle;
 
 			}
-
-		} else {
-			global $logger;
-			$logger->log('Failed to retrieve user Check outs from CarlX API call.', PEAR_LOG_WARNING);
 		}
 
-	return $checkedOutTitles;
+		return $checkedOutTitles;
 	}
 
 	public function updatePin($user, $oldPin, $newPin, $confirmNewPin) {
@@ -651,21 +756,39 @@ class CarlX extends SIP2Driver{
 			$request->Patron->Addresses->Address->State       = $_REQUEST['state'];
 			$request->Patron->Addresses->Address->PostalCode  = $_REQUEST['zip'];
 
-			if (isset($_REQUEST['notices'])){
-//				$noticeLabels = array(
-//					//'-' => 'Mail',  // officially None in Sierra, as in No Preference Selected.
-//					'-' => '',        // notification will generally be based on what information is available so can't determine here. plb 12-02-2014
-//					'a' => 'Mail',    // officially Print in Sierra
-//					'p' => 'Telephone',
-//					'z' => 'E-mail',
-//				);
 
-				if ($_REQUEST['notices'] == 'z') {
-					$request->Patron->EmailNotices = 'send email';
-				} else {
-					$request->Patron->EmailNotices = 'do not send email';
+				if (isset($_REQUEST['emailReceiptFlag']) && ($_REQUEST['emailReceiptFlag'] == 'yes' || $_REQUEST['emailReceiptFlag'] == 'on')){
+					// if set check & on check must be combined because checkboxes/radios don't report 'offs'
+					$request->Patron->EmailReceiptFlag = 1;
+				}else{
+					$request->Patron->EmailReceiptFlag = 0;
+				}
+				if (isset($_REQUEST['availableHoldNotice']) && ($_REQUEST['availableHoldNotice'] == 'yes' || $_REQUEST['availableHoldNotice'] == 'on')){
+					// if set check & on check must be combined because checkboxes/radios don't report 'offs'
+					$request->Patron->SendHoldAvailableFlag = 1;
+				}else{
+					$request->Patron->SendHoldAvailableFlag = 0;
+				}
+				if (isset($_REQUEST['comingDueNotice']) && ($_REQUEST['comingDueNotice'] == 'yes' || $_REQUEST['comingDueNotice'] == 'on')){
+					// if set check & on check must be combined because checkboxes/radios don't report 'offs'
+					$request->Patron->SendComingDueFlag = 1;
+				}else{
+					$request->Patron->SendComingDueFlag = 0;
+				}
+				if (isset($_REQUEST['phoneType'])) {
+					$request->Patron->PhoneType = $_REQUEST['phoneType'];
 				}
 
+			if (isset($_REQUEST['notices'])){
+				$request->Patron->EmailNotices = $_REQUEST['notices'];
+			}
+
+			if (!empty($_REQUEST['pickupLocation'])) {
+				$homeLocation = new Location();
+				if ($homeLocation->get('code', $_REQUEST['pickupLocation'])) {
+					$homeBranchCode = strtoupper($_REQUEST['pickupLocation']);
+					$request->Patron->DefaultBranch = $homeBranchCode;
+				}
 			}
 
 			$result = $this->doSoapRequest('updatePatron', $request, $this->patronWsdl, $this->genericResponseSOAPCallOptions);
@@ -1031,7 +1154,8 @@ class CarlX extends SIP2Driver{
 		// Fines
 		$request->TransactionType = 'Fine';
 		$result = $this->doSoapRequest('getPatronTransactions', $request);
-
+		//global $logger;
+		//$logger->log("Result of getPatronTransactions (Fine)\r\n" . print_r($result, true), PEAR_LOG_ERR);
 		if ($result && !empty($result->FineItems->FineItem)) {
 			if (!is_array($result->FineItems->FineItem)) {
 				$result->FineItems->FineItem = array($result->FineItems->FineItem);
@@ -1054,6 +1178,7 @@ class CarlX extends SIP2Driver{
 		// TODO: Lost Items don't have the fine amount
 		$request->TransactionType = 'Lost';
 		$result = $this->doSoapRequest('getPatronTransactions', $request);
+		//$logger->log("Result of getPatronTransactions (Lost)\r\n" . print_r($result, true), PEAR_LOG_ERR);
 
 		if ($result && !empty($result->LostItems->LostItem)) {
 			if (!is_array($result->LostItems->LostItem)) {
@@ -1063,7 +1188,7 @@ class CarlX extends SIP2Driver{
 				$myFines[] = array(
 					'reason'  => $fine->FeeNotes,
 //					'amount'  => $fine->FineAmount, // TODO: There is no corresponding amount
-					'amount'  => '',
+					'amount'  => $fine->FeeAmount,
 					'message' => $fine->Title,
 					'date'    => date('M j, Y', strtotime($fine->TransactionDate)),
 				);
@@ -1123,7 +1248,9 @@ class CarlX extends SIP2Driver{
 		return $result;
 	}
 
-	private function getPhoneTypeList() {
+	public function getPhoneTypeList() {
+		// TODO: Store in memcache
+
 		$request             = new stdClass();
 		$request->Modifiers  = '';
 
@@ -1212,8 +1339,16 @@ class CarlX extends SIP2Driver{
 
 				//  Use result to populate SIP2 setings
 				// These settings don't seem to apply to the CarlX Sandbox. pascal 7-12-2016
-				if (!empty($result['variable']['AO'][0])) $mySip->AO = $result['variable']['AO'][0]; /* set AO to value returned */
-				if (!empty($result['variable']['AN'][0])) $mySip->AN = $result['variable']['AN'][0]; /* set AN to value returned */
+				if (isset($result['variable']['AO'][0])){
+					$mySip->AO = $result['variable']['AO'][0]; /* set AO to value returned */
+				}else{
+					$mySip->AO = 'NASH'; /* set AO to value returned */
+				}
+				if (isset($result['variable']['AN'][0])) {
+					$mySip->AN = $result['variable']['AN'][0]; /* set AN to value returned */
+				}else{
+					$mySip->AN = '';
+				}
 
 				$mySip->patron    = $patron->cat_username;
 				$mySip->patronpwd = $patron->cat_password;
@@ -1298,8 +1433,16 @@ class CarlX extends SIP2Driver{
 
 				//  Use result to populate SIP2 setings
 				// These settings don't seem to apply to the CarlX Sandbox. pascal 7-12-2016
-				if (!empty($result['variable']['AO'][0])) $mySip->AO = $result['variable']['AO'][0]; /* set AO to value returned */
-				if (!empty($result['variable']['AN'][0])) $mySip->AN = $result['variable']['AN'][0]; /* set AN to value returned */
+				if (isset($result['variable']['AO'][0])){
+					$mySip->AO = $result['variable']['AO'][0]; /* set AO to value returned */
+				}else{
+					$mySip->AO = 'NASH'; /* set AO to value returned */
+				}
+				if (isset($result['variable']['AN'][0])) {
+					$mySip->AN = $result['variable']['AN'][0]; /* set AN to value returned */
+				}else{
+					$mySip->AN = '';
+				}
 
 				$mySip->patron    = $patron->cat_username;
 				$mySip->patronpwd = $patron->cat_password;
@@ -1310,8 +1453,10 @@ class CarlX extends SIP2Driver{
 					$locationLookup->locationId = $patron->homeLocationId;
 					$locationLookup->find(1);
 					if ($locationLookup->N > 0){
-						$pickupBranch = $locationLookup->code;
+						$pickupBranch = strtoupper($locationLookup->code);
 					}
+				}else{
+					$pickupBranch = strtoupper($pickupBranch);
 				}
 
 				//place the hold
@@ -1392,8 +1537,16 @@ class CarlX extends SIP2Driver{
 
 				//  Use result to populate SIP2 settings
 				// These settings don't seem to apply to the CarlX Sandbox. pascal 7-12-2016
-				if (!empty($result['variable']['AO'][0])) $mysip->AO = $result['variable']['AO'][0]; /* set AO to value returned */
-				if (!empty($result['variable']['AN'][0])) $mysip->AN = $result['variable']['AN'][0]; /* set AN to value returned */
+				if (isset($result['variable']['AO'][0])){
+					$mysip->AO = $result['variable']['AO'][0]; /* set AO to value returned */
+				}else{
+					$mysip->AO = 'NASH'; /* set AO to value returned */
+				}
+				if (isset($result['variable']['AN'][0])) {
+					$mysip->AN = $result['variable']['AN'][0]; /* set AN to value returned */
+				}else{
+					$mysip->AN = '';
+				}
 
 				$mysip->patron    = $patron->cat_username;
 				$mysip->patronpwd = $patron->cat_password;

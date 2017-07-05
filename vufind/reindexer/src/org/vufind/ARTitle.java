@@ -7,7 +7,7 @@ package org.vufind;
  * Date: 10/21/2015
  * Time: 5:11 PM
  */
-public class ARTitle {
+class ARTitle {
 	private String title;
 	private String author;
 	private String bookLevel;
@@ -30,27 +30,27 @@ public class ARTitle {
 		this.author = author;
 	}
 
-	public String getBookLevel() {
+	String getBookLevel() {
 		return bookLevel;
 	}
 
-	public void setBookLevel(String bookLevel) {
+	void setBookLevel(String bookLevel) {
 		this.bookLevel = bookLevel;
 	}
 
-	public String getArPoints() {
+	String getArPoints() {
 		return arPoints;
 	}
 
-	public void setArPoints(String arPoints) {
+	void setArPoints(String arPoints) {
 		this.arPoints = arPoints;
 	}
 
-	public String getInterestLevel() {
+	String getInterestLevel() {
 		return interestLevel;
 	}
 
-	public void setInterestLevel(String interestLevel) {
+	void setInterestLevel(String interestLevel) {
 		this.interestLevel = interestLevel;
 	}
 }

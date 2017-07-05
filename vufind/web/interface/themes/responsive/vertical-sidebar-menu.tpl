@@ -57,7 +57,7 @@
 						{* Treat Public Lists not owned by user as a Search Page rather than an MyAccount Page *}
 						{* Click Search Menu Bar Button *}
 						$('.menu-bar-option:nth-child(1)>a', '#vertical-menu-bar').filter(':visible').click();
-						{elseif ($action != 'RequestPinReset' && !$isLoginPage && $action != 'SelfReg' && $action != 'OfflineCirculation') && ($module == "MyAccount" || $module == "Admin" || $module == "Circa" || $module == "EditorialReview" || $module == "Report")}
+						{elseif (!$isLoginPage && !in_array($action, array('EmailResetPin', 'ResetPin', 'RequestPinReset', 'EmailPin', 'SelfReg', 'OfflineCirculation'))) && ($module == "MyAccount" || $module == "Admin" || $module == "Circa" || $module == "EditorialReview" || $module == "Report")}
 						{* Prevent this action on the Pin Reset Page && Login Page && Offline Circulation Page*}
 						{* Click Account Menu Bar Button *}
 						$('.menu-bar-option:nth-child(2)>a', '#vertical-menu-bar').filter(':visible').click();

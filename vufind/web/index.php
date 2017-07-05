@@ -303,6 +303,7 @@ if ($user) {
 
 			// For Masquerade Follow up, start directly instead of a redirect
 			if ($_REQUEST['followupAction'] == 'Masquerade' && $_REQUEST['followupModule'] == 'MyAccount') {
+				$logger->log("Processing Masquerade after logging in", PEAR_LOG_ERR);
 				require_once ROOT_DIR . '/services/MyAccount/Masquerade.php';
 				$masquerade = new MyAccount_Masquerade();
 				$masquerade->launch();
@@ -627,13 +628,13 @@ $timer->logTime('Process Shards');
 // Note: ObjectEditor classes typically have the class name of DB_Object with an 's' added to the end.
 //       This distinction prevents the DB_Object from being mistakenly called as the Action class.
 if (!is_dir(ROOT_DIR . "/services/$module")){
-	$interface->assign('module',null);
-	$interface->assign('action',null);
-	$interface->assign('showBreadcrumbs', false);
-	$interface->assign('sidebar', 'Search/home-sidebar.tpl');
-	$interface->setTemplate('Error/404.tpl');
-	$interface->setPageTitle('Page Not Found');
-	$interface->display('layout.tpl');
+	$module = 'Error';
+	$module = 'Handle404';
+	$interface->assign('module','Error');
+	$interface->assign('action','Handle404');
+	require_once ROOT_DIR . "/services/Error/Handle404.php";
+	$actionClass = new Error_Handle404();
+	$actionClass->launch();
 }else if (is_readable("services/$module/$action.php")) {
 	$actionFile = ROOT_DIR . "/services/$module/$action.php";
 	require_once $actionFile;

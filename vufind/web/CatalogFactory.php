@@ -25,6 +25,14 @@ class CatalogFactory {
 			if ($activeRecordProfile == null || strlen($activeRecordProfile->catalogDriver) == 0){
 				global $configArray;
 				$driver = $configArray['Catalog']['driver'];
+				if ($accountProfile == null && !empty($driver)) {
+					$accountProfile = new AccountProfile();
+					$accountProfile->get('driver', $driver);
+					if (PEAR_Singleton::isError($accountProfile)) {
+						$accountProfile = null;
+					}
+
+				}
 			}else{
 				$driver = $activeRecordProfile->catalogDriver;
 

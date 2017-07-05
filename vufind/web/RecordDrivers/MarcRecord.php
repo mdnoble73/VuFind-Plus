@@ -350,6 +350,9 @@ class MarcRecord extends IndexRecord
 		$lastMarcModificationTime = MarcLoader::lastModificationTimeForIlsId("{$this->profileType}:{$this->id}");
 		$interface->assign('lastMarcModificationTime', $lastMarcModificationTime);
 
+		$lastGroupedWorkModificationTime = $this->groupedWork->date_updated;
+		$interface->assign('lastGroupedWorkModificationTime', $lastGroupedWorkModificationTime);
+
 		$solrRecord = $this->fields;
 		if ($solrRecord) {
 			ksort($solrRecord);
@@ -1282,11 +1285,20 @@ class MarcRecord extends IndexRecord
 			} else {
 				$showHoldButton = $interface->getVariable('showHoldButton');
 			}
+
+			if ($showHoldButton && $interface->getVariable('offline')) {
+				// When Pika is in offline mode, only show the hold button if offline-login & offline-holds are allowed
+				global $configArray;
+				if (!$interface->getVariable('enableLoginWhileOffline') || !$configArray['Catalog']['enableOfflineHolds']) {
+					$showHoldButton = false;
+				}
+			}
+
+			if ($showHoldButton && $isAvailable) {
+				$showHoldButton = !$interface->getVariable('showHoldButtonForUnavailableOnly');
+			}
 		} else {
 			$showHoldButton = false;
-		}
-		if ($showHoldButton && $isAvailable) {
-			$showHoldButton = !$interface->getVariable('showHoldButtonForUnavailableOnly');
 		}
 
 		if ($isHoldable && $showHoldButton) {

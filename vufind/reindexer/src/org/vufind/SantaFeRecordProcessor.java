@@ -1,17 +1,12 @@
 package org.vufind;
 
 import org.apache.log4j.Logger;
-import org.ini4j.Ini;
 import org.marc4j.marc.DataField;
 import org.marc4j.marc.Record;
 import org.marc4j.marc.Subfield;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 /**
  * Custom Record Processing for Arlington
@@ -21,10 +16,10 @@ import java.util.Set;
  * Date: 10/15/2015
  * Time: 9:48 PM
  */
-public class SantaFeRecordProcessor extends IIIRecordProcessor {
+class SantaFeRecordProcessor extends IIIRecordProcessor {
 
-	public SantaFeRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
-		super(indexer, vufindConn, configIni, indexingProfileRS, logger, fullReindex);
+	SantaFeRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
+		super(indexer, vufindConn, indexingProfileRS, logger, fullReindex);
 	}
 
 	@Override

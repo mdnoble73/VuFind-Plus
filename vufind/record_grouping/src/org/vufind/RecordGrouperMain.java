@@ -696,6 +696,8 @@ public class RecordGrouperMain {
 					profile.marcPath = indexingProfilesRS.getString("marcPath");
 					profile.filenamesToInclude = indexingProfilesRS.getString("filenamesToInclude");
 					profile.individualMarcPath = indexingProfilesRS.getString("individualMarcPath");
+					profile.numCharsToCreateFolderFrom = indexingProfilesRS.getInt("numCharsToCreateFolderFrom");
+					profile.createFolderFromLeadingCharacters = indexingProfilesRS.getBoolean("createFolderFromLeadingCharacters");
 					profile.groupingClass = indexingProfilesRS.getString("groupingClass");
 					profile.recordNumberTag = indexingProfilesRS.getString("recordNumberTag");
 					profile.recordNumberPrefix = indexingProfilesRS.getString("recordNumberPrefix");
@@ -1187,7 +1189,7 @@ public class RecordGrouperMain {
 									}else{
 										String recordNumber = recordIdentifier.getIdentifier();
 
-										boolean marcUpToDate = writeIndividualMarc(existingMarcFiles, individualMarcPath, curBib, recordNumber, curProfile.name, recordGroupingProcessor.getNumCharsInPrefix(), marcRecordsWritten, marcRecordsOverwritten);
+										boolean marcUpToDate = writeIndividualMarc(existingMarcFiles, curProfile, curBib, recordNumber, marcRecordsWritten, marcRecordsOverwritten);
 										recordNumbersInExport.add(recordIdentifier.toString());
 										if (!explodeMarcsOnly) {
 											if (!marcUpToDate || fullRegroupingNoClear) {
@@ -1264,12 +1266,12 @@ public class RecordGrouperMain {
 		try{
 			PreparedStatement overDriveRecordsStmt;
 			if (lastGroupingTime != null && !fullRegrouping && !fullRegroupingNoClear){
-				overDriveRecordsStmt = econtentConnection.prepareStatement("SELECT id, overdriveId, mediaType, title, subtitle, primaryCreatorRole, primaryCreatorName FROM overdrive_api_products WHERE deleted = 0 and (dateUpdated >= ? OR lastMetadataChange >= ? OR lastAvailabilityChange >= ?)", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+				overDriveRecordsStmt = econtentConnection.prepareStatement("SELECT overdrive_api_products.id, overdriveId, mediaType, title, subtitle, primaryCreatorRole, primaryCreatorName FROM overdrive_api_products INNER JOIN overdrive_api_product_metadata ON overdrive_api_product_metadata.productId = overdrive_api_products.id WHERE deleted = 0 and isOwnedByCollections = 1 and (dateUpdated >= ? OR lastMetadataChange >= ? OR lastAvailabilityChange >= ?)", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 				overDriveRecordsStmt.setLong(1, lastGroupingTime);
 				overDriveRecordsStmt.setLong(2, lastGroupingTime);
 				overDriveRecordsStmt.setLong(3, lastGroupingTime);
 			}else{
-				overDriveRecordsStmt = econtentConnection.prepareStatement("SELECT id, overdriveId, mediaType, title, subtitle, primaryCreatorRole, primaryCreatorName FROM overdrive_api_products WHERE deleted = 0", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+				overDriveRecordsStmt = econtentConnection.prepareStatement("SELECT overdrive_api_products.id, overdriveId, mediaType, title, subtitle, primaryCreatorRole, primaryCreatorName FROM overdrive_api_products INNER JOIN overdrive_api_product_metadata ON overdrive_api_product_metadata.productId = overdrive_api_products.id WHERE deleted = 0 and isOwnedByCollections = 1", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			}
 			PreparedStatement overDriveIdentifiersStmt = econtentConnection.prepareStatement("SELECT * FROM overdrive_api_product_identifiers WHERE id = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			PreparedStatement overDriveCreatorStmt = econtentConnection.prepareStatement("SELECT fileAs FROM overdrive_api_product_creators WHERE productId = ? AND role like ? ORDER BY id", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
@@ -1363,14 +1365,14 @@ public class RecordGrouperMain {
 
 	private static SimpleDateFormat oo8DateFormat = new SimpleDateFormat("yyMMdd");
 	private static SimpleDateFormat oo5DateFormat = new SimpleDateFormat("yyyyMMdd");
-	private static boolean writeIndividualMarc(HashSet<String> existingMarcFiles, String individualMarcPath, Record marcRecord, String recordNumber, String source, int numCharsInPrefix, TreeSet<String> marcRecordsWritten, TreeSet<String> marcRecordsOverwritten) {
+	private static boolean writeIndividualMarc(HashSet<String> existingMarcFiles, IndexingProfile indexingProfile, Record marcRecord, String recordNumber, TreeSet<String> marcRecordsWritten, TreeSet<String> marcRecordsOverwritten) {
 		boolean marcRecordUpToDate = false;
 		//Copy the record to the individual marc path
 		if (recordNumber != null){
 			Long checksum = getChecksum(marcRecord);
-			File individualFile = getFileForIlsRecord(individualMarcPath, recordNumber, numCharsInPrefix);
+			File individualFile = indexingProfile.getFileForIlsRecord(recordNumber);
 
-			String recordNumberWithSource = source + ":" + recordNumber;
+			String recordNumberWithSource = indexingProfile.name + ":" + recordNumber;
 			Long existingChecksum = getExistingChecksum(recordNumberWithSource);
 			//If we are doing partial regrouping or full regrouping without clearing the previous results,
 			//Check to see if the record needs to be written before writing it.
@@ -1405,8 +1407,8 @@ public class RecordGrouperMain {
 			if (!marcRecordUpToDate){
 				try {
 					outputMarcRecord(marcRecord, individualFile);
-					getDateAddedForRecord(marcRecord, recordNumber, source, individualFile);
-					updateMarcRecordChecksum(recordNumber, source, checksum);
+					getDateAddedForRecord(marcRecord, recordNumber, indexingProfile.name, individualFile);
+					updateMarcRecordChecksum(recordNumber, indexingProfile.name, checksum);
 					//logger.debug("checksum changed for " + recordNumber + " was " + existingChecksum + " now its " + checksum);
 				} catch (IOException e) {
 					logger.error("Error writing marc", e);
@@ -1414,8 +1416,8 @@ public class RecordGrouperMain {
 			}else {
 				//Update date first detected if needed
 				if (marcRecordFirstDetectionDates.containsKey(recordNumberWithSource) && marcRecordFirstDetectionDates.get(recordNumberWithSource) == null){
-					getDateAddedForRecord(marcRecord, recordNumber, source, individualFile);
-					updateMarcRecordChecksum(recordNumber, source, checksum);
+					getDateAddedForRecord(marcRecord, recordNumber, indexingProfile.name, individualFile);
+					updateMarcRecordChecksum(recordNumber, indexingProfile.name, checksum);
 				}
 			}
 		}else{
@@ -1483,38 +1485,6 @@ public class RecordGrouperMain {
 
 	private static Long getExistingChecksum(String recordNumber) {
 		return marcRecordChecksums.get(recordNumber);
-	}
-
-	private static File getFileForIlsRecord(String individualMarcPath, String recordNumber, int numCharsInPrefix) {
-		String shortId = getFileIdForRecordNumber(recordNumber);
-		String firstChars = shortId.substring(0, numCharsInPrefix);
-		String basePath = individualMarcPath + "/" + firstChars;
-		String individualFilename = basePath + "/" + shortId + ".mrc";
-		File individualFile = new File(individualFilename);
-		createBaseDirectory(basePath);
-		return individualFile;
-	}
-
-	private static HashSet<String>basePathsValidated = new HashSet<>();
-	private static void createBaseDirectory(String basePath) {
-		if (basePathsValidated.contains(basePath)) {
-			return;
-		}
-		File baseFile = new File(basePath);
-		if (!baseFile.exists()){
-			if (!baseFile.mkdirs()){
-				System.out.println("Could not create directory to store individual marc");
-			}
-		}
-		basePathsValidated.add(basePath);
-	}
-
-	private static String getFileIdForRecordNumber(String recordNumber) {
-		String shortId = recordNumber.replace(".", "");
-		while (shortId.length() < 9){
-			shortId = "0" + shortId;
-		}
-		return shortId;
 	}
 
 	private static void updateMarcRecordChecksum(String recordNumber, String source, long checksum) {

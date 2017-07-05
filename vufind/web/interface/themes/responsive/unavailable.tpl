@@ -144,6 +144,8 @@ window.onload = start
 			<h1>The {$libraryName} Catalog is Down</h1>
 			<h2>for scheduled maintenance</h2>
 			{if $systemMessage}
+				<h2>{$systemMessage}</h2>
+			{/if}
 			{if $showLinkToClassicInMaintenanceMode}
 			<h4> Please search our <a href="{$classicCatalogUrl}">Classic Catalog</a></h4>
 			{/if}

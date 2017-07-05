@@ -5072,7 +5072,6 @@ button.close {
 }
 .modal.fade .modal-dialog {
   -webkit-transform: translate(0, -25%);
-  -ms-transform: translate(0, -25%);
   transform: translate(0, -25%);
   -webkit-transition: -webkit-transform 0.3s ease-out;
   transition: -webkit-transform 0.3s ease-out;
@@ -5081,7 +5080,6 @@ button.close {
 }
 .modal.in .modal-dialog {
   -webkit-transform: translate(0, 0);
-  -ms-transform: translate(0, 0);
   transform: translate(0, 0);
 }
 .modal-dialog {
@@ -7962,7 +7960,6 @@ fieldset[disabled] .datepicker table tr td span.active.disabled:hover.active {
   bottom: -25px;
   left: 50%;
   -webkit-transform: translate(-50%, 0);
-      -ms-transform: translate(-50%, 0);
           transform: translate(-50%, 0);
   margin: 0;
 }
@@ -8041,7 +8038,6 @@ fieldset[disabled] .datepicker table tr td span.active.disabled:hover.active {
   vertical-align: text-top;
   text-align: center;
   -webkit-transform: scale(0.6);
-      -ms-transform: scale(0.6);
           transform: scale(0.6);
   margin-top: -1px;
   margin-bottom: -1px;
@@ -8525,7 +8521,7 @@ hr.menu {
 }
 .menu-bar {
   color: #FFF;
-  background-color: #335260;
+  background-color: #0B9DA1;
 }
 #horizontal-menu-bar-container {
   padding-left: 5px;
@@ -8568,7 +8564,7 @@ hr.menu {
   width: 40px;
   height: 2000px;
   height: 100vh;
-  background-color: #335260;
+  background-color: #0B9DA1;
   color: #FFF;
   padding-left: 0;
   padding-right: 0;
@@ -8614,10 +8610,8 @@ hr.menu {
   display: inline-block;
   white-space: nowrap;
   -webkit-transform: rotate(-90deg) translateX(-100%);
-      -ms-transform: rotate(-90deg) translateX(-100%);
           transform: rotate(-90deg) translateX(-100%);
   -webkit-transform-origin: 0 0;
-      -ms-transform-origin: 0 0;
           transform-origin: 0 0;
 }
 .rotated-text-inner:after {
@@ -8699,9 +8693,9 @@ hr.menu {
   color: red;
 }
 #home-page-search {
-  background-color: #82b1b9;
-  background: -webkit-linear-gradient(top, #82b1b9, #335260);
-  background: linear-gradient(to bottom, #82b1b9, #335260);
+  background-color: #0B9DA1;
+  background: -webkit-linear-gradient(top, #0B9DA1, #0B9DA1);
+  background: linear-gradient(to bottom, #0B9DA1, #0B9DA1);
   padding: 20px 0 10px;
   margin-bottom: 5px;
 }
@@ -8741,7 +8735,7 @@ hr.menu {
 .searchSource {
   margin: 5px 0 0;
   color: #fff;
-  background-color: #335260;
+  background-color: #0B9DA1;
   border: none;
   width: 90% !important;
 }
@@ -8752,9 +8746,9 @@ hr.menu {
   font-size: 85%;
 }
 #horizontal-search-box {
-  background-color: #82b1b9;
-  background: -webkit-linear-gradient(top, #82b1b9, #335260);
-  background: linear-gradient(to bottom, #82b1b9, #335260);
+  background-color: #0B9DA1;
+  background: -webkit-linear-gradient(top, #0B9DA1, #0B9DA1);
+  background: linear-gradient(to bottom, #0B9DA1, #0B9DA1);
   padding: 15px 0;
 }
 #horizontal-search-box #searchForm .row {
@@ -9438,7 +9432,7 @@ a.browse-thumbnail-sorted.active {
 }
 #browse-sub-category-menu button.selected {
   color: #fff;
-  background-color: #729fb4;
+  background-color: #558aa2;
 }
 #browse-sub-category-menu button:focus {
   outline: none;
@@ -10125,26 +10119,21 @@ a.browse-thumbnail-sorted.active {
 }
 .search-results-navigation {
   display: -webkit-box;
-  display: -webkit-flex;
   display: -ms-flexbox;
   display: flex;
   -webkit-box-orient: horizontal;
   -webkit-box-direction: normal;
-  -webkit-flex-direction: row;
       -ms-flex-direction: row;
           flex-direction: row;
   -webkit-box-pack: center;
-  -webkit-justify-content: center;
       -ms-flex-pack: center;
           justify-content: center;
   -webkit-box-align: center;
-  -webkit-align-items: center;
       -ms-flex-align: center;
           align-items: center;
 }
 .search-results-navigation .previous {
   -webkit-box-flex: 1;
-  -webkit-flex-grow: 1;
       -ms-flex-positive: 1;
           flex-grow: 1;
   cursor: pointer;
@@ -10153,7 +10142,6 @@ a.browse-thumbnail-sorted.active {
 }
 .search-results-navigation .return {
   -webkit-box-flex: 3;
-  -webkit-flex-grow: 3;
       -ms-flex-positive: 3;
           flex-grow: 3;
   white-space: normal;
@@ -10165,9 +10153,11 @@ a.browse-thumbnail-sorted.active {
   white-space: nowrap;
   cursor: pointer;
   -webkit-box-flex: 1;
-  -webkit-flex-grow: 1;
       -ms-flex-positive: 1;
           flex-grow: 1;
+}
+.yearbox {
+  padding: 3px 6px;
 }
 .graph-bar {
   background-color: #088ec6;
@@ -10302,16 +10292,16 @@ a.browse-thumbnail-sorted.active {
   font-weight: bold;
 }
 #explore-more-sidebar {
-  background-color: #82b1b9;
-  background: -webkit-linear-gradient(top, #82b1b9, #335260);
-  background: linear-gradient(to bottom, #82b1b9, #335260);
+  background-color: #0B9DA1;
+  background: -webkit-linear-gradient(top, #0B9DA1, #0B9DA1);
+  background: linear-gradient(to bottom, #0B9DA1, #0B9DA1);
 }
 #explore-more-header {
   padding: 10px 25px 5px 0;
   margin-top: 5px;
   text-align: right;
   color: #FFF;
-  background-color: #2a444f;
+  background-color: #098689;
   font-variant: small-caps;
   font-weight: bold;
   font-size: 16px;
@@ -10328,7 +10318,7 @@ a.browse-thumbnail-sorted.active {
   text-transform: uppercase;
   font-weight: bold;
   color: #000075;
-  border-bottom: 2px solid #335260;
+  border-bottom: 2px solid #0B9DA1;
   margin-top: 15px;
 }
 #explore-more-body .section {
@@ -10370,12 +10360,12 @@ a.browse-thumbnail-sorted.active {
   }
 }
 .exploreMoreBar {
-  border: solid 1px #335260;
+  border: solid 1px #0B9DA1;
   margin: 10px 5px 15px;
 }
 .exploreMoreBar .exploreMoreBarLabel {
   color: #FFF;
-  background-color: #335260;
+  background-color: #0B9DA1;
   font-weight: bold;
   text-transform: uppercase;
   white-space: nowrap;
@@ -10393,15 +10383,13 @@ a.browse-thumbnail-sorted.active {
 }
 .exploreMoreBar .label-left,
 .exploreMoreBar .label-left img {
-  background-color: #335260;
+  background-color: #0B9DA1;
 }
 .exploreMoreBar .label-left .exploreMoreBarLabel {
   position: absolute;
   -webkit-transform: rotate(-90deg) translateX(-100%);
-      -ms-transform: rotate(-90deg) translateX(-100%);
           transform: rotate(-90deg) translateX(-100%);
   -webkit-transform-origin: 0 0;
-      -ms-transform-origin: 0 0;
           transform-origin: 0 0;
   padding-right: 10px;
   padding-left: 5px;
@@ -10417,7 +10405,7 @@ a.browse-thumbnail-sorted.active {
 }
 .exploreMoreBar .label-top,
 .exploreMoreBar .label-top img {
-  background-color: #335260;
+  background-color: #0B9DA1;
   display: inline-block;
 }
 .exploreMoreBar .label-top .exploreMoreBarLabel {
@@ -10448,7 +10436,6 @@ a.browse-thumbnail-sorted.active {
   position: absolute;
   top: 62px;
   -webkit-transform: translate(-50%, -50%);
-      -ms-transform: translate(-50%, -50%);
           transform: translate(-50%, -50%);
   left: 50%;
 }
@@ -10486,7 +10473,7 @@ a.browse-thumbnail-sorted.active {
 #book-sections .jcarousel-control-next {
   height: 100%;
   background-color: transparent;
-  color: #335260;
+  color: #0B9DA1;
   z-index: 2;
   box-shadow: white 0px 0px 0px 0px;
 }
@@ -10644,18 +10631,16 @@ a.browse-thumbnail-sorted.active {
 }
 .archiveComponentContainer .archiveComponent .archiveComponentBody .archiveComponentBox .archiveComponentControls {
   display: -webkit-box;
-  display: -webkit-flex;
   display: -ms-flexbox;
   display: flex;
   -webkit-box-align: center;
-  -webkit-align-items: center;
       -ms-flex-align: center;
           align-items: center;
 }
 .archiveComponentContainer .archiveComponent .archiveComponentBody .archiveComponentBox .archiveComponentControls,
 .archiveComponentContainer .archiveComponent .archiveComponentBody .archiveComponentBox .archiveComponentSearchControls {
   color: #FFF;
-  background-color: #335260;
+  background-color: #0B9DA1;
   padding: 10px 0;
   min-height: 124px;
 }
@@ -10665,7 +10650,7 @@ a.browse-thumbnail-sorted.active {
 }
 .archiveComponentContainer .archiveComponent .archiveComponentBody .archiveComponentBox #searchComponentForm {
   background-color: white;
-  border: 1px solid #21363f;
+  border: 1px solid #086e71;
   padding: 3px;
   margin-left: 5px;
 }
@@ -10693,7 +10678,7 @@ a.browse-thumbnail-sorted.active {
   top: 65px;
 }
 .archiveComponentContainer .archiveComponent.horizontalComponent .archiveComponentHeader {
-  background-color: #335260;
+  background-color: #0B9DA1;
   padding: 10px 10px 0;
 }
 .archiveComponentContainer .archiveComponent.horizontalComponent .archiveComponentHeader + .row {
@@ -10876,7 +10861,7 @@ fieldset[disabled] .btn-masquerade.active {
   border: 0;
   border-radius: 0.5em;
   color: #fff !important;
-  background-color: #54879F;
+  background-color: #0B9DA1;
   margin-top: 20px;
   line-height: 60px !important;
   text-shadow: none;
@@ -10901,7 +10886,6 @@ fieldset[disabled] .btn-masquerade.active {
 }
 .browse-category {
   padding-top: 20px;
-  height: 120px;
 }
 .browse-category div {
   text-shadow: none;
@@ -10914,10 +10898,8 @@ fieldset[disabled] .btn-masquerade.active {
 }
 .browse-category.selected {
   border: none;
-  background-color: #729fb4;
-  background: #729fb4;
-  background: -webkit-linear-gradient(top, #82b1b9 0%, #335260 75%, #fff 75%, #fff 80%, #CCCCCC 80%, #fff 100%);
-  background: linear-gradient(to bottom, #82b1b9 0%, #335260 75%, #fff 75%, #fff 80%, #CCCCCC 80%, #fff 100%);
+  background-color: #558aa2;
+  background: #558aa2;
 }
 .browse-category.selected div {
   color: #fff;
@@ -10967,5 +10949,35 @@ fieldset[disabled] .btn-masquerade.active {
   text-transform: uppercase;
 }
 #browse-sub-category-menu button.selected {
-  background-color: #729fb4;
+  background-color: #558aa2;
+}
+#account-settings-accordion .panel-heading,
+#more-details-accordion .panel-heading,
+.sidebar-links .panel-heading,
+#account-settings-accordion .panel-heading {
+  background: #e7e7e7;
+}
+#account-settings-accordion .active .panel-heading,
+#more-details-accordion .active .panel-heading,
+.sidebar-links .active .panel-heading,
+#account-settings-accordion .active .panel-heading {
+  background: #54879F;
+}
+#account-settings-accordion .panel,
+#more-details-accordion .panel,
+.sidebar-links .panel,
+#account-settings-accordion .panel,
+#account-settings-accordion .panel-heading,
+#more-details-accordion .panel-heading,
+.sidebar-links .panel-heading,
+#account-settings-accordion .panel-heading {
+  border-radius: 0;
+}
+.facetTitle,
+.exploreMoreTitle {
+  background: #e8e8e8;
+}
+.sidebar-label,
+.sidebar-button {
+  background: #414141;
 }

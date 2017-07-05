@@ -4,6 +4,7 @@ import org.apache.log4j.PropertyConfigurator;
 import org.ini4j.Ini;
 import org.ini4j.InvalidFileFormatException;
 import org.ini4j.Profile;
+import org.marc4j.MarcException;
 import org.marc4j.MarcPermissiveStreamReader;
 import org.marc4j.MarcReader;
 import org.marc4j.MarcStreamWriter;
@@ -29,8 +30,9 @@ import java.util.*;
 public class HorizonExportMain {
 	private static Logger logger = Logger.getLogger(HorizonExportMain.class);
 	private static String serverName; //Pika instance name
-	private static String recordNumberTag = "";
-	private static String individualMarcPath;
+
+	private static IndexingProfile indexingProfile;
+
 	private static Connection vufindConn;
 	private static PreparedStatement markGroupedWorkForBibAsChangedStmt;
 
@@ -49,9 +51,6 @@ public class HorizonExportMain {
 		// Read the base INI file to get information about the server (current directory/conf/config.ini)
 		Ini ini = loadConfigFile("config.ini");
 
-		recordNumberTag = ini.get("Reindex", "recordNumberTag");
-		individualMarcPath = ini.get("Reindex", "individualMarcPath");
-
 		//Connect to the vufind database
 		vufindConn = null;
 		try {
@@ -67,6 +66,12 @@ public class HorizonExportMain {
 			logger.error("Error connecting to vufind database ", e);
 			System.exit(1);
 		}
+
+		String profileToLoad = "ils";
+		if (args.length > 1){
+			profileToLoad = args[1];
+		}
+		indexingProfile = IndexingProfile.loadIndexingProfile(vufindConn, profileToLoad, logger);
 
 		//Look for any exports from Horizon that have not been processed
 		processChangesFromHorizon(ini);
@@ -100,10 +105,7 @@ public class HorizonExportMain {
 	private static void processChangesFromHorizon(Ini ini) {
 		String exportPath = ini.get("Reindex", "marcChangesPath");
 		File exportFile = new File(exportPath);
-		if (exportFile == null){
-			logger.error("Export path " + exportPath + " could not be initialized");
-			return;
-		}else if(!exportFile.exists()){
+		if(!exportFile.exists()){
 			logger.error("Export path " + exportPath + " does not exist");
 			return;
 		}
@@ -124,20 +126,33 @@ public class HorizonExportMain {
 		}
 		//A list of records to be updated.
 		HashMap<String, Record> recordsToUpdate = new HashMap<>();
-		for (File file : filesToProcess.values()){
+		Set<String> filenames = filesToProcess.keySet();
+		String[] filenamesArray = filenames.toArray(new String[filenames.size()]);
+		for (String fileName: filenamesArray){
+			File file = filesToProcess.get(fileName);
 			logger.debug("Processing " + file.getName());
 			try {
 				FileInputStream marcFileStream = new FileInputStream(file);
 				//Record Grouping always writes individual MARC records as UTF8
 				MarcReader updatesReader = new MarcPermissiveStreamReader(marcFileStream, true, true, "UTF8");
 				while (updatesReader.hasNext()) {
-					Record curBib = updatesReader.next();
-					String recordId = getRecordIdFromMarcRecord(curBib);
-					recordsToUpdate.put(recordId, curBib);
+					try {
+						Record curBib = updatesReader.next();
+						String recordId = getRecordIdFromMarcRecord(curBib);
+						recordsToUpdate.put(recordId, curBib);
+					}catch (MarcException me){
+						logger.info("File " + file + " has not been fully written", me);
+						filesToProcess.remove(fileName);
+						break;
+					}
 				}
 				marcFileStream.close();
+			} catch (EOFException e){
+				logger.info("File " + file + " has not been fully written", e);
+				filesToProcess.remove(fileName);
 			} catch (Exception e){
-				logger.error("Unable to read file " + file);
+				logger.error("Unable to read file " + file + " not processing", e);
+				filesToProcess.remove(fileName);
 			}
 		}
 		//Now that we have all the records, merge them and update the database.
@@ -149,6 +164,7 @@ public class HorizonExportMain {
 			for (String recordId : recordsToUpdate.keySet()) {
 				Record recordToUpdate = recordsToUpdate.get(recordId);
 				if (!updateMarc(recordId, recordToUpdate, updateTime)){
+					logger.error("Error updating marc record " + recordId);
 					errorUpdatingDatabase = true;
 				}
 				numUpdates++;
@@ -158,6 +174,7 @@ public class HorizonExportMain {
 			}
 		}catch (Exception e){
 			logger.error("Error updating marc records");
+			errorUpdatingDatabase = true;
 		} finally{
 			try {
 				//Turn auto commit back on
@@ -178,6 +195,7 @@ public class HorizonExportMain {
 					logger.warn("Could not delete " + file.getName());
 				}
 			}
+			logger.info("Deleted " + filesToProcess.size() + " files that were processed successfully.");
 		}else{
 			logger.error("There were errors updating the database, not clearing the files so they will be processed next time");
 		}
@@ -186,7 +204,7 @@ public class HorizonExportMain {
 	private static boolean updateMarc(String recordId, Record recordToUpdate, long updateTime) {
 		//Replace the MARC record in the individual marc records
 		try {
-			File marcFile = getFileForIlsRecord(individualMarcPath, recordId);
+			File marcFile = indexingProfile.getFileForIlsRecord(recordId);
 			if (!marcFile.exists()){
 				//This is a new record, we can just skip it for now.
 				return true;
@@ -214,24 +232,8 @@ public class HorizonExportMain {
 		return true;
 	}
 
-	private static File getFileForIlsRecord(String individualMarcPath, String recordNumber) {
-		String shortId = getFileIdForRecordNumber(recordNumber);
-		String firstChars = shortId.substring(0, 4);
-		String basePath = individualMarcPath + "/" + firstChars;
-		String individualFilename = basePath + "/" + shortId + ".mrc";
-		return new File(individualFilename);
-	}
-
-	private static String getFileIdForRecordNumber(String recordNumber) {
-		String shortId = recordNumber.replace(".", "");
-		while (shortId.length() < 9){
-			shortId = "0" + shortId;
-		}
-		return shortId;
-	}
-
 	private static String getRecordIdFromMarcRecord(Record marcRecord) {
-		List<DataField> recordIdField = getDataFields(marcRecord, recordNumberTag);
+		List<DataField> recordIdField = getDataFields(marcRecord, indexingProfile.recordNumberTag);
 		//Make sure we only get one ils identifier
 		for (DataField curRecordField : recordIdField) {
 			Subfield subfieldA = curRecordField.getSubfield('a');
@@ -315,7 +317,7 @@ public class HorizonExportMain {
 		return ini;
 	}
 
-	public static String cleanIniValue(String value) {
+	private static String cleanIniValue(String value) {
 		if (value == null) {
 			return null;
 		}

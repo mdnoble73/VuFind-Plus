@@ -457,6 +457,13 @@ abstract class IslandoraDriver extends RecordInterface {
 		return $this->fullTitle;
 	}
 
+	public function getSubTitle() {
+		$titleInfo = $this->getModsValue('titleInfo','mods');
+		$subTitle = $this->getModsValue('subTitle','mods', $titleInfo);
+
+		return $subTitle;
+	}
+
 	/**
 	 * Assign necessary Smarty variables and return a template name to
 	 * load in order to display the Table of Contents extracted from the
@@ -1118,11 +1125,14 @@ abstract class IslandoraDriver extends RecordInterface {
 						$parentObject = $fedoraUtils->getObject($collectionInfo['object']['value']);
 						/** @var IslandoraDriver $parentDriver */
 						$parentDriver = RecordDriverFactory::initRecordDriver($parentObject);
-						if ($parentDriver){
+						if ($parentDriver && $parentDriver instanceof IslandoraDriver){
 							$this->relatedCollections = $parentDriver->getRelatedCollections();
 							if (count($this->relatedCollections) != 0){
 								break;
 							}
+						}else{
+							global $logger;
+							$logger->log("Incorrect driver type for " . $collectionInfo['object']['value'], PEAR_LOG_DEBUG);
 						}
 					}
 				}
@@ -2579,10 +2589,10 @@ abstract class IslandoraDriver extends RecordInterface {
 				$prisonerOfWar = $this->getModsValue('prisonerOfWar', 'marmot', $militaryServiceRecord);
 				if ($militaryBranch != 'none' || $militaryConflict != 'none') {
 					$militaryRecord = array(
-							'branch' => $fedoraUtils->getObjectLabel($militaryBranch),
-							'branchLink' => '/Archive/' . $militaryBranch . '/Organization',
-							'conflict' => $fedoraUtils->getObjectLabel($militaryConflict),
-							'conflictLink' => '/Archive/' . $militaryConflict . '/Event',
+							'branch' => $militaryBranch == 'none' ? '' : $fedoraUtils->getObjectLabel($militaryBranch),
+							'branchLink' => $militaryBranch == 'none' ? '' : ('/Archive/' . $militaryBranch . '/Organization'),
+							'conflict' => $militaryConflict == 'none' ? '' : ($fedoraUtils->getObjectLabel($militaryConflict)),
+							'conflictLink' => $militaryConflict == 'none' ? '' : ('/Archive/' . $militaryConflict . '/Event'),
 							'serviceDateStart' => $serviceDateStart,
 							'serviceDateEnd' => $serviceDateEnd,
 							'highestRank' => $rank,
@@ -2877,6 +2887,14 @@ abstract class IslandoraDriver extends RecordInterface {
 
 		$limitationsNotes = $this->getModsValue('limitationsNotes', 'marmot');
 		$interface->assign('limitationsNotes', $limitationsNotes);
+
+		$rightsStatementOrg = $this->getModsValue('rightsStatementOrg', 'marmot');
+		if ($rightsStatementOrg == null){
+			$rightsStatementOrg = 'http://rightsstatements.org/page/CNE/1.0/?language=en';
+		}
+		$translatedStatement = translate($rightsStatementOrg);
+		$interface->assign('rightsStatementOrg', $rightsStatementOrg);
+		$interface->assign('translatedStatement', $translatedStatement);
 	}
 
 	protected $pidsOfChildContainers = null;
@@ -3010,11 +3028,9 @@ abstract class IslandoraDriver extends RecordInterface {
 		return null;
 	}
 
-	public function getBrandingInformation() {
-		if (!$this->loadedBrandingFromCollection){
-			$this->loadRelatedEntities();
-			$this->loadedBrandingFromCollection = true;
-
+	private $contributingLibrary = false;
+	public function getContributingLibrary() {
+		if ($this->contributingLibrary === false){
 			//Get the contributing institution
 			list($namespace) = explode(':', $this->getUniqueID());
 			$contributingLibrary = new Library();
@@ -3037,16 +3053,35 @@ abstract class IslandoraDriver extends RecordInterface {
 				$islandoraCache->pid = $contributingLibraryPid;
 				if ($islandoraCache->find(true) && !empty($islandoraCache->mediumCoverUrl)){
 					$imageUrl = $islandoraCache->mediumCoverUrl;
+					$libraryTitle = $islandoraCache->title;
 				}else{
 					$imageUrl = $fedoraUtils->getObjectImageUrl($fedoraUtils->getObject($contributingLibraryPid), 'medium');
+					$libraryTitle = $fedoraUtils->getObjectLabel($contributingLibraryPid);
 				}
-				$this->brandingEntities[$contributingLibraryPid] = array(
-						'label' => 'Contributed by ' . $islandoraCache->title,
+				$this->contributingLibrary = array(
+						'label' => 'Contributed by ' . $libraryTitle,
 						'image' => $imageUrl,
 						'link' => "/Archive/$contributingLibraryPid/Organization",
 						'sortIndex' => 9,
-						'pid' => $contributingLibraryPid
+						'pid' => $contributingLibraryPid,
+						'libraryName' => $libraryTitle,
+						'baseUrl' => 'https://' . $contributingLibrary->subdomain . '.marmot.org', //TODO: This needs to change for other libraries
 				);
+			}else{
+				$this->contributingLibrary = null;
+			}
+		}
+		return $this->contributingLibrary;
+	}
+	public function getBrandingInformation() {
+		if (!$this->loadedBrandingFromCollection){
+			$this->loadRelatedEntities();
+			$this->loadedBrandingFromCollection = true;
+
+			//Get the contributing institution
+			$contributingLibrary = $this->getContributingLibrary();
+			if ($contributingLibrary){
+				$this->brandingEntities[$contributingLibrary['pid']] = $contributingLibrary;
 			}
 
 			$collections = $this->getRelatedCollections();

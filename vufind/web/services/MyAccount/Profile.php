@@ -90,12 +90,8 @@ class MyAccount_Profile extends MyAccount
 			$interface->assign('allowAccountLinking', $allowAccountLinking);
 
 			// Determine Pickup Locations
-			if ($showPickupLocationInProfile) { // only grab pickup locations if needed.
-				global $locationSingleton;
-				//Get the list of pickup branch locations for display in the user interface.
-				$locations = $locationSingleton->getPickupBranches($patron, $patron->homeLocationId); // TODO getPickUpBranches has a $isLinkedUser parameter, needed?
-				$interface->assign('pickupLocations', $locations);
-			}
+			$pickupLocations = $patron->getValidPickupBranches($patron->getAccountProfile()->recordSource);
+			$interface->assign('pickupLocations', $pickupLocations);
 
 			// Save/Update Actions
 			if (isset($_POST['updateScope']) && !$configArray['Catalog']['offline']) {
@@ -140,6 +136,7 @@ class MyAccount_Profile extends MyAccount
 				$interface->assign('edit', true);
 			} else {
 				$interface->assign('edit', false);
+
 			}
 
 
@@ -165,13 +162,13 @@ class MyAccount_Profile extends MyAccount
 
 			if ($showAlternateLibraryOptionsInProfile) {
 				//Get the list of locations for display in the user interface.
-				$location                        = new Location();
-				$location->validHoldPickupBranch = 1;
-				$location->find();
 
 				$locationList = array();
-				while ($location->fetch()) {
-					$locationList[$location->locationId] = $location->displayName;
+				$locationList['0'] = "No Alternate Location Selected";
+				foreach ($pickupLocations as $pickupLocation){
+					if (!is_string($pickupLocation)){
+						$locationList[$pickupLocation->locationId] = $pickupLocation->displayName;
+					}
 				}
 				$interface->assign('locationList', $locationList);
 			}
@@ -187,6 +184,22 @@ class MyAccount_Profile extends MyAccount
 		// switch for hack for Millennium driver profile updating when updating is allowed but address updating is not allowed.
 		$millenniumNoAddress = $canUpdateContactInfo && !$canUpdateAddress && in_array($ils, array('Millennium', 'Sierra'));
 		$interface->assign('millenniumNoAddress', $millenniumNoAddress);
+
+
+		// CarlX Specific Options
+		if ($ils == 'CarlX' && !$configArray['Catalog']['offline']) {
+			// Get Phone Types
+			$phoneTypes = array();
+			/** @var CarlX $driver */
+			$driver        = CatalogFactory::getCatalogConnectionInstance();
+			$rawPhoneTypes = $driver->getPhoneTypeList();
+			foreach ($rawPhoneTypes as $rawPhoneTypeSubArray){
+				foreach ($rawPhoneTypeSubArray as $phoneType => $phoneTypeLabel) {
+					$phoneTypes["$phoneType"] = $phoneTypeLabel;
+				}
+			}
+			$interface->assign('phoneTypes', $phoneTypes);
+		}
 
 		$this->display('profile.tpl', 'Account Settings');
 	}

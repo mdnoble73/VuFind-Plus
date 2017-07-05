@@ -13,6 +13,9 @@
 			{include file="MyAccount/availableHoldsNotice.tpl"}
 
 				<h2>{translate text='Account Settings'}</h2>
+		{if $offline}
+			<div class="alert alert-warning"><strong>The library system is currently offline.</strong> We are unable to retrieve information about your {translate text='Account Settings'|lower} at this time.</div>
+		{else}
 
 			{if $profileUpdateErrors}
 				{foreach from=$profileUpdateErrors item=errorMsg}
@@ -175,27 +178,20 @@
 										{translate text='account_profile_notification_notice'}
 									</p>
 
+								{if $ils != 'CarlX'}
 									<div class="form-group">
 										<div class="col-xs-4"><strong>{translate text='Receive notices by'}:</strong></div>
 										<div class="col-xs-8">
 											{if $edit == true && $canUpdateContactInfo == true}
 												<div class="btn-group btn-group-sm" data-toggle="buttons">
 													{if $treatPrintNoticesAsPhoneNotices}
-														{if $ils != 'CarlX'} {* CarlX doesn't have this option *}
 															{* Tell the User the notice is Phone even though in the ILS it will be print *}
 															{* MDN 2/24/2016 - If the user changes their notice preference, make it phone to be more accurate, but show as selected if either print or mail is shown *}
-															<label for="noticesMail" class="btn btn-sm btn-default {if $profile->notices == 'a' || $profile->notices == 'p'}active{/if}"><input type="radio" value="p" id="noticesMail" name="notices" {if $profile->notices == 'a' || $profile->notices == 'p'}checked="checked"{/if}> Telephone</label>
-														{/if}
+															<label for="sendEmail" class="btn btn-sm btn-default {if $profile->notices == 'a'}active{/if}"><input type="radio" value="p" id="sendEmail" name="notices" {if $profile->notices == 'a' || $profile->notices == 'p'}checked="checked"{/if}> Telephone</label>
 													{else}
-														{if $ils != 'CarlX'} {* CarlX doesn't have this option *}
 															<label for="noticesMail" class="btn btn-sm btn-default {if $profile->notices == 'a'}active{/if}"><input type="radio" value="a" id="noticesMail" name="notices" {if $profile->notices == 'a'}checked="checked"{/if}> Postal Mail</label>
 															<label for="noticesTel" class="btn btn-sm btn-default {if $profile->notices == 'p'}active{/if}"><input type="radio" value="p" id="noticesTel" name="notices" {if $profile->notices == 'p'}checked="checked"{/if}> Telephone</label>
-														{/if}
 													{/if}
-													{if $ils == 'CarlX'} {* Add a none option to turn this switch into on/off for email *}
-														<label for="noticesNone" class="btn btn-sm btn-default {if $profile->notices == '-'}active{/if}"><input type="radio" value="-" id="noticesNone" name="notices" {if $profile->notices == '-'}checked="checked"{/if}> None</label>
-													{/if}
-
 													<label for="noticesEmail" class="btn btn-sm btn-default {if $profile->notices == 'z'}active{/if}"><input type="radio" value="z" id="noticesEmail" name="notices" {if $profile->notices == 'z'}checked="checked"{/if}> Email</label>
 												</div>
 											{else}
@@ -203,6 +199,81 @@
 											{/if}
 										</div>
 									</div>
+								{/if}
+
+									{if $ils == 'CarlX'} {* CarlX Notification Options *}
+
+										<div class="form-group">
+											<div class="col-xs-4"><strong>{translate text='Email notices'}:</strong></div>
+											<div class="col-xs-8">
+												{if $edit == true && $canUpdateContactInfo == true}
+													<div class="btn-group btn-group-sm" data-toggle="buttons">
+															<label for="sendEmail" class="btn btn-sm btn-default {if $profile->notices == 'send email'}active{/if}"><input type="radio" value="send email" id="sendEmail" name="notices" {if $profile->notices == 'send email'}checked="checked"{/if}> Send Email</label>
+															<label for="dontSendEmail" class="btn btn-sm btn-default {if $profile->notices == 'do not send email'}active{/if}"><input type="radio" value="do not send email" id="dontSendEmail" name="notices" {if $profile->notices == 'do not send email'}checked="checked"{/if}> Do not send email</label>
+															<label for="optOut" class="btn btn-sm btn-default {if $profile->notices == 'opted out'}active{/if}"><input type="radio" value="opted out" id="optOut" name="notices" {if $profile->notices == 'opted out'}checked="checked"{/if}> Opt-out</label>
+													</div>
+												{else}
+													{$profile->notices}
+												{/if}
+											</div>
+										</div>
+
+
+										<div class="form-group">
+										<div class="col-xs-4"><label for="emailReceiptFlag" class="control-label">{translate text='Email receipts for checkouts and renewals'}:</label></div>
+										<div class="col-xs-8">
+											{if $edit == true}
+												<input type="checkbox" name="emailReceiptFlag" id="emailReceiptFlag" {if $profile->emailReceiptFlag==1}checked='checked'{/if} data-switch="">
+											{else}
+												{if $profile->emailReceiptFlag==0}No{else}Yes{/if}
+											{/if}
+										</div>
+									</div>
+
+										<div class="form-group">
+											<div class="col-xs-4"><label for="phoneType" class="">{translate text='Phone Carrier for SMS notices'}:</label></div>
+											<div class="col-xs-8">
+												{if $edit == true && $canUpdateContactInfo == true}
+													<select name="phoneType" id="phoneType" class="form-control">
+														{if count($phoneTypes) > 0}
+															{foreach from=$phoneTypes item=phoneTypeLabel key=phoneType}
+																<option value="{$phoneType}" {if $phoneType == $profile->phoneType}selected="selected"{/if}>{$phoneTypeLabel}</option>
+															{/foreach}
+														{else}
+															<option></option>
+														{/if}
+													</select>
+												{else}
+													{assign var=i value=$profile->phoneType}
+													{$phoneTypes[$i]}
+												{/if}
+											</div>
+										</div>
+
+
+									<div class="form-group">
+										<div class="col-xs-4"><label for="availableHoldNotice" class="control-label">{translate text='SMS notices for available holds'}:</label></div>
+										<div class="col-xs-8">
+											{if $edit == true}
+												<input type="checkbox" name="availableHoldNotice" id="availableHoldNotice" {if $profile->availableHoldNotice==1}checked='checked'{/if} data-switch="">
+											{else}
+												{if $profile->availableHoldNotice==0}No{else}Yes{/if}
+											{/if}
+										</div>
+									</div>
+
+									<div class="form-group">
+										<div class="col-xs-4"><label for="comingDueNotice" class="control-label">{translate text='SMS notices for due date reminders'}:</label></div>
+										<div class="col-xs-8">
+											{if $edit == true}
+												<input type="checkbox" name="comingDueNotice" id="comingDueNotice" {if $profile->comingDueNotice==1}checked='checked'{/if} data-switch="">
+											{else}
+												{if $profile->comingDueNotice==0}No{else}Yes{/if}
+											{/if}
+										</div>
+									</div>
+
+									{/if}
 								{/if}
 
 								{if $showSMSNoticesInProfile}
@@ -267,7 +338,7 @@
 					</div>
 				</div>
 
-				{if $allowPinReset}
+				{if $allowPinReset && !$offline}
 					<div class="panel active">
 						<a data-toggle="collapse" data-parent="#account-settings-accordion" href="#pinPanel">
 							<div class="panel-heading">
@@ -595,7 +666,7 @@
 				$(function(){ $('input[type="checkbox"][data-switch]').bootstrapSwitch()});
 				{/literal}
 			</script>
-
+		{/if}
 		{else}
 			<div class="page">
 				You must login to view this information. Click <a href="{$path}/MyResearch/Login">here</a> to login.

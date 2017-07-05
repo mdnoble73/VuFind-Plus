@@ -32,9 +32,8 @@ import java.util.List;
 public class KohaExportMain {
 	private static Logger logger = Logger.getLogger(KohaExportMain.class);
 	private static String serverName; //Pika instance name
-	private static String itemTag;
-	private static char itemRecordNumberSubfield;
-	private static char locationSubfield;
+
+	private static IndexingProfile indexingProfile;
 
 	public static void main(String[] args) {
 		serverName = args[0];
@@ -78,6 +77,12 @@ public class KohaExportMain {
 			logger.error("Error connecting to koha database ", e);
 			System.exit(1);
 		}
+
+		String profileToLoad = "ils";
+		if (args.length > 1){
+			profileToLoad = args[1];
+		}
+		indexingProfile = IndexingProfile.loadIndexingProfile(vufindConn, profileToLoad, logger);
 
 		//Get a list of works that have changed since the last index
 		getChangedRecordsFromDatabase(ini, vufindConn, kohaConn);
@@ -143,7 +148,7 @@ public class KohaExportMain {
 			}
 
 		} catch (Exception e) {
-			logger.error("Unable to export holds from Sierra", e);
+			logger.error("Unable to export holds from Koha", e);
 			if (startOfHolds != null) {
 				try {
 					vufindConn.rollback(startOfHolds);
@@ -162,13 +167,7 @@ public class KohaExportMain {
 			Long lastKohaExtractTime;
 			Long lastKohaExtractTimeVariableId = null;
 
-			String individualMarcPath = ini.get("Reindex", "individualMarcPath");
-			itemTag = ini.get("Reindex", "itemTag");
-			itemRecordNumberSubfield = getSubfieldIndicatorFromConfig(ini, "itemRecordNumberSubfield");
-			locationSubfield = getSubfieldIndicatorFromConfig(ini, "locationSubfield");
-
 			long updateTime = new Date().getTime() / 1000;
-
 
 			PreparedStatement markGroupedWorkForBibAsChangedStmt = vufindConn.prepareStatement("UPDATE grouped_work SET date_updated = ? where id = (SELECT grouped_work_id from grouped_work_primary_identifiers WHERE type = 'ils' and identifier = ?)") ;
 			PreparedStatement loadLastKohaExtractTimeStmt = vufindConn.prepareStatement("SELECT * from variables WHERE name = 'last_koha_extract_time'", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
@@ -238,7 +237,7 @@ public class KohaExportMain {
 			int numUpdates = 0;
 			for (String curBibId : changedBibs.keySet()){
 				//Update the marc record
-				updateMarc(individualMarcPath, curBibId, changedBibs.get(curBibId));
+				updateMarc(curBibId, changedBibs.get(curBibId));
 				//Update the database
 				try {
 					markGroupedWorkForBibAsChangedStmt.setLong(1, updateTime);
@@ -284,10 +283,10 @@ public class KohaExportMain {
 		logger.info("Finished loading changed records from Koha database");
 	}
 
-	private static void updateMarc(String individualMarcPath, String curBibId, ArrayList<ItemChangeInfo> itemChangeInfo) {
+	private static void updateMarc(String curBibId, ArrayList<ItemChangeInfo> itemChangeInfo) {
 		//Load the existing marc record from file
 		try {
-			File marcFile = getFileForIlsRecord(individualMarcPath, curBibId);
+			File marcFile = indexingProfile.getFileForIlsRecord(curBibId);
 			if (marcFile.exists()) {
 				FileInputStream inputStream = new FileInputStream(marcFile);
 				MarcPermissiveStreamReader marcReader = new MarcPermissiveStreamReader(inputStream, true, true, "UTF-8");
@@ -296,11 +295,11 @@ public class KohaExportMain {
 					inputStream.close();
 
 					//Loop through all item fields to see what has changed
-					List<VariableField> itemFields = marcRecord.getVariableFields(itemTag);
+					List<VariableField> itemFields = marcRecord.getVariableFields(indexingProfile.itemTag);
 					for (VariableField itemFieldVar : itemFields) {
 						DataField itemField = (DataField) itemFieldVar;
-						if (itemField.getSubfield(itemRecordNumberSubfield) != null) {
-							String itemRecordNumber = itemField.getSubfield(itemRecordNumberSubfield).getData();
+						if (itemField.getSubfield(indexingProfile.itemRecordNumberSubfield) != null) {
+							String itemRecordNumber = itemField.getSubfield(indexingProfile.itemRecordNumberSubfield).getData();
 							//Update the items
 							for (ItemChangeInfo curItem : itemChangeInfo) {
 								//Find the correct item
@@ -366,22 +365,6 @@ public class KohaExportMain {
 		}
 	}
 
-	private static File getFileForIlsRecord(String individualMarcPath, String recordNumber) {
-		String shortId = getFileIdForRecordNumber(recordNumber);
-		String firstChars = shortId.substring(0, 4);
-		String basePath = individualMarcPath + "/" + firstChars;
-		String individualFilename = basePath + "/" + shortId + ".mrc";
-		return new File(individualFilename);
-	}
-
-	private static String getFileIdForRecordNumber(String recordNumber) {
-		String shortId = recordNumber.replace(".", "");
-		while (shortId.length() < 9){
-			shortId = "0" + shortId;
-		}
-		return shortId;
-	}
-
 	private static Ini loadConfigFile(String filename){
 		//First load the default config file
 		String configName = "../../sites/default/conf/" + filename;
@@ -444,7 +427,7 @@ public class KohaExportMain {
 		return ini;
 	}
 
-	public static String cleanIniValue(String value) {
+	private static String cleanIniValue(String value) {
 		if (value == null) {
 			return null;
 		}
@@ -456,14 +439,5 @@ public class KohaExportMain {
 			value = value.substring(0, value.length() - 1);
 		}
 		return value;
-	}
-
-	private static char getSubfieldIndicatorFromConfig(Ini configIni, String subfieldName) {
-		String subfieldString = configIni.get("Reindex", subfieldName);
-		char subfield = ' ';
-		if (subfieldString != null && subfieldString.length() > 0)  {
-			subfield = subfieldString.charAt(0);
-		}
-		return subfield;
 	}
 }

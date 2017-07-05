@@ -1563,5 +1563,14 @@ function getLibraryLocationUpdates(){
 					),
 			),
 
+			'location_subdomain' => array(
+					'title' => 'Location Subdomain',
+					'description' => 'Allow specification of a location subdomain independent of ils code',
+					'continueOnError' => true,
+					'sql' => array(
+							"ALTER TABLE `location` ADD COLUMN `subdomain` VARCHAR(25) DEFAULT '';",
+					),
+			),
+
 	);
 }

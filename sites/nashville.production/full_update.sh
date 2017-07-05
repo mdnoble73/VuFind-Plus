@@ -5,8 +5,6 @@
 # James Staub, Nashville Public Library
 # Script handles all aspects of a full index including 
 # extracting data from other systems.
-# Should be called once per day from crontab
-# For Pika discovery partners using Millennium 2014 2.0.0_15
 
 # TO DO: 
 #	+ add similar isProduction logic to continuous_partial_reindex.sh
@@ -99,6 +97,9 @@ rm /data/pika/${PIKASERVER}/grouped_work_primary_identifiers.sql
 
 #Restart Solr
 cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
+
+#copy the export from CARL.X
+expect copyCarlXExport.exp nashville.production
 
 #Extracts from sideloaded eContent; log defined in config.pwd.ini [Sideload]
 # Problems with full_update starting late 201608: James moved sideload.sh

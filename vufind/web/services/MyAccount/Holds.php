@@ -21,9 +21,9 @@ class MyAccount_Holds extends MyAccount{
 		$interface->assign('allowFreezeHolds', true);
 
 		$ils = $configArray['Catalog']['ils'];
-		$showPosition = ($ils == 'Horizon' || $ils == 'Koha');
+		$showPosition = ($ils == 'Horizon' || $ils == 'Koha' || $ils == 'Symphony');
 		$showExpireTime = ($ils == 'Horizon');
-		$suspendRequiresReactivationDate = ($ils == 'Horizon' || $ils == 'CarlX');
+		$suspendRequiresReactivationDate = ($ils == 'Horizon' || $ils == 'CarlX' || $ils == 'Symphony');
 		$interface->assign('suspendRequiresReactivationDate', $suspendRequiresReactivationDate);
 		$canChangePickupLocation = ($ils != 'Koha');
 		$interface->assign('canChangePickupLocation', $canChangePickupLocation);
@@ -95,6 +95,7 @@ class MyAccount_Holds extends MyAccount{
 
 		//Load holds that have been entered offline
 		if ($user){
+			//TODO: Offline holds are not displayed on the My Holds page
 			require_once ROOT_DIR . '/sys/OfflineHold.php';
 			$twoDaysAgo = time() - 48 * 60 * 60;
 			$twoWeeksAgo = time() - 14 * 24 * 60 * 60;

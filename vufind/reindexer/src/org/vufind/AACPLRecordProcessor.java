@@ -1,7 +1,6 @@
 package org.vufind;
 
 import org.apache.log4j.Logger;
-import org.ini4j.Ini;
 import org.marc4j.marc.DataField;
 import org.marc4j.marc.Record;
 import org.marc4j.marc.Subfield;
@@ -11,7 +10,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
@@ -21,10 +19,10 @@ import java.util.regex.Pattern;
  * Date: 4/25/14
  * Time: 11:02 AM
  */
-public class AACPLRecordProcessor extends IlsRecordProcessor {
+class AACPLRecordProcessor extends IlsRecordProcessor {
 	private PreparedStatement getDateAddedStmt;
-	public AACPLRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
-		super(indexer, vufindConn, configIni, indexingProfileRS, logger, fullReindex);
+	AACPLRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
+		super(indexer, vufindConn, indexingProfileRS, logger, fullReindex);
 
 		try{
 			getDateAddedStmt = vufindConn.prepareStatement("SELECT dateFirstDetected FROM ils_marc_checksums WHERE ilsId = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
@@ -53,9 +51,7 @@ public class AACPLRecordProcessor extends IlsRecordProcessor {
 		}
 		if (collectionSubfield != ' '){
 			Subfield collectionSubfieldValue = curItem.getSubfield(collectionSubfield);
-			if (collectionSubfieldValue == null){
-				return true;
-			}else{
+			if (collectionSubfieldValue != null){
 				if (collectionSubfieldValue.getData().trim().matches(collectionsToSuppress)){
 					return true;
 				}
@@ -64,15 +60,18 @@ public class AACPLRecordProcessor extends IlsRecordProcessor {
 		return false;
 	}
 
-	protected String getItemStatus(DataField itemField){
+	protected String getItemStatus(DataField itemField, String recordIdentifier){
 		String subfieldData = getItemSubfieldData(statusSubfieldIndicator, itemField);
 		if (subfieldData == null){
+			subfieldData = "ONSHELF";
+		}else if (translateValue("item_status", subfieldData, recordIdentifier, false) == null){
 			subfieldData = "ONSHELF";
 		}
 		return subfieldData;
 	}
 
-	Pattern availableStati = Pattern.compile("^(y)$");
+
+
 	@Override
 	protected boolean isItemAvailable(ItemInfo itemInfo) {
 		boolean available = false;
@@ -103,13 +102,11 @@ public class AACPLRecordProcessor extends IlsRecordProcessor {
 	protected String getShelfLocationForItem(ItemInfo itemInfo, DataField itemField, String identifier) {
 		String locationCode = getItemSubfieldData(locationSubfieldIndicator, itemField);
 		String location = translateValue("location", locationCode, identifier);
-		String shelvingLocation = getItemSubfieldData(shelvingLocationSubfield, itemField);
-		if (shelvingLocation != null && !shelvingLocation.equals(locationCode)){
-			if (location == null){
-				location = translateValue("shelf_location", shelvingLocation, identifier);
-			}else {
-				location += " - " + translateValue("shelf_location", shelvingLocation, identifier);
-			}
+		String shelvingLocation = itemInfo.getShelfLocationCode();
+		if (location == null){
+			location = translateValue("shelf_location", shelvingLocation, identifier);
+		}else {
+			location += " - " + translateValue("shelf_location", shelvingLocation, identifier);
 		}
 		return location;
 	}
@@ -127,5 +124,56 @@ public class AACPLRecordProcessor extends IlsRecordProcessor {
 		HashSet<String> translatedAudiences = translateCollection("audience", targetAudiences, identifier);
 		groupedWork.addTargetAudiences(translatedAudiences);
 		groupedWork.addTargetAudiencesFull(translatedAudiences);
+	}
+
+	@Override
+	protected void loadLiteraryForms(GroupedWorkSolr groupedWork, Record record, HashSet<ItemInfo> printItems, String identifier) {
+		//For Arlington we can load the literary forms based off of the location code:
+		// ??f?? = Fiction
+		// ??n?? = Non-Fiction
+		// ??x?? = Other
+		String literaryForm = null;
+		for (ItemInfo printItem : printItems){
+			String locationCode = printItem.getShelfLocationCode();
+			if (locationCode != null) {
+				literaryForm = getLiteraryFormForLocation(locationCode);
+				if (literaryForm != null){
+					break;
+				}
+			}
+		}
+		if (literaryForm == null){
+			literaryForm = "Other";
+		}
+		groupedWork.addLiteraryForm(literaryForm);
+		groupedWork.addLiteraryFormFull(literaryForm);
+	}
+
+	private Pattern nonFicPattern = Pattern.compile(".*nonfic.*", Pattern.CASE_INSENSITIVE);
+	private Pattern ficPattern = Pattern.compile(".*fic.*", Pattern.CASE_INSENSITIVE);
+	private String getLiteraryFormForLocation(String locationCode) {
+		String literaryForm = null;
+		if (nonFicPattern.matcher(locationCode).matches()) {
+			literaryForm = "Non Fiction";
+		}else if (ficPattern.matcher(locationCode).matches()){
+			literaryForm = "Fiction";
+		}
+		return literaryForm;
+	}
+
+	protected void setShelfLocationCode(DataField itemField, ItemInfo itemInfo, String recordIdentifier) {
+		//For Symphony the status field holds the location code unless it is currently checked out, on display, etc.
+		//In that case the location code holds the permanent location
+		String subfieldData = getItemSubfieldData(statusSubfieldIndicator, itemField);
+		boolean loadFromPermanentLocation = false;
+		if (subfieldData == null){
+			loadFromPermanentLocation = true;
+		}else if (translateValue("item_status", subfieldData, recordIdentifier, false) != null){
+			loadFromPermanentLocation = true;
+		}
+		if (loadFromPermanentLocation){
+			subfieldData = getItemSubfieldData(shelvingLocationSubfield, itemField);
+		}
+		itemInfo.setShelfLocationCode(subfieldData);
 	}
 }

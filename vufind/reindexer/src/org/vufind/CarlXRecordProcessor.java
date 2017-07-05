@@ -1,11 +1,16 @@
 package org.vufind;
 
 import org.apache.log4j.Logger;
-import org.ini4j.Ini;
 import org.marc4j.marc.DataField;
+import org.marc4j.marc.Record;
+import org.marc4j.marc.Subfield;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Record Processing Specific to records loaded from CARL.X
@@ -14,9 +19,19 @@ import java.sql.ResultSet;
  * Date: 7/1/2016
  * Time: 11:14 AM
  */
-public class CarlXRecordProcessor extends IlsRecordProcessor {
-	public CarlXRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
-		super(indexer, vufindConn, configIni, indexingProfileRS, logger, fullReindex);
+class CarlXRecordProcessor extends IlsRecordProcessor {
+	CarlXRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
+		super(indexer, vufindConn, indexingProfileRS, logger, fullReindex);
+	}
+
+	@Override
+	protected void updateGroupedWorkSolrDataBasedOnMarc(GroupedWorkSolr groupedWork, Record record, String identifier) {
+		super.updateGroupedWorkSolrDataBasedOnMarc(groupedWork, record, identifier);
+		//Add variations of the identifier
+		String shortIdentifier = identifier.replace("CARL", "");
+		groupedWork.addAlternateId(shortIdentifier);
+		shortIdentifier = shortIdentifier.replaceFirst("^0+", "");
+		groupedWork.addAlternateId(shortIdentifier);
 	}
 
 	@Override
@@ -36,5 +51,87 @@ public class CarlXRecordProcessor extends IlsRecordProcessor {
 			}
 		}
 		return location;
+	}
+
+	private static int numSampleRecordsWithMultiplePrintFormats = 0;
+	@Override
+	public void loadPrintFormatInformation(RecordInfo ilsRecord, Record record) {
+		List<DataField> items = MarcUtil.getDataFields(record, itemTag);
+		HashMap<String, Integer> printFormats = new HashMap<>();
+		for (DataField curItem : items){
+			Subfield formatField = curItem.getSubfield(formatSubfield);
+			if (formatField != null) {
+				String curFormat = formatField.getData();
+				String printFormatLower = curFormat.toLowerCase();
+				if (!printFormats.containsKey(printFormatLower)) {
+					printFormats.put(printFormatLower, 1);
+				} else {
+					printFormats.put(printFormatLower, printFormats.get(printFormatLower) + 1);
+				}
+			}
+		}
+
+		HashSet<String> selectedPrintFormats = new HashSet<>();
+		if (printFormats.size() > 1 && numSampleRecordsWithMultiplePrintFormats < 100){
+			logger.info("Record " + ilsRecord.getRecordIdentifier() + " had multiple formats based on the item information");
+			numSampleRecordsWithMultiplePrintFormats++;
+		}
+		int maxPrintFormats = 0;
+		String selectedFormat = "";
+		if (printFormats.size() > 1) {
+			for (String printFormat : printFormats.keySet()) {
+				int numUsages = printFormats.get(printFormat);
+				logger.info("  " + printFormat + " used " + numUsages + " times");
+				if (numUsages > maxPrintFormats) {
+					if (selectedFormat.length() > 0) {
+						logger.info("Record " + ilsRecord.getRecordIdentifier() + " " + printFormat + " has more usages (" + numUsages + ") than " + selectedFormat + " (" + maxPrintFormats + ")");
+					}
+					selectedFormat = printFormat;
+					maxPrintFormats = numUsages;
+				}
+			}
+			logger.info("  Selected Format is " + selectedFormat);
+		}else if (printFormats.size() == 1) {
+			selectedFormat = printFormats.keySet().iterator().next();
+		}else{
+			//format not found based on item records.
+			//TODO Fall back to default method?
+			selectedFormat = "On Order";
+		}
+		selectedPrintFormats.add(selectedFormat);
+
+		HashSet<String> translatedFormats = translateCollection("format", selectedPrintFormats, ilsRecord.getRecordIdentifier());
+		HashSet<String> translatedFormatCategories = translateCollection("format_category", selectedPrintFormats, ilsRecord.getRecordIdentifier());
+		ilsRecord.addFormats(translatedFormats);
+		ilsRecord.addFormatCategories(translatedFormatCategories);
+		Long formatBoost = 0L;
+		HashSet<String> formatBoosts = translateCollection("format_boost", selectedPrintFormats, ilsRecord.getRecordIdentifier());
+		for (String tmpFormatBoost : formatBoosts){
+			if (Util.isNumeric(tmpFormatBoost)) {
+				Long tmpFormatBoostLong = Long.parseLong(tmpFormatBoost);
+				if (tmpFormatBoostLong > formatBoost) {
+					formatBoost = tmpFormatBoostLong;
+				}
+			}
+		}
+		ilsRecord.setFormatBoost(formatBoost);
+	}
+
+	protected void loadTargetAudiences(GroupedWorkSolr groupedWork, Record record, HashSet<ItemInfo> printItems, String identifier) {
+		//For Nashville CARL.X, load audiences based on location code rather than based on the 008 and 006 fields
+		HashSet<String> targetAudiences = new HashSet<>();
+		for (ItemInfo printItem : printItems){
+			String location = printItem.getShelfLocationCode();
+			if (location != null) {
+				//Get the first character from the location
+				if (location.length() > 0){
+					targetAudiences.add(location.substring(0, 1));
+				}
+			}
+		}
+
+		HashSet<String> translatedAudiences = translateCollection("target_audience", targetAudiences, identifier);
+		groupedWork.addTargetAudiences(translatedAudiences);
+		groupedWork.addTargetAudiencesFull(translatedAudiences);
 	}
 }

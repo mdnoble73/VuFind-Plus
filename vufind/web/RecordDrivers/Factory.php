@@ -76,7 +76,7 @@ class RecordDriverFactory {
 				}
 
 				if ($normalizedRecordType == 'Compound'){
-					$genre = $record['mods_genre_s'];
+					$genre = isset($record['mods_genre_s']) ? $record['mods_genre_s'] : null;
 					if ($genre != null){
 						$normalizedRecordType = ucfirst($genre);
 						$normalizedRecordType = str_replace(' ', '', $normalizedRecordType);
@@ -259,7 +259,7 @@ class RecordDriverFactory {
 				}
 
 				if ($normalizedRecordType == 'Compound') {
-					$genre = $record['mods_genre_s'];
+					$genre = isset($record['mods_genre_s']) ? $record['mods_genre_s'] : null;
 					if ($genre != null) {
 						$normalizedRecordType = ucfirst($genre);
 						$driver = $normalizedRecordType . 'Driver';

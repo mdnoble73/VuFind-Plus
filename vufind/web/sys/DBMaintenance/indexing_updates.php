@@ -207,13 +207,33 @@ function getIndexingUpdates() {
 			)
 		),
 
-			'indexing_profile_collectionsToSuppress' => array(
-					'title' => 'Indexing Profiles - collections to suppress',
-					'description' => 'Allow specific collection codes to be suppressed',
-					'sql' => array(
-							"ALTER TABLE indexing_profiles ADD COLUMN `collectionsToSuppress` varchar(100) DEFAULT ''",
-					)
-			),
+		'indexing_profile_collectionsToSuppress' => array(
+				'title' => 'Indexing Profiles - collections to suppress',
+				'description' => 'Allow specific collection codes to be suppressed',
+				'sql' => array(
+						"ALTER TABLE indexing_profiles ADD COLUMN `collectionsToSuppress` varchar(100) DEFAULT ''",
+				)
+		),
+
+		'indexing_profile_folderCreation' => array(
+				'title' => 'Indexing Profiles - Individual Folder Creation',
+				'description' => 'Determine how marc record folders should be created',
+				'sql' => array(
+						"ALTER TABLE indexing_profiles ADD COLUMN `numCharsToCreateFolderFrom` int(11) DEFAULT 4",
+						"ALTER TABLE indexing_profiles ADD COLUMN `createFolderFromLeadingCharacters` tinyint(1) DEFAULT 1",
+						"UPDATE indexing_profiles SET `numCharsToCreateFolderFrom` = 7 WHERE name = 'hoopla'",
+				)
+		),
+
+		'indexing_profile_dueDateFormat' => array(
+				'title' => 'Indexing Profiles - Due Date Format',
+				'description' => 'Set the Due Date Format for an indexing profile',
+				'continueOnError' => true,
+				'sql' => array(
+						"ALTER TABLE indexing_profiles ADD COLUMN `dueDateFormat` varchar(20) DEFAULT 'yyMMdd'",
+						"updateDueDateFormat",
+				)
+		),
 
 		'translation_map_regex' => array(
 			'title' => 'Translation Maps Regex',
@@ -265,6 +285,30 @@ function getIndexingUpdates() {
 							) ENGINE=InnoDB DEFAULT CHARSET=utf8",
 				)
 		),
+
+			'records_to_include_2017-06' => array(
+					'title' => 'Records To Include Updates 2017.06',
+					'description' => 'Additional control over what is included, URL rewriting.',
+					'sql' => array(
+							"ALTER TABLE library_records_to_include ADD COLUMN iType VARCHAR(100)",
+							"ALTER TABLE library_records_to_include ADD COLUMN audience VARCHAR(100)",
+							"ALTER TABLE library_records_to_include ADD COLUMN format VARCHAR(100)",
+							"ALTER TABLE library_records_to_include ADD COLUMN marcTagToMatch VARCHAR(100)",
+							"ALTER TABLE library_records_to_include ADD COLUMN marcValueToMatch VARCHAR(100)",
+							"ALTER TABLE library_records_to_include ADD COLUMN includeExcludeMatches TINYINT default 1",
+							"ALTER TABLE library_records_to_include ADD COLUMN urlToMatch VARCHAR(100)",
+							"ALTER TABLE library_records_to_include ADD COLUMN urlReplacement VARCHAR(100)",
+
+							"ALTER TABLE location_records_to_include ADD COLUMN iType VARCHAR(100)",
+							"ALTER TABLE location_records_to_include ADD COLUMN audience VARCHAR(100)",
+							"ALTER TABLE location_records_to_include ADD COLUMN format VARCHAR(100)",
+							"ALTER TABLE location_records_to_include ADD COLUMN marcTagToMatch VARCHAR(100)",
+							"ALTER TABLE location_records_to_include ADD COLUMN marcValueToMatch VARCHAR(100)",
+							"ALTER TABLE location_records_to_include ADD COLUMN includeExcludeMatches TINYINT default 1",
+							"ALTER TABLE location_records_to_include ADD COLUMN urlToMatch VARCHAR(100)",
+							"ALTER TABLE location_records_to_include ADD COLUMN urlReplacement VARCHAR(100)",
+					)
+			),
 
 	);
 }

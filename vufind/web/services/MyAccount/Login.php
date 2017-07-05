@@ -38,7 +38,7 @@ class MyAccount_Login extends Action
 		// actions as a support function.  If accessed directly, just redirect to
 		// the MyAccount home page.
 		if ($module == 'MyAccount' && $action == 'Login') {
-			header('Location: Home');
+			header('Location: /MyAccount/Home');
 			die();
 		}
 
@@ -95,7 +95,10 @@ class MyAccount_Login extends Action
 			// preserve card Number for Masquerading
 			if (isset($_REQUEST['cardNumber'])) {
 				$interface->assign('cardNumber', $_REQUEST['cardNumber']);
+				$interface->assign('followupModule', 'MyAccount');
+				$interface->assign('followupAction', 'Masquerade');
 			}
+
 		}
 		$interface->assign('message', $msg);
 		if (isset($_REQUEST['username'])) {
@@ -110,8 +113,11 @@ class MyAccount_Login extends Action
 			$interface->assign('usernameLabel', 'Your Name');
 			$interface->assign('passwordLabel', 'Library Card Number');
 		}
-		if ($configArray['Catalog']['ils'] == 'Horizon'){
+		if ($configArray['Catalog']['ils'] == 'Horizon' || $configArray['Catalog']['ils'] == 'Symphony'){
 			$interface->assign('showForgotPinLink', true);
+			$catalog = CatalogFactory::getCatalogConnectionInstance();
+			$useEmailResetPin = $catalog->checkFunction('emailResetPin');
+			$interface->assign('useEmailResetPin', $useEmailResetPin);
 		}
 
 		$interface->assign('isLoginPage', true);

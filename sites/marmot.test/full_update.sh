@@ -88,6 +88,9 @@ cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE
 /usr/local/vufind-plus/sites/marmot.test/moveSideloadAdds.sh adams/ebrary/DDA ebrary/adams/dda/merge >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh ebrary/adams/dda >> ${OUTPUT_FILE}
 
+# CCU Alexander Street Press Marc Updates
+/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh ccu/alexanderStreetPress alexanderstreetpress/ccu >> ${OUTPUT_FILE}
+
 # CCU Ebsco Marc Updates
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh ebsco_ccu ebsco/ccu >> ${OUTPUT_FILE}
 

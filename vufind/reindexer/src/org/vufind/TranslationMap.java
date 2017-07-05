@@ -37,6 +37,10 @@ public class TranslationMap {
 	HashSet<String> unableToTranslateWarnings = new HashSet<>();
 	public HashMap<String, String> cachedTranslations = new HashMap<>();
 	public String translateValue(String value, String identifier){
+		return translateValue(value, identifier, true);
+	}
+
+	public String translateValue(String value, String identifier, boolean reportErrors){
 		String translatedValue = null;
 		String lowerCaseValue = value.toLowerCase();
 		if (cachedTranslations.containsKey(value)){
@@ -54,7 +58,7 @@ public class TranslationMap {
 			if (!matchFound) {
 				String concatenatedValue = mapName + ":" + value;
 				if (!unableToTranslateWarnings.contains(concatenatedValue)) {
-					if (fullReindex) {
+					if (fullReindex && reportErrors) {
 						logger.warn("Could not translate '" + concatenatedValue + "' in profile " + profileName + " sample record " + identifier);
 					}
 					unableToTranslateWarnings.add(concatenatedValue);
@@ -69,12 +73,16 @@ public class TranslationMap {
 				} else {
 					String concatenatedValue = mapName + ":" + value;
 					if (!unableToTranslateWarnings.contains(concatenatedValue)) {
-						if (fullReindex) {
+						if (fullReindex && reportErrors) {
 							logger.warn("Could not translate '" + concatenatedValue + "' in profile " + profileName + " sample record " + identifier);
 						}
 						unableToTranslateWarnings.add(concatenatedValue);
 					}
-					translatedValue = value;
+					if (!reportErrors){
+						translatedValue = null;
+					}else{
+						translatedValue = value;
+					}
 				}
 			}
 			if (translatedValue != null){

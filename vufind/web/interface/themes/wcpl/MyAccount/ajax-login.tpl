@@ -1,17 +1,27 @@
 {strip}
 
-	{* TODO: This is a temporary template for Wake County. It Should be deleted once the Email Pin problem is resolved. *}
+{* TODO: This is a temporary template for Wake County. It Should be deleted once the Email Pin problem is resolved. *}
 
-	<div class="modal-header">
-		<button type="button" class="close" data-dismiss="modal">×</button>
-		<h4 class="modal-title" id="myModalLabel">Login</h4>
-	</div>
-	<div class="modal-body">
-		<p class="alert alert-danger" id="loginError" style="display: none"></p>
-		<p class="alert alert-danger" id="cookiesError" style="display: none">It appears that you do not have cookies enabled on this computer.  Cookies are required to access account information.</p>
-		<p class="alert alert-info" id="loading" style="display: none">
-			Logging you in now. Please wait.
-		</p>
+<div class="modal-header">
+	<button type="button" class="close" data-dismiss="modal">×</button>
+	<h4 class="modal-title" id="myModalLabel">Login</h4>
+</div>
+<div class="modal-body">
+	<p class="alert alert-danger" id="loginError" style="display: none"></p>
+	<p class="alert alert-danger" id="cookiesError" style="display: none">It appears that you do not have cookies enabled on this computer.  Cookies are required to access account information.</p>
+	<p class="alert alert-info" id="loading" style="display: none">
+		Logging you in now. Please wait.
+	</p>
+	{if $offline && !$enableLoginWhileOffline}
+		<div class="alert alert-warning">
+			<p>
+				The Library’s accounts system is down. Tech support is working to assess and fix the problem as quickly as possible.
+			</p>
+			<p>
+				Thank you for your patience and understanding.
+			</p>
+		</div>
+	{else}
 		<form method="post" action="{$path}/MyAccount/Home" id="loginForm" class="form-horizontal" role="form" onsubmit="return VuFind.Account.processAjaxLogin()">
 			<div id="missingLoginPrompt" style="display: none">Please enter both {$usernameLabel} and {$passwordLabel}.</div>
 			<div id="loginUsernameRow" class="form-group">
@@ -26,7 +36,12 @@
 					<input type="password" name="password" id="password" size="28" onkeypress="return VuFind.submitOnEnter(event, '#loginForm');" class="form-control">
 					{if $showForgotPinLink}
 						<p class="text-muted help-block">
-							<strong>Forgot PIN?</strong> <a href="{$path}/MyAccount/EmailResetPin">Reset My PIN</a>
+							<strong>Forgot PIN?</strong>&nbsp;
+							{if $useEmailResetPin}
+								<a href="{$path}/MyAccount/EmailResetPin">Reset My PIN</a>
+							{else}
+								<a href="{$path}/MyAccount/EmailPin">E-mail my PIN</a>
+							{/if}
 						</p>
 					{/if}
 					{if $enableSelfRegistration == 1}
@@ -52,13 +67,14 @@
 				</div>
 			</div>
 		</form>
-	</div>
-	<div class="modal-footer">
-		<button class="btn" data-dismiss="modal" id="modalClose">Close</button>
+	{/if}
+</div>
+<div class="modal-footer">
+	<button class="btn" data-dismiss="modal" id="modalClose">Close</button>
 	<span class="modal-buttons">
 		<input type="submit" name="submit" value="{if $multistep}Continue{else}Login{/if}" id="loginFormSubmit" class="btn btn-primary extraModalButton" onclick="return VuFind.Account.processAjaxLogin()">
 	</span>
-	</div>
+</div>
 {/strip}
 {literal}
 <script type="text/javascript">

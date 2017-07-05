@@ -9,45 +9,60 @@
 require_once ROOT_DIR . '/Drivers/HorizonAPI.php';
 require_once ROOT_DIR . '/sys/Account/User.php';
 
-abstract class SirsiDynixROA extends HorizonAPI {
+abstract class SirsiDynixROA extends HorizonAPI
+{
 	//TODO: Additional caching of sessionIds by patron
 	private static $sessionIdsForUsers = array();
 
-	public function getWebServiceResponse($url, $params = null, $session = null){
+	// $customRequest is for curl, can be 'PUT', 'DELETE', 'POST'
+	public function getWebServiceResponse($url, $params = null, $sessionToken = null, $customRequest = null)
+	{
 		global $configArray;
 		global $logger;
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $url);
 		$clientId = $configArray['Catalog']['clientId'];
-		$headers = array(
-				'Accept: application/json',
-				'Content-Type: application/json',
-				'SD-Originating-App-Id: Pika',
-				'x-sirs-clientID: ' . $clientId,
+		$headers  = array(
+			'Accept: application/json',
+			'Content-Type: application/json',
+			'SD-Originating-App-Id: Pika',
+			'x-sirs-clientID: ' . $clientId,
 		);
-		if ($session != null){
-			$headers[] = 'x-sirs-sessionToken: ' . $session;
+		if ($sessionToken != null) {
+			$headers[] = 'x-sirs-sessionToken: ' . $sessionToken;
 		}
-		curl_setopt($ch, CURLOPT_HTTPGET, true);
+		if (empty($customRequest)) {
+			curl_setopt($ch, CURLOPT_HTTPGET, true);
+		} elseif ($customRequest == 'POST') {
+			curl_setopt($ch, CURLOPT_POST, true);
+		}
+		else {
+			curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $customRequest);
+		}
+
 		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 		curl_setopt($ch, CURLOPT_HEADER, false);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		if ($params != null){
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // TODO: debugging only: comment out for production
+		if ($params != null) {
 			curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($params));
 		}
 		$json = curl_exec($ch);
+//		$err  = curl_getinfo($ch);
+		//TODO: debugging only, comment out later.
 		$logger->log("Web service response\r\n$json", PEAR_LOG_INFO);
 		curl_close($ch);
 
-		if ($json !== false && $json !== 'false'){
+		if ($json !== false && $json !== 'false') {
 			return json_decode($json);
-		}else{
+		} else {
 			$logger->log('Curl problem in getWebServiceResponse', PEAR_LOG_WARNING);
 			return false;
 		}
 	}
 
-	public function getWebServiceURL(){
+	public function getWebServiceURL()
+	{
 		$webServiceURL = null;
 		if (!empty($this->accountProfile->patronApiUrl)) {
 			$webServiceURL = $this->accountProfile->patronApiUrl;
@@ -55,14 +70,16 @@ abstract class SirsiDynixROA extends HorizonAPI {
 			$webServiceURL = $configArray['Catalog']['webServiceUrl'];
 		} else {
 			global $logger;
-			$logger->log('No Web Service URL defined in Horizon API Driver', PEAR_LOG_CRIT);
+			$logger->log('No Web Service URL defined in Sirsi Dynix ROA API Driver', PEAR_LOG_CRIT);
 		}
 		return $webServiceURL;
 	}
 
-	public function patronLogin($username, $password, $validatedViaSSO){
+	private static $userPreferredAddresses = array();
+
+	public function patronLogin($username, $password, $validatedViaSSO)
+	{
 		global $timer;
-		global $configArray;
 		global $logger;
 
 		//Remove any spaces from the barcode
@@ -73,100 +90,127 @@ abstract class SirsiDynixROA extends HorizonAPI {
 		//First call loginUser
 		$logger->log("Logging in through Symphony APIs", PEAR_LOG_INFO);
 		list($userValid, $sessionToken, $userID) = $this->loginViaWebService($username, $password);
-		if ($validatedViaSSO){
+		if ($validatedViaSSO) {
 			$userValid = true;
 		}
-		if ($userValid){
+		if ($userValid) {
 			$logger->log("User is valid in symphony", PEAR_LOG_INFO);
 			$webServiceURL = $this->getWebServiceURL();
 
-			//$userDescribeResponse = $this->getWebServiceResponse($webServiceURL . '/v1/user/describe', null, $sessionToken);
-			$patronDescribeResponse = $this->getWebServiceResponse($webServiceURL . '/ws/user/patron/describe', null, $sessionToken);
-			$patronStatusInfoDescribeResponse = $this->getWebServiceResponse($webServiceURL . '/ws/user/patronStatusInfo/describe', null, $sessionToken);
-			$userProfileDescribeResponse = $this->getWebServiceResponse($webServiceURL . '/ws/policy/profile/describe', null, $sessionToken);
-			//$lookupMyAccountInfoResponse = $this->getWebServiceResponse($webServiceURL . '/ws/user/patron/key/' . $userID . '?includeFields=firstName,lastName,displayName,privilegeExpiresDate,estimatedOverdueAmount,patronStatusInfo,preferredAddress,address1,address2,address3,primaryPhone,patronstatus,checkoutLocation,library', null, $sessionToken);
-			$lookupMyAccountInfoResponse = $this->getWebServiceResponse($webServiceURL . '/ws/user/patron/key/' . $userID , null, $sessionToken);
-			if ($lookupMyAccountInfoResponse){
-				$lastName = $lookupMyAccountInfoResponse->fields->lastName;
+
+//			$patronDescribeResponse           = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/describe', null, $sessionToken);
+//			$patronStatusInfoDescribeResponse = $this->getWebServiceResponse($webServiceURL . '/v1/user/patronStatusInfo/describe', null, $sessionToken);
+//			$userProfileDescribeResponse      = $this->getWebServiceResponse($webServiceURL . '/v1/policy/profile/describe', null, $sessionToken);
+			// NOt a policy
+//				$patronStatusResponse  = $this->getWebServiceResponse($webServiceURL . '/v1/user/patronStatusInfo/key/' . $userID, null, $sessionToken);
+			//TODO: This resource is currently hidden
+
+//			$lookupMyAccountInfoResponse = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/key/' . $userID . '?includeFields=firstName,lastName,displayName,privilegeExpiresDate,estimatedOverdueAmount,patronStatusInfo{*},preferredAddress,address1,address2,address3,primaryPhone,library', null, $sessionToken);
+			// TODO: Use Primary Phone at all? displayName doesn't seem to be a field
+			$lookupMyAccountInfoResponse = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/key/' . $userID . '?includeFields=firstName,lastName,privilegeExpiresDate,patronStatusInfo{*},preferredAddress,address1,address2,address3,library,circRecordList,blockList{owed},holdRecordList{status}', null, $sessionToken);
+			if ($lookupMyAccountInfoResponse && !isset($lookupMyAccountInfoResponse->messageList)) {
+				$lastName  = $lookupMyAccountInfoResponse->fields->lastName;
 				$firstName = $lookupMyAccountInfoResponse->fields->firstName;
 
-				if (isset($lookupMyAccountInfoResponse->fields->displayName)){
-					$fullName = $lookupMyAccountInfoResponse->fields->displayName;
-				}else{
+//				if (isset($lookupMyAccountInfoResponse->fields->displayName)) {
+//					$fullName = $lookupMyAccountInfoResponse->fields->displayName;
+//				} else {
 					$fullName = $lastName . ', ' . $firstName;
-				}
+//				}
 
 				$userExistsInDB = false;
 				/** @var User $user */
 				$user = new User();
-//				$user->source = $this->accountProfile->name;
+				$user->source = $this->accountProfile->name;
 				$user->username = $userID;
-				if ($user->find(true)){
+				if ($user->find(true)) {
 					$userExistsInDB = true;
 				}
 
 				$forceDisplayNameUpdate = false;
-				$firstName = isset($firstName) ? $firstName : '';
+				$firstName              = isset($firstName) ? $firstName : '';
 				if ($user->firstname != $firstName) {
-					$user->firstname = $firstName;
+					$user->firstname        = $firstName;
 					$forceDisplayNameUpdate = true;
 				}
 				$lastName = isset($lastName) ? $lastName : '';
-				if ($user->lastname != $lastName){
-					$user->lastname = isset($lastName) ? $lastName : '';
+				if ($user->lastname != $lastName) {
+					$user->lastname         = isset($lastName) ? $lastName : '';
 					$forceDisplayNameUpdate = true;
 				}
-				if ($forceDisplayNameUpdate){
+				if ($forceDisplayNameUpdate) {
 					$user->displayName = '';
 				}
-				$user->fullname = isset($fullName) ? $fullName : '';
+				$user->fullname     = isset($fullName) ? $fullName : '';
 				$user->cat_username = $username;
 				$user->cat_password = $password;
 
-				if (isset($lookupMyAccountInfoResponse->preferredAddress)){
-					if ($lookupMyAccountInfoResponse->preferredAddress == 1) {
-						$address = $lookupMyAccountInfoResponse->address1;
-					}elseif ($lookupMyAccountInfoResponse->preferredAddress == 2){
-						$address = $lookupMyAccountInfoResponse->address2;
-					}elseif ($lookupMyAccountInfoResponse->preferredAddress == 3){
-						$address = $lookupMyAccountInfoResponse->address3;
+				$Address1    = "";
+				$City        = "";
+				$State       = "";
+				$Zip         = "";
+
+				if (isset($lookupMyAccountInfoResponse->fields->preferredAddress)) {
+					$preferredAddress = $lookupMyAccountInfoResponse->fields->preferredAddress;
+					// Set for Account Updating
+					self::$userPreferredAddresses[$userID] = $preferredAddress;
+					// Used by My Account Profile to update Contact Info
+					if ($preferredAddress == 1) {
+						$address = $lookupMyAccountInfoResponse->fields->address1;
+					} elseif ($preferredAddress == 2) {
+						$address = $lookupMyAccountInfoResponse->fields->address2;
+					} elseif ($preferredAddress == 3) {
+						$address = $lookupMyAccountInfoResponse->fields->address3;
+					} else {
+						$address = array();
 					}
-					foreach ($address as $addressField){
-						if ($addressField->key == '2'){
-							$Address1 = $addressField->fields->data;
-						}elseif ($addressField->key == '3'){
-							$cityState = $addressField->fields->data;
-							list($City, $State) = explode(' ', $cityState);
-						}elseif ($addressField->key == '4'){
-							$Zip = $addressField->fields->data;
-						}elseif ($addressField->key == '6'){
-							$email = $addressField->fields->data;
-							$user->email = $email;
+					foreach ($address as $addressField) {
+						$fields = $addressField->fields;
+						switch ($fields->code->key) {
+							case 'STREET' :
+								$Address1 = $fields->data;
+								break;
+							case 'CITY/STATE' :
+								$cityState = $fields->data;
+								if (substr_count($cityState, ' ') > 1) {
+									//Splitting multiple word cities
+									$last_space = strrpos($cityState, ' ');
+									$City = substr($cityState, 0, $last_space);
+									$State = substr($cityState, $last_space+1);
+
+								} else {
+									list($City, $State) = explode(' ', $cityState);
+								}
+								break;
+							case 'ZIP' :
+								$Zip = $fields->data;
+								break;
+							case 'PHONE' :
+								$phone = $fields->data;
+								$user->phone = $phone;
+								break;
+							case 'EMAIL' :
+								$email = $fields->data;
+								$user->email = $email;
+								break;
 						}
 					}
 
-				}else{
-					$Address1 = "";
-					$City = "";
-					$State = "";
-					$Zip = "";
-					$user->email = '';
 				}
 
 				//Get additional information about the patron's home branch for display.
-				if (isset($lookupMyAccountInfoResponse->fields->library->key)){
+				if (isset($lookupMyAccountInfoResponse->fields->library->key)) {
 					$homeBranchCode = strtolower(trim($lookupMyAccountInfoResponse->fields->library->key));
 					//Translate home branch to plain text
 					/** @var \Location $location */
-					$location = new Location();
+					$location       = new Location();
 					$location->code = $homeBranchCode;
-//					$location->find(1);
-					if (!$location->find(true)){
+					if (!$location->find(true)) {
 						unset($location);
 					}
 				} else {
 					global $logger;
-					$logger->log('SirsiDynixROA Driver: No Home Library Location or Hold location found in account look-up. User : '.$user->id, PEAR_LOG_ERR);
+					$logger->log('SirsiDynixROA Driver: No Home Library Location or Hold location found in account look-up. User : ' . $user->id, PEAR_LOG_ERR);
 					// The code below will attempt to find a location for the library anyway if the homeLocation is already set
 				}
 
@@ -190,42 +234,44 @@ abstract class SirsiDynixROA extends HorizonAPI {
 					}
 					if (isset($location)) {
 						$user->homeLocationId = $location->locationId;
-						$user->myLocation1Id  = ($location->nearbyLocation1 > 0) ? $location->nearbyLocation1 : $location->locationId;
-						$user->myLocation2Id  = ($location->nearbyLocation2 > 0) ? $location->nearbyLocation2 : $location->locationId;
-
-						/** @var /Location $location */
-						//Get display name for preferred location 1
-						$myLocation1 = new Location();
-						$myLocation1->locationId = $user->myLocation1Id;
-						if ($myLocation1->find(true)) {
-							$user->myLocation1 = $myLocation1->displayName;
+						if (empty($user->myLocation1Id)) {
+							$user->myLocation1Id  = ($location->nearbyLocation1 > 0) ? $location->nearbyLocation1 : $location->locationId;
+							/** @var /Location $location */
+							//Get display name for preferred location 1
+							$myLocation1             = new Location();
+							$myLocation1->locationId = $user->myLocation1Id;
+							if ($myLocation1->find(true)) {
+								$user->myLocation1 = $myLocation1->displayName;
+							}
 						}
 
-						//Get display name for preferred location 2
-						$myLocation2 = new Location();
-						$myLocation2->locationId = $user->myLocation2Id;
-						if ($myLocation2->find(true)) {
-							$user->myLocation2 = $myLocation2->displayName;
+						if (empty($user->myLocation2Id)){
+							$user->myLocation2Id  = ($location->nearbyLocation2 > 0) ? $location->nearbyLocation2 : $location->locationId;
+							//Get display name for preferred location 2
+							$myLocation2             = new Location();
+							$myLocation2->locationId = $user->myLocation2Id;
+							if ($myLocation2->find(true)) {
+								$user->myLocation2 = $myLocation2->displayName;
+							}
 						}
 					}
 				}
 
-				if (isset($location)){
+				if (isset($location)) {
 					//Get display names that aren't stored
 					$user->homeLocationCode = $location->code;
 					$user->homeLocation     = $location->displayName;
 				}
 
-				//TODO: See if we can get information about card expiration date
-				$expireClose = 0;
-				if (isset($lookupMyAccountInfoResponse->fields->privilegeExpiresDate)){
+				if (isset($lookupMyAccountInfoResponse->fields->privilegeExpiresDate)) {
 					$user->expires = $lookupMyAccountInfoResponse->fields->privilegeExpiresDate;
-					list ($monthExp, $dayExp, $yearExp) = explode("-",$user->expires);
-					$timeExpire = strtotime($monthExp . "/" . $dayExp . "/" . $yearExp);
-					$timeNow = time();
+					list ($yearExp, $monthExp, $dayExp) = explode("-", $user->expires);
+					$timeExpire   = strtotime($monthExp . "/" . $dayExp . "/" . $yearExp);
+					$timeNow      = time();
 					$timeToExpire = $timeExpire - $timeNow;
-					if ($timeToExpire <= 30 * 24 * 60 * 60){
-						if ($timeToExpire <= 0){
+					if ($timeToExpire <= 30 * 24 * 60 * 60) {
+						//TODO: the ils also has an expire soon flag in the patronStatusInfo
+						if ($timeToExpire <= 0) {
 							$user->expired = 1;
 						}
 						$user->expireClose = 1;
@@ -233,27 +279,24 @@ abstract class SirsiDynixROA extends HorizonAPI {
 				}
 
 				//Get additional information about fines, etc
-				$patronStatusResponse = $this->getWebServiceResponse($webServiceURL . '/ws/user/patronStatusInfo/key/' . $userID, null, $sessionToken);
-				$patronStatusResponse2 = $this->getWebServiceResponse($webServiceURL . '/ws/user/patron/key/' . $userID . '?includeFields=patronStatusInfo,circRecordList,estimatedOverdueAmount,blockList,holdRecordList' , null, $sessionToken);
 
 				$finesVal = 0;
-				if (isset($patronStatusResponse2->fields->blockList)){
-					foreach ($patronStatusResponse2->fields->blockList as $block){
+				if (isset($lookupMyAccountInfoResponse->fields->blockList)) {
+					foreach ($lookupMyAccountInfoResponse->fields->blockList as $block) {
 						// $block is a simplexml object with attribute info about currency, type casting as below seems to work for adding up. plb 3-27-2015
-						$fineAmount = (float) $block->balance;
-						$finesVal += $fineAmount;
+						$fineAmount = (float)$block->fields->owed->amount;
+						$finesVal   += $fineAmount;
 
 					}
 				}
 
 				$numHoldsAvailable = 0;
 				$numHoldsRequested = 0;
-				if (isset($patronStatusResponse2->fields->holdRecordList)){
-					foreach ($patronStatusResponse2->fields->holdRecordList as $hold){
-						$holdInfo = $this->getWebServiceResponse($webServiceURL . '/ws/circulation/holdRecord/key/' . $hold->key, null, $sessionToken);
-						if ($holdInfo->fields->status == 'BEING_HELD'){
+				if (isset($lookupMyAccountInfoResponse->fields->holdRecordList)) {
+					foreach ($lookupMyAccountInfoResponse->fields->holdRecordList as $hold) {
+						if ($hold->fields->status == 'BEING_HELD') {
 							$numHoldsAvailable++;
-						}else{
+						} elseif ($hold->fields->status != 'EXPIRED') {
 							$numHoldsRequested++;
 						}
 					}
@@ -264,23 +307,21 @@ abstract class SirsiDynixROA extends HorizonAPI {
 				$user->city                  = $City;
 				$user->state                 = $State;
 				$user->zip                   = $Zip;
-				$user->phone                 = isset($lookupMyAccountInfoResponse->phone) ? (string)$lookupMyAccountInfoResponse->phone : '';
+//				$user->phone                 = isset($phone) ? $phone : '';
 				$user->fines                 = sprintf('$%01.2f', $finesVal);
 				$user->finesVal              = $finesVal;
-				$user->expires               = ''; //TODO: Determine if we can get this
-				$user->expireClose           = $expireClose;
-				$user->numCheckedOutIls      = isset($lookupMyAccountInfoResponse->ItemsOutInfo) ? count($lookupMyAccountInfoResponse->ItemsOutInfo) : 0;
+				$user->numCheckedOutIls      = isset($lookupMyAccountInfoResponse->fields->circRecordList) ? count($lookupMyAccountInfoResponse->fields->circRecordList) : 0;
 				$user->numHoldsIls           = $numHoldsAvailable + $numHoldsRequested;
 				$user->numHoldsAvailableIls  = $numHoldsAvailable;
 				$user->numHoldsRequestedIls  = $numHoldsRequested;
-				$user->patronType            = 0;
+				$user->patronType            = 0; //TODO: not getting this info here?
 				$user->notices               = '-';
 				$user->noticePreferenceLabel = 'E-mail';
 				$user->web_note              = '';
 
-				if ($userExistsInDB){
+				if ($userExistsInDB) {
 					$user->update();
-				}else{
+				} else {
 					$user->created = date('Y-m-d');
 					$user->insert();
 				}
@@ -290,37 +331,255 @@ abstract class SirsiDynixROA extends HorizonAPI {
 			} else {
 				$timer->logTime("lookupMyAccountInfo failed");
 				global $logger;
-				$logger->log('Horizon API call lookupMyAccountInfo failed.', PEAR_LOG_ERR);
-//				$logger->log($configArray['Catalog']['webServiceUrl'] . '/standard/lookupMyAccountInfo?clientID=' . $configArray['Catalog']['clientId'] . '&sessionToken=' . $sessionToken . '&includeAddressInfo=true&includeHoldInfo=true&includeBlockInfo=true&includeItemsOutInfo=true', PEAR_LOG_ERR);
+				$logger->log('Symphony API call lookupMyAccountInfo failed.', PEAR_LOG_ERR);
 				return null;
 			}
 		}
 	}
 
-	protected function loginViaWebService($username, $password) {
+	private function getStaffSessionToken() {
 		global $configArray;
-		$loginDescribeResponse = $this->getWebServiceResponse($configArray['Catalog']['webServiceUrl'] . '/user/patron/login/describe');
-		$loginUserUrl = $configArray['Catalog']['webServiceUrl'] . '/user/patron/login';
-		$params = array(
-				'login' => $username,
-				'password' => $password,
+		$staffSessionToken = false;
+		if (!empty($configArray['Catalog']['selfRegStaffUser']) && !empty( $configArray['Catalog']['selfRegStaffPassword'])) {
+			$selfRegStaffUser     = $configArray['Catalog']['selfRegStaffUser'];
+			$selfRegStaffPassword = $configArray['Catalog']['selfRegStaffPassword'];
+			list(, $staffSessionToken) = $this->loginViaWebService($selfRegStaffUser, $selfRegStaffPassword);
+		}
+		return $staffSessionToken;
+		}
+
+	function selfRegister()
+	{
+		$sessionToken = $this->getStaffSessionToken();
+
+		if (!empty($sessionToken)) {
+			$webServiceURL            = $this->getWebServiceURL();
+			$patronDescribeResponse   = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/describe');
+			$address1DescribeResponse = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/address1/describe');
+			$addressDescribeResponse  = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/address/describe');
+
+			$createPatronInfoParameters                               = array(
+				'fields' => array(),
+				//			'key' => $userID,
+				'resource' => '/user/patron',
+			);
+			$preferredAddress                                         = 1;
+			$createPatronInfoParameters['fields']['preferredAddress'] = $preferredAddress;
+
+			// Build Address Field with existing data
+			$index = 0;
+
+			// Closure to handle the data structure of the address parameters to pass onto the ILS
+			$setField = function ($key, $value) use (&$createPatronInfoParameters, $preferredAddress, &$index) {
+				static $parameterIndex = array();
+
+				$addressField                = 'address' . $preferredAddress;
+				$patronAddressPolicyResource = '/policy/patron' . ucfirst($addressField);
+
+				$l                                                       = array_key_exists($key, $parameterIndex) ? $parameterIndex[$key] : $index++;
+				$createPatronInfoParameters['fields'][$addressField][$l] = array(
+					'resource' => '/user/patron/' . $addressField,
+					'fields' => array(
+						'code' => array(
+							'key' => $key,
+							'resource' => $patronAddressPolicyResource
+						),
+						'data' => $value
+					)
+				);
+				$parameterIndex[$key]                                    = $l;
+
+			};
+
+			if (!empty($_REQUEST['firstName'])) {
+				$createPatronInfoParameters['fields']['firstName'] = trim($_REQUEST['firstName']);
+			}
+			if (!empty($_REQUEST['middleName'])) {
+				$createPatronInfoParameters['fields']['middleName'] = trim($_REQUEST['middleName']);
+			}
+			if (!empty($_REQUEST['lastName'])) {
+				$createPatronInfoParameters['fields']['lastName'] = trim($_REQUEST['lastName']);
+			}
+			if (!empty($_REQUEST['suffix'])) {
+				$createPatronInfoParameters['fields']['suffix'] = trim($_REQUEST['suffix']);
+			}
+			if (!empty($_REQUEST['birthDate'])) {
+				$birthdate = date_create_from_format('m-d-Y', trim($_REQUEST['birthDate']));
+				$createPatronInfoParameters['fields']['birthDate'] = $birthdate->format('Y-m-d');
+			}
+			if (!empty($_REQUEST['pin'])) {
+				//TODO: check pin matches
+				$createPatronInfoParameters['fields']['pin'] = trim($_REQUEST['pin']);
+			}
+
+
+			// Update Address Field with new data supplied by the user
+			if (isset($_REQUEST['email'])) {
+				$setField('EMAIL', $_REQUEST['email']);
+			}
+
+			if (isset($_REQUEST['phone'])) {
+				$setField('PHONE', $_REQUEST['phone']);
+			}
+
+			if (isset($_REQUEST['address'])) {
+				$setField('STREET', $_REQUEST['address']);
+			}
+
+			if (isset($_REQUEST['city']) && isset($_REQUEST['state'])) {
+				$setField('CITY/STATE', $_REQUEST['city'] . ' ' . $_REQUEST['state']);
+			}
+
+			if (isset($_REQUEST['zip'])) {
+				$setField('ZIP', $_REQUEST['zip']);
+			}
+
+			// Update Home Location
+			if (!empty($_REQUEST['pickupLocation'])) {
+				$homeLibraryLocation = new Location();
+				if ($homeLibraryLocation->get('code', $_REQUEST['pickupLocation'])) {
+					$homeBranchCode                                  = strtoupper($homeLibraryLocation->code);
+					$createPatronInfoParameters['fields']['library'] = array(
+						'key' => $homeBranchCode,
+						'resource' => '/policy/library'
+					);
+				}
+			}
+
+			$createNewPatronResponse = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/', $createPatronInfoParameters, $sessionToken, 'POST');
+
+			if (isset($createNewPatronResponse->messageList)) {
+				foreach ($createNewPatronResponse->messageList as $message) {
+					$updateErrors[] = $message->message;
+				}
+				global $logger;
+				$logger->log('Symphony Driver - Patron Info Update Error - Error from ILS : ' . implode(';', $updateErrors), PEAR_LOG_ERR);
+			}
+
+			//TODO: Return results
+		} else {
+			// Error: unable to login in staff user
+		}
+	}
+
+
+	protected function loginViaWebService($username, $password)
+	{
+		global $configArray;
+//		$loginDescribeResponse = $this->getWebServiceResponse($configArray['Catalog']['webServiceUrl'] . '/user/patron/login/describe');
+		$loginUserUrl          = $configArray['Catalog']['webServiceUrl'] . '/user/patron/login';
+		$params                = array(
+			'login' => $username,
+			'password' => $password,
 		);
-		$loginUserResponse = $this->getWebServiceResponse($loginUserUrl, $params);
-		if (!$loginUserResponse){
+		$loginUserResponse     = $this->getWebServiceResponse($loginUserUrl, $params);
+		if (!$loginUserResponse) {
 			return array(false, false, false);
-		}else if (isset($loginUserResponse->messageList)){
+		} else if (isset($loginUserResponse->messageList)) {
 			return array(false, false, false);
-		}else{
+		} else {
 			//We got at valid user, next call lookupMyAccountInfo
-			if (isset($loginUserResponse->sessionToken)){
-				$userID = $loginUserResponse->patronKey;
-				$sessionToken = $loginUserResponse->sessionToken;
+			if (isset($loginUserResponse->sessionToken)) {
+				$userID                                     = $loginUserResponse->patronKey;
+				$sessionToken                               = $loginUserResponse->sessionToken;
 				SirsiDynixROA::$sessionIdsForUsers[$userID] = $sessionToken;
 				return array(true, $sessionToken, $userID);
-			}else{
+			} else {
 				return array(false, false, false);
 			}
 		}
+	}
+
+	/**
+	 * @param User $patron
+	 * @param int $page
+	 * @param int $recordsPerPage
+	 * @param string $sortOption
+	 * @return array
+	 */
+	public function getMyCheckouts($patron, $page = 1, $recordsPerPage = -1, $sortOption = 'dueDate')
+	{
+		$checkedOutTitles = array();
+
+		//Get the session token for the user
+		$sessionToken = $this->getSessionToken($patron);
+		if (!$sessionToken) {
+			return $checkedOutTitles;
+		}
+
+		//Now that we have the session token, get holds information
+		$webServiceURL = $this->getWebServiceURL();
+		//Get a list of holds for the user
+//		$loginDescribeResponse = $this->getWebServiceResponse($webServiceURL . '/user/patron/describe'); //TODO: remove
+		$patronCheckouts = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/key/' . $patron->username . '?includeFields=circRecordList{*}', null, $sessionToken);
+
+//		$circRecordDescribe  = $this->getWebServiceResponse($webServiceURL . "/ws/circulation/circRecord/describe", null, $sessionToken);
+		//TODO: remove
+
+		if (!empty($patronCheckouts->fields->circRecordList)) {
+			$sCount = 0;
+			require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
+
+			foreach ($patronCheckouts->fields->circRecordList as $checkout) {
+				$curTitle['checkoutSource'] = 'ILS';
+
+				list($bibId)                = explode(':', $checkout->key);
+				$curTitle['recordId']       = $bibId;
+				$curTitle['shortId']        = $bibId;
+				$curTitle['id']             = $bibId;
+
+				$circInfo                   = $this->getWebServiceResponse($webServiceURL . '/ws/circulation/circRecord/key/' . $checkout->key, null, $sessionToken);
+				$curTitle['dueDate']        = strtotime($circInfo->fields->dueDate);
+				$curTitle['checkoutdate']   = strtotime($circInfo->fields->checkOutDate);
+				// Note: there is an overdue flag
+				$curTitle['renewCount']     = $circInfo->fields->renewalCount;
+				$curTitle['canrenew']       = true; //TODO: Figure out if the user can renew the title or not; There is a seenRenewals field and unseenRenewals field
+				$curTitle['renewIndicator'] = $circInfo->fields->item->key;
+
+//				$curTitle['holdQueueLength'] = $this->getNumHolds($bibId); //TODO: needed for checkouts?  Used by Horizon. Is it in this API
+
+
+				$curTitle['format'] = 'Unknown';
+				$recordDriver = new MarcRecord('a' . $bibId);
+				if ($recordDriver->isValid()) {
+					$curTitle['coverUrl']      = $recordDriver->getBookcoverUrl('medium');
+					$curTitle['groupedWorkId'] = $recordDriver->getGroupedWorkId();
+					$curTitle['format']        = $recordDriver->getPrimaryFormat();
+					$curTitle['title']         = $recordDriver->getTitle();
+					$curTitle['title_sort']    = $recordDriver->getSortableTitle();
+					$curTitle['author']        = $recordDriver->getPrimaryAuthor();
+					$curTitle['link']          = $recordDriver->getLinkUrl();
+					$curTitle['ratingData']    = $recordDriver->getRatingData();
+				}
+
+				$sCount++;
+				$sortTitle = isset($curTitle['title_sort']) ? $curTitle['title_sort'] : $curTitle['title'];
+				$sortKey = $sortTitle;
+				if ($sortOption == 'title'){
+					$sortKey = $sortTitle;
+				}elseif ($sortOption == 'author'){
+					$sortKey = (isset($curTitle['author']) ? $curTitle['author'] : "Unknown") . '-' . $sortTitle;
+				}elseif ($sortOption == 'dueDate'){
+					if (isset($curTitle['dueDate'])){
+						if (preg_match('/.*?(\\d{1,2})[-\/](\\d{1,2})[-\/](\\d{2,4}).*/', $curTitle['dueDate'], $matches)) {
+							$sortKey = $matches[3] . '-' . $matches[1] . '-' . $matches[2] . '-' . $sortTitle;
+						} else {
+							$sortKey = $curTitle['dueDate'] . '-' . $sortTitle;
+						}
+					}
+				}elseif ($sortOption == 'format'){
+					$sortKey = (isset($curTitle['format']) ? $curTitle['format'] : "Unknown") . '-' . $sortTitle;
+				}elseif ($sortOption == 'renewed'){
+					$sortKey = (isset($curTitle['renewCount']) ? $curTitle['renewCount'] : 0) . '-' . $sortTitle;
+				}elseif ($sortOption == 'holdQueueLength'){
+					$sortKey = (isset($curTitle['holdQueueLength']) ? $curTitle['holdQueueLength'] : 0) . '-' . $sortTitle;
+				}
+				$sortKey .= "_$sCount";
+				$checkedOutTitles[$sortKey] = $curTitle;
+
+			}
+		}
+		return $checkedOutTitles;
 	}
 
 	/**
@@ -328,77 +587,76 @@ abstract class SirsiDynixROA extends HorizonAPI {
 	 *
 	 * This is responsible for retrieving all holds for a specific patron.
 	 *
-	 * @param User $patron    The user to load transactions for
+	 * @param User $patron The user to load transactions for
 	 *
 	 * @return array          Array of the patron's holds
 	 * @access public
 	 */
-	public function getMyHolds($patron){
-		$availableHolds = array();
+	public function getMyHolds($patron)
+	{
+		$availableHolds   = array();
 		$unavailableHolds = array();
-		$holds = array(
-				'available'   => $availableHolds,
-				'unavailable' => $unavailableHolds
+		$holds            = array(
+			'available' => $availableHolds,
+			'unavailable' => $unavailableHolds
 		);
 
 		//Get the session token for the user
-		if (isset(SirsiDynixROA::$sessionIdsForUsers[$patron->id])){
-			$sessionToken = SirsiDynixROA::$sessionIdsForUsers[$patron->id];
-		}else{
-			//Log the user in
-			list($userValid, $sessionToken) = $this->loginViaWebService($patron->cat_username, $patron->cat_password);
-			if (!$userValid){
-				return $holds;
-			}
+		$sessionToken = $this->getSessionToken($patron);
+		if (!$sessionToken) {
+			return $holds;
 		}
 
 		//Now that we have the session token, get holds information
 		$webServiceURL = $this->getWebServiceURL();
 		//Get a list of holds for the user
-		$patronHolds = $this->getWebServiceResponse($webServiceURL . '/ws/user/patron/key/' . $patron->username . '?includeFields=holdRecordList' , null, $sessionToken);
-		$holdRecord = $this->getWebServiceResponse($webServiceURL . "/ws/circulation/holdRecord/describe", null, $sessionToken);
-		if ($patronHolds && isset($patronHolds->fields)){
+		$patronHolds = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/key/' . $patron->username . '?includeFields=holdRecordList{*}', null, $sessionToken);
+//		$holdRecord  = $this->getWebServiceResponse($webServiceURL . "/ws/circulation/holdRecord/describe", null, $sessionToken);
+		if ($patronHolds && isset($patronHolds->fields)) {
 			require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
-			foreach ($patronHolds->fields->holdRecordList as $hold){
-				$holdInfo = $this->getWebServiceResponse($webServiceURL . '/ws/circulation/holdRecord/key/' . $hold->key, null, $sessionToken);
-				$curHold = array();
-				$bibId                         = $holdInfo->fields->bib->key;
-				$expireDate                    = $holdInfo->fields->expirationDate;
-				$reactivateDate                = $holdInfo->fields->suspendEndDate;
-				$curHold['user']               = $patron->getNameAndLibraryLabel(); //TODO: Likely not needed, because Done in Catalog Connection
-				$curHold['id']                 = $hold->key;
-				$curHold['holdSource']         = 'ILS';
-				$curHold['itemId']             = $holdInfo->fields->item->key;
-				$curHold['cancelId']           = $hold->key;
-				$curHold['position']           = $holdInfo->fields->queuePosition;
-				$curHold['recordId']           = $bibId;
-				$curHold['shortId']            = $bibId;
+			foreach ($patronHolds->fields->holdRecordList as $hold) {
+				$holdInfo              = $this->getWebServiceResponse($webServiceURL . '/ws/circulation/holdRecord/key/' . $hold->key, null, $sessionToken);
+				$curHold               = array();
+				$bibId                 = $holdInfo->fields->bib->key;
+				$expireDate            = $holdInfo->fields->expirationDate;
+				$reactivateDate        = $holdInfo->fields->suspendEndDate;
+				$curHold['user']       = $patron->getNameAndLibraryLabel(); //TODO: Likely not needed, because Done in Catalog Connection
+				$curHold['id']         = $hold->key;
+				$curHold['holdSource'] = 'ILS';
+				$curHold['itemId']     = $holdInfo->fields->item->key;
+				$curHold['cancelId']   = $hold->key;
+				$curHold['position']   = $holdInfo->fields->queuePosition;
+				$curHold['recordId']   = $bibId;
+				$curHold['shortId']    = $bibId;
 				//$curHold['title']              = (string)$hold->title;
 				//$curHold['sortTitle']          = (string)$hold->title;
 				//$curHold['author']             = (string)$hold->author;
-				$curPickupBranch = new Location();
+				$curPickupBranch       = new Location();
 				$curPickupBranch->code = $holdInfo->fields->pickupLibrary->key;
 				if ($curPickupBranch->find(true)) {
 					$curPickupBranch->fetch();
-					$curHold['currentPickupId'] = $curPickupBranch->locationId;
+					$curHold['currentPickupId']   = $curPickupBranch->locationId;
 					$curHold['currentPickupName'] = $curPickupBranch->displayName;
-					$curHold['location'] = $curPickupBranch->displayName;
+					$curHold['location']          = $curPickupBranch->displayName;
 				}
-				$curHold['locationUpdateable'] = true;
 				$curHold['currentPickupName']  = $curHold['location'];
 				$curHold['status']             = ucfirst(strtolower($holdInfo->fields->status));
 				$curHold['expire']             = strtotime($expireDate);
 				$curHold['reactivate']         = $reactivateDate;
 				$curHold['reactivateTime']     = strtotime($reactivateDate);
-				$curHold['cancelable']         = strcasecmp($curHold['status'], 'Suspended') != 0;
+				$curHold['cancelable']         = strcasecmp($curHold['status'], 'Suspended') != 0 && strcasecmp($curHold['status'], 'Expired') != 0;
 				$curHold['frozen']             = strcasecmp($curHold['status'], 'Suspended') == 0;
-				$curHold['freezeable'] = true;
-				if (strcasecmp($curHold['status'], 'Transit') == 0) {
+				$curHold['freezeable']         = true;
+				if (strcasecmp($curHold['status'], 'Transit') == 0 || strcasecmp($curHold['status'], 'Expired') == 0) {
 					$curHold['freezeable'] = false;
+				}
+				$curHold['locationUpdateable'] = true;
+				if (strcasecmp($curHold['status'], 'Transit') == 0 || strcasecmp($curHold['status'], 'Expired') == 0) {
+					$curHold['locationUpdateable'] = false;
 				}
 
 				$recordDriver = new MarcRecord('a' . $bibId);
-				if ($recordDriver->isValid()){
+				if ($recordDriver->isValid()) {
 					$curHold['sortTitle']       = $recordDriver->getSortableTitle();
 					$curHold['format']          = $recordDriver->getFormat();
 					$curHold['isbn']            = $recordDriver->getCleanISBN();
@@ -408,20 +666,20 @@ abstract class SirsiDynixROA extends HorizonAPI {
 					$curHold['link']            = $recordDriver->getRecordUrl();
 
 					//Load rating information
-					$curHold['ratingData']      = $recordDriver->getRatingData();
+					$curHold['ratingData'] = $recordDriver->getRatingData();
 
-					if (empty($curHold['title'])){
+					if (empty($curHold['title'])) {
 						$curHold['title'] = $recordDriver->getTitle();
 					}
-					if (empty($curHold['author'])){
+					if (empty($curHold['author'])) {
 						$curHold['author'] = $recordDriver->getPrimaryAuthor();
 					}
 				}
 
-				if (!isset($curHold['status']) || strcasecmp($curHold['status'], "being_held") != 0){
+				if (!isset($curHold['status']) || strcasecmp($curHold['status'], "being_held") != 0) {
 					$holds['unavailable'][] = $curHold;
-				}else{
-					$holds['available'][]   = $curHold;
+				} else {
+					$holds['available'][] = $curHold;
 				}
 			}
 		}
@@ -433,31 +691,24 @@ abstract class SirsiDynixROA extends HorizonAPI {
 	 *
 	 * This is responsible for both placing item level holds.
 	 *
-	 * @param   User    $patron     The User to place a hold for
-	 * @param   string  $recordId   The id of the bib record
-	 * @param   string  $itemId     The id of the item to hold
-	 * @param   string  $comment    Any comment regarding the hold or recall
-	 * @param   string  $type       Whether to place a hold or recall
+	 * @param   User $patron The User to place a hold for
+	 * @param   string $recordId The id of the bib record
+	 * @param   string $itemId The id of the item to hold
+	 * @param   string $campus The Pickup Location
+	 * @param   string $type Whether to place a hold or recall
 	 * @return  mixed               True if successful, false if unsuccessful
 	 *                              If an error occurs, return a PEAR_Error
 	 * @access  public
 	 */
-	function placeItemHold($patron, $recordId, $itemId, $comment = '', $type = 'request') {
-		global $configArray;
-
-		$userId = $patron->id;
+	function placeItemHold($patron, $recordId, $itemId, $campus = null, $type = 'request')
+	{
 
 		//Get the session token for the user
-		if (isset(SirsiDynixROA::$sessionIdsForUsers[$userId])){
-			$sessionToken = SirsiDynixROA::$sessionIdsForUsers[$userId];
-		}else{
-			//Log the user in
-			list($userValid, $sessionToken) = $this->loginViaWebService($patron->cat_username, $patron->cat_password);
-			if (!$userValid){
-				return array(
-						'success' => false,
-						'message' => 'Sorry, it does not look like you are logged in currently.  Please login and try again');
-			}
+		$sessionToken = $this->getSessionToken($patron);
+		if (!$sessionToken) {
+			return array(
+				'success' => false,
+				'message' => 'Sorry, it does not look like you are logged in currently.  Please login and try again');
 		}
 
 		// Retrieve Full Marc Record
@@ -465,90 +716,90 @@ abstract class SirsiDynixROA extends HorizonAPI {
 		$record = RecordDriverFactory::initRecordDriverById('ils:' . $recordId);
 		if (!$record) {
 			$title = null;
-		}else{
+		} else {
 			$title = $record->getTitle();
 		}
 
-		if ($configArray['Catalog']['offline']){
+		global $configArray;
+		if ($configArray['Catalog']['offline']) {
 			require_once ROOT_DIR . '/sys/OfflineHold.php';
-			$offlineHold = new OfflineHold();
-			$offlineHold->bibId = $recordId;
+			$offlineHold                = new OfflineHold();
+			$offlineHold->bibId         = $recordId;
 			$offlineHold->patronBarcode = $patron->getBarcode();
-			$offlineHold->patronId = $patron->id;
-			$offlineHold->timeEntered = time();
-			$offlineHold->status = 'Not Processed';
-			if ($offlineHold->insert()){
+			$offlineHold->patronId      = $patron->id;
+			$offlineHold->timeEntered   = time();
+			$offlineHold->status        = 'Not Processed';
+			if ($offlineHold->insert()) {
 				//TODO: use bib or bid ??
 				return array(
-						'title'   => $title,
-						'bib'     => $recordId,
-						'success' => true,
-						'message' => 'The circulation system is currently offline.  This hold will be entered for you automatically when the circulation system is online.');
-			}else{
+					'title' => $title,
+					'bib' => $recordId,
+					'success' => true,
+					'message' => 'The circulation system is currently offline.  This hold will be entered for you automatically when the circulation system is online.');
+			} else {
 				return array(
-						'title'   => $title,
-						'bib'     => $recordId,
-						'success' => false,
-						'message' => 'The circulation system is currently offline and we could not place this hold.  Please try again later.');
+					'title' => $title,
+					'bib' => $recordId,
+					'success' => false,
+					'message' => 'The circulation system is currently offline and we could not place this hold.  Please try again later.');
 			}
 
-		}else{
+		} else {
 			if ($type == 'cancel' || $type == 'recall' || $type == 'update') {
-				$result = $this->updateHold($patron, $recordId, $type/*, $title*/);
+				$result          = $this->updateHold($patron, $recordId, $type/*, $title*/);
 				$result['title'] = $title;
 				$result['bid']   = $recordId;
 				return $result;
 
 			} else {
-				if (isset($_REQUEST['campus'])){
-					$campus=trim($_REQUEST['campus']);
-				}else{
-					$campus = $patron->homeLocationId;
+				if (empty($campus)) {
+					$campus = $patron->homeLocationCode;
 				}
 				//create the hold using the web service
 				$webServiceURL = $this->getWebServiceURL();
 
 				$holdData = array(
-						'patronBarcode' => $patron->getBarcode(),
-						'pickupLibrary' => array(
-								'resource' => '/policy/library',
-								'key' => strtoupper($campus)
-						),
+					'patronBarcode' => $patron->getBarcode(),
+					'pickupLibrary' => array(
+						'resource' => '/policy/library',
+						'key' => strtoupper($campus)
+					),
 				);
-				if ($itemId){
+				if ($itemId) {
 					$holdData['itemBarcode'] = $itemId;
-					$holdData['holdType'] = 'COPY';
-				}else{
-					$shortRecordId = str_replace('a', '', $recordId);
-					$holdData['bib'] = array(
-							'resource' => '/catalog/bib',
-							'key' => $shortRecordId
+					$holdData['holdType']    = 'COPY';
+				} else {
+					$shortRecordId        = str_replace('a', '', $recordId);
+					$holdData['bib']      = array(
+						'resource' => '/catalog/bib',
+						'key' => $shortRecordId
 					);
 					$holdData['holdType'] = 'TITLE';
 				}
 
-				$holdRecord = $this->getWebServiceResponse($webServiceURL . "/ws/circulation/holdRecord/placeHold/describe", null, $sessionToken);
+//				$holdRecord         = $this->getWebServiceResponse($webServiceURL . "/ws/circulation/holdRecord/describe", null, $sessionToken);
+//				$placeHold          = $this->getWebServiceResponse($webServiceURL . "/ws/circulation/holdRecord/placeHold/describe", null, $sessionToken);
 				$createHoldResponse = $this->getWebServiceResponse($webServiceURL . "/ws/circulation/holdRecord/placeHold", $holdData, $sessionToken);
 
 				$hold_result = array();
-				if (isset($createHoldResponse->messageList)){
+				if (isset($createHoldResponse->messageList)) {
 					$hold_result['success'] = false;
 					$hold_result['message'] = 'Your hold could not be placed. ';
-					if (isset($createHoldResponse->messageList)){
+					if (isset($createHoldResponse->messageList)) {
 						$hold_result['message'] .= (string)$createHoldResponse->messageList[0]->message;
 					}
-				}else{
+				} else {
 					$hold_result['success'] = true;
 					$hold_result['message'] = 'Your hold was placed successfully.';
 				}
 
-				$hold_result['title']  = $title;
-				$hold_result['bid']    = $recordId;
+				$hold_result['title'] = $title;
+				$hold_result['bid']   = $recordId;
 				global $analytics;
-				if ($analytics){
-					if ($hold_result['success'] == true){
+				if ($analytics) {
+					if ($hold_result['success'] == true) {
 						$analytics->addEvent('ILS Integration', 'Successful Hold', $title);
-					}else{
+					} else {
 						$analytics->addEvent('ILS Integration', 'Failed Hold', $hold_result['message'] . ' - ' . $title);
 					}
 				}
@@ -558,4 +809,571 @@ abstract class SirsiDynixROA extends HorizonAPI {
 			}
 		}
 	}
+
+
+ private function getSessionToken($patron)
+ {
+	 $userId = $patron->id;
+
+	 //Get the session token for the user
+	 if (isset(SirsiDynixROA::$sessionIdsForUsers[$userId])) {
+		 return SirsiDynixROA::$sessionIdsForUsers[$userId];
+	 } else {
+		 list(, $sessionToken) = $this->loginViaWebService($patron->cat_username, $patron->cat_password);
+		 return $sessionToken;
+	 }
+ }
+
+	function cancelHold($patron, $recordId, $cancelId)
+	{
+		$sessionToken = $this->getStaffSessionToken();
+		if (!$sessionToken) {
+			return array(
+				'success' => false,
+				'message' => 'Sorry, we could not connect to the circulation system.');
+		}
+
+		//create the hold using the web service
+		$webServiceURL = $this->getWebServiceURL();
+
+		$cancelHoldResponse = $this->getWebServiceResponse($webServiceURL . "/ws/circulation/holdRecord/key/$cancelId", null, $sessionToken, 'DELETE');
+
+		if (empty($cancelHoldResponse)) {
+			return array(
+				'success' => true,
+			  'message' => 'The hold was successfully canceled'
+			);
+		} else {
+			//TODO: check out for error message
+			return array(
+				'success' => false,
+				'message' => 'Sorry, the hold was not canceled');
+		}
+
+	}
+
+	function changeHoldPickupLocation($patron, $recordId, $holdId, $newPickupLocation)
+	{
+		$sessionToken = $this->getSessionToken($patron);
+		if (!$sessionToken) {
+			return array(
+				'success' => false,
+				'message' => 'Sorry, it does not look like you are logged in currently.  Please login and try again');
+		}
+
+		//create the hold using the web service
+		$webServiceURL = $this->getWebServiceURL();
+
+		$params = array(
+			'key' => $holdId,
+			'resource' => '/circulation/holdRecord',
+			'fields' => array(
+				'pickupLibrary' => array(
+					'resource' => '/policy/library',
+					'key' => strtoupper($newPickupLocation)
+				),
+			)
+		);
+
+		$updateHoldResponse = $this->getWebServiceResponse($webServiceURL . "/ws/circulation/holdRecord/key/$holdId", $params, $sessionToken, 'PUT');
+		if (isset($updateHoldResponse->key) && isset($updateHoldResponse->fields->pickupLibrary->key) && ($updateHoldResponse->fields->pickupLibrary->key == strtoupper($newPickupLocation))) {
+			return array(
+				'success' => true,
+			  'message' => 'The pickup location has been updated.'
+			);
+		} else {
+			$messages = array();
+			if (isset($updateHoldResponse->messageList)) {
+				foreach ($updateHoldResponse->messageList as $message) {
+					$messages[] = $message->message;
+				}
+			}
+
+			return array(
+				'success' => false,
+				'message' => 'Failed to update the pickup location : '. implode('; ', $messages)
+			);
+		}
+	}
+
+	function freezeHold($patron, $recordId, $holdToFreezeId, $dateToReactivate)
+	{
+		$sessionToken = $this->getSessionToken($patron);
+		if (!$sessionToken) {
+			return array(
+				'success' => false,
+				'message' => 'Sorry, it does not look like you are logged in currently.  Please login and try again');
+		}
+
+		//create the hold using the web service
+		$webServiceURL = $this->getWebServiceURL();
+
+		$today = date('Y-m-d');
+		$formattedDateToReactivate = date('Y-m-d', strtotime($dateToReactivate));
+		//TODO: case where suspend date is empty
+
+		$params = array(
+			'key' => $holdToFreezeId,
+			'resource' => '/circulation/holdRecord',
+			'fields' => array(
+					'suspendBeginDate' => $today,
+					'suspendEndDate' => $formattedDateToReactivate
+			)
+		);
+
+		$updateHoldResponse = $this->getWebServiceResponse($webServiceURL . "/ws/circulation/holdRecord/key/$holdToFreezeId", $params, $sessionToken, 'PUT');
+
+		if (isset($updateHoldResponse->key) && isset($updateHoldResponse->fields->suspendEndDate) && $updateHoldResponse->fields->suspendEndDate == $formattedDateToReactivate) {
+			$frozen = translate('frozen');
+			return array(
+				'success' => true,
+				'message' => "The hold has been $frozen."
+			);
+		} else {
+			$messages = array();
+			if (isset($updateHoldResponse->messageList)) {
+				foreach ($updateHoldResponse->messageList as $message) {
+					$messages[] = $message->message;
+				}
+			}
+			$freeze = translate('freeze');
+
+			return array(
+				'success' => false,
+				'message' => "Failed to $freeze hold : ". implode('; ', $messages)
+			);
+		}
+	}
+
+	function thawHold($patron, $recordId, $holdToThawId)
+	{
+		$sessionToken = $this->getSessionToken($patron);
+		if (!$sessionToken) {
+			return array(
+				'success' => false,
+				'message' => 'Sorry, it does not look like you are logged in currently.  Please login and try again');
+		}
+
+		//create the hold using the web service
+		$webServiceURL = $this->getWebServiceURL();
+
+		$params = array(
+			'key' => $holdToThawId,
+			'resource' => '/circulation/holdRecord',
+			'fields' => array(
+				'suspendBeginDate' => null,
+				'suspendEndDate' => null
+			)
+		);
+
+		$updateHoldResponse = $this->getWebServiceResponse($webServiceURL . "/ws/circulation/holdRecord/key/$holdToThawId", $params, $sessionToken, 'PUT');
+
+		if (isset($updateHoldResponse->key) && is_null($updateHoldResponse->fields->suspendEndDate)) {
+			$thawed = translate('thawed');
+			return array(
+				'success' => true,
+				'message' => "The hold has been $thawed."
+			);
+		} else {
+			$messages = array();
+			if (isset($updateHoldResponse->messageList)) {
+				foreach ($updateHoldResponse->messageList as $message) {
+					$messages[] = $message->message;
+				}
+			}
+			$thaw = translate('thaw');
+			return array(
+				'success' => false,
+				'message' => "Failed to $thaw hold : ". implode('; ', $messages)
+			);
+		}
+	}
+
+	/**
+	 * @param User $patron
+	 * @param string $recordId
+	 * @param string $itemId
+	 * @param string $itemIndex
+	 * @return array
+	 */
+	public function renewItem($patron, $recordId, $itemId, $itemIndex)
+	{
+		$sessionToken = $this->getSessionToken($patron);
+		if (!$sessionToken) {
+			return array(
+				'success' => false,
+				'message' => 'Sorry, it does not look like you are logged in currently.  Please login and try again');
+		}
+
+		//create the hold using the web service
+		$webServiceURL = $this->getWebServiceURL();
+
+		$params = array(
+			'item' => array(
+			'key' => $itemId,
+		  'resource' => '/catalog/item'
+			)
+		);
+
+		$circRenewResponse  = $this->getWebServiceResponse($webServiceURL . "/ws/circulation/circRecord/renew", $params, $sessionToken, 'POST');
+
+		if (isset($circRenewResponse->circRecord->key)) {
+			// Success
+
+			return array(
+				'itemId'  => $circRenewResponse->circRecord->key,
+				'success' => true,
+				'message' => "Your item was successfully renewed."
+			);
+		} else {
+			// Error
+			$messages = array();
+			if (isset($circRenewResponse->messageList)) {
+				foreach ($circRenewResponse->messageList as $message) {
+					$messages[] = $message->message;
+				}
+			}
+			return array(
+				'itemId'  => $itemId,
+				'success' =>false,
+				'message' => "The item failed to renew".  ($messages ? ': '. implode(';', $messages) : '')
+			);
+
+		}
+
+	}
+
+	/**
+	 * @param $patron
+	 * @param $includeMessages
+	 * @return array|PEAR_Error
+	 */
+	public function getMyFines($patron, $includeMessages)
+	{
+		$fines = array();
+		$sessionToken = $this->getSessionToken($patron);
+		if ($sessionToken) {
+
+			//create the hold using the web service
+			$webServiceURL = $this->getWebServiceURL();
+
+//			$blockList = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/key/' . $patron->username . '?includeFields=blockList{*}', null, $sessionToken);
+			$blockList = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/key/' . $patron->username . '?includeFields=blockList{*,item{bib{title,author}}}', null, $sessionToken);
+			// Include Title data if available
+
+			if (!empty($blockList->fields->blockList)) {
+				foreach ($blockList->fields->blockList as $block) {
+					$fine = $block->fields;
+					$title = '';
+					if (!empty($fine->item->fields->bib->fields->title)) {
+						$title = $fine->item->fields->bib->fields->title;
+						if (!empty($fine->item->fields->bib->fields->author)) {
+							$title .= '  by '.$fine->item->fields->bib->fields->author;
+						}
+
+					}
+					$fines[] = array(
+						'reason' => $fine->block->key,
+						'amount' => $fine->amount->amount,
+						'message' => $title,
+						'amountOutstanding' => $fine->owed->amount,
+						'date' => $fine->billDate
+					);
+				}
+			}
+		}
+		return $fines;
+	}
+
+	/**
+	 * @param $user
+	 * @param $oldPin
+	 * @param $newPin
+	 * @param $confirmNewPin
+	 * @return string
+	 */
+	function updatePin($patron, $oldPin, $newPin, $confirmNewPin)
+	{
+		$sessionToken = $this->getSessionToken($patron);
+		if (!$sessionToken) {
+			return 'Sorry, it does not look like you are logged in currently.  Please login and try again';
+		}
+
+		$params = array(
+			'currentPin' => $oldPin,
+		  'newPin' => $newPin
+		);
+
+		$webServiceURL = $this->getWebServiceURL();
+
+		$updatePinResponse = $this->getWebServiceResponse($webServiceURL . "/v1/user/patron/changeMyPin", $params, $sessionToken, 'POST');
+		if (!empty($updatePinResponse->patronKey) && $updatePinResponse->patronKey ==  $patron->username) {
+			$patron->cat_password = $newPin;
+			$patron->update();
+			return "Your pin number was updated successfully.";
+
+		} else {
+			$messages = array();
+			if (isset($updatePinResponse->messageList)) {
+				foreach ($updatePinResponse->messageList as $message) {
+					$messages[] = $message->message;
+				}
+				global $logger;
+				$logger->log('Symphony ILS encountered errors updating patron pin : '. implode('; ', $messages), PEAR_LOG_ERR);
+				return 'The circulation system encountered errors attempt to update the pin.';
+			}
+			return 'Failed to update pin';
+		}
+	}
+
+	function resetPin($user, $newPin, $resetToken=null){
+		if (empty($resetToken)) {
+			global $logger;
+			$logger->log('No Reset Token passed to resetPin function', PEAR_LOG_ERR);
+			return array(
+				'error' => 'Sorry, we could not update your pin. The reset token is missing. Please try again later'
+			);
+		}
+
+		$changeMyPinAPIUrl = $this->getWebServiceUrl() . '/v1/user/patron/changeMyPin';
+		$jsonParameters = array(
+			'resetPinToken' => $resetToken,
+			'newPin' => $newPin,
+		);
+		$changeMyPinResponse = $this->getWebServiceResponse($changeMyPinAPIUrl, $jsonParameters, null, 'POST');
+		if (is_object($changeMyPinResponse) &&  isset($changeMyPinResponse->messageList)) {
+			$errors = array();
+			foreach ($changeMyPinResponse->messageList as $message) {
+				$errors[] = $message->message;
+			}
+			global $logger;
+			$logger->log('SirsiDynixROA Driver error updating user\'s Pin :'. implode(';',$errors), PEAR_LOG_ERR);
+			return array(
+				'error' => 'Sorry, we encountered an error while attempting to update your pin. Please contact your local library.'
+			);
+		} elseif (!empty($changeMyPinResponse->sessionToken)){
+			if ($user->username == $changeMyPinResponse->patronKey) { // Check that the ILS user matches the Pika user
+				$user->cat_password = $newPin;
+				$user->update();
+			}
+			return array(
+				'success' => true,
+			);
+//			return "Your pin number was updated successfully.";
+		}else{
+			return array(
+				'error' => "Sorry, we could not update your pin number. Please try again later."
+			);
+		}
+	}
+
+	public function emailResetPin($barcode)
+	{
+		if (empty($barcode)) {
+			$barcode = $_REQUEST['barcode'];
+		}
+
+		$patron = new User;
+		$patron->get('cat_username', $barcode);
+		if (!empty($patron->id)) {
+			global $configArray;
+			$pikaUserID = $patron->id;
+
+			// If possible, check if ILS has an email address for the patron
+			if (!empty($patron->cat_password)) {
+				list($userValid, $sessionToken, $userID) = $this->loginViaWebService($barcode, $patron->cat_password);
+				if ($userValid) {
+					// Yay! We were able to login with the pin Pika has!
+
+					//Now check for an email address
+					$lookupMyAccountInfoResponse = $this->getWebServiceResponse($this->getWebServiceURL() . '/v1/user/patron/key/' . $userID . '?includeFields=preferredAddress,address1,address2,address3', null, $sessionToken);
+					if ($lookupMyAccountInfoResponse) {
+						if (isset($lookupMyAccountInfoResponse->fields->preferredAddress)){
+							$preferredAddress = $lookupMyAccountInfoResponse->fields->preferredAddress;
+							$addressField = 'address'. $preferredAddress;
+							//TODO: Does Symphony's email reset pin use any email address; or just the one associated with the preferred Address
+							if (!empty($lookupMyAccountInfoResponse->fields->$addressField)){
+								$addressData = $lookupMyAccountInfoResponse->fields->$addressField;
+								$email = '';
+								foreach ($addressData as $field) {
+									if ($field->fields->code->key == 'EMAIL') {
+										$email = $field->fields->data;
+										break;
+									}
+								}
+								if (empty($email)) {
+									// return an error message because Symphony doesn't have an email.
+									return array(
+										'error' => 'The circulation system does not have an email associated with this card number. Please contact your library to reset your pin.'
+									);
+								}
+							}
+						}
+					}
+				}
+			}
+
+			// email the pin to the user
+			$resetPinAPIUrl = $this->getWebServiceUrl() . '/v1/user/patron/resetMyPin';
+			$jsonPOST       = array(
+				'login' => $barcode,
+				'resetPinUrl' => $configArray['Site']['url'] . '/MyAccount/ResetPin?resetToken=<RESET_PIN_TOKEN>&uid=' . $pikaUserID
+			);
+
+			$resetPinResponse = $this->getWebServiceResponse($resetPinAPIUrl, $jsonPOST, null, 'POST');
+			if (is_object($resetPinResponse) && !isset($resetPinResponse->messageList)) {
+				// Reset Pin Response is empty JSON on success.
+				return array(
+					'success' => true,
+				);
+			} else {
+				$result = array(
+					'error' => "Sorry, we could not e-mail your pin to you.  Please visit the library to reset your pin."
+				);
+				if (isset($resetPinResponse->messageList)) {
+					$errors = array();
+					foreach ($resetPinResponse->messageList as $message) {
+						$errors[] = $message->message;
+					}
+					global $logger;
+					$logger->log('SirsiDynixROA Driver error updating user\'s Pin :' . implode(';', $errors), PEAR_LOG_ERR);
+				}
+				return $result;
+			}
+
+		} else {
+			return array(
+				'error' => 'Sorry, we did not find the card number you entered or you have not logged into the catalog previously.  Please contact your library to reset your pin.'
+			);
+		}
+	}
+
+	/**
+	 * @param User $user
+	 * @param bool $canUpdateContactInfo
+	 * @return array
+	 */
+	function updatePatronInfo($user, $canUpdateContactInfo)
+	{
+		$updateErrors = array();
+		if ($canUpdateContactInfo) {
+			$sessionToken = $this->getSessionToken($user);
+			if ($sessionToken) {
+				$webServiceURL = $this->getWebServiceURL();
+				if ($userID = $user->username) {
+					$updatePatronInfoParameters = array(
+						'fields' => array(),
+					  'key' => $userID,
+					  'resource' => '/user/patron',
+					);
+					if (!empty(self::$userPreferredAddresses[$userID])) {
+						$preferredAddress = self::$userPreferredAddresses[$userID];
+					} else {
+						// TODO: Also set the preferred address in the $updatePatronInfoParameters
+						$preferredAddress = 1;
+					}
+
+					// Build Address Field with existing data
+					$index = 0;
+
+					// Closure to handle the data structure of the address parameters to pass onto the ILS
+					$setField = function ($key, $value) use (&$updatePatronInfoParameters, $preferredAddress, &$index) {
+						static $parameterIndex = array();
+
+						$addressField = 'address' . $preferredAddress;
+						$patronAddressPolicyResource = '/policy/patron' . ucfirst($addressField);
+
+						$l = array_key_exists($key, $parameterIndex) ? $parameterIndex[$key] : $index++;
+						$updatePatronInfoParameters['fields'][$addressField][$l] = array(
+							'resource' => '/user/patron/'. $addressField,
+							'fields' => array(
+								'code' => array(
+									'key' => $key,
+									'resource' => $patronAddressPolicyResource
+								),
+								'data' => $value
+							)
+						);
+						$parameterIndex[$key] = $l;
+
+					};
+
+					if (!empty($user->email)) {
+						$setField('EMAIL', $user->email);
+					}
+
+					if (!empty($user->address1)) {
+						$setField('STREET', $user->address1);
+					}
+
+					if (!empty($user->zip)) {
+						$setField('ZIP', $user->zip);
+					}
+
+					if (!empty($user->phone)) {
+						$setField('PHONE', $user->phone);
+					}
+
+					if (!empty($user->city) && !empty($user->city)) {
+						$setField('CITY/STATE', $user->city .' '. $user->state);
+					}
+
+
+					// Update Address Field with new data supplied by the user
+					if (isset($_REQUEST['email'])) {
+						$setField('EMAIL', $_REQUEST['email']);
+					}
+
+					if (isset($_REQUEST['phone'])) {
+						$setField('PHONE',$_REQUEST['phone']);
+					}
+
+					if (isset($_REQUEST['address1'])) {
+						$setField('STREET',$_REQUEST['address1']);
+					}
+
+					if (isset($_REQUEST['city']) && isset($_REQUEST['state'])) {
+						$setField('CITY/STATE',$_REQUEST['city'] . ' ' . $_REQUEST['state']);
+					}
+
+					if (isset($_REQUEST['zip'])) {
+						$setField('ZIP',$_REQUEST['zip']);
+					}
+
+					// Update Home Location
+					if (!empty($_REQUEST['pickupLocation'])) {
+						$homeLibraryLocation = new Location();
+						if ($homeLibraryLocation->get('code', $_REQUEST['pickupLocation'])) {
+							$homeBranchCode = strtoupper($homeLibraryLocation->code);
+							$updatePatronInfoParameters['fields']['library'] = array(
+								'key' => $homeBranchCode,
+								'resource' => '/policy/library'
+							);
+						}
+					}
+
+					$updateAccountInfoResponse = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/key/' . $userID, $updatePatronInfoParameters, $sessionToken, 'PUT');
+
+						if (isset($updateAccountInfoResponse->messageList)) {
+							foreach ($updateAccountInfoResponse->messageList as $message) {
+								$updateErrors[] = $message->message;
+							}
+							global $logger;
+							$logger->log('Symphony Driver - Patron Info Update Error - Error from ILS : '.implode(';', $updateErrors), PEAR_LOG_ERR);
+						}
+				} else {
+					global $logger;
+					$logger->log('Symphony Driver - Patron Info Update Error: Catalog does not have the circulation system User Id', PEAR_LOG_ERR);
+					$updateErrors[] = 'Catalog does not have the circulation system User Id';
+				}
+			} else {
+				$updateErrors[] = 'Sorry, it does not look like you are logged in currently.  Please login and try again';
+			}
+		} else {
+			$updateErrors[] = 'You do not have permission to update profile information.';
+		}
+		return $updateErrors;
+	}
+
+
 }

@@ -1,7 +1,6 @@
 package org.vufind;
 
 import org.apache.log4j.Logger;
-import org.ini4j.Ini;
 import org.marc4j.marc.DataField;
 import org.marc4j.marc.Record;
 
@@ -17,10 +16,10 @@ import java.util.*;
  * Date: 2/21/14
  * Time: 3:00 PM
  */
-public class AnythinkRecordProcessor extends IlsRecordProcessor {
+class AnythinkRecordProcessor extends IlsRecordProcessor {
 	private PreparedStatement getDateAddedStmt;
-	public AnythinkRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
-		super(indexer, vufindConn, configIni, indexingProfileRS, logger, fullReindex);
+	AnythinkRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
+		super(indexer, vufindConn, indexingProfileRS, logger, fullReindex);
 
 		try{
 			getDateAddedStmt = vufindConn.prepareStatement("SELECT dateFirstDetected FROM ils_marc_checksums WHERE ilsId = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
@@ -31,7 +30,7 @@ public class AnythinkRecordProcessor extends IlsRecordProcessor {
 
 	@Override
 	public void loadPrintFormatInformation(RecordInfo recordInfo, Record record) {
-		Set<String> printFormatsRaw = getFieldList(record, "949c");
+		Set<String> printFormatsRaw = MarcUtil.getFieldList(record, "949c");
 		HashSet<String> printFormats = new HashSet<>();
 		for (String curFormat : printFormatsRaw){
 			printFormats.add(curFormat.toLowerCase());
@@ -68,7 +67,6 @@ public class AnythinkRecordProcessor extends IlsRecordProcessor {
 	protected boolean isItemAvailable(ItemInfo itemInfo) {
 		boolean available = false;
 		String status = itemInfo.getStatusCode();
-		String availableStatus = "is";
 		if (status.equals("i") || status.equals("s")) {
 			available = true;
 		}
@@ -76,7 +74,7 @@ public class AnythinkRecordProcessor extends IlsRecordProcessor {
 	}
 
 	protected Set<String> getBisacSubjects(Record record){
-		return getFieldList(record, "690a");
+		return MarcUtil.getFieldList(record, "690a");
 	}
 
 	protected void loadTargetAudiences(GroupedWorkSolr groupedWork, Record record, HashSet<ItemInfo> printItems, String identifier) {

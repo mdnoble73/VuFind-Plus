@@ -30,55 +30,58 @@ class Fines extends MyAccount
 		       $configArray;
 
 		$ils = $configArray['Catalog']['ils'];
-		$interface->assign('showDate', $ils == 'Koha' || $ils == 'Horizon' || $ils == 'CarlX');
+		$interface->assign('showDate', $ils == 'Koha' || $ils == 'Horizon' || $ils == 'CarlX' || $ils == 'Symphony');
 		$interface->assign('showReason', $ils != 'Koha');
-		$useOutstanding = $ils == 'Koha';
+		$useOutstanding = ($ils == 'Koha' || $ils == 'Symphony');
 		$interface->assign('showOutstanding', $useOutstanding);
 
 		if ($user) {
-			// Get My Fines
-			$fines = $user->getMyFines();
-			$interface->assign('userFines', $fines);
+			if ($configArray['Catalog']['offline']) {
+				$interface->assign('offline', true);
+			} else {
+				// Get My Fines
+				$fines = $user->getMyFines();
+				$interface->assign('userFines', $fines);
 //			$minimumFineAmount = $interface->get_template_vars('minimumFineAmount');
 //			$canShowPayFineButton = false;
 
-			// Get Account Labels, Add Up Totals
-			foreach($fines as $userId => $finesDetails) {
-				$userAccountLabel[$userId] = $user->getUserReferredTo($userId)->getNameAndLibraryLabel();
-				$total = $totalOutstanding = 0;
-				foreach ($finesDetails as $fine) {
-					if (!empty($fine['amount']) && $fine['amount'][0] == '-') {
-						$amount = - ltrim($fine['amount'], '-'.$this->currency_symbol);
-					} else {
-						$amount = ltrim($fine['amount'], $this->currency_symbol);
+				// Get Account Labels, Add Up Totals
+				foreach ($fines as $userId => $finesDetails) {
+					$userAccountLabel[$userId] = $user->getUserReferredTo($userId)->getNameAndLibraryLabel();
+					$total                     = $totalOutstanding = 0;
+					foreach ($finesDetails as $fine) {
+						if (!empty($fine['amount']) && $fine['amount'][0] == '-') {
+							$amount = -ltrim($fine['amount'], '-' . $this->currency_symbol);
+						} else {
+							$amount = ltrim($fine['amount'], $this->currency_symbol);
+						}
+						if (is_numeric($amount)) $total += $amount;
+						if ($useOutstanding && $fine['amountOutstanding']) {
+							$outstanding = ltrim($fine['amountOutstanding'], $this->currency_symbol);
+							if (is_numeric($outstanding)) $totalOutstanding += $outstanding;
+						}
 					}
-					if (is_numeric($amount)) $total += $amount;
-					if ($useOutstanding && $fine['amountOutstanding']) {
-						$outstanding = ltrim($fine['amountOutstanding'], $this->currency_symbol);
-						if (is_numeric($outstanding)) $totalOutstanding += $outstanding;
-					}
-				}
 
 //				if ($total > $minimumFineAmount) $canShowPayFineButton = true;
-				$fineTotals[$userId] = $this->currency_symbol . number_format($total, 2);
+					$fineTotals[$userId] = $this->currency_symbol . number_format($total, 2);
 //				$fineTotals[$userId] = formatNumber($total);  // formatNumber code below doesn't seem to work on $total
 
-				if ($useOutstanding) {
+					if ($useOutstanding) {
 //					if ($totalOutstanding > $minimumFineAmount) $canShowPayFineButton = true;
-					$outstandingTotal[$userId] = $this->currency_symbol . number_format($totalOutstanding, 2);
+						$outstandingTotal[$userId] = $this->currency_symbol . number_format($totalOutstanding, 2);
+					}
+
+					$showFinePayments = $configArray['Catalog']['showFinePayments'];
+					$interface->assign('showFinePayments', $showFinePayments);
+
 				}
 
-				$showFinePayments = $configArray['Catalog']['showFinePayments'];
-				$interface->assign('showFinePayments', $showFinePayments);
-
-			}
-
 //			$interface->assign('canShowPayFineButton', $canShowPayFineButton);
-			$interface->assign('userAccountLabel', $userAccountLabel);
-			$interface->assign('fineTotals', $fineTotals);
-			if ($useOutstanding) $interface->assign('outstandingTotal', $outstandingTotal);
+				$interface->assign('userAccountLabel', $userAccountLabel);
+				$interface->assign('fineTotals', $fineTotals);
+				if ($useOutstanding) $interface->assign('outstandingTotal', $outstandingTotal);
+			}
 		}
-
 		$this->display('fines.tpl', 'My Fines');
 	}
 

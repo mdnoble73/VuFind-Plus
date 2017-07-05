@@ -8,7 +8,7 @@ PIKASERVER=aspencat.production
 PIKADBNAME=aspencat_pika
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
 
-MINFILE1SIZE=$((1009000000))
+MINFILE1SIZE=$((1008000000))
 
 # Check for conflicting processes currently running
 function checkConflictingProcesses() {
@@ -71,7 +71,7 @@ DELETEFILE=/data/vufind-plus/${PIKASERVER}/marc/ascc-catalog-updated.$YESTERDAY.
 if [[ -f $UPDATEFILE && -f $DELETEFILE ]]; then
 	# if the update and delete files are found, merge them into the fullexport file.
 	echo "Merging updates and deletes." >> ${OUTPUT_FILE}
-	cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar aspencat.test MergeMarcUpdatesAndDeletes >> ${OUTPUT_FILE}
+	cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar ${PIKASERVER} MergeMarcUpdatesAndDeletes >> ${OUTPUT_FILE}
 else
 		if [ ! -f $UPDATEFILE ]; then
 		 echo "Update File $UPDATEFILE was not found." >> ${OUTPUT_FILE}

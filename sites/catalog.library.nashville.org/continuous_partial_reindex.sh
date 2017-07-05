@@ -69,7 +69,7 @@ do
 	#process the export from Millennium to give Pika what it needs
 	#echo "Starting Millennium Export - `date`" >> ${OUTPUT_FILE}
 	cd /usr/local/vufind-plus/vufind/millennium_export/
-	nice -n -10 java -server -XX:+UseG1GC -jar millennium_export.jar ${PIKASERVER} >> ${OUTPUT_FILE}
+	nice -n -10 java -server -XX:+UseG1GC -jar millennium_export.jar ${PIKASERVER} millennium >> ${OUTPUT_FILE}
 
 	#export from overdrive
 	#echo "Starting OverDrive Extract - `date`" >> ${OUTPUT_FILE}

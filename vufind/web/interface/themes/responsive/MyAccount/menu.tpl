@@ -27,9 +27,9 @@
 				<div id="myAccountPanel" class="panel-collapse collapse{if  $displaySidebarMenu || $curSection} in{/if}">
 					<div class="panel-body">
 						{assign var="totalFines" value=$user->getTotalFines()}
-						{if $totalFines > 0 || ($showExpirationWarnings && $user->expireClose)}
+						{if ($totalFines > 0 && $showFines) || ($showExpirationWarnings && $user->expireClose)}
 							<div id="myAccountFines">
-								{if $totalFines > 0}
+								{if $totalFines > 0 && $showFines}
 									{if $showEcommerceLink && $totalFines > $minimumFineAmount}
 										<div class="myAccountLink">
 											<a href="{$ecommerceLink}" target="_blank"{if $showRefreshAccountButton} onclick="VuFind.Account.ajaxLightbox('{$path}/AJAX/JSON?method=getPayFinesAfterAction')"{/if}  style="color:red; font-weight:bold;">
@@ -57,7 +57,7 @@
 												Your library card will expire on {$user->expires}.
 											{/if}
 										</a>
-							</div>
+									</div>
 								{/if}
 							</div>
 							<hr class="menu">
@@ -65,28 +65,28 @@
 
 						<div class="myAccountLink{if $action=="CheckedOut"} active{/if}">
 							<a href="{$path}/MyAccount/CheckedOut" id="checkedOut">
-								Checked Out Titles <span class="badge">{$user->getNumCheckedOutTotal()}</span>
+								Checked Out Titles {if !$offline}<span class="badge">{$user->getNumCheckedOutTotal()}</span>{/if}
 							</a>
 						</div>
 						<div class="myAccountLink{if $action=="Holds"} active{/if}">
 							<a href="{$path}/MyAccount/Holds" id="holds">
-								Titles On Hold <span class="badge">{$user->getNumHoldsTotal()}</span>
+								Titles On Hold {if !$offline}<span class="badge">{$user->getNumHoldsTotal()}</span>
 								{if $user->getNumHoldsAvailableTotal() && $user->getNumHoldsAvailableTotal() > 0}
 									&nbsp;<span class="label label-success">{$user->getNumHoldsAvailableTotal()} ready for pick up</span>
-								{/if}
+								{/if}{/if}
 							</a>
 						</div>
 
 						{if $enableMaterialsBooking}
 						<div class="myAccountLink{if $action=="Bookings"} active{/if}">
 							<a href="{$path}/MyAccount/Bookings" id="bookings">
-								Scheduled Items  <span class="badge">{$user->getNumBookingsTotal()}</span>
+								Scheduled Items  {if !$offline}<span class="badge">{$user->getNumBookingsTotal()}</span>{/if}
 							</a>
 						</div>
 						{/if}
 						<div class="myAccountLink{if $action=="ReadingHistory"} active{/if}">
 							<a href="{$path}/MyAccount/ReadingHistory">
-								Reading History {if $user->readingHistorySize}<span class="badge">{$user->readingHistorySize}</span>{/if}
+								Reading History {if !$offline}{if $user->readingHistorySize}<span class="badge">{$user->readingHistorySize}</span>{/if}{/if}
 							</a>
 						</div>
 
@@ -354,7 +354,7 @@
 			{/if}
 
 			{if $user && ($user->hasRole('archives') || $user->hasRole('opacAdmin'))}
-				{if in_array($action, array('ArchiveSubjects', 'ArchiveRequests', 'AuthorshipClaims', 'ClearArchiveCache'))}
+				{if in_array($action, array('ArchiveSubjects', 'ArchiveRequests', 'AuthorshipClaims', 'ClearArchiveCache', 'ArchiveUsage'))}
 					{assign var="curSection" value=true}
 				{else}
 					{assign var="curSection" value=false}
@@ -371,6 +371,7 @@
 						<div class="panel-body">
 							<div class="adminMenuLink{if $action == "ArchiveRequests"} active{/if}"><a href="{$path}/Admin/ArchiveRequests">Archive Material Requests</a></div>
 							<div class="adminMenuLink{if $action == "AuthorshipClaims"} active{/if}"><a href="{$path}/Admin/AuthorshipClaims">Archive Authorship Claims</a></div>
+							<div class="adminMenuLink{if $action == "ArchiveUsage"} active{/if}"><a href="{$path}/Admin/ArchiveUsage">Archive Usage</a></div>
 							<div class="adminMenuLink{if $action == "ArchiveSubjects"} active{/if}"><a href="{$path}/Admin/ArchiveSubjects">Archive Subject Control</a></div>
 							{if $user->hasRole('opacAdmin')}
 								<div class="adminMenuLink{if $action == "ClearArchiveCache"} active{/if}"><a href="{$path}/Admin/ClearArchiveCache">Clear Cache</a></div>

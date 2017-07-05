@@ -45,6 +45,10 @@ public class ItemInfo {
 		this.recordInfo = recordInfo;
 	}
 
+	public RecordInfo getRecordInfo(){
+		return recordInfo;
+	}
+
 	public String getCollection() {
 		return collection;
 	}
@@ -57,11 +61,11 @@ public class ItemInfo {
 		return statusCode;
 	}
 
-	public void setStatusCode(String statusCode) {
+	void setStatusCode(String statusCode) {
 		this.statusCode = statusCode;
 	}
 
-	public void setDetailedStatus(String detailedStatus) {
+	void setDetailedStatus(String detailedStatus) {
 		this.detailedStatus = detailedStatus;
 	}
 
@@ -73,46 +77,46 @@ public class ItemInfo {
 		this.locationCode = locationCode;
 	}
 
-	public String geteContentUrl() {
+	String geteContentUrl() {
 		return eContentUrl;
 	}
 
-	public void seteContentUrl(String eContentUrl) {
+	void seteContentUrl(String eContentUrl) {
 		this.eContentUrl = eContentUrl;
 	}
 
-	public void seteContentFilename(String eContentFilename) {
+	void seteContentFilename(String eContentFilename) {
 		this.eContentFilename = eContentFilename;
 	}
 
-	public String getItemIdentifier() {
+	String getItemIdentifier() {
 		return itemIdentifier;
 	}
 
-	public void setItemIdentifier(String itemIdentifier) {
+	void setItemIdentifier(String itemIdentifier) {
 		this.itemIdentifier = itemIdentifier;
 	}
 
-	public String getITypeCode() {
+	String getITypeCode() {
 		return ITypeCode;
 	}
 
-	public void setITypeCode(String ITypeCode) {
+	void setITypeCode(String ITypeCode) {
 		this.ITypeCode = ITypeCode;
 	}
 
-	public String getDueDate() {
+	String getDueDate() {
 		if (dueDate == null){
 			dueDate = "";
 		}
 		return dueDate;
 	}
 
-	public void setDueDate(String dueDate) {
+	void setDueDate(String dueDate) {
 		this.dueDate = dueDate;
 	}
 
-	public String getShelfLocation() {
+	String getShelfLocation() {
 		return shelfLocation;
 	}
 
@@ -124,11 +128,11 @@ public class ItemInfo {
 		this.format = format;
 	}
 
-	public void setSubFormats(String subFormats){
+	void setSubFormats(String subFormats){
 		this.subFormat = subFormats;
 	}
 
-	public int getNumCopies() {
+	int getNumCopies() {
 		//Deal with OverDrive always available
 		if (numCopies > 1000){
 			return 1;
@@ -137,58 +141,57 @@ public class ItemInfo {
 		}
 	}
 
-	public void setNumCopies(int numCopies) {
+	void setNumCopies(int numCopies) {
 		this.numCopies = numCopies;
 	}
 
-	public boolean isOrderItem() {
+	boolean isOrderItem() {
 		return isOrderItem;
 	}
 
-	public void setIsOrderItem(boolean isOrderItem) {
+	void setIsOrderItem(boolean isOrderItem) {
 		this.isOrderItem = isOrderItem;
 	}
 
-	public boolean isEContent() {
+	boolean isEContent() {
 		return isEContent;
 	}
 
-	public void setIsEContent(boolean isEContent) {
+	void setIsEContent(boolean isEContent) {
 		this.isEContent = isEContent;
 	}
 
-	SimpleDateFormat lastCheckinDateFormatter = new SimpleDateFormat("MMM dd, yyyy");
+	private SimpleDateFormat lastCheckinDateFormatter = new SimpleDateFormat("MMM dd, yyyy");
 	private String baseDetails = null;
-	public String getDetails(){
+	String getDetails(){
 		if (baseDetails == null){
 			String formattedLastCheckinDate = "";
 			if (lastCheckinDate != null){
 				formattedLastCheckinDate = lastCheckinDateFormatter.format(lastCheckinDate);
 			}
 			//Cache the part that doesn't change depending on the scope
-			baseDetails = new StringBuilder().append(recordInfo.getFullIdentifier()).append("|")
-					.append(Util.getCleanDetailValue(itemIdentifier)).append("|")
-					.append(Util.getCleanDetailValue(shelfLocation)).append("|")
-					.append(Util.getCleanDetailValue(callNumber)).append("|")
-					.append(Util.getCleanDetailValue(format)).append("|")
-					.append(Util.getCleanDetailValue(formatCategory)).append("|")
-					.append(numCopies).append("|")
-					.append(isOrderItem).append("|")
-					.append(isEContent).append("|")
-					.append(Util.getCleanDetailValue(eContentSource)).append("|")
-					.append(Util.getCleanDetailValue(eContentFilename)).append("|")
-					.append(Util.getCleanDetailValue(eContentUrl)).append("|")
-					.append(Util.getCleanDetailValue(subFormat)).append("|")
-					.append(Util.getCleanDetailValue(detailedStatus)).append("|")
-					.append(Util.getCleanDetailValue(formattedLastCheckinDate)).append("|")
-					.append(Util.getCleanDetailValue(locationCode)).append("|")
-					.append(Util.getCleanDetailValue(subLocation)).append("|")
-					.toString();
+			baseDetails = recordInfo.getFullIdentifier() + "|" +
+					Util.getCleanDetailValue(itemIdentifier) + "|" +
+					Util.getCleanDetailValue(shelfLocation) + "|" +
+					Util.getCleanDetailValue(callNumber) + "|" +
+					Util.getCleanDetailValue(format) + "|" +
+					Util.getCleanDetailValue(formatCategory) + "|" +
+					numCopies + "|" +
+					isOrderItem + "|" +
+					isEContent + "|" +
+					Util.getCleanDetailValue(eContentSource) + "|" +
+					Util.getCleanDetailValue(eContentFilename) + "|" +
+					Util.getCleanDetailValue(eContentUrl) + "|" +
+					Util.getCleanDetailValue(subFormat) + "|" +
+					Util.getCleanDetailValue(detailedStatus) + "|" +
+					Util.getCleanDetailValue(formattedLastCheckinDate) + "|" +
+					Util.getCleanDetailValue(locationCode) + "|" +
+					Util.getCleanDetailValue(subLocation) + "|";
 		}
 		return baseDetails;
 	}
 
-	public Date getDateAdded() {
+	Date getDateAdded() {
 		return dateAdded;
 	}
 
@@ -196,48 +199,48 @@ public class ItemInfo {
 		this.dateAdded = dateAdded;
 	}
 
-	public String getIType() {
+	String getIType() {
 		return IType;
 	}
 
-	public void setIType(String IType) {
+	void setIType(String IType) {
 		this.IType = IType;
 	}
 
-	public String geteContentSource() {
+	String geteContentSource() {
 		return eContentSource;
 	}
 
-	public void seteContentSource(String eContentSource) {
+	void seteContentSource(String eContentSource) {
 		this.eContentSource = eContentSource;
 	}
 
-	public String geteContentProtectionType() {
+	String geteContentProtectionType() {
 		return eContentProtectionType;
 	}
 
-	public void seteContentProtectionType(String eContentProtectionType) {
+	void seteContentProtectionType(String eContentProtectionType) {
 		this.eContentProtectionType = eContentProtectionType;
 	}
 
-	public String getCallNumber() {
+	String getCallNumber() {
 		return callNumber;
 	}
 
-	public void setCallNumber(String callNumber) {
+	void setCallNumber(String callNumber) {
 		this.callNumber = callNumber;
 	}
 
 
-	public String getSortableCallNumber() {
+	String getSortableCallNumber() {
 		return sortableCallNumber;
 	}
 
-	public void setSortableCallNumber(String sortableCallNumber) {
+	void setSortableCallNumber(String sortableCallNumber) {
 		this.sortableCallNumber = sortableCallNumber;
 	}
 
-	public String getFormatCategory() {
+	String getFormatCategory() {
 		return formatCategory;
 	}
 
@@ -245,11 +248,11 @@ public class ItemInfo {
 		this.formatCategory = formatCategory;
 	}
 
-	public void setShelfLocation(String shelfLocation) {
+	void setShelfLocation(String shelfLocation) {
 		this.shelfLocation = shelfLocation;
 	}
 
-	public ScopingInfo addScope(Scope scope) {
+	ScopingInfo addScope(Scope scope) {
 		ScopingInfo scopeInfo;
 		if (scopingInfo.containsKey(scope.getScopeName())){
 			scopeInfo = scopingInfo.get(scope.getScopeName());
@@ -260,19 +263,19 @@ public class ItemInfo {
 		return scopeInfo;
 	}
 
-	public HashMap<String, ScopingInfo> getScopingInfo() {
+	HashMap<String, ScopingInfo> getScopingInfo() {
 		return scopingInfo;
 	}
 
-	public boolean isValidForScope(Scope scope){
+	boolean isValidForScope(Scope scope){
 		return scopingInfo.containsKey(scope.getScopeName());
 	}
 
-	public boolean isValidForScope(String scopeName){
+	boolean isValidForScope(String scopeName){
 		return scopingInfo.containsKey(scopeName);
 	}
 
-	public boolean isLocallyOwned(Scope scope) {
+	boolean isLocallyOwned(Scope scope) {
 		ScopingInfo scopeData = scopingInfo.get(scope.getScopeName());
 		if (scopeData != null){
 			if (scopeData.isLocallyOwned()){
@@ -282,7 +285,7 @@ public class ItemInfo {
 		return false;
 	}
 
-	public boolean isLibraryOwned(Scope scope) {
+	boolean isLibraryOwned(Scope scope) {
 		ScopingInfo scopeData = scopingInfo.get(scope.getScopeName());
 		if (scopeData != null){
 			if (scopeData.isLibraryOwned()){
@@ -292,7 +295,7 @@ public class ItemInfo {
 		return false;
 	}
 
-	public boolean isLocallyOwned(String scopeName) {
+	boolean isLocallyOwned(String scopeName) {
 		ScopingInfo scopeData = scopingInfo.get(scopeName);
 		if (scopeData != null){
 			if (scopeData.isLocallyOwned()){
@@ -302,7 +305,7 @@ public class ItemInfo {
 		return false;
 	}
 
-	public boolean isLibraryOwned(String scopeName) {
+	boolean isLibraryOwned(String scopeName) {
 		ScopingInfo scopeData = scopingInfo.get(scopeName);
 		if (scopeData != null){
 			if (scopeData.isLibraryOwned()){
@@ -312,31 +315,31 @@ public class ItemInfo {
 		return false;
 	}
 
-	public String getShelfLocationCode() {
+	String getShelfLocationCode() {
 		return shelfLocationCode;
 	}
 
-	public void setShelfLocationCode(String shelfLocationCode) {
+	void setShelfLocationCode(String shelfLocationCode) {
 		this.shelfLocationCode = shelfLocationCode;
 	}
 
-	public String getFullRecordIdentifier() {
+	String getFullRecordIdentifier() {
 		return recordInfo.getFullIdentifier();
 	}
 
-	public String getSubLocation() {
+	String getSubLocation() {
 		return subLocation;
 	}
 
-	public void setSubLocation(String subLocation) {
+	void setSubLocation(String subLocation) {
 		this.subLocation = subLocation;
 	}
 
-	public Date getLastCheckinDate() {
+	Date getLastCheckinDate() {
 		return lastCheckinDate;
 	}
 
-	public void setLastCheckinDate(Date lastCheckinDate) {
+	void setLastCheckinDate(Date lastCheckinDate) {
 		this.lastCheckinDate = lastCheckinDate;
 	}
 }

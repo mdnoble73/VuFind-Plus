@@ -16,6 +16,8 @@ public class IndexingProfile {
 	public String marcPath;
 	public String marcEncoding;
 	public String individualMarcPath;
+	public int numCharsToCreateFolderFrom;
+	public boolean createFolderFromLeadingCharacters;
 	public String recordNumberTag;
 	private String recordNumberPrefix;
 	private char eContentDescriptor = ' ';

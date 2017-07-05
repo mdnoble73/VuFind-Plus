@@ -2,7 +2,6 @@ package org.vufind;
 
 import au.com.bytecode.opencsv.CSVReader;
 import org.apache.log4j.Logger;
-import org.ini4j.Ini;
 import org.marc4j.marc.DataField;
 import org.marc4j.marc.Record;
 
@@ -22,20 +21,17 @@ import java.util.*;
  * Date: 7/9/2015
  * Time: 11:39 PM
  */
-public abstract class IIIRecordProcessor extends IlsRecordProcessor{
-	protected HashMap<String, ArrayList<OrderInfo>> orderInfoFromExport = new HashMap();
+abstract class IIIRecordProcessor extends IlsRecordProcessor{
+	private HashMap<String, ArrayList<OrderInfo>> orderInfoFromExport = new HashMap<>();
 	private boolean loanRuleDataLoaded = false;
-	protected ArrayList<Long> pTypes = new ArrayList<>();
-	protected HashMap<String, HashSet<String>> pTypesByLibrary = new HashMap<>();
-	protected HashSet<String> allPTypes = new HashSet<>();
 	private HashMap<Long, LoanRule> loanRules = new HashMap<>();
 	private ArrayList<LoanRuleDeterminer> loanRuleDeterminers = new ArrayList<>();
-	protected String exportPath;
+	private String exportPath;
 	// A list of status codes that are eligible to show items as checked out.
-	protected HashSet<String> validCheckedOutStatusCodes = new HashSet<>();
+	HashSet<String> validCheckedOutStatusCodes = new HashSet<>();
 
-	public IIIRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
-		super(indexer, vufindConn, configIni, indexingProfileRS, logger, fullReindex);
+	IIIRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
+		super(indexer, vufindConn, indexingProfileRS, logger, fullReindex);
 		try {
 			exportPath = indexingProfileRS.getString("marcPath");
 		}catch (Exception e){
@@ -49,27 +45,6 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 		if (!loanRuleDataLoaded){
 			//Load loan rules
 			try {
-				PreparedStatement pTypesStmt = vufindConn.prepareStatement("SELECT pType from ptype", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-				ResultSet pTypesRS = pTypesStmt.executeQuery();
-				while (pTypesRS.next()) {
-					pTypes.add(pTypesRS.getLong("pType"));
-					allPTypes.add(pTypesRS.getString("pType"));
-				}
-
-				PreparedStatement pTypesByLibraryStmt = vufindConn.prepareStatement("SELECT pTypes, ilsCode from library", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-				ResultSet pTypesByLibraryRS = pTypesByLibraryStmt.executeQuery();
-				while (pTypesByLibraryRS.next()) {
-					String ilsCode = pTypesByLibraryRS.getString("ilsCode");
-					String pTypes = pTypesByLibraryRS.getString("pTypes");
-					if (pTypes != null && pTypes.length() > 0){
-						String[] pTypeElements = pTypes.split(",");
-						HashSet<String> pTypesForLibrary = new HashSet<>();
-						Collections.addAll(pTypesForLibrary, pTypeElements);
-						pTypesByLibrary.put(ilsCode, pTypesForLibrary);
-
-					}
-				}
-
 				PreparedStatement loanRuleStmt = vufindConn.prepareStatement("SELECT * from loan_rules", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 				ResultSet loanRulesRS = loanRuleStmt.executeQuery();
 				while (loanRulesRS.next()) {
@@ -190,7 +165,7 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 
 				String itemIType = itemInfo.getITypeCode();
 
-				String key = new StringBuilder(curScope.getScopeName()).append(locationCode).append(itemIType).toString();
+				String key = curScope.getScopeName() + locationCode + itemIType;
 				HoldabilityInformation cachedInfo = holdabilityCache.get(key);
 				if (cachedInfo == null){
 					HashMap<RelevantLoanRule, LoanRuleDeterminer> relevantLoanRules = getRelevantLoanRules(itemIType, locationCode, curScope.getRelatedNumericPTypes());
@@ -228,7 +203,7 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 
 		String itemIType = itemInfo.getITypeCode();
 
-		String key = new StringBuilder(curScope.getScopeName()).append("-").append(locationCode).append("-").append(itemIType).toString();
+		String key = curScope.getScopeName() + "-" + locationCode + "-" + itemIType;
 		if (!bookabilityCache.containsKey(key)) {
 			HashMap<RelevantLoanRule, LoanRuleDeterminer> relevantLoanRules = getRelevantLoanRules(itemIType, locationCode, curScope.getRelatedNumericPTypes());
 			HashSet<Long> bookablePTypes = new HashSet<>();
@@ -306,13 +281,14 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 		}
 	}
 
-	SimpleDateFormat displayDateFormatter = new SimpleDateFormat("MMM d, yyyy");
-	protected String getDisplayDueDate(String dueDate, String identifier){
+	private SimpleDateFormat displayDateFormatter = new SimpleDateFormat("MMM d, yyyy");
+	private SimpleDateFormat dueDateFormatter;
+	private String getDisplayDueDate(String dueDate, String identifier){
 		try {
-			if (dateAddedFormatter == null) {
-				dateAddedFormatter = new SimpleDateFormat(dateAddedFormat);
+			if (dueDateFormatter == null) {
+				dueDateFormatter = new SimpleDateFormat(dueDateFormat);
 			}
-			Date dateAdded = dateAddedFormatter.parse(dueDate);
+			Date dateAdded = dueDateFormatter.parse(dueDate);
 			return displayDateFormatter.format(dateAdded);
 		}catch (Exception e){
 			logger.warn("Could not load display due date for dueDate " + dueDate + " for identifier " + identifier, e);
@@ -325,7 +301,7 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 	 * @param basedId String the base id without checksum
 	 * @return String the check digit
 	 */
-	protected static String getCheckDigit(String basedId) {
+	private static String getCheckDigit(String basedId) {
 		int sumOfDigits = 0;
 		for (int i = 0; i < basedId.length(); i++){
 			int multiplier = ((basedId.length() +1 ) - i);
@@ -339,7 +315,7 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 		}
 	}
 
-	protected void loadOrderInformationFromExport() {
+	void loadOrderInformationFromExport() {
 		File activeOrders = new File(this.exportPath + "/active_orders.csv");
 		if (activeOrders.exists()){
 			try{
@@ -350,7 +326,6 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 				while ((orderData = reader.readNext()) != null){
 					OrderInfo orderRecord = new OrderInfo();
 					String recordId = ".b" + orderData[0] + getCheckDigit(orderData[0]);
-					orderRecord.setRecordId(recordId);
 					String orderRecordId = ".o" + orderData[1] + getCheckDigit(orderData[1]);
 					orderRecord.setOrderRecordId(orderRecordId);
 					orderRecord.setStatus(orderData[3]);
@@ -360,7 +335,7 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 					if (orderInfoFromExport.containsKey(recordId)){
 						orderInfoFromExport.get(recordId).add(orderRecord);
 					}else{
-						ArrayList<OrderInfo> orderRecordColl = new ArrayList<OrderInfo>();
+						ArrayList<OrderInfo> orderRecordColl = new ArrayList<>();
 						orderRecordColl.add(orderRecord);
 						orderInfoFromExport.put(recordId, orderRecordColl);
 					}
@@ -376,7 +351,7 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 			ArrayList<OrderInfo> orderItems = orderInfoFromExport.get(recordInfo.getRecordIdentifier());
 			if (orderItems != null) {
 				for (OrderInfo orderItem : orderItems) {
-					createAndAddOrderItem(recordInfo, orderItem);
+					createAndAddOrderItem(groupedWork, recordInfo, orderItem, record);
 					//For On Order Items, increment popularity based on number of copies that are being purchased.
 					groupedWork.addPopularity(orderItem.getNumCopies());
 				}
@@ -395,7 +370,7 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 		}
 	}
 
-	protected void createAndAddOrderItem(RecordInfo recordInfo, OrderInfo orderItem) {
+	private void createAndAddOrderItem(GroupedWorkSolr groupedWork, RecordInfo recordInfo, OrderInfo orderItem, Record record) {
 		ItemInfo itemInfo = new ItemInfo();
 		String orderNumber = orderItem.getOrderRecordId();
 		String location = orderItem.getLocationCode();
@@ -419,10 +394,6 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 
 		//Format and Format Category should be set at the record level, so we don't need to set them here.
 
-		//Shelf Location also include the name of the ordering branch if possible
-		boolean hasLocationBasedShelfLocation = false;
-		boolean hasSystemBasedShelfLocation = false;
-
 		//Add the library this is on order for
 		itemInfo.setShelfLocation("On Order");
 
@@ -430,47 +401,6 @@ public abstract class IIIRecordProcessor extends IlsRecordProcessor{
 
 		if (isOrderItemValid(status, null)){
 			recordInfo.addItem(itemInfo);
-			for (Scope scope: indexer.getScopes()){
-				if (scope.isItemPartOfScope(profileType, location, "", true, true, false)){
-					ScopingInfo scopingInfo = itemInfo.addScope(scope);
-					if (scopingInfo == null){
-						logger.error("Could not add scoping information for " + scope.getScopeName() + " for item " + orderNumber);
-						continue;
-					}
-					if (scope.isLocationScope()) {
-						if (scope.getLibraryScope() == null){
-							logger.warn("Location scope " + scope.getScopeName() + " does not have an associated library");
-							continue;
-						}else{
-							scopingInfo.setLibraryOwned(scope.getLibraryScope().isItemOwnedByScope(profileType, location, ""));
-						}
-						scopingInfo.setLocallyOwned(scope.isItemOwnedByScope(profileType, location, ""));
-					}
-					if (scope.isLibraryScope()) {
-						boolean isLibraryOwned = scope.isItemOwnedByScope(profileType, location, "");
-						scopingInfo.setLibraryOwned(isLibraryOwned);
-						if (itemInfo.getShelfLocation().equals("On Order") && isLibraryOwned){
-							itemInfo.setShelfLocation(scopingInfo.getScope().getFacetLabel() + " On Order");
-						}
-					}
-					if (scopingInfo.isLocallyOwned()){
-						if (scope.isLibraryScope() && !hasLocationBasedShelfLocation && !hasSystemBasedShelfLocation){
-							hasSystemBasedShelfLocation = true;
-						}
-						if (scope.isLocationScope() && !hasLocationBasedShelfLocation){
-							hasLocationBasedShelfLocation = true;
-							if (itemInfo.getShelfLocation().equals("On Order")) {
-								itemInfo.setShelfLocation(scopingInfo.getScope().getFacetLabel() + "On Order");
-							}
-						}
-					}
-					scopingInfo.setAvailable(false);
-					scopingInfo.setHoldable(true);
-					scopingInfo.setStatus("On Order");
-					scopingInfo.setGroupedStatus("On Order");
-
-				}
-			}
 		}
 	}
 }

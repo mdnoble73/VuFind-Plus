@@ -2590,18 +2590,27 @@ class GroupedWorkDriver extends RecordInterface{
 			$numCopies = $curItem[6];
 			$isOrderItem = $curItem[7] == 'true';
 			$isEcontent = $curItem[8] == 'true';
+			$scopeKey = $curItem[0] . ':' . ($curItem[1] == 'null' ? '' : $curItem[1]);
+			$scopingDetails = $scopingInfo[$scopeKey];
 			if ($isEcontent) {
-				$relatedUrls[] = array(
-						'source' => $curItem[9],
-						'file' => $curItem[10],
-						'url' => $curItem[11]
-				);
+				if (strlen($scopingDetails[12]) > 0){
+					$relatedUrls[] = array(
+							'source' => $curItem[9],
+							'file' => $curItem[10],
+							'url' => $scopingDetails[12]
+					);
+				}else{
+					$relatedUrls[] = array(
+							'source' => $curItem[9],
+							'file' => $curItem[10],
+							'url' => $curItem[11]
+					);
+				}
+
 				$relatedRecord['eContentSource'] = $curItem[9];
 				$relatedRecord['isEContent'] = true;
 			}
 			//Get Scoping information for this record
-			$scopeKey = $curItem[0] . ':' . ($curItem[1] == 'null' ? '' : $curItem[1]);
-			$scopingDetails = $scopingInfo[$scopeKey];
 			$groupedStatus = $scopingDetails[2];
 			$status = $curItem[13];
 			$locallyOwned = $scopingDetails[4] == 'true';

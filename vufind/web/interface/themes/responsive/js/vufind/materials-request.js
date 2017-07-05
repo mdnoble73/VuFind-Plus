@@ -192,47 +192,7 @@ VuFind.MaterialsRequest = (function(){
 				$("#bookmobileStopField").hide();
 				$("#pickupLocationField").hide();
 			}
-		},
-
-		materialsRequestLogin: function(){
-			var url = Globals.path + "/AJAX/JSON?method=loginUser";
-			$.ajax({url: url,
-				data: {username: $('#username').val(), password: $('#password').val()},
-				success: function(response){
-					if (response.result.success == true){
-						//Update the main display to show the user is logged in
-						// Hide "log in" options and show "log out" options:
-						$('.loginOptions').hide();
-						$('.logoutOptions').show();
-						$('#myAccountNameLink').html(response.result.name);
-						if (response.result.enableMaterialsRequest == 1){
-							$('#materialsRequestLogin').hide();
-							$('.materialsRequestLoggedInFields').show();
-							if (response.result.phone){
-								$('#phone').val(response.result.phone);
-							}
-							if (response.result.email){
-								$('#email').val(response.result.email);
-							}
-							if (response.result.homeLocationId){
-								var optionToSelect = $("#pickupLocation").find("option[value=" + response.result.homeLocationId + "]");
-								optionToSelect.attr("selected", "selected");
-							}
-						}else{
-							alert("Sorry, materials request functionality is only available to residents at this time.");
-						}
-					}else{
-						alert("That login was not recognized.  Please try again.");
-					}
-				},
-				error: function(){
-					alert("That login was not recognized.  Please try again.");
-				},
-				dataType: 'json',
-				type: 'post'
-			}).fail(VuFind.ajaxFail);
-			return false;
-		},
+		}
 
 		// no uses for this found. plb 12-29-2017
 		// printRequestBody: function(){

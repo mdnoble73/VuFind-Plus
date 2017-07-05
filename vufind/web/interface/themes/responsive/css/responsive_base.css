@@ -8831,6 +8831,10 @@ hr.menu {
   padding: 3px 0;
   margin-bottom: 15px;
 }
+#home-page-hours-locations,
+#home-page-home-button {
+  text-transform: uppercase;
+}
 .sidebar-links .panel-group .panel + .panel {
   margin-top: 0;
 }
@@ -10151,6 +10155,9 @@ a.browse-thumbnail-sorted.active {
   -webkit-box-flex: 1;
       -ms-flex-positive: 1;
           flex-grow: 1;
+}
+.yearbox {
+  padding: 3px 6px;
 }
 .graph-bar {
   background-color: #088ec6;

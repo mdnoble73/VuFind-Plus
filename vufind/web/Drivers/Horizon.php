@@ -327,7 +327,7 @@ abstract class Horizon extends ScreenScrapingDriver{
 					'submenu' => 'info',
 					'updatepin' => 'Update',
 				);
-				$sResult =$this->_curlPostPage($curl_url, $post_data);
+				$sResult = $this->_curlPostPage($curl_url, $post_data);
 
 				//check for errors in boldRedFont1
 				if (preg_match('/<td.*?class="boldRedFont1".*?>(.*?)(?:<br>)*<\/td>/', $sResult, $matches)) {

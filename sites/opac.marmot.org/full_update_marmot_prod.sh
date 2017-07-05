@@ -8,7 +8,7 @@ PIKASERVER=opac.marmot.org
 PIKADBNAME=vufind
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
 
-MINFILE1SIZE=$((4205000000))
+MINFILE1SIZE=$((4000000000))
 
 # Check for conflicting processes currently running
 function checkConflictingProcesses() {
@@ -65,6 +65,9 @@ cd /usr/local/vufind-plus/vufind/cron;./GetHooplaFromMarmot.sh >> ${OUTPUT_FILE}
 
 # CCU Ebsco Marc Updates
 /usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh ebsco_ccu ebsco/ccu >> ${OUTPUT_FILE}
+
+# CCU Alexander Street Press Marc Updates
+/usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh ccu/alexanderStreetPress alexanderstreetpress/ccu >> ${OUTPUT_FILE}
 
 # CMC Ebsco Academic Marc Updates
 /usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh cmc/ebsco ebsco/cmc >> ${OUTPUT_FILE}
@@ -130,7 +133,7 @@ cd /usr/local/vufind-plus/vufind/cron; ./sideload.sh ${PIKASERVER}
 /usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh cmc/filmsondemand filmsondemand/cmc >> ${OUTPUT_FILE}
 
 #Colorado State Goverment Documents Updates
-curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/colorado_gov_docs/marc/fullexport.mrc http://cassini.marmot.org/colorado_state_docs.mrc
+curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/colorado_gov_docs/marc/fullexport.mrc https://cassini.marmot.org/colorado_state_docs.mrc
 
 #Extract Lexile Data
 cd /data/vufind-plus/; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/lexileTitles.txt https://cassini.marmot.org/lexileTitles.txt
