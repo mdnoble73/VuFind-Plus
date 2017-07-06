@@ -102,7 +102,7 @@ rm /data/pika/${PIKASERVER}/grouped_work_primary_identifiers.sql
 cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 
 #copy the export from CARL.X
-expect copyCarlXExport.exp nashville.production
+expect copyCarlXExport.exp nashville.production >> ${OUTPUT_FILE}
 
 #Extracts from sideloaded eContent; log defined in config.pwd.ini [Sideload]
 # Problems with full_update starting late 201608: James moved sideload.sh
