@@ -365,7 +365,7 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 			for (ItemInfo curItem : recordInfo.getRelatedItems()){
 				String itemIdentifier = curItem.getItemIdentifier();
-				if (itemIdentifier.length() > 0) {
+				if (itemIdentifier != null && itemIdentifier.length() > 0) {
 					groupedWork.addAlternateId(itemIdentifier);
 				}
 			}
