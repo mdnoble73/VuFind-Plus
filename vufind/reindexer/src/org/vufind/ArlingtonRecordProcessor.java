@@ -241,7 +241,7 @@ class ArlingtonRecordProcessor extends IIIRecordProcessor {
 					scopingInfo.setLibraryOwned(curScope.isItemOwnedByScope(profileType, itemLocation, ""));
 				}
 				//Check to see if we need to do url rewriting
-				if (!originalUrl.equals(result.localUrl)){
+				if (originalUrl != null && !originalUrl.equals(result.localUrl)){
 					scopingInfo.setLocalUrl(result.localUrl);
 				}
 			}
