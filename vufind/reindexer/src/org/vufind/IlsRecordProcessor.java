@@ -855,7 +855,7 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		}
 	}
 
-	void loadScopeInfoForPrintIlsItem(RecordInfo recordInfo, HashSet<String> audiences, ItemInfo itemInfo, Record record) {
+	private void loadScopeInfoForPrintIlsItem(RecordInfo recordInfo, HashSet<String> audiences, ItemInfo itemInfo, Record record) {
 		//Determine Availability
 		boolean available = isItemAvailable(itemInfo);
 

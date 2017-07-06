@@ -199,55 +199,6 @@ class ArlingtonRecordProcessor extends IIIRecordProcessor {
 		}
 	}
 
-	//TODO: Can this use the main method?
-	@Override
-	void loadScopeInfoForPrintIlsItem(RecordInfo recordInfo, HashSet<String> audiences, ItemInfo itemInfo, Record record) {
-		//Determine Availability
-		boolean available = isItemAvailable(itemInfo);
-
-		//Determine which scopes have access to this record
-		String displayStatus = getDisplayStatus(itemInfo, recordInfo.getRecordIdentifier());
-		String groupedDisplayStatus = getDisplayGroupedStatus(itemInfo, recordInfo.getRecordIdentifier());
-		String overiddenStatus = getOverriddenStatus(itemInfo, true);
-		if (overiddenStatus != null && !overiddenStatus.equals("On Shelf") && !overiddenStatus.equals("Library Use Only") && !overiddenStatus.equals("Available Online")){
-			available = false;
-		}
-
-		String itemLocation = itemInfo.getLocationCode();
-
-		String originalUrl = itemInfo.geteContentUrl();
-		for (Scope curScope : indexer.getScopes()) {
-			//Check to see if the record is holdable for this scope
-			Scope.InclusionResult result = curScope.isItemPartOfScope(profileType, itemLocation, "", itemInfo.getIType(), audiences, recordInfo.getPrimaryFormat(), false, false, false, record, originalUrl);
-			if (result.isIncluded){
-				ScopingInfo scopingInfo = itemInfo.addScope(curScope);
-				scopingInfo.setAvailable(available);
-				scopingInfo.setHoldable(false);
-				scopingInfo.setHoldablePTypes("");
-				scopingInfo.setBookable(false);
-				scopingInfo.setBookablePTypes("");
-
-				scopingInfo.setInLibraryUseOnly(determineLibraryUseOnly(itemInfo, curScope));
-
-				scopingInfo.setStatus(displayStatus);
-				scopingInfo.setGroupedStatus(groupedDisplayStatus);
-				if (curScope.isLocationScope()) {
-					scopingInfo.setLocallyOwned(curScope.isItemOwnedByScope(profileType, itemLocation, ""));
-					if (curScope.getLibraryScope() != null) {
-						scopingInfo.setLibraryOwned(curScope.getLibraryScope().isItemOwnedByScope(profileType, itemLocation, ""));
-					}
-				}
-				if (curScope.isLibraryScope()) {
-					scopingInfo.setLibraryOwned(curScope.isItemOwnedByScope(profileType, itemLocation, ""));
-				}
-				//Check to see if we need to do url rewriting
-				if (originalUrl != null && !originalUrl.equals(result.localUrl)){
-					scopingInfo.setLocalUrl(result.localUrl);
-				}
-			}
-		}
-	}
-
 	@Override
 	protected List<RecordInfo> loadUnsuppressedEContentItems(GroupedWorkSolr groupedWork, String identifier, Record record){
 		List<RecordInfo> unsuppressedEcontentRecords = new ArrayList<>();
