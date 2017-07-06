@@ -88,7 +88,7 @@ public class DatabaseCleanup implements IProcessHandler {
 				processLog.addNote("Deleted " + numUpdates + " user_roles where the user does not exist");
 			}
 
-			numUpdates = vufindConn.prepareStatement("DELETE FROM search where user_id NOT IN (select id from user)").executeUpdate();
+			numUpdates = vufindConn.prepareStatement("DELETE FROM search where user_id NOT IN (select id from user) and user_id != 0").executeUpdate();
 			if (numUpdates > 0){
 				processLog.incUpdated();
 				processLog.addNote("Deleted " + numUpdates + " search where the user does not exist");
