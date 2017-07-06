@@ -1572,5 +1572,15 @@ function getLibraryLocationUpdates(){
 					),
 			),
 
+
+			'location_include_library_records_to_include' => array(
+					'title' => 'Location Include Library Records To Include',
+					'description' => 'Flag for whether or not a location should include all the records to include settings for a libary automatically',
+					'continueOnError' => true,
+					'sql' => array(
+							"ALTER TABLE `location` ADD COLUMN `includeLibraryRecordsToInclude` TINYINT(1) DEFAULT '0';",
+					),
+			),
+
 	);
 }

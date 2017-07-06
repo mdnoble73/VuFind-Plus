@@ -317,7 +317,8 @@ public class GroupedWorkIndexer {
 				"library.includeOverdriveTeen as includeOverdriveTeenLibrary, location.includeOverdriveTeen as includeOverdriveTeenLocation, " +
 				"library.includeOverdriveKids as includeOverdriveKidsLibrary, location.includeOverdriveKids as includeOverdriveKidsLocation, " +
 				"location.additionalLocationsToShowAvailabilityFor, includeAllLibraryBranchesInFacets, " +
-				"location.includeAllRecordsInShelvingFacets, location.includeAllRecordsInDateAddedFacets, location.baseAvailabilityToggleOnLocalHoldingsOnly, location.includeOnlineMaterialsInAvailableToggle " +
+				"location.includeAllRecordsInShelvingFacets, location.includeAllRecordsInDateAddedFacets, location.baseAvailabilityToggleOnLocalHoldingsOnly, " +
+				"location.includeOnlineMaterialsInAvailableToggle, location.includeLibraryRecordsToInclude " +
 				"FROM location INNER JOIN library on library.libraryId = location.libraryId ORDER BY code ASC",
 				ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 		PreparedStatement locationOwnedRecordRulesStmt = vufindConn.prepareStatement("SELECT location_records_owned.*, indexing_profiles.name FROM location_records_owned INNER JOIN indexing_profiles ON indexingProfileId = indexing_profiles.id WHERE locationId = ?",
@@ -398,6 +399,29 @@ public class GroupedWorkIndexer {
 				));
 			}
 
+			boolean includeLibraryRecordsToInclude = locationInformationRS.getBoolean("includeLibraryRecordsToInclude");
+			if (includeLibraryRecordsToInclude){
+				libraryRecordInclusionRulesStmt.setLong(1, libraryId);
+				ResultSet libraryRecordInclusionRulesRS = libraryRecordInclusionRulesStmt.executeQuery();
+				while (libraryRecordInclusionRulesRS.next()){
+					locationScopeInfo.addInclusionRule(new InclusionRule(libraryRecordInclusionRulesRS.getString("name"),
+							libraryRecordInclusionRulesRS.getString("location"),
+							libraryRecordInclusionRulesRS.getString("subLocation"),
+							libraryRecordInclusionRulesRS.getString("iType"),
+							libraryRecordInclusionRulesRS.getString("audience"),
+							libraryRecordInclusionRulesRS.getString("format"),
+							libraryRecordInclusionRulesRS.getBoolean("includeHoldableOnly"),
+							libraryRecordInclusionRulesRS.getBoolean("includeItemsOnOrder"),
+							libraryRecordInclusionRulesRS.getBoolean("includeEContent"),
+							libraryRecordInclusionRulesRS.getString("marcTagToMatch"),
+							libraryRecordInclusionRulesRS.getString("marcValueToMatch"),
+							libraryRecordInclusionRulesRS.getBoolean("includeExcludeMatches"),
+							libraryRecordInclusionRulesRS.getString("urlToMatch"),
+							libraryRecordInclusionRulesRS.getString("urlReplacement")
+					));
+				}
+			}
+
 			if (!scopes.contains(locationScopeInfo)){
 				//Connect this scope to the library scopes
 				for (Scope curScope : scopes){
@@ -420,6 +444,7 @@ public class GroupedWorkIndexer {
 		}
 	}
 
+	PreparedStatement libraryRecordInclusionRulesStmt;
 	private void loadLibraryScopes() throws SQLException {
 		PreparedStatement libraryInformationStmt = vufindConn.prepareStatement("SELECT libraryId, ilsCode, subdomain, " +
 				"displayName, facetLabel, pTypes, enableOverdriveCollection, restrictOwningBranchesAndSystems, publicListsToInclude, " +
@@ -428,7 +453,7 @@ public class GroupedWorkIndexer {
 				"FROM library ORDER BY ilsCode ASC",
 				ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 		PreparedStatement libraryOwnedRecordRulesStmt = vufindConn.prepareStatement("SELECT library_records_owned.*, indexing_profiles.name from library_records_owned INNER JOIN indexing_profiles ON indexingProfileId = indexing_profiles.id WHERE libraryId = ?", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
-		PreparedStatement libraryRecordInclusionRulesStmt = vufindConn.prepareStatement("SELECT library_records_to_include.*, indexing_profiles.name from library_records_to_include INNER JOIN indexing_profiles ON indexingProfileId = indexing_profiles.id WHERE libraryId = ?", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+		libraryRecordInclusionRulesStmt = vufindConn.prepareStatement("SELECT library_records_to_include.*, indexing_profiles.name from library_records_to_include INNER JOIN indexing_profiles ON indexingProfileId = indexing_profiles.id WHERE libraryId = ?", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 		ResultSet libraryInformationRS = libraryInformationStmt.executeQuery();
 		while (libraryInformationRS.next()){
 			String facetLabel = libraryInformationRS.getString("facetLabel");
