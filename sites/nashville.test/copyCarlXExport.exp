@@ -98,8 +98,5 @@ close
 spawn gunzip -fN $localPath/fullExport.gz
 expect eof
 
-spawn mv -f $localPath/fullExport $localPath/fullExport.mrc
-expect eof
-
 #
 #--eof--
