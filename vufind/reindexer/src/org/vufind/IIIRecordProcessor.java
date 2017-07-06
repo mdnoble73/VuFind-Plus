@@ -93,7 +93,13 @@ abstract class IIIRecordProcessor extends IlsRecordProcessor{
 
 		HashSet<Long> pTypesNotAccountedFor = new HashSet<>();
 		pTypesNotAccountedFor.addAll(pTypesToCheck);
-		Long iTypeLong = Long.parseLong(iType);
+		Long iTypeLong;
+		if (iType == null){
+			iTypeLong = 999L;
+		}else{
+			iTypeLong = Long.parseLong(iType);
+		}
+
 		boolean hasDefaultPType = pTypesToCheck.contains(-1L);
 		for (LoanRuleDeterminer curDeterminer : loanRuleDeterminers) {
 			if (curDeterminer.isActive()) {
