@@ -36,17 +36,21 @@
 							<input type="password" title="PIN should be 4 numbers" pattern="[0-9]{ldelim}4,{rdelim}" name="password" id="password" size="28" class="form-control">
 						</div>
 					</div>
-	        <div id="loginPasswordConfirmRow" class="form-group" style="display:none">
+	        
+					<div id="loginPasswordConfirmRow" class="form-group" style="display:none">
 						<label for="password2" class='control-label col-xs-12 col-sm-4'>{translate text='Confirm pin #'}: </label>
 						<div class='col-xs-12 col-sm-8'>
 							<input type="password" pattern="[0-9]{ldelim}4,{rdelim}" name="password2" id="password2" size="28" class="form-control">
 						</div>
 					</div>
 					<div id="loginHelpRow" class="form-group">
+<div class="col-xs-12 col-sm-offset-4 col-sm-8">
+<p>We have migrated to a new back-end computer system at the library. Patrons with PINs that were longer than 6 digits or contained non-numeric characters will need to have their PIN reset by staff.</p>
+</div>
 						<div class="col-xs-12 col-sm-offset-4 col-sm-8">
 							<p class="help-block"><a href="{$path}/MyAccount/RequestPinReset">Forgot your PIN?</a></p>
 							{*<p class="help-block"><a href="#" onclick="document.getElementById('loginPasswordConfirmRow').style.display='block';">Create new PIN</p>*}
-							<p class="help-block"><a href="#" onclick="$('#loginPasswordConfirmRow').show();">Create new PIN</p>
+							{*<p class="help-block"><a href="#" onclick="$('#loginPasswordConfirmRow').show();">Create new PIN</p>*}
 							{if $enableSelfRegistration == 1}
 								<p class="help-block">
 									<a href="{$path}/MyAccount/SelfReg">Get a Card [PIKA SELFREG]</a>
