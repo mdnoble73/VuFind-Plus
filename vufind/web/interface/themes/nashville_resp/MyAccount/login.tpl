@@ -48,7 +48,7 @@
 <p>We have migrated to a new back-end computer system at the library. Patrons with PINs that were longer than 6 digits or contained non-numeric characters will need to have their PIN reset by staff.</p>
 </div>
 						<div class="col-xs-12 col-sm-offset-4 col-sm-8">
-							<p class="help-block"><a href="{$path}/MyAccount/RequestPinReset">Forgot your PIN?</a></p>
+							{*<p class="help-block"><a href="{$path}/MyAccount/RequestPinReset">Forgot your PIN?</a></p>*}
 							{*<p class="help-block"><a href="#" onclick="document.getElementById('loginPasswordConfirmRow').style.display='block';">Create new PIN</p>*}
 							{*<p class="help-block"><a href="#" onclick="$('#loginPasswordConfirmRow').show();">Create new PIN</p>*}
 							{if $enableSelfRegistration == 1}
