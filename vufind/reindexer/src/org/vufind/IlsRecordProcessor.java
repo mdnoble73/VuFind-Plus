@@ -370,6 +370,12 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				}
 			}
 
+			// Add the econtent items to the RecordInfo object so that they can be scoped below in scopeItems()
+			for (RecordInfo econtentRecord : econtentRecords) {
+				for (ItemInfo econtentItem : econtentRecord.getRelatedItems()) {
+					recordInfo.addItem(econtentItem);
+				}
+			}
 			scopeItems(recordInfo, groupedWork, record);
 		}catch (Exception e){
 			logger.error("Error updating grouped work " + groupedWork.getId() + " for MARC record with identifier " + identifier, e);
