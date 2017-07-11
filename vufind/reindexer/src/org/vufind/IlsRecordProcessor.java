@@ -321,6 +321,12 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			//Now look for any eContent that is defined within the ils
 			List<RecordInfo> econtentRecords = loadUnsuppressedEContentItems(groupedWork, identifier, record);
 			allRelatedRecords.addAll(econtentRecords);
+			// Add the econtent items to the RecordInfo object so that they can be scoped below in scopeItems()
+			for (RecordInfo econtentRecord : econtentRecords) {
+				for (ItemInfo econtentItem : econtentRecord.getRelatedItems()) {
+					recordInfo.addItem(econtentItem);
+				}
+			}
 
 			//Do updates based on the overall bib (shared regardless of scoping)
 			String primaryFormat = null;
