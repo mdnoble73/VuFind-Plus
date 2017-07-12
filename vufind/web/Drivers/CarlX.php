@@ -641,7 +641,7 @@ class CarlX extends SIP2Driver{
 					// Structure an single entry as an array of one.
 					$itemsToLoad[] = $result->OverdueItems->OverdueItem;
 				}else{
-					$itemsToLoad = $result->OverdueItems->OverdueItem;
+					$itemsToLoad = array_merge($itemsToLoad, $result->OverdueItems->OverdueItem);
 				}
 			}
 
