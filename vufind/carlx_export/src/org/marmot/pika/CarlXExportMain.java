@@ -321,7 +321,6 @@ public class CarlXExportMain {
 
 					} else {
 						// TODO: Do Marc Lookup & rebuild Marc Record?
-//						logger.warn("Existing Marc Record for BID " + currentBibID + " failed to load; Writing new record with data from API");
 						logger.warn("Existing Marc Record for BID " + fullBibID + " failed to load; Can not update item: " + currentUpdateItemID);
 					}
 				} else {
@@ -422,7 +421,10 @@ public class CarlXExportMain {
 		// Note: There is an Include949ItemData flag, but it hasn't been implemented by TLC yet. plb 9-15-2016
 		// Build Marc Fetching Soap Request
 		boolean errorUpdatingDatabase = false;
-		if (updatedBibs.size() > 0) {
+		if (updatedBibs.size() > 1000){
+			logger.warn("There are more than 1000 bibs that need updates " + updatedBibs.size());
+		}
+		while (updatedBibs.size() > 0) {
 			logger.debug("Getting data for " + updatedBibs.size() + " updated bibs");
 			int numBibUpdates = 0;
 			try {
@@ -440,9 +442,16 @@ public class CarlXExportMain {
 
 				String getMarcRecordsSoapRequest = getMarcRecordsSoapRequestStart;
 				// Updated Bibs
-				for (String updatedBibID : updatedBibs) {
+				ArrayList<String> updatedBibCopy = (ArrayList<String>)updatedBibs.clone();
+				int numAdded = 0;
+				for (String updatedBibID : updatedBibCopy) {
 					if (updatedBibID.length() > 0) {
-						getMarcRecordsSoapRequest += "<mar:BID>" + updatedBibID + "</mar:BID>";
+						getMarcRecordsSoapRequest += "<mar:BID>" + updatedBibID + "</mar:BID>\n";
+						numAdded++;
+					}
+					updatedBibs.remove(updatedBibID);
+					if (numAdded >= 1000){
+						break;
 					}
 				}
 				getMarcRecordsSoapRequest += getMarcRecordsSoapRequestEnd;
@@ -546,16 +555,14 @@ public class CarlXExportMain {
 						logger.error("Error Response for API call for getting Marc Records : " + shortErrorMessage);
 					}
 				}else{
-					logger.error("API call for getting Marc Records Failed: " + marcRecordSOAPResponse.getResponseCode() + marcRecordSOAPResponse.getMessage());
 					if (marcRecordSOAPResponse.getResponseCode() != 500){
+						logger.error("API call for getting Marc Records Failed: " + marcRecordSOAPResponse.getResponseCode() + marcRecordSOAPResponse.getMessage());
 						hadErrors = true;
 					}
 				}
 			} catch (Exception e) {
 				logger.error("Error Creating SOAP Request for Marc Records", e);
 			}
-		}else{
-			logger.debug("No bibs to update");
 		}
 		return errorUpdatingDatabase;
 	}
