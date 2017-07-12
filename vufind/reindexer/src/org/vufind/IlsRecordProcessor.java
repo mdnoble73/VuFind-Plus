@@ -370,7 +370,9 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				}
 			}
 
-			scopeItems(recordInfo, groupedWork, record);
+			for (RecordInfo recordInfoTmp: allRelatedRecords) {
+				scopeItems(recordInfoTmp, groupedWork, record);
+			}
 		}catch (Exception e){
 			logger.error("Error updating grouped work " + groupedWork.getId() + " for MARC record with identifier " + identifier, e);
 		}

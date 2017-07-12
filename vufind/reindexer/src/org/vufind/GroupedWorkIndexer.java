@@ -591,14 +591,17 @@ public class GroupedWorkIndexer {
 	}
 
 	private void loadLexileData(String lexileExportPath) {
+		String[] lexileFields = new String[0];
+		int curLine = 0;
 		try{
 			File lexileData = new File(lexileExportPath);
 			BufferedReader lexileReader = new BufferedReader(new FileReader(lexileData));
 			//Skip over the header
 			lexileReader.readLine();
 			String lexileLine = lexileReader.readLine();
+			curLine++;
 			while (lexileLine != null){
-				String[] lexileFields = lexileLine.split("\\t");
+				lexileFields = lexileLine.split("\\t");
 				LexileTitle titleInfo = new LexileTitle();
 				if (lexileFields.length >= 11){
 					titleInfo.setTitle(lexileFields[0]);
@@ -608,14 +611,17 @@ public class GroupedWorkIndexer {
 					titleInfo.setLexileScore(lexileFields[5]);
 					titleInfo.setSeries(lexileFields[9]);
 					titleInfo.setAwards(lexileFields[10]);
-					titleInfo.setDescription(lexileFields[11]);
+					if (lexileFields.length >= 12) {
+						titleInfo.setDescription(lexileFields[11]);
+					}
 					lexileInformation.put(isbn, titleInfo);
 				}
 				lexileLine = lexileReader.readLine();
+				curLine++;
 			}
 			logger.info("Read " + lexileInformation.size() + " lines of lexile data");
 		}catch (Exception e){
-			logger.error("Error loading lexile data", e);
+			logger.error("Error loading lexile data on " + curLine +  Arrays.toString(lexileFields), e);
 		}
 	}
 
