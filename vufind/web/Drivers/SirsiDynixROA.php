@@ -510,11 +510,11 @@ abstract class SirsiDynixROA extends HorizonAPI
 		//Now that we have the session token, get holds information
 		$webServiceURL = $this->getWebServiceURL();
 		//Get a list of holds for the user
-//		$loginDescribeResponse = $this->getWebServiceResponse($webServiceURL . '/user/patron/describe'); //TODO: remove
+//		$loginDescribeResponse = $this->getWebServiceResponse($webServiceURL . '/user/patron/describe');
 		$patronCheckouts = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/key/' . $patron->username . '?includeFields=circRecordList{*}', null, $sessionToken);
 
 //		$circRecordDescribe  = $this->getWebServiceResponse($webServiceURL . "/ws/circulation/circRecord/describe", null, $sessionToken);
-		//TODO: remove
+
 
 		if (!empty($patronCheckouts->fields->circRecordList)) {
 			$sCount = 0;
@@ -528,13 +528,21 @@ abstract class SirsiDynixROA extends HorizonAPI
 				$curTitle['shortId']        = $bibId;
 				$curTitle['id']             = $bibId;
 
-				$circInfo                   = $this->getWebServiceResponse($webServiceURL . '/ws/circulation/circRecord/key/' . $checkout->key, null, $sessionToken);
-				$curTitle['dueDate']        = strtotime($circInfo->fields->dueDate);
-				$curTitle['checkoutdate']   = strtotime($circInfo->fields->checkOutDate);
+				$curTitle['dueDate']        = strtotime($checkout->fields->dueDate);
+				$curTitle['checkoutdate']   = strtotime($checkout->fields->checkOutDate);
 				// Note: there is an overdue flag
-				$curTitle['renewCount']     = $circInfo->fields->renewalCount;
-				$curTitle['canrenew']       = true; //TODO: Figure out if the user can renew the title or not; There is a seenRenewals field and unseenRenewals field
-				$curTitle['renewIndicator'] = $circInfo->fields->item->key;
+				$curTitle['renewCount']     = $checkout->fields->renewalCount;
+				$curTitle['canrenew']       = $checkout->fields->unseenRenewalsRemaining > 0;
+				$curTitle['renewIndicator'] = $checkout->fields->item->key;
+
+				// Previously a seperate call to the circ record was needed; now the data is included in the above call. pascal. 7-13-2017
+//				$circInfo                   = $this->getWebServiceResponse($webServiceURL . '/ws/circulation/circRecord/key/' . $checkout->key, null, $sessionToken);
+//				$curTitle['dueDate']        = strtotime($circInfo->fields->dueDate);
+//				$curTitle['checkoutdate']   = strtotime($circInfo->fields->checkOutDate);
+//				// Note: there is an overdue flag
+//				$curTitle['renewCount']     = $circInfo->fields->renewalCount;
+//				$curTitle['canrenew']       = true; //TODO: Figure out if the user can renew the title or not; There is a seenRenewals field and unseenRenewals field
+//				$curTitle['renewIndicator'] = $circInfo->fields->item->key;
 
 //				$curTitle['holdQueueLength'] = $this->getNumHolds($bibId); //TODO: needed for checkouts?  Used by Horizon. Is it in this API
 
