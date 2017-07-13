@@ -474,7 +474,7 @@ public class CarlXExportMain {
 
 						int l = marcRecordInfo.getLength();
 						for (int i = 1; i < l; i++) { // (skip first node because it is the response status)
-							String currentBibID = updatedBibs.get(i - 1);
+							String currentBibID = updatedBibCopy.get(i - 1);
 							String currentFullBibID = getFileIdForRecordNumber(currentBibID);
 							//logger.debug("Updating " + currentFullBibID);
 							//logger.debug("Response from CARL.X\r\n" + marcRecordSOAPResponse.getMessage());
