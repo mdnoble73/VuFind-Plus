@@ -294,9 +294,9 @@ function loadSearchInformation(){
 		}
 	}
 	if ($searchLocation){
-		$solrScope = $searchLocation->code;
+		$solrScope = strtolower($searchLocation->code);
 		if (!empty($searchLocation->subLocation)){
-			$solrScope = $searchLocation->subLocation;
+			$solrScope = strtolower($searchLocation->subLocation);
 		}
 		$scopeType = 'Location';
 	}
