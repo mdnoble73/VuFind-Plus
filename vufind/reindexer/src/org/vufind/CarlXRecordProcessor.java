@@ -10,7 +10,6 @@ import java.sql.ResultSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Record Processing Specific to records loaded from CARL.X
@@ -57,8 +56,17 @@ class CarlXRecordProcessor extends IlsRecordProcessor {
 	@Override
 	public void loadPrintFormatInformation(RecordInfo ilsRecord, Record record) {
 		List<DataField> items = MarcUtil.getDataFields(record, itemTag);
+		boolean allItemsAreOrderRecords = true;
 		HashMap<String, Integer> printFormats = new HashMap<>();
 		for (DataField curItem : items){
+			Subfield shelfLocationField = curItem.getSubfield(shelvingLocationSubfield);
+			if (shelfLocationField != null){
+				if (!shelfLocationField.getData().equalsIgnoreCase("XORD")) {
+					allItemsAreOrderRecords = false;
+				}
+			}else{
+				allItemsAreOrderRecords = false;
+			}
 			Subfield formatField = curItem.getSubfield(formatSubfield);
 			if (formatField != null) {
 				String curFormat = formatField.getData();
@@ -68,7 +76,17 @@ class CarlXRecordProcessor extends IlsRecordProcessor {
 				} else {
 					printFormats.put(printFormatLower, printFormats.get(printFormatLower) + 1);
 				}
+				if (!printFormatLower.equals("bk") && !printFormatLower.equals("oth")){
+					allItemsAreOrderRecords = false;
+				}
+			}else{
+				allItemsAreOrderRecords = false;
 			}
+		}
+
+		if (allItemsAreOrderRecords){
+			super.loadPrintFormatInformation(ilsRecord, record);
+			return;
 		}
 
 		HashSet<String> selectedPrintFormats = new HashSet<>();
