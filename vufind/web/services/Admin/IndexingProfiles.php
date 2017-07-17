@@ -99,7 +99,7 @@ class Admin_IndexingProfiles extends ObjectEditor {
 		} else {
 			$actions[] = array(
 				'text' => 'Populate as a Sideload',
-				'onclick' => "$('#indexingClass').val('SideLoadedEContent');$('#groupingClass').val('SideLoadedRecordGrouper');$('#recordDriver').val('SideLoadedRecord');$('#catalogDriver').val('na'); return false",
+				'onclick' => "$('#indexingClass').val('SideLoadedEContent');$('#groupingClass').val('SideLoadedRecordGrouper');$('#recordDriver').val('SideLoadedRecord');$('#catalogDriver').val('na');$('#recordUrlComponent').val(''); return false",
 			);
 		}
 
