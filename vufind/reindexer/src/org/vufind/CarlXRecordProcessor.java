@@ -38,6 +38,15 @@ class CarlXRecordProcessor extends IlsRecordProcessor {
 		return itemInfo.getStatusCode().equals("S") || itemInfo.getStatusCode().equals("SI");
 	}
 
+	@Override
+	protected String getItemStatus(DataField itemField, String recordIdentifier){
+		String statusCode = getItemSubfieldData(statusSubfieldIndicator, itemField);
+		if (statusCode.length() > 2){
+			statusCode = translateValue("status_codes", statusCode, recordIdentifier);
+		}
+		return statusCode;
+	}
+
 	protected String getShelfLocationForItem(ItemInfo itemInfo, DataField itemField, String identifier) {
 		String locationCode = getItemSubfieldData(locationSubfieldIndicator, itemField);
 		String location = translateValue("location", locationCode, identifier);
