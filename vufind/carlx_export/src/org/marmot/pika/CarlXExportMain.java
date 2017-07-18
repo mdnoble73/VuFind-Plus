@@ -96,9 +96,6 @@ public class CarlXExportMain {
 			logger.error("Failed to Load Translation Maps for CarlX Extract", e);
 		}
 
-		// Set update time
-		long updateTime = new Date().getTime() / 1000;
-
 		// Get Last Extract Time
 		String beginTimeString = getLastExtractTime(vufindConn);
 
@@ -141,9 +138,9 @@ public class CarlXExportMain {
 
 
 		// Update Changed Bibs //
-		boolean errorUpdatingDatabase = updateBibRecords(vufindConn, updateTime, updatedBibs, updatedItemIDs, createdItemIDs, deletedItemIDs, itemUpdates, createdItems, markGroupedWorkForBibAsChangedStmt);
+		boolean errorUpdatingDatabase = updateBibRecords(vufindConn, exportStartTime, updatedBibs, updatedItemIDs, createdItemIDs, deletedItemIDs, itemUpdates, createdItems, markGroupedWorkForBibAsChangedStmt);
 		logger.debug("Done updating Bib Records");
-		errorUpdatingDatabase = updateChangedItems(vufindConn, updateTime, createdItemIDs, deletedItemIDs, itemUpdates, createdItems, errorUpdatingDatabase, markGroupedWorkForBibAsChangedStmt);
+		errorUpdatingDatabase = updateChangedItems(vufindConn, exportStartTime, createdItemIDs, deletedItemIDs, itemUpdates, createdItems, errorUpdatingDatabase, markGroupedWorkForBibAsChangedStmt);
 		logger.debug("Done updating Item Records");
 
 		// Now remove Any left-over deleted items.  The APIs give us the item id, but not the bib id.  We may need to
@@ -211,7 +208,7 @@ public class CarlXExportMain {
 					//Update the last extract time
 					if (lastCarlXExtractTimeVariableId != null) {
 						PreparedStatement updateVariableStmt = vufindConn.prepareStatement("UPDATE variables set value = ? WHERE id = ?");
-						updateVariableStmt.setLong(1, updateTime);
+						updateVariableStmt.setLong(1, exportStartTime);
 						updateVariableStmt.setLong(2, lastCarlXExtractTimeVariableId);
 						updateVariableStmt.executeUpdate();
 						updateVariableStmt.close();
