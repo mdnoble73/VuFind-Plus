@@ -10,9 +10,9 @@ if [[ $(hostname -s) == "HOBVMPLAP03" ]]
     SOLRMEM="24g"
 elif [[ $(hostname -s) == "HOBVMPLAPT3" ]]
     then
-      SOLRMEM="12g"
+      SOLRMEM="16g"
 else
-    SOLRMEM="10g"
+    SOLRMEM="16g"
 fi
 
 if [[ ( "$1" == "stop" ) || ( "$1" == "restart") ]]

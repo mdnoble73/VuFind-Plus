@@ -245,8 +245,9 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			}catch (Exception e) {
 				logger.error("Error updating solr based on marc record", e);
 			}
-		}else{
-			logger.info("Could not load marc record from disk for " + identifier);
+		//No need to warn here, we already have a warning when getting it
+		//}else{
+			//logger.info("Could not load marc record from disk for " + identifier);
 		}
 	}
 
@@ -262,10 +263,12 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			//FileInputStream inputStream = new FileInputStream(individualFile);
 			InputStream inputStream = new ByteArrayInputStream(fileContents);
 			MarcPermissiveStreamReader marcReader = new MarcPermissiveStreamReader(inputStream, true, true, "UTF-8");
-			if (marcReader.hasNext()){
+			if (marcReader.hasNext()) {
 				record = marcReader.next();
 			}
 			inputStream.close();
+		}catch (FileNotFoundException fe){
+			logger.warn("Could not find MARC record at " + individualFilename + " for " + identifier);
 		} catch (Exception e) {
 			logger.error("Error reading data from ils file " + individualFilename, e);
 		}
