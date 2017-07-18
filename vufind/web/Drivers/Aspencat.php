@@ -214,12 +214,12 @@ class Aspencat implements DriverInterface{
 							$numRenewalsAllowed = $renewalData[3];
 							$transaction['renewCount'] = $numRenewalsAllowed - $numRenewalsRemaining;
 						}elseif(preg_match('/not renewable.*?\\((\\d+) of (\\d+) renewals/si', $tableCell, $renewalData)){
-							$transaction['renewable'] = false;
+							$transaction['canrenew'] = false;
 							$numRenewalsRemaining = $renewalData[1];
 							$numRenewalsAllowed = $renewalData[2];
 							$transaction['renewCount'] = $numRenewalsAllowed - $numRenewalsRemaining;
 						}elseif(preg_match('/not renewable/si', $tableCell, $renewalData)){
-							$transaction['renewable'] = false;
+							$transaction['canrenew'] = false;
 						}
 					}
 					//TODO: Add display of fines on a title?
