@@ -93,8 +93,7 @@ class CarlXRecordProcessor extends IlsRecordProcessor {
 			}else{
 				allItemsAreOrderRecords = false;
 			}
-			if (!
-							){
+			if (!hasLocationBasedFormat){
 				Subfield formatField = curItem.getSubfield(formatSubfield);
 				if (formatField != null) {
 					String curFormat = formatField.getData();
