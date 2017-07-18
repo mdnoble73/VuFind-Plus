@@ -82,3 +82,7 @@
 
 # Check Apache Solr process and website that it has not stalled.
 */3 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./solrTest.sh
+
+### -- renew SSL certs at 3:51AM and 3:51PM everyday --###
+  51    3,15    *       *       *       certbot renew --quiet
+
