@@ -104,10 +104,10 @@ class InclusionRule {
 				isIncluded =  false;
 			}else if (!this.recordType.equals(recordType)){
 				isIncluded =  false;
-			}else if (locationCodePattern.matcher(locationCode).lookingAt() &&
-					subLocationCodePattern.matcher(subLocationCode).lookingAt() &&
-					(formatPattern.matcher(format).lookingAt())
-					){
+			}else if ((locationCode == null || locationCodePattern.matcher(locationCode).lookingAt()) &&
+							(subLocationCode == null || subLocationCodePattern.matcher(subLocationCode).lookingAt()) &&
+							(format == null || formatPattern.matcher(format).lookingAt())
+							){
 
 				//We got a match based on location check formats iTypes etc
 				if (iType != null && !iTypePattern.matcher(iType).lookingAt()){

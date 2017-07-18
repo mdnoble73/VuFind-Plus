@@ -69,27 +69,47 @@ class CarlXRecordProcessor extends IlsRecordProcessor {
 		HashMap<String, Integer> printFormats = new HashMap<>();
 		for (DataField curItem : items){
 			Subfield shelfLocationField = curItem.getSubfield(shelvingLocationSubfield);
+			boolean hasLocationBasedFormat = false;
 			if (shelfLocationField != null){
-				if (!shelfLocationField.getData().equalsIgnoreCase("XORD")) {
+				String shelfLocation = shelfLocationField.getData().toLowerCase();
+				if (!shelfLocation.equalsIgnoreCase("XORD")) {
 					allItemsAreOrderRecords = false;
+				}
+				String printFormatLower = null;
+				if (shelfLocation.endsWith("ltp")){
+					printFormatLower = "largeprint";
+					hasLocationBasedFormat = true;
+				}else if (shelfLocation.endsWith("board")){
+					printFormatLower = "board";
+					hasLocationBasedFormat = true;
+				}
+				if (hasLocationBasedFormat) {
+					if (!printFormats.containsKey(printFormatLower)) {
+						printFormats.put(printFormatLower, 1);
+					} else {
+						printFormats.put(printFormatLower, printFormats.get(printFormatLower) + 1);
+					}
 				}
 			}else{
 				allItemsAreOrderRecords = false;
 			}
-			Subfield formatField = curItem.getSubfield(formatSubfield);
-			if (formatField != null) {
-				String curFormat = formatField.getData();
-				String printFormatLower = curFormat.toLowerCase();
-				if (!printFormats.containsKey(printFormatLower)) {
-					printFormats.put(printFormatLower, 1);
-				} else {
-					printFormats.put(printFormatLower, printFormats.get(printFormatLower) + 1);
-				}
-				if (!printFormatLower.equals("bk") && !printFormatLower.equals("oth")){
+			if (!
+							){
+				Subfield formatField = curItem.getSubfield(formatSubfield);
+				if (formatField != null) {
+					String curFormat = formatField.getData();
+					String printFormatLower = curFormat.toLowerCase();
+					if (!printFormats.containsKey(printFormatLower)) {
+						printFormats.put(printFormatLower, 1);
+					} else {
+						printFormats.put(printFormatLower, printFormats.get(printFormatLower) + 1);
+					}
+					if (!printFormatLower.equals("bk") && !printFormatLower.equals("oth")){
+						allItemsAreOrderRecords = false;
+					}
+				}else{
 					allItemsAreOrderRecords = false;
 				}
-			}else{
-				allItemsAreOrderRecords = false;
 			}
 		}
 
