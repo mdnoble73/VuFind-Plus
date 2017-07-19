@@ -212,11 +212,13 @@ public class CarlXExportMain {
 						updateVariableStmt.setLong(2, lastCarlXExtractTimeVariableId);
 						updateVariableStmt.executeUpdate();
 						updateVariableStmt.close();
+						logger.warn("Updated last extract time to " + exportStartTime);
 					} else {
 						PreparedStatement insertVariableStmt = vufindConn.prepareStatement("INSERT INTO variables (`name`, `value`) VALUES ('last_carlx_extract_time', ?)");
 						insertVariableStmt.setString(1, Long.toString(exportStartTime));
 						insertVariableStmt.executeUpdate();
 						insertVariableStmt.close();
+						logger.warn("Set last extract time to " + exportStartTime);
 					}
 				} else {
 					logger.error("There was an error updating during the extract, not setting last extract time.");
@@ -831,7 +833,7 @@ public class CarlXExportMain {
 				// Updated Items
 				ArrayList<String> itemsCopy = (ArrayList<String>)itemIDs.clone();
 				int numAdded = 0;
-				for (String updatedItem : itemsCopy) {
+				for (String updatedItem : itemIDs) {
 					getItemInformationSoapRequest += "<mar:ItemSearchTerm>" + updatedItem + "</mar:ItemSearchTerm>\n";
 					numAdded++;
 					itemIDs.remove(updatedItem);
