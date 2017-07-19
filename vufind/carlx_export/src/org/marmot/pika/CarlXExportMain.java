@@ -418,8 +418,8 @@ public class CarlXExportMain {
 		// Note: There is an Include949ItemData flag, but it hasn't been implemented by TLC yet. plb 9-15-2016
 		// Build Marc Fetching Soap Request
 		boolean errorUpdatingDatabase = false;
-		if (updatedBibs.size() > 1000){
-			logger.warn("There are more than 1000 bibs that need updates " + updatedBibs.size());
+		if (updatedBibs.size() > 100){
+			logger.warn("There are more than 100 bibs that need updates " + updatedBibs.size());
 		}
 		while (updatedBibs.size() > 0) {
 			logger.debug("Getting data for " + updatedBibs.size() + " updated bibs");
@@ -447,7 +447,7 @@ public class CarlXExportMain {
 						numAdded++;
 					}
 					updatedBibs.remove(updatedBibID);
-					if (numAdded >= 1000){
+					if (numAdded >= 100){
 						break;
 					}
 				}
@@ -808,7 +808,10 @@ public class CarlXExportMain {
 	private static ArrayList<ItemChangeInfo> fetchItemInformation(ArrayList<String> itemIDs) {
 		ArrayList<ItemChangeInfo> itemUpdates = new ArrayList<>();
 		logger.debug("Getting item information for " + itemIDs.size() + " Item IDs");
-		if (itemIDs.size() > 0) {
+		if (itemIDs.size() > 100){
+			logger.warn("There are more than 100 items that need updates " + itemIDs.size());
+		}
+		while (itemIDs.size() > 0) {
 			//TODO: Set an upper limit on number of IDs for one request, and process in batches
 			String getItemInformationSoapRequest;
 			String getItemInformationSoapRequestStart = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:mar=\"http://tlcdelivers.com/cx/schemas/marcoutAPI\" xmlns:req=\"http://tlcdelivers.com/cx/schemas/request\">\n" +
@@ -826,8 +829,15 @@ public class CarlXExportMain {
 			try {
 				getItemInformationSoapRequest = getItemInformationSoapRequestStart;
 				// Updated Items
+				ArrayList<String> itemsCopy = (ArrayList<String>)itemIDs.clone();
+				int numAdded = 0;
 				for (String updatedItem : itemIDs) {
 					getItemInformationSoapRequest += "<mar:ItemSearchTerm>" + updatedItem + "</mar:ItemSearchTerm>\n";
+					numAdded++;
+					itemIDs.remove(updatedItem);
+					if (numAdded >= 100){
+						break;
+					}
 				}
 				getItemInformationSoapRequest += getItemInformationSoapRequestEnd;
 
