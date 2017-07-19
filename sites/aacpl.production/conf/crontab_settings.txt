@@ -54,7 +54,7 @@
 ###################
 7 */3 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar aacpl.production
 20 0 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar aacpl.production DatabaseCleanup
-#0 20 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar aacpl.production UpdateReadingHistory
+0 20 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar aacpl.production UpdateReadingHistory
 
 ###############################################
 # Copy Original Covers from Marmot FTP Server #
@@ -74,11 +74,6 @@
 23 7 * * 0 /usr/local/vufind-plus/vufind/cron/updateNYTLists.sh aacpl.production
 # update on Sundays at 7:23
 
-################
-# mySQL Backup #
-################
-# Backup all mySQL databases to /home/mysql.dump
-#05 0 * * * cd /root/cron/; ./mySQLBackup
 
 # Check Apache Solr process and website that it has not stalled.
 */3 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./solrTest.sh
