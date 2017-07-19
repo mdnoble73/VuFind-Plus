@@ -833,7 +833,7 @@ public class CarlXExportMain {
 				// Updated Items
 				ArrayList<String> itemsCopy = (ArrayList<String>)itemIDs.clone();
 				int numAdded = 0;
-				for (String updatedItem : itemIDs) {
+				for (String updatedItem : itemsCopy) {
 					getItemInformationSoapRequest += "<mar:ItemSearchTerm>" + updatedItem + "</mar:ItemSearchTerm>\n";
 					numAdded++;
 					itemIDs.remove(updatedItem);
