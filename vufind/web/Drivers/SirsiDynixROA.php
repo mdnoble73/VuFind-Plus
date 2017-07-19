@@ -575,7 +575,8 @@ abstract class SirsiDynixROA extends HorizonAPI
 //		$loginDescribeResponse = $this->getWebServiceResponse($webServiceURL . '/user/patron/describe');
 		$patronCheckouts = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/key/' . $patron->username . '?includeFields=circRecordList{*}', null, $sessionToken);
 
-//		$circRecordDescribe  = $this->getWebServiceResponse($webServiceURL . "/ws/circulation/circRecord/describe", null, $sessionToken);
+//		$catalogItemDescribe  = $this->getWebServiceResponse($webServiceURL . "/v1/catalog/item/describe", null, $sessionToken);
+//		$catalogBIBDescribe  = $this->getWebServiceResponse($webServiceURL . "/v1/catalog/bib/describe", null, $sessionToken);
 
 
 		if (!empty($patronCheckouts->fields->circRecordList)) {
@@ -597,18 +598,6 @@ abstract class SirsiDynixROA extends HorizonAPI
 				$curTitle['canrenew']       = $checkout->fields->unseenRenewalsRemaining > 0;
 				$curTitle['renewIndicator'] = $checkout->fields->item->key;
 
-				// Previously a seperate call to the circ record was needed; now the data is included in the above call. pascal. 7-13-2017
-//				$circInfo                   = $this->getWebServiceResponse($webServiceURL . '/ws/circulation/circRecord/key/' . $checkout->key, null, $sessionToken);
-//				$curTitle['dueDate']        = strtotime($circInfo->fields->dueDate);
-//				$curTitle['checkoutdate']   = strtotime($circInfo->fields->checkOutDate);
-//				// Note: there is an overdue flag
-//				$curTitle['renewCount']     = $circInfo->fields->renewalCount;
-//				$curTitle['canrenew']       = true; //TODO: Figure out if the user can renew the title or not; There is a seenRenewals field and unseenRenewals field
-//				$curTitle['renewIndicator'] = $circInfo->fields->item->key;
-
-//				$curTitle['holdQueueLength'] = $this->getNumHolds($bibId); //TODO: needed for checkouts?  Used by Horizon. Is it in this API
-
-
 				$curTitle['format'] = 'Unknown';
 				$recordDriver = new MarcRecord('a' . $bibId);
 				if ($recordDriver->isValid()) {
@@ -620,6 +609,12 @@ abstract class SirsiDynixROA extends HorizonAPI
 					$curTitle['author']        = $recordDriver->getPrimaryAuthor();
 					$curTitle['link']          = $recordDriver->getLinkUrl();
 					$curTitle['ratingData']    = $recordDriver->getRatingData();
+				} else {
+					// Presumably ILL Items
+					$bibInfo                   = $this->getWebServiceResponse($webServiceURL . '/v1/catalog/bib/key/' .$bibId, null, $sessionToken);
+					$curTitle['title']         = $bibInfo->fields->title;
+					$curTitle['title_sort']    = $bibInfo->fields->title;
+					$curTitle['author']        = $bibInfo->fields->author;
 				}
 
 				$sCount++;
