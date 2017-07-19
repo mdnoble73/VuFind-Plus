@@ -82,8 +82,6 @@ class AACPL extends SirsiDynixROA {
 		$fields[] = array('property'=>'pin', 'type'=>'pin', 'label'=>'Pin (Save this number)', 'description'=>'Pin (Save this number)', 'maxLength' => 25, 'required' => true);
 		$fields[] = array('property'=>'pin1', 'type'=>'pin', 'label'=>'Re-enter Pin (Save this number)', 'description'=>'Pin (Save this number)', 'maxLength' => 25, 'required' => true);
 
-		//TODO: Preferred Library Branch
-
 		$location = new Location();
 		$location->libraryId = $library->libraryId;
 		$location->validHoldPickupBranch = 1;

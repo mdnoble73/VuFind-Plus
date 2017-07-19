@@ -15,7 +15,7 @@ abstract class SirsiDynixROA extends HorizonAPI
 	private static $sessionIdsForUsers = array();
 
 	// $customRequest is for curl, can be 'PUT', 'DELETE', 'POST'
-	public function getWebServiceResponse($url, $params = null, $sessionToken = null, $customRequest = null)
+	public function getWebServiceResponse($url, $params = null, $sessionToken = null, $customRequest = null, $additionalHeaders = null)
 	{
 		global $configArray;
 		global $logger;
@@ -30,6 +30,9 @@ abstract class SirsiDynixROA extends HorizonAPI
 		);
 		if ($sessionToken != null) {
 			$headers[] = 'x-sirs-sessionToken: ' . $sessionToken;
+		}
+		if (!empty($additionalHeaders) && is_array($additionalHeaders)) {
+			$headers = array_merge($headers, $additionalHeaders);
 		}
 		if (empty($customRequest)) {
 			curl_setopt($ch, CURLOPT_HTTPGET, true);
@@ -47,10 +50,12 @@ abstract class SirsiDynixROA extends HorizonAPI
 		if ($params != null) {
 			curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($params));
 		}
+//		curl_setopt($ch, CURLINFO_HEADER_OUT, true); //TODO: For debugging
 		$json = curl_exec($ch);
 //		$err  = curl_getinfo($ch);
-		//TODO: debugging only, comment out later.
-		$logger->log("Web service response\r\n$json", PEAR_LOG_INFO);
+//		$headerRequest = curl_getinfo($ch, CURLINFO_HEADER_OUT);
+//		TODO: debugging only, comment out later.
+		$logger->log("Web service response\r\n$json", PEAR_LOG_INFO); //TODO: For debugging
 		curl_close($ch);
 
 		if ($json !== false && $json !== 'false') {
@@ -105,8 +110,9 @@ abstract class SirsiDynixROA extends HorizonAPI
 //				$patronStatusResponse  = $this->getWebServiceResponse($webServiceURL . '/v1/user/patronStatusInfo/key/' . $userID, null, $sessionToken);
 			//TODO: This resource is currently hidden
 
-//			$lookupMyAccountInfoResponse = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/key/' . $userID . '?includeFields=firstName,lastName,displayName,privilegeExpiresDate,estimatedOverdueAmount,patronStatusInfo{*},preferredAddress,address1,address2,address3,primaryPhone,library', null, $sessionToken);
+			$lookupMyAccountInfoResponse = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/key/' . $userID . '?includeFields=firstName,lastName,displayName,privilegeExpiresDate,estimatedOverdueAmount,patronStatusInfo{*},preferredAddress,address1,address2,address3,primaryPhone,library', null, $sessionToken);
 			// TODO: Use Primary Phone at all? displayName doesn't seem to be a field
+
 			$lookupMyAccountInfoResponse = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/key/' . $userID . '?includeFields=firstName,lastName,privilegeExpiresDate,patronStatusInfo{*},preferredAddress,address1,address2,address3,library,circRecordList,blockList{owed},holdRecordList{status}', null, $sessionToken);
 			if ($lookupMyAccountInfoResponse && !isset($lookupMyAccountInfoResponse->messageList)) {
 				$lastName  = $lookupMyAccountInfoResponse->fields->lastName;
@@ -350,21 +356,25 @@ abstract class SirsiDynixROA extends HorizonAPI
 
 	function selfRegister()
 	{
-		$sessionToken = $this->getStaffSessionToken();
+		$selfRegResult = array(
+			'success' => false,
+		);
 
+		$sessionToken = $this->getStaffSessionToken();
 		if (!empty($sessionToken)) {
 			$webServiceURL            = $this->getWebServiceURL();
-			$patronDescribeResponse   = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/describe');
-			$address1DescribeResponse = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/address1/describe');
-			$addressDescribeResponse  = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/address/describe');
 
-			$createPatronInfoParameters                               = array(
+//			$patronDescribeResponse   = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/describe');
+//			$address1DescribeResponse = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/address1/describe');
+//			$addressDescribeResponse  = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/address/describe');
+//			$userProfileDescribeResponse  = $this->getWebServiceResponse($webServiceURL . '/v1/policy/userProfile/describe');
+
+
+			$createPatronInfoParameters  = array(
 				'fields' => array(),
-				//			'key' => $userID,
 				'resource' => '/user/patron',
 			);
-			$preferredAddress                                         = 1;
-			$createPatronInfoParameters['fields']['preferredAddress'] = $preferredAddress;
+			$preferredAddress = 1;
 
 			// Build Address Field with existing data
 			$index = 0;
@@ -376,7 +386,7 @@ abstract class SirsiDynixROA extends HorizonAPI
 				$addressField                = 'address' . $preferredAddress;
 				$patronAddressPolicyResource = '/policy/patron' . ucfirst($addressField);
 
-				$l                                                       = array_key_exists($key, $parameterIndex) ? $parameterIndex[$key] : $index++;
+				$l = array_key_exists($key, $parameterIndex) ? $parameterIndex[$key] : $index++;
 				$createPatronInfoParameters['fields'][$addressField][$l] = array(
 					'resource' => '/user/patron/' . $addressField,
 					'fields' => array(
@@ -387,9 +397,14 @@ abstract class SirsiDynixROA extends HorizonAPI
 						'data' => $value
 					)
 				);
-				$parameterIndex[$key]                                    = $l;
+				$parameterIndex[$key] = $l;
 
 			};
+
+			$createPatronInfoParameters['fields']['profile'] = array(
+				'resource' => '/policy/userProfile',
+				'key' => 'VIRTUAL',
+			);
 
 			if (!empty($_REQUEST['firstName'])) {
 				$createPatronInfoParameters['fields']['firstName'] = trim($_REQUEST['firstName']);
@@ -408,8 +423,20 @@ abstract class SirsiDynixROA extends HorizonAPI
 				$createPatronInfoParameters['fields']['birthDate'] = $birthdate->format('Y-m-d');
 			}
 			if (!empty($_REQUEST['pin'])) {
-				//TODO: check pin matches
-				$createPatronInfoParameters['fields']['pin'] = trim($_REQUEST['pin']);
+				$pin = trim($_REQUEST['pin']);
+				if (!empty($pin) && $pin == trim($_REQUEST['pin1'])) {
+					$createPatronInfoParameters['fields']['pin'] = $pin;
+				} else {
+					// Pin Mismatch
+					return array(
+						'success' => false,
+					);
+				}
+			} else {
+				// No Pin
+				return array(
+					'success' => false,
+				);
 			}
 
 
@@ -446,20 +473,55 @@ abstract class SirsiDynixROA extends HorizonAPI
 				}
 			}
 
-			$createNewPatronResponse = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/', $createPatronInfoParameters, $sessionToken, 'POST');
+			$barcode = new Variable();
+			if ($barcode->get('name', 'self_registration_card_number')){
+				$createPatronInfoParameters['fields']['barcode'] = $barcode->value;
 
-			if (isset($createNewPatronResponse->messageList)) {
-				foreach ($createNewPatronResponse->messageList as $message) {
-					$updateErrors[] = $message->message;
+				global $configArray;
+				$overrideCode = $configArray['Catalog']['selfRegOverrideCode'];
+				$overrideHeaders = array('SD-Prompt-Return:USER_PRIVILEGE_OVRCD/'.$overrideCode);
+
+
+				$createNewPatronResponse = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/', $createPatronInfoParameters, $sessionToken, 'POST', $overrideHeaders);
+
+				if (isset($createNewPatronResponse->messageList)) {
+					foreach ($createNewPatronResponse->messageList as $message) {
+						$updateErrors[] = $message->message;
+						if ($message->message == 'User already exists') {
+							// This means the barcode counter is off.
+							global $logger;
+							$logger->log('Sirsi Self Registration response was that the user already exists. Advancing the barcode counter by one.', PEAR_LOG_ERR);
+							$barcode->value++;
+							if (!$barcode->update()) {
+								$logger->log('Sirsi Self Registration barcode counter did not increment when a user already exists!', PEAR_LOG_ERR);
+							}
+						}
+					}
+					global $logger;
+					$logger->log('Symphony Driver - Patron Info Update Error - Error from ILS : ' . implode(';', $updateErrors), PEAR_LOG_ERR);
+				} else {
+					$selfRegResult = array(
+						'success' => true,
+						'barcode' => $barcode->value++
+					);
+					// Update the card number counter for the next Self-Reg user
+					if (!$barcode->update()) {
+						// Log Error temp barcode number not
+						global $logger;
+						$logger->log('Sirsi Self Registration barcode counter not saving incremented value!', PEAR_LOG_ERR);
+					}
 				}
+			} else {
+				// Error: unable to set barcode number.
 				global $logger;
-				$logger->log('Symphony Driver - Patron Info Update Error - Error from ILS : ' . implode(';', $updateErrors), PEAR_LOG_ERR);
-			}
-
-			//TODO: Return results
+				$logger->log('Sirsi Self Registration barcode counter was not found!', PEAR_LOG_ERR);
+			};
 		} else {
 			// Error: unable to login in staff user
+			global $logger;
+			$logger->log('Unable to log in with Sirsi Self Registration staff user', PEAR_LOG_ERR);
 		}
+		return $selfRegResult;
 	}
 
 

@@ -36,8 +36,8 @@ class SelfReg extends Action {
 			$configArray;
 
 		/** @var  CatalogConnection $catalog */
-		$catalog = CatalogFactory::getCatalogConnectionInstance();
-		$selfRegFields = $catalog->getSelfRegistrationFields();
+//		$catalog = CatalogFactory::getCatalogConnectionInstance();
+		$selfRegFields = $this->catalog->getSelfRegistrationFields();
 		// For Arlington, this function call causes a page redirect to an external web page. plb 1-15-2016
 
 		if (isset($_REQUEST['submit'])) {
@@ -56,20 +56,19 @@ class SelfReg extends Action {
 
 			if (!$recaptchaValid) {
 				$interface->assign('captchaMessage', 'The CAPTCHA response was incorrect, please try again.');
-
-				// Pre-fill form with user supplied data
-				foreach ($selfRegFields as &$property) {
-					$uservalue = $_REQUEST[$property['property']];
-					$property['default'] = $uservalue;
-				}
-
-
 			} else {
 
 				//Submit the form to ILS
 				$result = $this->catalog->selfRegister();
 				$interface->assign('selfRegResult', $result);
 			}
+
+			// Pre-fill form with user supplied data
+			foreach ($selfRegFields as &$property) {
+				$userValue = $_REQUEST[$property['property']];
+				$property['default'] = $userValue;
+			}
+
 		}
 
 
