@@ -595,7 +595,7 @@ abstract class SirsiDynixROA extends HorizonAPI
 				$curTitle['checkoutdate']   = strtotime($checkout->fields->checkOutDate);
 				// Note: there is an overdue flag
 				$curTitle['renewCount']     = $checkout->fields->renewalCount;
-				$curTitle['canrenew']       = $checkout->fields->unseenRenewalsRemaining > 0;
+				$curTitle['canrenew']       = $checkout->fields->seenRenewalsRemaining > 0;
 				$curTitle['renewIndicator'] = $checkout->fields->item->key;
 
 				$curTitle['format'] = 'Unknown';
