@@ -418,6 +418,18 @@ function getLibraryLocationUpdates(){
 			),
 		),
 
+		'library_links_display_options' => array(
+				'title' => 'LibraryLinks Display Options',
+				'description' => 'Allow showing library links in account or help. ',
+				'continueOnError' => true,
+				'sql' => array(
+						"ALTER TABLE `library_links` ADD COLUMN `showInAccount` TINYINT DEFAULT 0",
+						"ALTER TABLE `library_links` ADD COLUMN `showInHelp` TINYINT DEFAULT 1",
+						"ALTER TABLE `library_links` ADD COLUMN `showExpanded` TINYINT DEFAULT 0",
+				),
+		),
+
+
 		'library_top_links' => array(
 			'title' => 'Library Top Links',
 			'description' => 'Add configurable links to display within the header. ',
