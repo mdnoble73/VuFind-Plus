@@ -125,6 +125,14 @@ cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 # RBdigital (audiobooks)
 /usr/local/vufind-plus/sites/${PIKASERVER}/moveFullExport.sh aacpl/recordedbooks rbdigital/aacpl >> ${OUTPUT_FILE}
 
+# Cloud Library
+/usr/local/vufind-plus/sites/${PIKASERVER}/moveSideloadAdds.sh aacpl/cloudlibrary cloudlibrary/aacpl/merge >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh cloudlibrary/aacpl >> ${OUTPUT_FILE}
+
+# Gale
+/usr/local/vufind-plus/sites/${PIKASERVER}/moveSideloadAdds.sh aacpl/gale gale/aacpl/merge >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh gale/aacpl >> ${OUTPUT_FILE}
+
 #Extract from Hoopla
 #cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE}
 cd /usr/local/vufind-plus/vufind/cron;./GetHooplaFromMarmot.sh >> ${OUTPUT_FILE}
