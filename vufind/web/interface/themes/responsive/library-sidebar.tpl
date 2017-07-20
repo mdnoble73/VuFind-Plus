@@ -16,6 +16,6 @@
 			</a>
 		{/if}
 
-		{include file="library-links.tpl" libraryLinks=$libraryHelpLinks linksId='home-library-links'}
+		{include file="library-links.tpl" libraryLinks=$libraryHelpLinks linksId='home-library-links' section='Help'}
 	</div>
 {/strip}
