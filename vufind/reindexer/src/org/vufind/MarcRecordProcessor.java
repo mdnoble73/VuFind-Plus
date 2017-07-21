@@ -115,12 +115,24 @@ abstract class MarcRecordProcessor {
 		loadBibCallNumbers(groupedWork, record, identifier);
 		loadLiteraryForms(groupedWork, record, printItems, identifier);
 		loadTargetAudiences(groupedWork, record, printItems, identifier);
+		loadFountasPinnell(groupedWork, record, identifier);
 		groupedWork.addMpaaRating(getMpaaRating(record));
 		//Do not load ar data from MARC since we now get it directly from Renaissance Learning
 		/*groupedWork.setAcceleratedReaderInterestLevel(getAcceleratedReaderInterestLevel(record));
 		groupedWork.setAcceleratedReaderReadingLevel(getAcceleratedReaderReadingLevel(record));
 		groupedWork.setAcceleratedReaderPointValue(getAcceleratedReaderPointLevel(record));*/
 		groupedWork.addKeywords(MarcUtil.getAllSearchableFields(record, 100, 900));
+	}
+
+	private void loadFountasPinnell(GroupedWorkSolr groupedWork, Record record, String identifier) {
+		Set<String> targetAudiences = MarcUtil.getFieldList(record, "521a");
+		for (String targetAudience : targetAudiences){
+			if (targetAudience.startsWith("Guided reading level: ")){
+				String fountasPinnellValue = targetAudience.replace("Guided reading level: ", "");
+				groupedWork.setFountasPinnell(fountasPinnellValue);
+				break;
+			}
+		}
 	}
 
 	private void loadAwards(GroupedWorkSolr groupedWork, Record record){

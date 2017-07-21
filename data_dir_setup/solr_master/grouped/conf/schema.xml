@@ -215,6 +215,7 @@
 		<field name="awards_facet" type="string" indexed="true" stored="true" multiValued="true" docValues="true"/>
 		<field name="lexile_score" type="integer" indexed="true" stored="true" multiValued="false" default="-1" docValues="true"/>
 		<field name="lexile_code" type="string" indexed="true" stored="true" multiValued="false" docValues="true"/>
+		<field name="fountas_pinnell" type="string" indexed="true" stored="true" multiValued="false" docValues="true"/>
 		<field name="accelerated_reader_interest_level" type="string" indexed="true" stored="true" multiValued="false" docValues="true"/>
 		<field name="accelerated_reader_reading_level" type="float" indexed="true" stored="true" multiValued="false" default="0" docValues="true"/>
 		<field name="accelerated_reader_point_value" type="float" indexed="true" stored="true" multiValued="false" default="0" docValues="true"/>
