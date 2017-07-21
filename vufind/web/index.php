@@ -851,6 +851,13 @@ function loadModuleActionId(){
 		$_REQUEST['module'] = $matches[1];
 		$_REQUEST['action'] = $matches[2];
 		$_REQUEST['id'] = '';
+	}elseif (preg_match("/(MyAccount)\/?/", $requestURI, $matches)){
+		$_GET['module'] = $matches[1];
+		$_GET['action'] = 'Home';
+		$_REQUEST['id'] = '';
+		$_REQUEST['module'] = $matches[1];
+		$_REQUEST['action'] = 'Home';
+		$_REQUEST['id'] = '';
 	}elseif (preg_match('/\/(Archive)\/((?:[\\w\\d:]|%3A)+)\/([^\/?]+)/', $requestURI, $matches)){
 		$_GET['module'] = $matches[1];
 //		$_GET['id'] = $matches[2];// TODO: Leaving in case change below, effects other Pika functionality
@@ -888,11 +895,6 @@ function loadModuleActionId(){
 		$_GET['action'] = $matches[2];
 		$_REQUEST['module'] = $matches[1];
 		$_REQUEST['action'] = $matches[2];
-	}elseif (preg_match("/([^\/?]+)\/?/", $requestURI, $matches)){
-		$_GET['module'] = $matches[1];
-		$_GET['action'] = 'Home';
-		$_REQUEST['module'] = $matches[1];
-		$_REQUEST['action'] = 'Home';
 	}
 	//Correct some old actions
 	if (isset($_GET['action'])) {
