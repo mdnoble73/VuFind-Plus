@@ -56,6 +56,7 @@ abstract class FacetSetting extends DB_DataObject {
 			"accelerated_reader_interest_level" => "AR Interest Level",
 			"accelerated_reader_reading_level" => "AR Reading Level",
 			"accelerated_reader_point_value" => "AR Point Value",
+			"fountas_pinnell" => "Fountas &amp; Pinnell",
 		);
 
 		//Add additional facets by library
