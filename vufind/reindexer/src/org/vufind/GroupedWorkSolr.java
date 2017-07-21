@@ -321,7 +321,9 @@ public class GroupedWorkSolr implements Cloneable {
 		}else{
 			doc.addField("lexile_score", lexileScore);
 		}
-		doc.addField("lexile_code", Util.trimTrailingPunctuation(lexileCode));
+		if (lexileCode.length() > 0) {
+			doc.addField("lexile_code", Util.trimTrailingPunctuation(lexileCode));
+		}
 		doc.addField("accelerated_reader_interest_level", Util.trimTrailingPunctuation(acceleratedReaderInterestLevel));
 		if (Util.isNumeric(acceleratedReaderReadingLevel)) {
 			doc.addField("accelerated_reader_reading_level", acceleratedReaderReadingLevel);
