@@ -53,36 +53,47 @@
 30 1 * * * /root/cron/purge_ftp_dir
 
 #--------------------------------------------------------------
+# fetch school district 51 record set
+7 4 * * * cp /data/vufind-plus/marmot.ftp/split_marc/sd51.mrc /ftp/sd51/MCVSD_BIBS_CollectionAnalysis_81505
+#--------------------------------------------------------------
+
+#--------------------------------------------------------------
 # send marc records to ebsco at 1am daily
-#0 1 * * * /root/cron/marc_send ebsco
+0 1 * * * /root/cron/marc_send ebsco
 
 #--------------------------------------------------------------
 # send marc records to collectionHQ at 1.30am every Monday
-#30 1 * * 1 /root/cron/marc_send collectionhq
+30 1 * * 1 /root/cron/marc_send collectionhq
 
 #--------------------------------------------------------------
 # send marc records to Booksite at 2.00am every Monday
-#0 2 * * 1 /root/cron/marc_send booksite
+0 2 * * 1 /root/cron/marc_send booksite
 
 #--------------------------------------------------------------
 # send marc records to mackin for sd51 at 3.15am friday
-#15 3 * * 5 /root/cron/marc_send mackin
+15 3 * * 5 /root/cron/marc_send mackin
 
 #--------------------------------------------------------------
 # send marc records to perma-bound for sd51 at 3.30am friday
-#30 3 * * 5 /root/cron/marc_send perma-bound
+30 3 * * 5 /root/cron/marc_send perma-bound
 
 #--------------------------------------------------------------
 # send marc records to btsb for sd51 at 3.45am friday
-#45 3 * * 5 /root/cron/marc_send btsb
+45 3 * * 5 /root/cron/marc_send btsb
 
 #--------------------------------------------------------------
 # send marc records to follett for sd51 at 4.00am friday
-#0 4 * * 5 /root/cron/marc_send follett
+0 4 * * 5 /root/cron/marc_send follett
 
-#--------------------------------------------------------------
-# get marc records from AspenCat/CLIC at 11pm daily
+# get marc update/delete records from AspenCat/CLIC at 11pm daily
 #0 23 * * * /root/cron/marc_get aspencat
+1 23 * * * /root/cron/marc_get aspencat
+#for testing on sftp. pascal
+#--------------------------------------------------------------
+# get Fullexport marc records from AspenCat/CLIC at 3am daily
+#57 2 * * * /root/cron/marc_get aspencat_new
+57 3 * * * /root/cron/marc_get aspencat_new
+#for testing on sftp. pascal
 #--------------------------------------------------------------
 
 ###########################
