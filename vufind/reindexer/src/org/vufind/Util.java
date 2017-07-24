@@ -286,7 +286,7 @@ public class Util {
 			result.add("Month");
 		}
 		if (timeDifferenceDays <= 60) {
-			result.add("2 Months");
+			result.add("Two Months");
 		}
 		if (timeDifferenceDays <= 90) {
 			result.add("Quarter");
