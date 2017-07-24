@@ -1574,6 +1574,10 @@ class MarcRecord extends IndexRecord
 		return $this->getGroupedWorkDriver()->getLexileDisplayString();
 	}
 
+	public function getFountasPinnellLevel(){
+		return $this->getGroupedWorkDriver()->getFountasPinnellLevel();
+	}
+
 	public function getMoreDetailsOptions()
 	{
 		global $interface;

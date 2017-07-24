@@ -146,6 +146,15 @@
 					</div>
 				{/if}
 
+				{if $showFountasPinnell && $summFountasPinnell}
+					<div class="row">
+						<div class="result-label col-tn-3 col-xs-3">{translate text='Fountas &amp; Pinnell Level'}: </div>
+						<div class="result-value col-tn-9 col-xs-9">
+							{$summFountasPinnell}
+						</div>
+					</div>
+				{/if}
+
 				{if $showPhysicalDescriptions}
 					{if $alwaysShowSearchResultsMainDetails || $summPhysicalDesc}
 						<div class="row">

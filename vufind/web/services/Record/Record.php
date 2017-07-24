@@ -296,6 +296,10 @@ abstract class Record_Record extends Action
 			$interface->assign('lexileScore', $lexileScore . 'L');
 		}
 
+		if (isset($record['fountas_pinnell'])){
+			$fountasPinnell = $record['fountas_pinnell'];
+			$interface->assign('fountasPinnell', $fountasPinnell);
+		}
 
 		//Do actions needed if this is the main action.
 

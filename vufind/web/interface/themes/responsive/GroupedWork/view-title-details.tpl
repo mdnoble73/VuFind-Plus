@@ -79,20 +79,20 @@
 		</div>
 	{/if}
 
-	{if $recordDriver->getLexileCode()}
+	{if $recordDriver->getLexileDisplayString()}
 		<div class="row">
-			<div class="result-label col-md-3">{translate text='Lexile Code'}:</div>
+			<div class="result-label col-md-3">{translate text='Lexile Score'}:</div>
 			<div class="col-md-9 result-value">
-				{$recordDriver->getLexileCode()|escape}
+				{$recordDriver->getLexileDisplayString()|escape}
 			</div>
 		</div>
 	{/if}
 
-	{if $recordDriver->getLexileScore()}
+	{if $recordDriver->getFountasPinnellLevel()}
 		<div class="row">
-			<div class="result-label col-md-3">{translate text='Lexile Score'}:</div>
+			<div class="result-label col-md-3">{translate text='Fountas &amp; Pinnell Level'}:</div>
 			<div class="col-md-9 result-value">
-				{$recordDriver->getLexileScore()|escape}
+				{$recordDriver->getFountasPinnellLevel()|escape}
 			</div>
 		</div>
 	{/if}

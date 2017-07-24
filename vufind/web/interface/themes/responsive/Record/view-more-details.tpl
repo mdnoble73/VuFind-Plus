@@ -108,6 +108,15 @@
 		</div>
 	{/if}
 
+	{if $recordDriver && $recordDriver->getFountasPinnellLevel()}
+		<div class="row">
+			<div class="result-label col-md-3">{translate text='Fountas &amp; Pinnell Level'}:</div>
+			<div class="col-md-9 result-value">
+				{$recordDriver->getFountasPinnellLevel()|escape}
+			</div>
+		</div>
+	{/if}
+
 	{if $notes}
 		<h4>{translate text='Notes'}</h4>
 		{foreach from=$notes item=note name=loop}

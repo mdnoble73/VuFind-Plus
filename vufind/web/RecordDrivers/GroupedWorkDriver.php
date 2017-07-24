@@ -571,6 +571,7 @@ class GroupedWorkDriver extends RecordInterface{
 		$interface->assign('summArInfo', $acceleratedReaderInfo);
 		$lexileInfo = $this->getLexileDisplayString();
 		$interface->assign('summLexileInfo', $lexileInfo);
+		$interface->assign('summFountasPinnell', $this->getFountasPinnellLevel());
 		$timer->logTime("Finished assignment of main data");
 		$memoryWatcher->logMemory("Finished assignment of main data");
 
@@ -2043,6 +2044,10 @@ class GroupedWorkDriver extends RecordInterface{
 		}
 	}
 
+	public function getFountasPinnellLevel(){
+		return isset($this->fields['fountas_pinnell'])?  $this->fields['fountas_pinnell'] : null;
+	}
+
 	public function getLexileCode(){
 		return isset($this->fields['lexile_code']) ? $this->fields['lexile_code'] : null;
 	}
@@ -2871,6 +2876,7 @@ class GroupedWorkDriver extends RecordInterface{
 		$interface->assign('summLanguage', $summLanguage);
 		$interface->assign('summArInfo', $this->getAcceleratedReaderDisplayString());
 		$interface->assign('summLexileInfo', $this->getLexileDisplayString());
+		$interface->assign('summFountasPinnell', $this->getFountasPinnellLevel());
 	}
 
 	public function getAcceleratedReaderDisplayString() {

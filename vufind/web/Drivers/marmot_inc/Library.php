@@ -232,7 +232,8 @@ class Library extends DB_DataObject
 		'showLocations'            => 'Locations',
 		'showISBNs'                => 'ISBNs',
 		'showArInfo'               => 'Show Accelerated Reader Information',
-		'showLexileInfo'           => 'Show Lexile Information'
+		'showLexileInfo'           => 'Show Lexile Information',
+		'showFountasPinnell'       => 'Show Fountas &amp; Pinnell Information',
 	);
 
 	// Use this to set which details will be shown in the the Main Details section of the record in the search results.
@@ -246,7 +247,8 @@ class Library extends DB_DataObject
 		'showPhysicalDescriptions' => 'Physical Descriptions',
 		'showLanguages'            => 'Show Language',
 		'showArInfo'               => 'Show Accelerated Reader Information',
-		'showLexileInfo'           => 'Show Lexile Information'
+		'showLexileInfo'           => 'Show Lexile Information',
+		'showFountasPinnell'       => 'Show Fountas &amp; Pinnell Information',
 	);
 
 	static $archiveRequestFormFieldOptions = array('Hidden', 'Optional', 'Required');

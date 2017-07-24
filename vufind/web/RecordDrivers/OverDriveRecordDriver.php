@@ -667,6 +667,9 @@ class OverDriveRecordDriver extends RecordInterface {
 	public function getLexileDisplayString() {
 		return $this->getGroupedWorkDriver()->getLexileDisplayString();
 	}
+	public function getFountasPinnellLevel(){
+		return $this->getGroupedWorkDriver()->getFountasPinnellLevel();
+	}
 
 	public function getSubjects(){
 		return $this->getOverDriveMetaData()->getDecodedRawData()->subjects;

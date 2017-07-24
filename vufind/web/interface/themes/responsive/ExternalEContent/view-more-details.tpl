@@ -69,7 +69,7 @@
 		<div class="row">
 			<div class="result-label col-md-3">{translate text='Lexile Code'}:</div>
 			<div class="col-md-9 result-value">
-				{$recordDriver->getLexileCode()|escape}
+				{$recordDriver->getLexileCode()|escape}L
 			</div>
 		</div>
 	{/if}
@@ -79,6 +79,15 @@
 			<div class="result-label col-md-3">{translate text='Lexile Score'}:</div>
 			<div class="col-md-9 result-value">
 				{$recordDriver->getLexileScore()|escape}
+			</div>
+		</div>
+	{/if}
+
+	{if $recordDriver->getFountasPinnellLevel()}
+		<div class="row">
+			<div class="result-label col-md-3">{translate text='Fountas &amp; Pinnell Level'}:</div>
+			<div class="col-md-9 result-value">
+				{$recordDriver->getFountasPinnellLevel()|escape}
 			</div>
 		</div>
 	{/if}
