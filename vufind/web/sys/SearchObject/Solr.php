@@ -81,6 +81,7 @@ class SearchObject_Solr extends SearchObject_Base
 		global $configArray;
 		global $timer;
 		global $library;
+		global $solrScope;
 		// Include our solr index
 		$class = $configArray['Index']['engine'];
 		$classWithExtension = $class . '.php';
@@ -99,6 +100,9 @@ class SearchObject_Solr extends SearchObject_Base
 		$translatedFacets = $this->getFacetSetting('Advanced_Settings', 'translated_facets');
 		if (is_array($translatedFacets)) {
 			$this->translatedFacets = $translatedFacets;
+			foreach ($translatedFacets as $translatedFacet){
+				$this->translatedFacets[] = $translatedFacet . '_'. $solrScope;
+			}
 		}
 
 		// Load search preferences:
