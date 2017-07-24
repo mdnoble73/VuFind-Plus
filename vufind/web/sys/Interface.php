@@ -391,6 +391,8 @@ class UInterface extends Smarty
 			$this->assign('showPikaLogo', $library->showPikaLogo);
 			$this->assign('allowMasqueradeMode', $library->allowMasqueradeMode);
 			$this->assign('allowReadingHistoryDisplayInMasqueradeMode', $library->allowReadingHistoryDisplayInMasqueradeMode);
+			$this->assign('interLibraryLoanName', $library->interLibraryLoanName);
+			$this->assign('interLibraryLoanUrl', $library->interLibraryLoanUrl);
 
 			if ($this->getVariable('displaySidebarMenu') && !$library->showSidebarMenu){
 				$this->assign('displaySidebarMenu', false);

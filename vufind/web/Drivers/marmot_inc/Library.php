@@ -203,6 +203,8 @@ class Library extends DB_DataObject
 	public $newMaterialsRequestSummary;  // (Text at the top of the Materials Request Form.)
 	public $materialsRequestDaysToPreserve;
 	public $showGroupedHoldCopiesCount;
+	public $interLibraryLoanName;
+	public $interLibraryLoanUrl;
 
 	// Archive Request Form Field Settings
 	public $archiveRequestFieldName;
@@ -705,10 +707,9 @@ class Library extends DB_DataObject
 				),
 
 			)),
-			'goldrushSection' => array('property'=>'goldrushSection', 'type' => 'section', 'label' =>'Gold Rush', 'hideInLists' => true,
-					'helpLink' => 'https://docs.google.com/document/d/1OfVcwdalgi8YNEqTAXXv7Oye15eQwxGGKX5IIaeuT7U', 'properties' => array(
-				'goldRushCode'  => array('property'=>'goldRushCode', 'type'=>'text', 'label'=>'Gold Rush Inst Code', 'description'=>'The INST Code to use with Gold Rush.  Leave blank to not link to Gold Rush.', 'hideInLists' => true,),
-			)),
+			'interLibraryLoanSection' => array('property'=>'interLibraryLoanSectionSection', 'type' => 'section', 'label' =>'Inter Library Loaning', 'hideInLists' => true,  'properties' => array(
+				'interLibraryLoanName' => array('property'=>'interLibraryLoanName', 'type'=>'text', 'label'=>'Name of Inter Library Loan Service', 'description'=>'The name to be displayed in the link to the ILL service ', 'hideInLists' => true, 'size'=>'80'),
+				'interLibraryLoanUrl' => array('property'=>'interLibraryLoanUrl',   'type'=>'text', 'label'=>'Inter Library Loan URL', 'description'=>'The link for the ILL Service.', 'hideInLists' => true, 'size'=>'80'),
 
 			'prospectorSection' => array('property'=>'prospectorSection', 'type' => 'section', 'label' =>'Prospector', 'hideInLists' => true,
 					'helpLink'=>'https://docs.google.com/document/d/18SVEhciSjO99hcFLLdFR6OpC4_OtjOafTkuWPGXOhu4', 'properties' => array(
@@ -723,6 +724,13 @@ class Library extends DB_DataObject
 				'worldCatUrl' => array('property'=>'worldCatUrl', 'type'=>'text', 'label'=>'WorldCat URL', 'description'=>'A custom World Cat URL to use while searching.', 'hideInLists' => true, 'size'=>'80'),
 				'worldCatQt' => array('property'=>'worldCatQt', 'type'=>'text', 'label'=>'WorldCat QT', 'description'=>'A custom World Cat QT term to use while searching.', 'hideInLists' => true, 'size'=>'40'),
 			)),
+			)),
+
+			'goldrushSection' => array('property'=>'goldrushSection', 'type' => 'section', 'label' =>'Gold Rush', 'hideInLists' => true,
+			                           'helpLink' => 'https://docs.google.com/document/d/1OfVcwdalgi8YNEqTAXXv7Oye15eQwxGGKX5IIaeuT7U', 'properties' => array(
+					'goldRushCode'  => array('property'=>'goldRushCode', 'type'=>'text', 'label'=>'Gold Rush Inst Code', 'description'=>'The INST Code to use with Gold Rush.  Leave blank to not link to Gold Rush.', 'hideInLists' => true,),
+				)),
+
 
 			'overdriveSection' => array('property'=>'overdriveSection', 'type' => 'section', 'label' =>'OverDrive', 'hideInLists' => true,
 					'helpLink'=>'https://docs.google.com/document/d/1HG7duKI4-gbOlgDvMlQrib52LV0BBUhzGD7Q69QLziM', 'properties' => array(

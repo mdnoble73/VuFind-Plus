@@ -1584,7 +1584,6 @@ function getLibraryLocationUpdates(){
 					),
 			),
 
-
 			'location_include_library_records_to_include' => array(
 					'title' => 'Location Include Library Records To Include',
 					'description' => 'Flag for whether or not a location should include all the records to include settings for a libary automatically',
@@ -1593,6 +1592,16 @@ function getLibraryLocationUpdates(){
 							"ALTER TABLE `location` ADD COLUMN `includeLibraryRecordsToInclude` TINYINT(1) DEFAULT '0';",
 					),
 			),
+
+		'ill_link' => array(
+			'title' => 'Add Inter Library Loan Links at the bottom of search results and no results pages',
+			'description' => 'Add Inter Library Loan Links at the bottom of search results and no results pages',
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE `library` ADD COLUMN `interLibraryLoanName` VARCHAR(30);",
+				"ALTER TABLE `library` ADD COLUMN `interLibraryLoanUrl` VARCHAR(100);",
+			),
+		),
 
 	);
 }
