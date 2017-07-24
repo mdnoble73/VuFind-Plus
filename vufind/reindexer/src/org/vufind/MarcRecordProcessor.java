@@ -129,6 +129,7 @@ abstract class MarcRecordProcessor {
 		for (String targetAudience : targetAudiences){
 			if (targetAudience.startsWith("Guided reading level: ")){
 				String fountasPinnellValue = targetAudience.replace("Guided reading level: ", "");
+				fountasPinnellValue = fountasPinnellValue.replace(".", "").toUpperCase();
 				groupedWork.setFountasPinnell(fountasPinnellValue);
 				break;
 			}
