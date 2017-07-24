@@ -133,7 +133,7 @@
 
 	{if $showFountasPinnell && $recordDriver->getFountasPinnellLevel()}
 		<div class="row">
-			<div class="result-label col-sm-4">{translate text='Fountas &amp; Pinnell Level'}:</div>
+			<div class="result-label col-sm-4">{translate text='Fountas &amp; Pinnell'}:</div>
 			<div class="col-sm-8 result-value">
 				{$recordDriver->getFountasPinnellLevel()|escape}
 			</div>
