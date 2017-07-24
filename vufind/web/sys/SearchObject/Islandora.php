@@ -101,6 +101,9 @@ class SearchObject_Islandora extends SearchObject_Base
 		$translatedFacets = $this->getFacetSetting('Advanced_Settings', 'translated_facets');
 		if (is_array($translatedFacets)) {
 			$this->translatedFacets = $translatedFacets;
+			foreach ($translatedFacets as $translatedFacet){
+				$this->translatedFacets[] = $translatedFacet . '_'. $solrScope;
+			}
 		}
 		$pidFacets = $this->getFacetSetting('Advanced_Settings', 'pid_facets');
 		if (is_array($pidFacets)) {

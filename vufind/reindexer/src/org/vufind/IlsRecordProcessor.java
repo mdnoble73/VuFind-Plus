@@ -1686,6 +1686,8 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				String noteValue = noteField.getSubfield('a').getData().toLowerCase();
 				if (noteValue.contains("vertical file")) {
 					result.add("VerticalFile");
+				}else if (noteValue.contains("vox books")) {
+					result.add("VoxBooks");
 				}
 			}
 		}
