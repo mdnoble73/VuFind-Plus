@@ -1082,7 +1082,11 @@ class BookCoverProcessor{
 					if ($this->getSideLoadedCover($relatedRecord['id'])) {
 						return true;
 					}
-				} elseif (stripos($relatedRecord['source'], 'Zinio') !== false){
+				} elseif (stripos($relatedRecord['source'], 'cloud') !== false){
+					if ($this->getSideLoadedCover($relatedRecord['id'])) {
+						return true;
+					}
+				} elseif (stripos($relatedRecord['source'], 'rbdigital') !== false || stripos($relatedRecord['source'], 'zinio') !== false){
 					if ($this->getZinioCover($relatedRecord['id'])) {
 						return true;
 					}
