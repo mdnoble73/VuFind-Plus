@@ -95,6 +95,29 @@ do
 	#echo "Starting new extract and index - `date`" > ${OUTPUT_FILE}
 	# reset the output file each round
 
+	#Fetch partial updates from FTP server
+	mount 10.1.2.6:/ftp/aacpl /mnt/ftp >> ${OUTPUT_FILE}
+#	find /mnt/ftp/symphony-updates -maxdepth 1 -mmin -60 -name *.mrc| while FILES= read FILE; do
+	#Above find is for test only. Copy any partial exports from the last 30 minutes because of the moving out the partials is only done in production
+
+	#find /mnt/ftp/symphony-updates -maxdepth 1 -name *.mrc| while FILES= read FILE; do
+	#Above find is for production only. Copy any partial exports from the last 30 minutes
+	# Note: the space after the equals is important in  "while FILES= read FILE;"
+
+		if test "`find $FILE -mmin -1`"; then
+			echo "$FILE was modified less than 1 minute ago, waiting to copy "
+		else
+	        cp $FILE /data/vufind-plus/${PIKASERVER}/marc_updates/ >> ${OUTPUT_FILE}
+	#        echo "cp $FILE /data/vufind-plus/${PIKASERVER}/marc_updates/"
+
+	#        # Move to processed (Production Only does this)
+	        mv $FILE /mnt/ftp/continuous_exports/processed/ >> ${OUTPUT_FILE}
+	#        echo "mv $FILE /mnt/ftp/continuous_exports/processed/"
+		fi
+	done
+	umount /mnt/ftp >> ${OUTPUT_FILE}
+
+	#merge the changes with the full extract
 	#TODO export from symphony
 
 	#export from overdrive
