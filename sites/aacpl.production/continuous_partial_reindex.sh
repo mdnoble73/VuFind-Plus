@@ -107,18 +107,18 @@ do
 		if test "`find $FILE -mmin -1`"; then
 			echo "$FILE was modified less than 1 minute ago, waiting to copy "
 		else
-	        cp $FILE /data/vufind-plus/${PIKASERVER}/marc_updates/ >> ${OUTPUT_FILE}
-	#        echo "cp $FILE /data/vufind-plus/${PIKASERVER}/marc_updates/"
+			#cp --update --preserve=timestamps $FILE /data/vufind-plus/${PIKASERVER}/marc_updates/ >> ${OUTPUT_FILE}
+			#echo "cp $FILE /data/vufind-plus/${PIKASERVER}/marc_updates/"
 
-	#        # Move to processed (Production Only does this)
-	        mv $FILE /mnt/ftp/continuous_exports/processed/ >> ${OUTPUT_FILE}
-	#        echo "mv $FILE /mnt/ftp/continuous_exports/processed/"
+			# # Move to processed (Production Only does this)
+			mv --update $FILE /mnt/ftp/continuous_exports/processed/ >> ${OUTPUT_FILE}
+			#echo "mv $FILE /mnt/ftp/continuous_exports/processed/"
 		fi
 	done
 	umount /mnt/ftp >> ${OUTPUT_FILE}
 
 	#merge the changes with the full extract
-	#TODO export from symphony
+	java -server symphony_export.jar  ${PIKASERVER} >> ${OUTPUT_FILE}
 
 	#export from overdrive
 	#echo "Starting OverDrive Extract - `date`" >> ${OUTPUT_FILE}
