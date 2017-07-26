@@ -78,14 +78,10 @@
 # Fetch Aspencat Marc
 ##################################
 # get marc update/delete records from AspenCat/CLIC at 11pm daily
-#0 23 * * * /root/cron/marc_get aspencat
-1 23 * * * /root/cron/marc_get aspencat
-#for testing on sftp. pascal
+0 23 * * * /root/cron/marc_get aspencat
 
 # get Fullexport marc records from AspenCat/CLIC at 3am daily
-#57 2 * * * /root/cron/marc_get aspencat_new
-57 3 * * * /root/cron/marc_get aspencat_new
-#for testing on sftp. pascal
+57 2 * * * /root/cron/marc_get aspencat_new
 
 ###########################
 # Export of data to EBSCO #
