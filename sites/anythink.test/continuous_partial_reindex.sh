@@ -88,7 +88,7 @@ do
 
 	#Process extract from Horizon
 	#Copy partial extracts from ftp server
-	mount 10.1.2.6:/ftp /mnt/ftp
+	mount 10.1.2.7:/ftp /mnt/ftp
 	mv /mnt/ftp/anythink/partial*.mrc /data/vufind-plus/anythink.test/marc_changes
 	umount /mnt/ftp
 

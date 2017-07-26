@@ -5,10 +5,6 @@
 ##
 ## to set the current crontab from a file : crontab < crontab_settings.txt
 ##
-## This file supports all instances stored on Marmot's Venus server.
-## We have to consolidate all since we wouldn't want to update cron from multiple files
-##
-## added by pascal. 12-11-2014
 ##################
 
 # !! Please make all changes to the crontab within the git repository system and apply through the above method.

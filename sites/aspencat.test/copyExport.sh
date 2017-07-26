@@ -8,7 +8,7 @@
 #-------------------------------------------------------------------------
 # declare variables and constants
 #-------------------------------------------------------------------------
-REMOTE="10.1.2.6:/ftp"
+REMOTE="10.1.2.7:/ftp"
 LOCAL="/mnt/ftp"
 DEST="/data/vufind-plus/aspencat.test/marc"
 YESTERDAY=`date +%Y%m%d --date="yesterday"`
