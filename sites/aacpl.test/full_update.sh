@@ -158,7 +158,10 @@ fi
 #Copy extracts from FTP Server
 mount 10.1.2.6:/ftp/aacpl /mnt/ftp
 FILE1=$(find /mnt/ftp/symphony -name pika*.mrc -mtime -1 | sort -n | tail -1)
-cp $FILE1 /data/vufind-plus/${PIKASERVER}/marc/fullexport.mrc
+cp --update --preserve=timestamps $FILE1 /data/vufind-plus/${PIKASERVER}/marc/fullexport.mrc
+
+# Copy Over Holds data
+cp --update --preserve=timestamps /mnt/ftp/symphony-holds/*.csv /data/vufind-plus/${PIKASERVER}/
 umount /mnt/ftp
 
 

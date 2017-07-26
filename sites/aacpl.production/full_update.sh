@@ -156,10 +156,13 @@ then
 fi
 
 #Extract from ILS
-#Copy extracts from FTP Server
 mount 10.1.2.6:/ftp/aacpl /mnt/ftp
-FILE=$(find /mnt/ftp/symphony -name pika*.mrc -mtime -1 | sort -n | tail -1)
 
+# Copy Over Holds data
+cp --update --preserve=timestamps /mnt/ftp/symphony-holds/*.csv /data/vufind-plus/${PIKASERVER}/
+
+#Copy extracts from FTP Server
+FILE=$(find /mnt/ftp/symphony -name pika*.mrc -mtime -1 | sort -n | tail -1)
 if [ -n "$FILE" ]
 then
   #check file size
