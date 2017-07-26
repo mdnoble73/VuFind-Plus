@@ -118,6 +118,7 @@ do
 	umount /mnt/ftp >> ${OUTPUT_FILE}
 
 	#merge the changes with the full extract
+	cd /usr/local/vufind-plus/vufind/symphony_export/
 	java -server symphony_export.jar  ${PIKASERVER} >> ${OUTPUT_FILE}
 
 	#export from overdrive
