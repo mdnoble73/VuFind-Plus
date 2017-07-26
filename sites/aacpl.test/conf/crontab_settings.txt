@@ -59,7 +59,7 @@
 ###############################################
 # Copy Original Covers from Marmot FTP Server #
 ###############################################
-#14 */2 * * * scp -i ~/.ssh/id_rsa_arlington_pika_covers arlington_pika_covers@ftp1.marmot.org:/ftp/arlington_pika_covers/* /data/vufind-plus/arlington.production/covers/original/; chgrp apache /data/vufind-plus/arlington.production/covers/original/*
+#14 */2 * * * scp -i ~/.ssh/id_rsa_arlington_pika_covers arlington_pika_covers@sftp.marmot.org:/ftp/arlington_pika_covers/* /data/vufind-plus/arlington.production/covers/original/; chgrp apache /data/vufind-plus/arlington.production/covers/original/*
 
 ################
 # Pika Cleanup #

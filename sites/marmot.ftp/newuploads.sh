@@ -16,7 +16,7 @@
 
 TO='mark@marmot.org'
 CC='jb@marmot.org,pascal@marmot.org'
-SUBJECT='New uploads on ftp1 server'
+SUBJECT='New uploads on sftp server'
 TMPFILE='/tmp/newuploads'
 
 #-------------------------------------------------------------------------
