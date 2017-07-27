@@ -344,8 +344,8 @@ public class SymphonyExportMain {
 			//Last Update in UTC
 			Date now             = new Date();
 			Date yesterday       = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-			Date lastExtractDate = (lastSymphonyExtractTime != null) ? new Date(lastSymphonyExtractTime - 120 * 1000) : yesterday;
-			// Add a small buffer to the last extract time
+			// Add a small buffer (2 minutes) to the last extract time
+			Date lastExtractDate = (lastSymphonyExtractTime != null) ? new Date((lastSymphonyExtractTime * 1000) - (120 * 1000)) : yesterday;
 
 			if (lastExtractDate.before(yesterday)){
 				logger.warn("Last Extract date was more than 24 hours ago.  Just getting the last 24 hours since we should have a full extract.");
