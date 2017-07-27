@@ -149,6 +149,7 @@ public class SymphonyExportMain {
 					logger.error("Error reading holds file ", e);
 					hadErrors = true;
 				}
+				logger.info("Read " + holdsByBib.size() + " bibs with holds");
 			}
 		}else{
 			logger.warn("No holds file found");
@@ -180,6 +181,7 @@ public class SymphonyExportMain {
 						}
 						holdsData = holdsReader.readNext();
 					}
+					logger.info(holdsByBib.size() + " bibs with holds (including periodicals)");
 				}catch (Exception e){
 					logger.error("Error reading periodicals holds file ", e);
 					hadErrors = true;
@@ -194,14 +196,19 @@ public class SymphonyExportMain {
 		if (!hadErrors){
 			try {
 				pikaConn.prepareCall("DELETE FROM ils_hold_summary").executeUpdate();
+				logger.info("Removed existing holds");
 				PreparedStatement updateHoldsStmt = pikaConn.prepareStatement("INSERT INTO ils_hold_summary (ilsId, numHolds) VALUES (?, ?)");
 				for (String ilsId : holdsByBib.keySet()){
 					updateHoldsStmt.setString(1, "a" + ilsId);
 					updateHoldsStmt.setInt(2, holdsByBib.get(ilsId));
-					updateHoldsStmt.executeUpdate();
+					int numUpdates = updateHoldsStmt.executeUpdate();
+					if (numUpdates != 1){
+						logger.info("Hold was not inserted " + "a" + ilsId + " " + holdsByBib.get(ilsId));
+					}
 				}
+				logger.info("Finished adding new holds to the database");
 			}catch (Exception e){
-				logger.error("Error updating holds database");
+				logger.error("Error updating holds database", e);
 				hadErrors = true;
 			}
 		}
