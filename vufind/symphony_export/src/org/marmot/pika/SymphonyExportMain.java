@@ -126,8 +126,8 @@ public class SymphonyExportMain {
 			long holdFileLastModified = holdFile.lastModified();
 			if (now - holdFileLastModified > 2 * 24 * 60 * 60 * 1000){
 				logger.warn("Holds File was last written more than 2 days ago");
-			}else if (holdFileLastModified > lastExportTime){
-				logger.info("Found a new holds file");
+			}else if (holdFileLastModified / 1000 > lastExportTime){
+				logger.info("Found a new holds file " + holdFileLastModified + " > " + lastExportTime);
 				try {
 					CSVReader holdsReader = new CSVReader(new FileReader(holdFile));
 					String[] holdsData = holdsReader.readNext();
@@ -163,7 +163,7 @@ public class SymphonyExportMain {
 			if (now - holdFileLastModified > 2 * 24 * 60 * 60 * 1000){
 				logger.warn("Periodicals Holds File was last written more than 2 days ago");
 			}else if (holdFileLastModified > lastExportTime){
-				logger.info("Found a new periodicals holds file");
+				logger.info("Found a new periodicals holds file " + holdFileLastModified + " > " + lastExportTime);
 				try {
 					CSVReader holdsReader = new CSVReader(new FileReader(periodicalsHoldFile));
 					String[] holdsData = holdsReader.readNext();
