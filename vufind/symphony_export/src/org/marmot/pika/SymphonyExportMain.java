@@ -87,13 +87,13 @@ public class SymphonyExportMain {
 					updateVariableStmt.setLong(2, lastSymphonyExtractTimeVariableId);
 					updateVariableStmt.executeUpdate();
 					updateVariableStmt.close();
-					logger.warn("Updated last extract time to " + exportStartTime);
+					logger.debug("Updated last extract time to " + exportStartTime);
 				} else {
 					PreparedStatement insertVariableStmt = pikaConn.prepareStatement("INSERT INTO variables (`name`, `value`) VALUES ('last_symphony_extract_time', ?)");
 					insertVariableStmt.setString(1, Long.toString(exportStartTime));
 					insertVariableStmt.executeUpdate();
 					insertVariableStmt.close();
-					logger.warn("Set last extract time to " + exportStartTime);
+					logger.debug("Set last extract time to " + exportStartTime);
 				}
 			} else {
 				logger.error("There was an error updating during the extract, not setting last extract time.");
