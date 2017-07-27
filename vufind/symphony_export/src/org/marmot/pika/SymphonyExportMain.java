@@ -120,14 +120,15 @@ public class SymphonyExportMain {
 	 */
 	private static void processNewHoldsFile(long lastExportTime, Connection pikaConn) {
 		HashMap<String, Integer> holdsByBib = new HashMap<>();
+		boolean writeHolds = false;
 		File holdFile = new File(indexingProfile.marcPath + "/Pika - Hold Information.csv");
 		if (holdFile.exists()){
 			long now = new Date().getTime();
 			long holdFileLastModified = holdFile.lastModified();
 			if (now - holdFileLastModified > 2 * 24 * 60 * 60 * 1000){
 				logger.warn("Holds File was last written more than 2 days ago");
-			}else if (holdFileLastModified / 1000 > lastExportTime){
-				logger.info("Found a new holds file " + holdFileLastModified + " > " + lastExportTime);
+			}else{
+				writeHolds = true;
 				try {
 					CSVReader holdsReader = new CSVReader(new FileReader(holdFile));
 					String[] holdsData = holdsReader.readNext();
@@ -162,8 +163,8 @@ public class SymphonyExportMain {
 			long holdFileLastModified = periodicalsHoldFile.lastModified();
 			if (now - holdFileLastModified > 2 * 24 * 60 * 60 * 1000){
 				logger.warn("Periodicals Holds File was last written more than 2 days ago");
-			}else if (holdFileLastModified > lastExportTime){
-				logger.info("Found a new periodicals holds file " + holdFileLastModified + " > " + lastExportTime);
+			}else {
+				writeHolds = true;
 				try {
 					CSVReader holdsReader = new CSVReader(new FileReader(periodicalsHoldFile));
 					String[] holdsData = holdsReader.readNext();
@@ -193,7 +194,7 @@ public class SymphonyExportMain {
 		}
 
 		//Now that we've counted all the holds, update the database
-		if (!hadErrors){
+		if (!hadErrors && writeHolds){
 			try {
 				pikaConn.prepareCall("DELETE FROM ils_hold_summary").executeUpdate();
 				logger.info("Removed existing holds");
