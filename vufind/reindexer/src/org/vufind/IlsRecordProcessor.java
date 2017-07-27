@@ -1451,6 +1451,9 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		if (printFormats.contains("Video") && printFormats.contains("VideoCassette")){
 			printFormats.remove("Video");
 		}
+		if (printFormats.contains("DVD") && printFormats.contains("VideoCassette")){
+			printFormats.remove("VideoCassette");
+		}
 		if (printFormats.contains("Blu-ray") && printFormats.contains("VideoDisc")){
 			printFormats.remove("VideoDisc");
 		}
@@ -1643,7 +1646,7 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 							result.add("Software");
 						} else if (physicalDescriptionData.contains("sound cassettes")) {
 							result.add("SoundCassette");
-						} else if (physicalDescriptionData.contains("sound discs") || physicalDescriptionData.contains("audio discs")) {
+						} else if (physicalDescriptionData.contains("sound discs") || physicalDescriptionData.contains("audio discs") || physicalDescriptionData.contains("compact disc")) {
 							result.add("SoundDisc");
 						}
 						//Since this is fairly generic, only use it if we have no other formats yet
