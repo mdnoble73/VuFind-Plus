@@ -1461,14 +1461,14 @@ class GroupedWorkDriver extends RecordInterface{
 				'on shelf' => 7
 			);
 			if (isset($curRecord['groupedStatus']) && $curRecord['groupedStatus'] != ''){
-				$groupedStatus = strtolower($relatedManifestations[$curRecord['format']]['groupedStatus']);
+				$groupedStatus = $relatedManifestations[$curRecord['format']]['groupedStatus'];
 
 				//Check to see if we have a better status here
 				if (array_key_exists(strtolower($curRecord['groupedStatus']), $statusRankings)){
 					if ($groupedStatus == ''){
 						$groupedStatus = $curRecord['groupedStatus'];
 						//Check to see if we are getting a better status
-					}elseif ($statusRankings[strtolower($curRecord['groupedStatus'])] > $statusRankings[$groupedStatus]){
+					}elseif ($statusRankings[strtolower($curRecord['groupedStatus'])] > $statusRankings[strtolower($groupedStatus)]){
 						$groupedStatus = $curRecord['groupedStatus'];
 					}
 					$relatedManifestations[$curRecord['format']]['groupedStatus'] = $groupedStatus;
