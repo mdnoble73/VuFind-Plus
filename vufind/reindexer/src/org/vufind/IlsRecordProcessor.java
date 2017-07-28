@@ -819,7 +819,7 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	void scopeItems(RecordInfo recordInfo, GroupedWorkSolr groupedWork, Record record){
 		for (ItemInfo itemInfo : recordInfo.getRelatedItems()){
 			if (itemInfo.isOrderItem()){
-				loadScopeInfoForOrderItem(itemInfo.getShelfLocation(), recordInfo.getPrimaryFormat(), groupedWork.getTargetAudiences(), itemInfo, record);
+				loadScopeInfoForOrderItem(itemInfo.getLocationCode(), recordInfo.getPrimaryFormat(), groupedWork.getTargetAudiences(), itemInfo, record);
 			}else if (itemInfo.isEContent()){
 				loadScopeInfoForEContentItem(groupedWork, itemInfo, record);
 			}else{
