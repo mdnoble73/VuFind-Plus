@@ -107,10 +107,6 @@ do
 			echo "$FILE was modified less than 1 minute ago, waiting to copy "
 		else
 			cp --update --preserve=timestamps $FILE /data/vufind-plus/${PIKASERVER}/marc_updates/ >> ${OUTPUT_FILE}
-
-			#	# Move to processed (Production Only does this)
-			#	mv --update $FILE /mnt/ftp/continuous_exports/processed/ >> ${OUTPUT_FILE}
-			#	echo "mv $FILE /mnt/ftp/continuous_exports/processed/"
 		fi
 	done
 	umount /mnt/ftp >> ${OUTPUT_FILE}

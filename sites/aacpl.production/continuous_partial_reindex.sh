@@ -107,12 +107,7 @@ do
 		if test "`find $FILE -mmin -1`"; then
 			echo "$FILE was modified less than 1 minute ago, waiting to copy "
 		else
-			#cp --update --preserve=timestamps $FILE /data/vufind-plus/${PIKASERVER}/marc_updates/ >> ${OUTPUT_FILE}
-			#echo "cp $FILE /data/vufind-plus/${PIKASERVER}/marc_updates/"
-
-			# # Move to processed (Production Only does this)
-			mv --update $FILE /mnt/ftp/continuous_exports/processed/ >> ${OUTPUT_FILE}
-			#echo "mv $FILE /mnt/ftp/continuous_exports/processed/"
+			cp --update --preserve=timestamps $FILE /data/vufind-plus/${PIKASERVER}/marc_updates/ >> ${OUTPUT_FILE}
 		fi
 	done
 	umount /mnt/ftp >> ${OUTPUT_FILE}
