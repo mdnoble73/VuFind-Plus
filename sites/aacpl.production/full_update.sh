@@ -162,7 +162,7 @@ mount 10.1.2.6:/ftp/aacpl /mnt/ftp
 cp --update --preserve=timestamps /mnt/ftp/symphony-holds/*.csv /data/vufind-plus/${PIKASERVER}/
 
 #Copy extracts from FTP Server
-FILE=$(find /mnt/ftp/symphony -name pika*.mrc -mtime -1 | sort -n | tail -1)
+FILE=$(find /mnt/ftp/symphony -name Pika*.mrc -mtime -1 | sort -n | tail -1)
 if [ -n "$FILE" ]
 then
   #check file size
@@ -174,7 +174,7 @@ then
 		PERCENTABOVE=$((100 * $DIFF / $MINFILE1SIZE))
 		echo "The export file is $PERCENTABOVE (%) larger than the minimum size check." >> ${OUTPUT_FILE}
 
-		cp $FILE /data/vufind-plus/${PIKASERVER}/marc/fullexport.mrc
+		cp --update --preserve=timestamps $FILE /data/vufind-plus/${PIKASERVER}/marc/fullexport.mrc
 		umount /mnt/ftp
 
 		#Validate the export
