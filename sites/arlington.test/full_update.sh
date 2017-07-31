@@ -161,6 +161,9 @@ cd /usr/local/vufind-plus/vufind/record_grouping; java -server -XX:+UseG1GC -Xmx
 #Full Reindex
 cd /usr/local/vufind-plus/vufind/reindexer; java -server -XX:+UseG1GC -Xmx2G -jar reindexer.jar ${PIKASERVER} fullReindex >> ${OUTPUT_FILE}
 
+# Truncate Continous Reindexing list of changed items
+cat /dev/null >| /data/vufind-plus/${PIKASERVER}/marc/changed_items_to_process.csv
+
 #Remove all ITEM_UPDATE_EXTRACT_PIKA files so continuous_partial_reindex can start fresh
 find /data/vufind-plus/${PIKASERVER}/marc -name 'ITEM_UPDATE_EXTRACT_PIKA*' -delete
 

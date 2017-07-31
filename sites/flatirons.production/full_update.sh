@@ -166,8 +166,11 @@ then
 		#Full Reindex
 		cd /usr/local/vufind-plus/vufind/reindexer; java -server -XX:+UseG1GC -jar reindexer.jar ${PIKASERVER} fullReindex >> ${OUTPUT_FILE}
 
+		# Truncate Continous Reindexing list of changed items
+		cat /dev/null >| /data/vufind-plus/${PIKASERVER}/marc/changed_items_to_process.csv
+
 		#Send Export to Marmot for the test server
-		scp -q /data/vufind-plus/flatirons.production/marc/pika1.mrc flatirons_marc_export@ftp1.marmot.org:~/ >> ${OUTPUT_FILE}
+		scp -q /data/vufind-plus/flatirons.production/marc/pika1.mrc flatirons_marc_export@sftp.marmot.org:~/ >> ${OUTPUT_FILE}
 
 		# Delete any exports over 7 days
 		find /data/vufind-plus/flatirons.production/marc_export/ -mindepth 1 -maxdepth 1 -name *.mrc -type f -mtime +7 -delete
