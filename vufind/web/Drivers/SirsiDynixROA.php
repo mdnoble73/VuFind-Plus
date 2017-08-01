@@ -1024,14 +1024,15 @@ abstract class SirsiDynixROA extends HorizonAPI
 			$items = $recordDriver->getCopies();
 			$firstCallNumber = null;
 			foreach ($items as $item){
-				$itemCallNumber = $item['callNumber'];
-				if ($firstCallNumber == null){
-					$firstCallNumber = $itemCallNumber;
-				}else if ($firstCallNumber != $itemCallNumber){
-					$needsItemHold = true;
-				}
 				$itemNumber = $item['itemId'];
-				if ($itemNumber){
+				if ($itemNumber && $item['holdable']){
+					$itemCallNumber = $item['callNumber'];
+					if ($firstCallNumber == null){
+						$firstCallNumber = $itemCallNumber;
+					}else if ($firstCallNumber != $itemCallNumber){
+						$needsItemHold = true;
+					}
+
 					$holdableItems[] = array(
 							'itemNumber' => $item['itemId'],
 							'location' => $item['shelfLocation'],
