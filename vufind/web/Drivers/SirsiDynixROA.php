@@ -721,6 +721,19 @@ abstract class SirsiDynixROA extends HorizonAPI
 				}
 
 				$recordDriver = new MarcRecord('a' . $bibId);
+				if ($holdInfo->fields->holdType == 'COPY'){
+					$itemInfo = $this->getWebServiceResponse($webServiceURL . '/ws' . $holdInfo->fields->selectedItem->resource . '/key/' . $holdInfo->fields->selectedItem->key, null, $sessionToken);
+					if (isset($itemInfo->fields)){
+						$barcode = $itemInfo->fields->barcode;
+						$copies = $recordDriver->getCopies();
+						foreach ($copies as $copy){
+							if ($copy['itemId'] == $barcode){
+								$curHold['title2'] = $copy['shelfLocation'] . ' - ' . $copy['callNumber'];
+								break;
+							}
+						}
+					}
+				}
 				if ($recordDriver->isValid()) {
 					$curHold['sortTitle']       = $recordDriver->getSortableTitle();
 					$curHold['format']          = $recordDriver->getFormat();
@@ -749,6 +762,66 @@ abstract class SirsiDynixROA extends HorizonAPI
 			}
 		}
 		return $holds;
+	}
+
+	/**
+	 * Place Hold
+	 *
+	 * This is responsible for both placing holds as well as placing recalls.
+	 *
+	 * @param   User    $patron       The User to place a hold for
+	 * @param   string  $recordId     The id of the bib record
+	 * @param   string  $pickupBranch The branch where the user wants to pickup the item when available
+	 * @return  mixed                 True if successful, false if unsuccessful
+	 *                                If an error occurs, return a PEAR_Error
+	 * @access  public
+	 */
+	public function placeHold($patron, $recordId, $pickupBranch, $cancelDate = null) {
+		//For Sirsi ROA we don't really know if a record needs a copy or title level hold.  We determined that we would check
+		// the marc record and if the call numbers in the record vary we will place a copy level hold
+		$result = array();
+		$needsItemHold = false;
+		$holdableItems = array();
+		/** @var MarcRecord $recordDriver */
+		$recordDriver = RecordDriverFactory::initRecordDriverById($this->accountProfile->recordSource . ':' . $recordId);
+
+		if ($recordDriver->isValid()){
+			$result['title'] = $recordDriver->getTitle();
+			$items = $recordDriver->getCopies();
+			$firstCallNumber = null;
+			foreach ($items as $item){
+				$itemCallNumber = $item['callNumber'];
+				if ($firstCallNumber == null){
+					$firstCallNumber = $itemCallNumber;
+				}else if ($firstCallNumber != $itemCallNumber){
+					$needsItemHold = true;
+				}
+				$itemNumber = $item['itemId'];
+				if ($itemNumber){
+					$holdableItems[] = array(
+							'itemNumber' => $item['itemId'],
+							'location' => $item['shelfLocation'],
+							'callNumber' => $itemCallNumber,
+							'status' => $item['status'],
+					);
+				}
+			}
+		}
+
+		if (!$needsItemHold){
+			$result = $this->placeItemHold($patron, $recordId, null, $pickupBranch);
+		}else{
+			$result['items'] = $holdableItems;
+			if (count($holdableItems) > 0){
+				$message = 'This title requires item level holds, please select an item to place a hold on.';
+			}else{
+				$message = 'There are no holdable items for this title.';
+			}
+			$result['success'] = false;
+			$result['message'] = $message;
+		}
+
+		return $result;
 	}
 
 	/**
@@ -830,6 +903,7 @@ abstract class SirsiDynixROA extends HorizonAPI
 						'key' => strtoupper($campus)
 					),
 				);
+
 				if ($itemId) {
 					$holdData['itemBarcode'] = $itemId;
 					$holdData['holdType']    = 'COPY';

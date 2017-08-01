@@ -2595,7 +2595,8 @@ class GroupedWorkDriver extends RecordInterface{
 			$numCopies = $curItem[6];
 			$isOrderItem = $curItem[7] == 'true';
 			$isEcontent = $curItem[8] == 'true';
-			$scopeKey = $curItem[0] . ':' . ($curItem[1] == 'null' ? '' : $curItem[1]);
+			$itemId = $curItem[1] == 'null' ? '' : $curItem[1];
+			$scopeKey = $curItem[0] . ':' . $itemId;
 			$scopingDetails = $scopingInfo[$scopeKey];
 			if ($isEcontent) {
 				if (strlen($scopingDetails[12]) > 0){
@@ -2778,7 +2779,8 @@ class GroupedWorkDriver extends RecordInterface{
 					'volumeId' => $volumeId,
 					'isEContent' => $isEcontent,
 					'locationCode' => $locationCode,
-					'subLocation' => $subLocation
+					'subLocation' => $subLocation,
+					'itemId' => $itemId
 			);
 			$itemSummaryInfo['actions'] = $recordDriver != null ? $recordDriver->getItemActions($itemSummaryInfo) : array();
 			//Group the item based on location and call number for display in the summary

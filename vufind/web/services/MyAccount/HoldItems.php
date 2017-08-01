@@ -58,7 +58,6 @@ class HoldItems extends Action
 		global $user;
 		global $logger;
 
-		$holdings = array();
 		$ids = array();
 		foreach ($selectedTitles as $recordId => $itemNumber){
 			$ids[] = $recordId;
