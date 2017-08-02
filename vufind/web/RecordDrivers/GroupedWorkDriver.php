@@ -2093,7 +2093,7 @@ class GroupedWorkDriver extends RecordInterface{
 		// TODO: get oclc Fast Subjects
 		// TODO: get other subjects
 
-
+		$subjects = array_unique($subjects);
 		natcasesort($subjects);
 		$interface->assign('subjects', $subjects);
 		$interface->assign('showLCSubjects', $library->showLCSubjects);
