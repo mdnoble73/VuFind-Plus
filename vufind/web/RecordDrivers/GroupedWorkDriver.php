@@ -1529,8 +1529,10 @@ class GroupedWorkDriver extends RecordInterface{
 				}
 			}
 			if ($selectedFormatCategory && $selectedFormatCategory != $manifestation['formatCategory']) {
-				if (($manifestation['format'] == 'eAudiobook') && $selectedFormatCategory == 'eBook') {
+				if (($manifestation['format'] == 'eAudiobook') && ($selectedFormatCategory == 'eBook' || $selectedFormatCategory == 'Audio Books')) {
 					//This is a special case where the format is in 2 categories
+				} else if (($manifestation['format'] == 'VOX Books') && ($selectedFormatCategory == 'Books' || $selectedFormatCategory == 'Audio Books')) {
+					//This is another special case where the format is in 2 categories
 				} else {
 					$manifestation['hideByDefault'] = true;
 				}
@@ -2093,7 +2095,15 @@ class GroupedWorkDriver extends RecordInterface{
 		// TODO: get oclc Fast Subjects
 		// TODO: get other subjects
 
-		$subjects = array_unique($subjects);
+		$normalizedSubjects = array();
+		foreach ($subjects as $subject){
+			$subjectLower = strtolower($subject);
+			if (!array_key_exists($subjectLower, $subjects)){
+				$normalizedSubjects[$subjectLower] = $subject;
+			}
+		}
+		$subjects = $normalizedSubjects;
+
 		natcasesort($subjects);
 		$interface->assign('subjects', $subjects);
 		$interface->assign('showLCSubjects', $library->showLCSubjects);
