@@ -149,6 +149,7 @@ fi
 #Extract from ILS
 #Copy extracts from FTP Server
 mount 10.1.2.6:/ftp/santafe /mnt/ftp
+#mount 10.1.2.7:/ftp/santafe /mnt/ftp
 FILE1=$(find /mnt/ftp/ -name pika*.mrc -mtime -1 | sort -n | tail -1)
 
 if [ -n "$FILE1" ]
@@ -175,6 +176,9 @@ then
 
 			#Full Reindex
 			cd /usr/local/vufind-plus/vufind/reindexer; java -server -XX:+UseG1GC -Xmx2G -jar reindexer.jar ${PIKASERVER} fullReindex >> ${OUTPUT_FILE}
+
+			# Truncate Continous Reindexing list of changed items
+			cat /dev/null >| /data/vufind-plus/${PIKASERVER}/marc/changed_items_to_process.csv
 
 		else
 			umount /mnt/ftp

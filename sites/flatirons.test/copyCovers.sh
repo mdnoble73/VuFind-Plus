@@ -22,7 +22,8 @@
 FTPACCOUNT="flatirons_pika_covers"
 PIKASITENAME="flatirons.test"
 
-REMOTE="10.1.2.7:/ftp"
+REMOTE="10.1.2.6:/ftp"
+#REMOTE="10.1.2.7:/ftp"
 LOCAL="/mnt/ftp"
 SRC="/mnt/ftp/${FTPACCOUNT}/"
 DEST="/data/vufind-plus/${PIKASITENAME}/covers/original"
