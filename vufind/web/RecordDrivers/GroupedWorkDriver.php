@@ -1531,6 +1531,8 @@ class GroupedWorkDriver extends RecordInterface{
 			if ($selectedFormatCategory && $selectedFormatCategory != $manifestation['formatCategory']) {
 				if (($manifestation['format'] == 'eAudiobook') && $selectedFormatCategory == 'eBook') {
 					//This is a special case where the format is in 2 categories
+				} else if (($manifestation['format'] == 'VOX Books') && ($selectedFormatCategory == 'Books' || $selectedFormatCategory == 'Audio Books')) {
+					//This is another special case where the format is in 2 categories
 				} else {
 					$manifestation['hideByDefault'] = true;
 				}

@@ -467,6 +467,10 @@ public class GroupedWorkSolr implements Cloneable {
 					if (formats.contains("eAudiobook")){
 						formatCategories.add("eBook");
 					}
+					if (formats.contains("VOX Books")){
+						formatCategories.add("Books");
+						formatCategories.add("Audio Books");
+					}
 					addUniqueFieldValues(doc, "format_category_" + curScopeName, formatCategories);
 
 					//Setup ownership & availability toggle values
