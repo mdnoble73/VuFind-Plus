@@ -124,7 +124,11 @@ class UserList extends DB_DataObject
 			$this->created = time();
 		}
 		$this->dateUpdated = time();
-		return parent::update();
+		$result            = parent::update();
+		if ($result) {
+			$this->flushUserListBrowseCategory();
+		}
+		return $result;
 	}
 	function delete(){
 		$this->deleted = 1;
@@ -328,4 +332,16 @@ class UserList extends DB_DataObject
 	{
 		return $this->userListSortOptions;
 	}
+	private function flushUserListBrowseCategory(){
+		// Check if the list is a part of a browse category and clear the cache.
+		require_once ROOT_DIR . '/sys/Browse/BrowseCategory.php';
+		$userListBrowseCategory = new BrowseCategory();
+		$userListBrowseCategory->sourceListId = $this->id;
+		if ($userListBrowseCategory->find()) {
+			while ($userListBrowseCategory->fetch()) {
+				$userListBrowseCategory->deleteCachedBrowseCategoryResults();
+			}
+		}
+	}
+
 }
