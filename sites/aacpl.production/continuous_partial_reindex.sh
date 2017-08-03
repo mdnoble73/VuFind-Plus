@@ -112,6 +112,11 @@ do
 	done
 	umount /mnt/ftp >> ${OUTPUT_FILE}
 
+	#Get holds files from Google Drive
+	cd /data/vufind-plus/aacpl.test/marc
+	wget -q https://drive.google.com/file/d/0B_xqNQMfUrAzanJUZkNXekgtU2s/view?usp=sharing -O "Pika - Hold - Periodicals Information.csv"
+	wget -q https://drive.google.com/file/d/0B_xqNQMfUrAzNGJrajJzQWs3ZGs/view?usp=sharing -O "Pika - Hold - Information.csv"
+
 	#merge the changes with the full extract
 	cd /usr/local/vufind-plus/vufind/symphony_export/
 	java -server -jar symphony_export.jar  ${PIKASERVER} >> ${OUTPUT_FILE}
