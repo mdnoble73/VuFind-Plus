@@ -117,7 +117,7 @@ class BrowseCategory extends DB_DataObject{
 		return $ret;
 	}
 
-	private function deleteCachedBrowseCategoryResults(){
+	public function deleteCachedBrowseCategoryResults(){
 		// key structure
 		// $key = 'browse_category_' . $this->textId . '_' . $solrScope . '_' . $browseMode;
 

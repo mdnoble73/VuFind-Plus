@@ -571,6 +571,7 @@ class GroupedWorkDriver extends RecordInterface{
 		$interface->assign('summArInfo', $acceleratedReaderInfo);
 		$lexileInfo = $this->getLexileDisplayString();
 		$interface->assign('summLexileInfo', $lexileInfo);
+		$interface->assign('summFountasPinnell', $this->getFountasPinnellLevel());
 		$timer->logTime("Finished assignment of main data");
 		$memoryWatcher->logMemory("Finished assignment of main data");
 
@@ -1460,14 +1461,14 @@ class GroupedWorkDriver extends RecordInterface{
 				'on shelf' => 7
 			);
 			if (isset($curRecord['groupedStatus']) && $curRecord['groupedStatus'] != ''){
-				$groupedStatus = strtolower($relatedManifestations[$curRecord['format']]['groupedStatus']);
+				$groupedStatus = $relatedManifestations[$curRecord['format']]['groupedStatus'];
 
 				//Check to see if we have a better status here
 				if (array_key_exists(strtolower($curRecord['groupedStatus']), $statusRankings)){
 					if ($groupedStatus == ''){
 						$groupedStatus = $curRecord['groupedStatus'];
 						//Check to see if we are getting a better status
-					}elseif ($statusRankings[strtolower($curRecord['groupedStatus'])] > $statusRankings[$groupedStatus]){
+					}elseif ($statusRankings[strtolower($curRecord['groupedStatus'])] > $statusRankings[strtolower($groupedStatus)]){
 						$groupedStatus = $curRecord['groupedStatus'];
 					}
 					$relatedManifestations[$curRecord['format']]['groupedStatus'] = $groupedStatus;
@@ -1528,8 +1529,10 @@ class GroupedWorkDriver extends RecordInterface{
 				}
 			}
 			if ($selectedFormatCategory && $selectedFormatCategory != $manifestation['formatCategory']) {
-				if (($manifestation['format'] == 'eAudiobook') && $selectedFormatCategory == 'eBook') {
+				if (($manifestation['format'] == 'eAudiobook') && ($selectedFormatCategory == 'eBook' || $selectedFormatCategory == 'Audio Books')) {
 					//This is a special case where the format is in 2 categories
+				} else if (($manifestation['format'] == 'VOX Books') && ($selectedFormatCategory == 'Books' || $selectedFormatCategory == 'Audio Books')) {
+					//This is another special case where the format is in 2 categories
 				} else {
 					$manifestation['hideByDefault'] = true;
 				}
@@ -2043,6 +2046,10 @@ class GroupedWorkDriver extends RecordInterface{
 		}
 	}
 
+	public function getFountasPinnellLevel(){
+		return isset($this->fields['fountas_pinnell'])?  $this->fields['fountas_pinnell'] : null;
+	}
+
 	public function getLexileCode(){
 		return isset($this->fields['lexile_code']) ? $this->fields['lexile_code'] : null;
 	}
@@ -2088,6 +2095,14 @@ class GroupedWorkDriver extends RecordInterface{
 		// TODO: get oclc Fast Subjects
 		// TODO: get other subjects
 
+		$normalizedSubjects = array();
+		foreach ($subjects as $subject){
+			$subjectLower = strtolower($subject);
+			if (!array_key_exists($subjectLower, $subjects)){
+				$normalizedSubjects[$subjectLower] = $subject;
+			}
+		}
+		$subjects = $normalizedSubjects;
 
 		natcasesort($subjects);
 		$interface->assign('subjects', $subjects);
@@ -2590,7 +2605,8 @@ class GroupedWorkDriver extends RecordInterface{
 			$numCopies = $curItem[6];
 			$isOrderItem = $curItem[7] == 'true';
 			$isEcontent = $curItem[8] == 'true';
-			$scopeKey = $curItem[0] . ':' . ($curItem[1] == 'null' ? '' : $curItem[1]);
+			$itemId = $curItem[1] == 'null' ? '' : $curItem[1];
+			$scopeKey = $curItem[0] . ':' . $itemId;
 			$scopingDetails = $scopingInfo[$scopeKey];
 			if ($isEcontent) {
 				if (strlen($scopingDetails[12]) > 0){
@@ -2773,7 +2789,8 @@ class GroupedWorkDriver extends RecordInterface{
 					'volumeId' => $volumeId,
 					'isEContent' => $isEcontent,
 					'locationCode' => $locationCode,
-					'subLocation' => $subLocation
+					'subLocation' => $subLocation,
+					'itemId' => $itemId
 			);
 			$itemSummaryInfo['actions'] = $recordDriver != null ? $recordDriver->getItemActions($itemSummaryInfo) : array();
 			//Group the item based on location and call number for display in the summary
@@ -2871,6 +2888,7 @@ class GroupedWorkDriver extends RecordInterface{
 		$interface->assign('summLanguage', $summLanguage);
 		$interface->assign('summArInfo', $this->getAcceleratedReaderDisplayString());
 		$interface->assign('summLexileInfo', $this->getLexileDisplayString());
+		$interface->assign('summFountasPinnell', $this->getFountasPinnellLevel());
 	}
 
 	public function getAcceleratedReaderDisplayString() {

@@ -96,9 +96,6 @@ public class CarlXExportMain {
 			logger.error("Failed to Load Translation Maps for CarlX Extract", e);
 		}
 
-		// Set update time
-		long updateTime = new Date().getTime() / 1000;
-
 		// Get Last Extract Time
 		String beginTimeString = getLastExtractTime(vufindConn);
 
@@ -141,9 +138,9 @@ public class CarlXExportMain {
 
 
 		// Update Changed Bibs //
-		boolean errorUpdatingDatabase = updateBibRecords(vufindConn, updateTime, updatedBibs, updatedItemIDs, createdItemIDs, deletedItemIDs, itemUpdates, createdItems, markGroupedWorkForBibAsChangedStmt);
+		boolean errorUpdatingDatabase = updateBibRecords(vufindConn, exportStartTime, updatedBibs, updatedItemIDs, createdItemIDs, deletedItemIDs, itemUpdates, createdItems, markGroupedWorkForBibAsChangedStmt);
 		logger.debug("Done updating Bib Records");
-		errorUpdatingDatabase = updateChangedItems(vufindConn, updateTime, createdItemIDs, deletedItemIDs, itemUpdates, createdItems, errorUpdatingDatabase, markGroupedWorkForBibAsChangedStmt);
+		errorUpdatingDatabase = updateChangedItems(vufindConn, exportStartTime, createdItemIDs, deletedItemIDs, itemUpdates, createdItems, errorUpdatingDatabase, markGroupedWorkForBibAsChangedStmt);
 		logger.debug("Done updating Item Records");
 
 		// Now remove Any left-over deleted items.  The APIs give us the item id, but not the bib id.  We may need to
@@ -211,15 +208,17 @@ public class CarlXExportMain {
 					//Update the last extract time
 					if (lastCarlXExtractTimeVariableId != null) {
 						PreparedStatement updateVariableStmt = vufindConn.prepareStatement("UPDATE variables set value = ? WHERE id = ?");
-						updateVariableStmt.setLong(1, updateTime);
+						updateVariableStmt.setLong(1, exportStartTime);
 						updateVariableStmt.setLong(2, lastCarlXExtractTimeVariableId);
 						updateVariableStmt.executeUpdate();
 						updateVariableStmt.close();
+						logger.warn("Updated last extract time to " + exportStartTime);
 					} else {
 						PreparedStatement insertVariableStmt = vufindConn.prepareStatement("INSERT INTO variables (`name`, `value`) VALUES ('last_carlx_extract_time', ?)");
 						insertVariableStmt.setString(1, Long.toString(exportStartTime));
 						insertVariableStmt.executeUpdate();
 						insertVariableStmt.close();
+						logger.warn("Set last extract time to " + exportStartTime);
 					}
 				} else {
 					logger.error("There was an error updating during the extract, not setting last extract time.");
@@ -321,7 +320,6 @@ public class CarlXExportMain {
 
 					} else {
 						// TODO: Do Marc Lookup & rebuild Marc Record?
-//						logger.warn("Existing Marc Record for BID " + currentBibID + " failed to load; Writing new record with data from API");
 						logger.warn("Existing Marc Record for BID " + fullBibID + " failed to load; Can not update item: " + currentUpdateItemID);
 					}
 				} else {
@@ -422,7 +420,10 @@ public class CarlXExportMain {
 		// Note: There is an Include949ItemData flag, but it hasn't been implemented by TLC yet. plb 9-15-2016
 		// Build Marc Fetching Soap Request
 		boolean errorUpdatingDatabase = false;
-		if (updatedBibs.size() > 0) {
+		if (updatedBibs.size() > 100){
+			logger.warn("There are more than 100 bibs that need updates " + updatedBibs.size());
+		}
+		while (updatedBibs.size() > 0) {
 			logger.debug("Getting data for " + updatedBibs.size() + " updated bibs");
 			int numBibUpdates = 0;
 			try {
@@ -440,9 +441,16 @@ public class CarlXExportMain {
 
 				String getMarcRecordsSoapRequest = getMarcRecordsSoapRequestStart;
 				// Updated Bibs
-				for (String updatedBibID : updatedBibs) {
+				ArrayList<String> updatedBibCopy = (ArrayList<String>)updatedBibs.clone();
+				int numAdded = 0;
+				for (String updatedBibID : updatedBibCopy) {
 					if (updatedBibID.length() > 0) {
-						getMarcRecordsSoapRequest += "<mar:BID>" + updatedBibID + "</mar:BID>";
+						getMarcRecordsSoapRequest += "<mar:BID>" + updatedBibID + "</mar:BID>\n";
+						numAdded++;
+					}
+					updatedBibs.remove(updatedBibID);
+					if (numAdded >= 100){
+						break;
 					}
 				}
 				getMarcRecordsSoapRequest += getMarcRecordsSoapRequestEnd;
@@ -465,7 +473,7 @@ public class CarlXExportMain {
 
 						int l = marcRecordInfo.getLength();
 						for (int i = 1; i < l; i++) { // (skip first node because it is the response status)
-							String currentBibID = updatedBibs.get(i - 1);
+							String currentBibID = updatedBibCopy.get(i - 1);
 							String currentFullBibID = getFileIdForRecordNumber(currentBibID);
 							//logger.debug("Updating " + currentFullBibID);
 							//logger.debug("Response from CARL.X\r\n" + marcRecordSOAPResponse.getMessage());
@@ -546,16 +554,14 @@ public class CarlXExportMain {
 						logger.error("Error Response for API call for getting Marc Records : " + shortErrorMessage);
 					}
 				}else{
-					logger.error("API call for getting Marc Records Failed: " + marcRecordSOAPResponse.getResponseCode() + marcRecordSOAPResponse.getMessage());
 					if (marcRecordSOAPResponse.getResponseCode() != 500){
+						logger.error("API call for getting Marc Records Failed: " + marcRecordSOAPResponse.getResponseCode() + marcRecordSOAPResponse.getMessage());
 						hadErrors = true;
 					}
 				}
 			} catch (Exception e) {
 				logger.error("Error Creating SOAP Request for Marc Records", e);
 			}
-		}else{
-			logger.debug("No bibs to update");
 		}
 		return errorUpdatingDatabase;
 	}
@@ -580,8 +586,8 @@ public class CarlXExportMain {
 			//Last Update in UTC
 			Date now             = new Date();
 			Date yesterday       = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-			Date lastExtractDate = (lastCarlXExtractTime != null) ? new Date((lastCarlXExtractTime - 120) * 1000) : yesterday;
-			// Add a small buffer to the last extract time
+			// Add a small buffer (2 minutes) to the last extract time
+			Date lastExtractDate = (lastCarlXExtractTime != null) ? new Date((lastCarlXExtractTime * 1000) - (120 * 1000)) : yesterday;
 
 			if (lastExtractDate.before(yesterday)){
 				logger.warn("Last Extract date was more than 24 hours ago.  Just getting the last 24 hours since we should have a full extract.");
@@ -804,7 +810,10 @@ public class CarlXExportMain {
 	private static ArrayList<ItemChangeInfo> fetchItemInformation(ArrayList<String> itemIDs) {
 		ArrayList<ItemChangeInfo> itemUpdates = new ArrayList<>();
 		logger.debug("Getting item information for " + itemIDs.size() + " Item IDs");
-		if (itemIDs.size() > 0) {
+		if (itemIDs.size() > 100){
+			logger.warn("There are more than 100 items that need updates " + itemIDs.size());
+		}
+		while (itemIDs.size() > 0) {
 			//TODO: Set an upper limit on number of IDs for one request, and process in batches
 			String getItemInformationSoapRequest;
 			String getItemInformationSoapRequestStart = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:mar=\"http://tlcdelivers.com/cx/schemas/marcoutAPI\" xmlns:req=\"http://tlcdelivers.com/cx/schemas/request\">\n" +
@@ -822,8 +831,15 @@ public class CarlXExportMain {
 			try {
 				getItemInformationSoapRequest = getItemInformationSoapRequestStart;
 				// Updated Items
-				for (String updatedItem : itemIDs) {
+				ArrayList<String> itemsCopy = (ArrayList<String>)itemIDs.clone();
+				int numAdded = 0;
+				for (String updatedItem : itemsCopy) {
 					getItemInformationSoapRequest += "<mar:ItemSearchTerm>" + updatedItem + "</mar:ItemSearchTerm>\n";
+					numAdded++;
+					itemIDs.remove(updatedItem);
+					if (numAdded >= 100){
+						break;
+					}
 				}
 				getItemInformationSoapRequest += getItemInformationSoapRequestEnd;
 

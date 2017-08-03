@@ -14,8 +14,8 @@ PIKASERVER=arlington.production
 PIKADBNAME=pika
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
 
-MINFILE1SIZE=$((628000000))
-MINFILE2SIZE=$((598000000))
+MINFILE1SIZE=$((620000000))
+MINFILE2SIZE=$((614000000))
 
 # Check for conflicting processes currently running
 function checkConflictingProcesses() {
@@ -161,6 +161,8 @@ then
 			#Full Reindex
 			cd /usr/local/vufind-plus/vufind/reindexer; java -server -XX:+UseG1GC -Xmx2G -jar reindexer.jar ${PIKASERVER} fullReindex >> ${OUTPUT_FILE}
 
+			# Truncate Continous Reindexing list of changed items
+			cat /dev/null >| /data/vufind-plus/${PIKASERVER}/marc/changed_items_to_process.csv
 
 			# Delete any exports over 7 days
 			find /data/vufind-plus/arlington.production/marc_export/ -mindepth 1 -maxdepth 1 -name *.mrc -type f -mtime +7 -delete

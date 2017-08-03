@@ -32,8 +32,9 @@
 #############
 # On Reboot #
 #############
-# Continuous Re-Indexing
-#@reboot cd /usr/local/vufind-plus/sites/aacpl.test; ./continuous_partial_reindex.sh
+@reboot cd /usr/local/vufind-plus/sites/aacpl.test; ./aacpl.test.sh start
+# restart continuous re-indexing on reboot.
+@reboot sleep 300 && /usr/local/vufind-plus/sites/aacpl.test/continuous_partial_reindex.sh
 
 ######################
 # MySQL Nightly Dump #
@@ -44,21 +45,21 @@
 #####################
 # Daily full update #
 #####################
-# Set the start for 12:30 am
-# last marc export file transfer is scheduled to start at midnight
-30 0 * * * cd /usr/local/vufind-plus/sites/aacpl.test; ./full_update.sh
+# Set the start for 4:30 am
+# last marc export file transfer is scheduled to start at 4am
+30 2 * * * cd /usr/local/vufind-plus/sites/aacpl.test; ./full_update.sh
 
 ###################
 # Pika Cron Jobs  #
 ###################
 7 */3 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar aacpl.test
 20 0 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar aacpl.test DatabaseCleanup
-#0 20 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar aacpl.test UpdateReadingHistory
+0 20 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar aacpl.test UpdateReadingHistory
 
 ###############################################
 # Copy Original Covers from Marmot FTP Server #
 ###############################################
-#14 */2 * * * scp -i ~/.ssh/id_rsa_arlington_pika_covers arlington_pika_covers@ftp1.marmot.org:/ftp/arlington_pika_covers/* /data/vufind-plus/arlington.production/covers/original/; chgrp apache /data/vufind-plus/arlington.production/covers/original/*
+#14 */2 * * * scp -i ~/.ssh/id_rsa_arlington_pika_covers arlington_pika_covers@sftp.marmot.org:/ftp/arlington_pika_covers/* /data/vufind-plus/arlington.production/covers/original/; chgrp apache /data/vufind-plus/arlington.production/covers/original/*
 
 ################
 # Pika Cleanup #
@@ -72,12 +73,6 @@
 ############################################
 23 7 * * 0 /usr/local/vufind-plus/vufind/cron/updateNYTLists.sh aacpl.test
 # update on Sundays at 7:23
-
-################
-# mySQL Backup #
-################
-# Backup all mySQL databases to /home/mysql.dump
-#05 0 * * * cd /root/cron/; ./mySQLBackup
 
 # Check Apache Solr process and website that it has not stalled.
 */3 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./solrTest.sh

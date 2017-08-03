@@ -111,7 +111,8 @@ rm /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
 
 #truncate the output file so you don't spend a week debugging an error from a week ago!
 : > $OUTPUT_FILE;
-/usr/local/vufind-plus/sites/${PIKASERVER}/moveFullExport.sh aacpl/symphony aacpl.test >> ${OUTPUT_FILE}
+#/usr/local/vufind-plus/sites/${PIKASERVER}/moveFullExport.sh aacpl/symphony aacpl.test >> ${OUTPUT_FILE}
+#moved below with file checking
 
 #Restart Solr
 cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
@@ -121,6 +122,18 @@ cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 
 # Safari
 /usr/local/vufind-plus/sites/${PIKASERVER}/moveFullExport.sh aacpl/safari safari/aacpl >> ${OUTPUT_FILE}
+
+# RBdigital (audiobooks)
+/usr/local/vufind-plus/sites/${PIKASERVER}/moveFullExport.sh aacpl/recordedbooks rbdigital/aacpl >> ${OUTPUT_FILE}
+
+# Cloud Library
+/usr/local/vufind-plus/sites/${PIKASERVER}/moveSideloadAdds.sh aacpl/cloudlibrary cloudlibrary/aacpl/merge >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh cloudlibrary/aacpl >> ${OUTPUT_FILE}
+
+# Gale
+/usr/local/vufind-plus/sites/${PIKASERVER}/moveSideloadAdds.sh aacpl/gale gale/aacpl/merge >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh gale/aacpl >> ${OUTPUT_FILE}
+
 
 #Extract from Hoopla
 #cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE}
@@ -145,8 +158,11 @@ fi
 #Extract from ILS
 #Copy extracts from FTP Server
 mount 10.1.2.6:/ftp/aacpl /mnt/ftp
-FILE1=$(find /mnt/ftp/symphony -name pika*.mrc -mtime -1 | sort -n | tail -1)
-cp $FILE1 /data/vufind-plus/${PIKASERVER}/marc/fullexport.mrc
+FILE1=$(find /mnt/ftp/symphony -name Pika*.mrc -mtime -1 | sort -n | tail -1)
+cp --update --preserve=timestamps $FILE1 /data/vufind-plus/${PIKASERVER}/marc/fullexport.mrc
+
+# Copy Over Holds data
+cp --update --preserve=timestamps /mnt/ftp/symphony-holds/*.csv /data/vufind-plus/${PIKASERVER}/
 umount /mnt/ftp
 
 

@@ -81,24 +81,6 @@ class AACPLRecordProcessor extends IlsRecordProcessor {
 		return available;
 	}
 
-	@Override
-	protected void loadDateAdded(String identfier, DataField itemField, ItemInfo itemInfo) {
-		try {
-			getDateAddedStmt.setString(1, identfier);
-			ResultSet getDateAddedRS = getDateAddedStmt.executeQuery();
-			if (getDateAddedRS.next()) {
-				long timeAdded = getDateAddedRS.getLong(1);
-				Date curDate = new Date(timeAdded * 1000);
-				itemInfo.setDateAdded(curDate);
-				getDateAddedRS.close();
-			}else{
-				logger.debug("Could not determine date added for " + identfier);
-			}
-		}catch (Exception e){
-			logger.error("Unable to load date added for " + identfier);
-		}
-	}
-
 	protected String getShelfLocationForItem(ItemInfo itemInfo, DataField itemField, String identifier) {
 		String locationCode = getItemSubfieldData(locationSubfieldIndicator, itemField);
 		String location = translateValue("location", locationCode, identifier);

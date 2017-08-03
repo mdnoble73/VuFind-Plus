@@ -456,6 +456,8 @@
 				</div>
 			{/if}
 		</div>
+
+		{include file="library-links.tpl" libraryLinks=$libraryAccountLinks linksId='home-library-account-links' section='Account'}
 	</div>
 {/if}
 {/strip}

@@ -68,6 +68,7 @@ public class GroupedWorkSolr implements Cloneable {
 	private HashSet<String> lcSubjects = new HashSet<>();
 	private String lexileScore = "-1";
 	private String lexileCode = "";
+	private String fountasPinnell = "";
 	private HashMap<String, Integer> literaryFormFull = new HashMap<>();
 	private HashMap<String, Integer> literaryForm = new HashMap<>();
 	private HashSet<String> mpaaRatings = new HashSet<>();
@@ -321,7 +322,12 @@ public class GroupedWorkSolr implements Cloneable {
 		}else{
 			doc.addField("lexile_score", lexileScore);
 		}
-		doc.addField("lexile_code", Util.trimTrailingPunctuation(lexileCode));
+		if (lexileCode.length() > 0) {
+			doc.addField("lexile_code", Util.trimTrailingPunctuation(lexileCode));
+		}
+		if (fountasPinnell.length() > 0){
+			doc.addField("fountas_pinnell", fountasPinnell);
+		}
 		doc.addField("accelerated_reader_interest_level", Util.trimTrailingPunctuation(acceleratedReaderInterestLevel));
 		if (Util.isNumeric(acceleratedReaderReadingLevel)) {
 			doc.addField("accelerated_reader_reading_level", acceleratedReaderReadingLevel);
@@ -460,6 +466,10 @@ public class GroupedWorkSolr implements Cloneable {
 					//eAudiobooks are considered both Audiobooks and eBooks by some people
 					if (formats.contains("eAudiobook")){
 						formatCategories.add("eBook");
+					}
+					if (formats.contains("VOX Books")){
+						formatCategories.add("Books");
+						formatCategories.add("Audio Books");
 					}
 					addUniqueFieldValues(doc, "format_category_" + curScopeName, formatCategories);
 
@@ -1394,6 +1404,12 @@ public class GroupedWorkSolr implements Cloneable {
 
 	void setLexileCode(String lexileCode) {
 		this.lexileCode = lexileCode;
+	}
+
+	void setFountasPinnell(String fountasPinnell){
+		if (this.fountasPinnell.length() == 0) {
+			this.fountasPinnell = fountasPinnell;
+		}
 	}
 
 	void addAwards(Set<String> awards) {

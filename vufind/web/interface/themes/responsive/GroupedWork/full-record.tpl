@@ -34,8 +34,8 @@
 
 				{if $recordDriver->getPrimaryAuthor()}
 					<div class="row">
-						<div class="result-label col-md-3">Author: </div>
-						<div class="col-md-9 result-value notranslate">
+						<div class="result-label col-tn-3">Author: </div>
+						<div class="col-tn-9 result-value notranslate">
 							<a href='{$path}/Author/Home?author="{$recordDriver->getPrimaryAuthor()|escape:"url"}"'>{$recordDriver->getPrimaryAuthor()|highlight}</a>
 						</div>
 					</div>
@@ -45,8 +45,8 @@
 				{assign var=series value=$recordDriver->getSeries()}
 				{if $series || $indexedSeries}
 					<div class="series row">
-						<div class="result-label col-md-3">{translate text='Series'}:</div>
-						<div class="col-md-9 result-value">
+						<div class="result-label col-tn-3">{translate text='Series'}:</div>
+						<div class="col-tn-9 result-value">
 							{if $series}
 								<a href="{$path}/GroupedWork/{$recordDriver->getPermanentId()}/Series">{$series.seriesTitle}</a>{if $series.volume} volume {$series.volume}{/if}<br/>
 							{/if}
@@ -71,8 +71,8 @@
 
 				{if $showPublicationDetails}
 					<div class="row">
-						<div class="result-label col-tn-3 col-xs-3">Publisher: </div>
-						<div class="result-value col-tn-9 col-xs-9">
+						<div class="result-label col-tn-3">Publisher: </div>
+						<div class="result-value col-tn-9">
 							{if $summPublisher}
 								{$summPublisher}
 							{else}
@@ -82,8 +82,8 @@
 					</div>
 
 					<div class="row">
-						<div class="result-label col-tn-3 col-xs-3">Pub. Date: </div>
-						<div class="result-value col-tn-9 col-xs-9">
+						<div class="result-label col-tn-3">Pub. Date: </div>
+						<div class="result-value col-tn-9">
 							{if $summPubDate}
 								{$summPubDate|escape}
 							{else}
@@ -95,8 +95,8 @@
 
 				{if $showEditions && $summEdition}
 					<div class="row">
-						<div class="result-label col-tn-3 col-xs-3">Edition: </div>
-						<div class="result-value col-tn-9 col-xs-9">
+						<div class="result-label col-tn-3">Edition: </div>
+						<div class="result-value col-tn-9">
 							{$summEdition}
 						</div>
 					</div>
@@ -104,8 +104,8 @@
 
 				{if $summLanguage}
 					<div class="row">
-						<div class="result-label col-tn-3 col-xs-3">Language: </div>
-						<div class="result-value col-tn-9 col-xs-9">
+						<div class="result-label col-tn-3">Language: </div>
+						<div class="result-value col-tn-9">
 							{if is_array($summLanguage)}
 								{', '|implode:$summLanguage}
 							{else}
@@ -117,8 +117,8 @@
 
 				{if $showArInfo && $summArInfo}
 					<div class="row">
-						<div class="result-label col-tn-3 col-xs-3">{translate text='Accelerated Reader'}: </div>
-						<div class="result-value col-tn-9 col-xs-9">
+						<div class="result-label col-tn-3">{translate text='Accelerated Reader'}: </div>
+						<div class="result-value col-tn-9">
 							{$summArInfo}
 						</div>
 					</div>
@@ -126,9 +126,18 @@
 
 				{if $showLexileInfo && $summLexileInfo}
 					<div class="row">
-						<div class="result-label col-tn-3 col-xs-3">Lexile Score: </div>
-						<div class="result-value col-tn-9 col-xs-9">
+						<div class="result-label col-tn-3">Lexile Score: </div>
+						<div class="result-value col-tn-9">
 							{$summLexileInfo}
+						</div>
+					</div>
+				{/if}
+
+				{if $showFountasPinnell && $summFountasPinnell}
+					<div class="row">
+						<div class="result-label col-tn-3">{translate text='Fountas &amp; Pinnell'}: </div>
+						<div class="result-value col-tn-9">
+							{$summFountasPinnell}
 						</div>
 					</div>
 				{/if}

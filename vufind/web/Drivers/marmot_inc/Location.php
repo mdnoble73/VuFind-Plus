@@ -80,6 +80,7 @@ class Location extends DB_DataObject
 	public $additionalLocationsToShowAvailabilityFor;
 	public $includeAllRecordsInShelvingFacets;
 	public $includeAllRecordsInDateAddedFacets;
+	public $includeLibraryRecordsToInclude;
 
 	/** @var  array $data */
 	protected $data;
@@ -337,6 +338,7 @@ class Location extends DB_DataObject
 				'allowEdit' => false,
 				'canEdit' => false,
 			),
+			'includeLibraryRecordsToInclude' => array('property'=>'includeLibraryRecordsToInclude', 'type'=>'checkbox', 'label'=>'Include Library Records To Include', 'description'=>'Whether or not the records to include from the parent library should be included for this location', 'hideInLists' => true, 'default' => true),
 		);
 
 		if ($user->hasRole('locationManager') || $user->hasRole('libraryManager')){

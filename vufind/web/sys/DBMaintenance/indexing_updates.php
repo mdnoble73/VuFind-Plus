@@ -235,6 +235,15 @@ function getIndexingUpdates() {
 				)
 		),
 
+			'indexing_profile_extendLocationsToSuppress' => array(
+					'title' => 'Indexing Profiles - Extend Locations To Suppress Size',
+					'description' => 'Extend Locations To Suppress Size for an indexing profile',
+					'continueOnError' => true,
+					'sql' => array(
+							"ALTER TABLE indexing_profiles CHANGE `locationsToSuppress` `locationsToSuppress` varchar(255)",
+					)
+			),
+
 		'translation_map_regex' => array(
 			'title' => 'Translation Maps Regex',
 			'description' => 'Setup Translation Maps to use regular expressions',

@@ -81,7 +81,12 @@ class BookCoverProcessor{
 			if ($this->getSideLoadedCover($this->type.':'.$this->id)) {
 				return;
 			}
-		} elseif (stripos($this->type, 'Zinio') !== false){
+			// Cloud Library
+		} elseif (stripos($this->type, 'cloud') !== false){
+			if ($this->getSideLoadedCover($this->type.':'.$this->id)) {
+				return;
+			}
+		} elseif (stripos($this->type, 'rbdigital') !== false || stripos($this->type, 'zinio') !== false){
 			if ($this->getZinioCover($this->type.':'.$this->id)) {
 				return;
 			}
@@ -1077,7 +1082,11 @@ class BookCoverProcessor{
 					if ($this->getSideLoadedCover($relatedRecord['id'])) {
 						return true;
 					}
-				} elseif (stripos($relatedRecord['source'], 'Zinio') !== false){
+				} elseif (stripos($relatedRecord['source'], 'cloud') !== false){
+					if ($this->getSideLoadedCover($relatedRecord['id'])) {
+						return true;
+					}
+				} elseif (stripos($relatedRecord['source'], 'rbdigital') !== false || stripos($relatedRecord['source'], 'zinio') !== false){
 					if ($this->getZinioCover($relatedRecord['id'])) {
 						return true;
 					}

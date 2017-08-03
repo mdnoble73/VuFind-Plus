@@ -391,6 +391,8 @@ class UInterface extends Smarty
 			$this->assign('showPikaLogo', $library->showPikaLogo);
 			$this->assign('allowMasqueradeMode', $library->allowMasqueradeMode);
 			$this->assign('allowReadingHistoryDisplayInMasqueradeMode', $library->allowReadingHistoryDisplayInMasqueradeMode);
+			$this->assign('interLibraryLoanName', $library->interLibraryLoanName);
+			$this->assign('interLibraryLoanUrl', $library->interLibraryLoanUrl);
 
 			if ($this->getVariable('displaySidebarMenu') && !$library->showSidebarMenu){
 				$this->assign('displaySidebarMenu', false);
@@ -525,14 +527,30 @@ class UInterface extends Smarty
 		//Load library links
 		if (isset($library)){
 			$links = $library->libraryLinks;
-			$libraryLinks = array();
+			$libraryHelpLinks = array();
+			$libraryAccountLinks = array();
+			$expandedLinkCategories = array();
+			/** @var LibraryLink $libraryLink */
 			foreach ($links as $libraryLink){
-				if (!array_key_exists($libraryLink->category, $libraryLinks)){
-					$libraryLinks[$libraryLink->category] = array();
+				if ($libraryLink->showInHelp || (!$libraryLink->showInHelp && !$libraryLink->showInAccount)){
+					if (!array_key_exists($libraryLink->category, $libraryHelpLinks)){
+						$libraryHelpLinks[$libraryLink->category] = array();
+					}
+					$libraryHelpLinks[$libraryLink->category][$libraryLink->linkText] = $libraryLink;
 				}
-				$libraryLinks[$libraryLink->category][$libraryLink->linkText] = $libraryLink;
+				if ($libraryLink->showInAccount){
+					if (!array_key_exists($libraryLink->category, $libraryAccountLinks)){
+						$libraryAccountLinks[$libraryLink->category] = array();
+					}
+					$libraryAccountLinks[$libraryLink->category][$libraryLink->linkText] = $libraryLink;
+				}
+				if ($libraryLink->showExpanded){
+					$expandedLinkCategories[$libraryLink->category] = 1;
+				}
 			}
-			$this->assign('libraryLinks', $libraryLinks);
+			$this->assign('libraryAccountLinks', $libraryAccountLinks);
+			$this->assign('libraryHelpLinks', $libraryHelpLinks);
+			$this->assign('expandedLinkCategories', $expandedLinkCategories);
 
 			$topLinks = $library->libraryTopLinks;
 			$this->assign('topLinks', $topLinks);

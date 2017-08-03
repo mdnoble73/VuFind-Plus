@@ -245,8 +245,9 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			}catch (Exception e) {
 				logger.error("Error updating solr based on marc record", e);
 			}
-		}else{
-			logger.info("Could not load marc record from disk for " + identifier);
+		//No need to warn here, we already have a warning when getting it
+		//}else{
+			//logger.info("Could not load marc record from disk for " + identifier);
 		}
 	}
 
@@ -262,10 +263,12 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			//FileInputStream inputStream = new FileInputStream(individualFile);
 			InputStream inputStream = new ByteArrayInputStream(fileContents);
 			MarcPermissiveStreamReader marcReader = new MarcPermissiveStreamReader(inputStream, true, true, "UTF-8");
-			if (marcReader.hasNext()){
+			if (marcReader.hasNext()) {
 				record = marcReader.next();
 			}
 			inputStream.close();
+		}catch (FileNotFoundException fe){
+			logger.warn("Could not find MARC record at " + individualFilename + " for " + identifier);
 		} catch (Exception e) {
 			logger.error("Error reading data from ils file " + individualFilename, e);
 		}
@@ -365,12 +368,14 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 			for (ItemInfo curItem : recordInfo.getRelatedItems()){
 				String itemIdentifier = curItem.getItemIdentifier();
-				if (itemIdentifier.length() > 0) {
+				if (itemIdentifier != null && itemIdentifier.length() > 0) {
 					groupedWork.addAlternateId(itemIdentifier);
 				}
 			}
 
-			scopeItems(recordInfo, groupedWork, record);
+			for (RecordInfo recordInfoTmp: allRelatedRecords) {
+				scopeItems(recordInfoTmp, groupedWork, record);
+			}
 		}catch (Exception e){
 			logger.error("Error updating grouped work " + groupedWork.getId() + " for MARC record with identifier " + identifier, e);
 		}
@@ -814,7 +819,7 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	void scopeItems(RecordInfo recordInfo, GroupedWorkSolr groupedWork, Record record){
 		for (ItemInfo itemInfo : recordInfo.getRelatedItems()){
 			if (itemInfo.isOrderItem()){
-				loadScopeInfoForOrderItem(itemInfo.getShelfLocation(), recordInfo.getPrimaryFormat(), groupedWork.getTargetAudiences(), itemInfo, record);
+				loadScopeInfoForOrderItem(itemInfo.getLocationCode(), recordInfo.getPrimaryFormat(), groupedWork.getTargetAudiences(), itemInfo, record);
 			}else if (itemInfo.isEContent()){
 				loadScopeInfoForEContentItem(groupedWork, itemInfo, record);
 			}else{
@@ -855,7 +860,7 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		}
 	}
 
-	void loadScopeInfoForPrintIlsItem(RecordInfo recordInfo, HashSet<String> audiences, ItemInfo itemInfo, Record record) {
+	private void loadScopeInfoForPrintIlsItem(RecordInfo recordInfo, HashSet<String> audiences, ItemInfo itemInfo, Record record) {
 		//Determine Availability
 		boolean available = isItemAvailable(itemInfo);
 
@@ -1446,6 +1451,9 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		if (printFormats.contains("Video") && printFormats.contains("VideoCassette")){
 			printFormats.remove("Video");
 		}
+		if (printFormats.contains("DVD") && printFormats.contains("VideoCassette")){
+			printFormats.remove("VideoCassette");
+		}
 		if (printFormats.contains("Blu-ray") && printFormats.contains("VideoDisc")){
 			printFormats.remove("VideoDisc");
 		}
@@ -1638,7 +1646,7 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 							result.add("Software");
 						} else if (physicalDescriptionData.contains("sound cassettes")) {
 							result.add("SoundCassette");
-						} else if (physicalDescriptionData.contains("sound discs") || physicalDescriptionData.contains("audio discs")) {
+						} else if (physicalDescriptionData.contains("sound discs") || physicalDescriptionData.contains("audio discs") || physicalDescriptionData.contains("compact disc")) {
 							result.add("SoundDisc");
 						}
 						//Since this is fairly generic, only use it if we have no other formats yet
@@ -1681,6 +1689,8 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				String noteValue = noteField.getSubfield('a').getData().toLowerCase();
 				if (noteValue.contains("vertical file")) {
 					result.add("VerticalFile");
+				}else if (noteValue.contains("vox books")) {
+					result.add("VoxBooks");
 				}
 			}
 		}

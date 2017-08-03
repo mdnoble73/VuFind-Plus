@@ -39,7 +39,7 @@ class CreateListWidget extends Action {
 
 		$source = $_REQUEST['source'];
 		$sourceId = $_REQUEST['id'];
-		if (!empty($source) && !empty($sourceId)) { // make sure we received this input
+		if (!empty($user) && !empty($source) && !empty($sourceId)) { // make sure we received this input & the user is logged in
 			$existingWidget = isset($_REQUEST['widgetId']) ? $_REQUEST['widgetId'] : -1;
 			$widgetName     = isset($_REQUEST['widgetName']) ? $_REQUEST['widgetName'] : '';
 
@@ -74,6 +74,7 @@ class CreateListWidget extends Action {
 				$searchObject->id = $sourceId;
 				$searchObject->find(true);
 				$searchObject->saved = 1;
+				$searchObject->user_id = $user->id;
 				$searchObject->update();
 			}
 

@@ -57,7 +57,7 @@
 		});
 	});
 	{/literal}
-	{* Pin Validation for CarlX *}
+	{* Pin Validation for CarlX, Sirsi *}
 	{literal}
 	if ($('#pin').length > 0 && $('#pin1').length > 0) {
 		$("#objectEditor").validate({

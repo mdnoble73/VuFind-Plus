@@ -14,7 +14,7 @@ PIKASERVER=flatirons.production
 PIKADBNAME=pika
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
 
-MINFILE1SIZE=$((1407000000))
+MINFILE1SIZE=$((1410000000))
 
 # Check for conflicting processes currently running
 function checkConflictingProcesses() {
@@ -119,7 +119,8 @@ scp flatirons_sideload@ftp1.marmot.org:/ftp/flatirons_sideload/oneclickdigital/l
 scp flatirons_sideload@ftp1.marmot.org:/ftp/flatirons_sideload/oneclickdigital/loveland/*.mrc /data/vufind-plus/oneclickdigital/loveland/marc/ >> ${OUTPUT_FILE}
 
 #Colorado State Goverment Documents Updates
-curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/colorado_gov_docs/marc/fullexport.mrc https://cassini.marmot.org/colorado_state_docs.mrc
+curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/colorado_gov_docs/marc/fullexport.mrc http://cassini.marmot.org/colorado_state_docs.mrc
+#curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/colorado_gov_docs/marc/fullexport.mrc https://cassini.marmot.org/colorado_state_docs.mrc
 
 #Do a full extract from OverDrive just once a week to catch anything that doesn't
 #get caught in the regular extract
@@ -166,8 +167,12 @@ then
 		#Full Reindex
 		cd /usr/local/vufind-plus/vufind/reindexer; java -server -XX:+UseG1GC -jar reindexer.jar ${PIKASERVER} fullReindex >> ${OUTPUT_FILE}
 
+		# Truncate Continous Reindexing list of changed items
+		cat /dev/null >| /data/vufind-plus/${PIKASERVER}/marc/changed_items_to_process.csv
+
 		#Send Export to Marmot for the test server
 		scp -q /data/vufind-plus/flatirons.production/marc/pika1.mrc flatirons_marc_export@ftp1.marmot.org:~/ >> ${OUTPUT_FILE}
+#		scp -q /data/vufind-plus/flatirons.production/marc/pika1.mrc flatirons_marc_export@sftp.marmot.org:~/ >> ${OUTPUT_FILE}
 
 		# Delete any exports over 7 days
 		find /data/vufind-plus/flatirons.production/marc_export/ -mindepth 1 -maxdepth 1 -name *.mrc -type f -mtime +7 -delete

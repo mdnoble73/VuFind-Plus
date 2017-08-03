@@ -8,7 +8,7 @@
 				{/if}
 				{foreach from=$property.structure item=subProperty}
 					{if in_array($subProperty.type, array('text', 'enum', 'date', 'checkbox', 'integer', 'textarea', 'html', 'multiSelect')) }
-						<th>{$subProperty.label}</th>
+						<th{if in_array($subProperty.type, array('text', 'enum', 'html', 'multiSelect'))} style="min-width:150px"{/if}>{$subProperty.label}</th>
 					{/if}
 				{/foreach}
 				<th>Actions</th>

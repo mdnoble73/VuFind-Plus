@@ -80,8 +80,8 @@ cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE
 
 # Ebrary Marc Updates
 #TODO: refactor CCU's ebrary destination
-/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh ccu_ebrary ebrary_ccu >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh adams/ebrary ebrary/adams >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh ccu/ebrary ebrary_ccu >> ${OUTPUT_FILE}
+#/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh adams/ebrary ebrary/adams >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh western/ebrary ebrary/western >> ${OUTPUT_FILE}
 
 #Adams Ebrary DDA files
@@ -92,7 +92,7 @@ cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh ccu/alexanderStreetPress alexanderstreetpress/ccu >> ${OUTPUT_FILE}
 
 # CCU Ebsco Marc Updates
-/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh ebsco_ccu ebsco/ccu >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh ccu/ebsco ebsco/ccu >> ${OUTPUT_FILE}
 
 # CMC Ebsco Academic Marc Updates
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh cmc/ebsco ebsco/cmc >> ${OUTPUT_FILE}
@@ -111,10 +111,10 @@ cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh western/kanopy kanopy/western >> ${OUTPUT_FILE}
 
 # SD51 Mackin VIA Marc Updates
-/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh mcvsd/mackinvia/mvcp mackinvia/mvcp >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh mcvsd/mackinvia/mvem mackinvia/mvem >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh mcvsd/mackinvia/mvrr mackinvia/mvrr >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh mcvsd/mackinvia/mvtm mackinvia/mvtm >> ${OUTPUT_FILE}
+#/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh sd51/mackinvia/mvcp mackinvia/mvcp >> ${OUTPUT_FILE}
+#/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh sd51/mackinvia/mvem mackinvia/mvem >> ${OUTPUT_FILE}
+#/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh sd51/mackinvia/mvrr mackinvia/mvrr >> ${OUTPUT_FILE}
+#/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh sd51/mackinvia/mvtm mackinvia/mvtm >> ${OUTPUT_FILE}
 
 # Learning Express Marc Updates
 /usr/local/vufind-plus/sites/marmot.test/moveSideloadAdds.sh budwerner/learning_express learning_express/steamboatsprings/merge >> ${OUTPUT_FILE}
@@ -181,6 +181,9 @@ cd /usr/local/vufind-plus/vufind/record_grouping; java -server -XX:+UseG1GC -jar
 
 #Full Reindex
 cd /usr/local/vufind-plus/vufind/reindexer; nice -n -3 java -server -XX:+UseG1GC -jar reindexer.jar ${PIKASERVER} fullReindex >> ${OUTPUT_FILE}
+
+# Truncate Continuous Reindexing list of changed items
+cat /dev/null >| /data/vufind-plus/${PIKASERVER}/marc/changed_items_to_process.csv
 
 # Clean-up Solr Logs
 find /usr/local/vufind-plus/sites/default/solr/jetty/logs -name "solr_log_*" -mtime +7 -delete

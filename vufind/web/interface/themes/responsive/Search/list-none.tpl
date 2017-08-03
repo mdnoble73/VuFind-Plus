@@ -98,6 +98,8 @@
 		{* Prospector Results *}
 		<div id='prospectorSearchResultsPlaceholder'></div>
 		{* javascript call for content at bottom of page*}
+	{elseif !empty($interLibraryLoanName) && !empty($interLibraryLoanUrl)}
+		{include file="Search/interLibraryLoanSearch.tpl"}
 	{/if}
 
 	{if $showDplaLink}

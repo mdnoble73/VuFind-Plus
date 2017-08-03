@@ -146,8 +146,17 @@ class I18N_Translator
 		$contents = file($file);
 		if (is_array($contents)) {
 			foreach($contents as $current) {
+				if (strlen($current) > 0 && substr($current, 0, 1) != ';'){
+					$lineContents = str_getcsv($current, '=', '"');
+					if (count($lineContents) == 2){
+						$key = trim($lineContents[0]);
+						$words[$key] = trim($lineContents[1]);
+					}
+				}
+
+
 				// Split the string on the equals sign, keeping a max of two chunks:
-				$lastEqualSign = strrpos($current, '=');
+				/*$lastEqualSign = strrpos($current, '=');
 				$key = substr($current, 0, $lastEqualSign);
 				$key = trim($key);
 				$key = preg_replace('/^\"?(.*?)\"?$/', '$1', $key);
@@ -161,7 +170,7 @@ class I18N_Translator
 						// we want to replace a language token with a blank string):
 						$words[$key] = $value;
 					}
-				}
+				}*/
 			}
 		}
 
@@ -175,6 +184,7 @@ class I18N_Translator
 	 * @access  public
 	 * @note    Can be called statically if 2nd parameter is defined and load
 	 *          method is called before
+	 * @return  string the translated phrase
 	 */
 	function translate($phrase)
 	{
@@ -192,4 +202,3 @@ class I18N_Translator
 		return $translation;
 	}
 }
-?>

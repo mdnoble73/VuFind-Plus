@@ -7,7 +7,7 @@
 		<div class="col-xs-3 col-sm-4 col-md-3">
 			<div class="row">
 				<div class="selectTitle col-xs-12 col-sm-1">
-					{if !isset($record.renewable) || $record.renewable == true}
+					{if !isset($record.canrenew) || $record.canrenew == true}
 					<input type="checkbox" name="selected[{$record.userId}|{$record.recordId}|{$record.renewIndicator}]" class="titleSelect" id="selected{$record.itemid}">
 					{/if}
 				</div>
@@ -28,7 +28,7 @@
 		</div>
 		{else}
 			<div class="col-xs-1">
-				{if !isset($record.renewable) || $record.renewable == true}
+				{if !isset($record.canrenew) || $record.canrenew == true}
 					<input type="checkbox" name="selected[{$record.userId}|{$record.recordId}|{$record.renewIndicator}]" class="titleSelect" id="selected{$record.itemid}">
 				{/if}
 			</div>
@@ -181,7 +181,7 @@
 				{*<div class="{if $showCovers}col-xs-9 col-sm-8 col-md-4 col-lg-3{else}col-xs-11{/if}">*}
 				<div class="col-xs-9 col-sm-8 col-md-4 col-lg-3">
 					<div class="btn-group btn-group-vertical btn-block">
-						{if !isset($record.renewable) || $record.renewable == true}
+						{if !isset($record.canrenew) || $record.canrenew == true}
 							{*<a href="#" onclick="$('#selected{$record.itemid}').attr('checked', 'checked');return VuFind.Account.renewSelectedTitles();" class="btn btn-sm btn-primary">Renew</a>*}
 							<a href="#" onclick="return VuFind.Account.renewTitle('{$record.userId}', '{$record.recordId}', '{$record.renewIndicator}');" class="btn btn-sm btn-primary">{translate text='Renew'}</a>
 						{else}

@@ -21,7 +21,7 @@ class MyAccount_Holds extends MyAccount{
 		$interface->assign('allowFreezeHolds', true);
 
 		$ils = $configArray['Catalog']['ils'];
-		$showPosition = ($ils == 'Horizon' || $ils == 'Koha' || $ils == 'Symphony');
+		$showPosition = ($ils == 'Horizon' || $ils == 'Koha' || $ils == 'Symphony' || $ils == 'CarlX');
 		$showExpireTime = ($ils == 'Horizon');
 		$suspendRequiresReactivationDate = ($ils == 'Horizon' || $ils == 'CarlX' || $ils == 'Symphony');
 		$interface->assign('suspendRequiresReactivationDate', $suspendRequiresReactivationDate);

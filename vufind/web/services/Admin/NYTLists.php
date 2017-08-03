@@ -73,6 +73,6 @@ class NYTLists extends Admin_Admin {
 	}
 
 	function getAllowableRoles() {
-		return array('opacAdmin', 'libraryAdmin', 'libraryManger', 'contentEditor');
+		return array('opacAdmin', 'libraryAdmin', 'libraryManager', 'contentEditor');
 	}
 }

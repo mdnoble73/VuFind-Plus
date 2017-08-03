@@ -8,8 +8,8 @@
 # CONFIGURATION
 # PLEASE SET CONFLICTING PROCESSES AND PROHIBITED TIMES IN FUNCTION CALLS IN SCRIPT MAIN DO LOOP
 # this version emails script output as a round finishes
-EMAIL=root@mimas
-PIKASERVER=dione.test
+EMAIL=root@dione
+PIKASERVER=aacpl.test
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/extract_and_reindex_output.log"
 
 # Check for conflicting processes currently running
@@ -95,7 +95,29 @@ do
 	#echo "Starting new extract and index - `date`" > ${OUTPUT_FILE}
 	# reset the output file each round
 
-	#TODO export from symphony
+	#Fetch partial updates from FTP server
+	mount 10.1.2.6:/ftp/aacpl /mnt/ftp >> ${OUTPUT_FILE}
+	find /mnt/ftp/symphony-updates -maxdepth 1 -mmin -60 -name *.mrc| while FILES= read FILE; do
+		#Above find is for test only. Copy any partial exports from the last 30 minutes because of the moving out the partials is only done in production
+
+		#find /mnt/ftp/symphony-updates -maxdepth 1 -name *.mrc| while FILES= read FILE; do
+		#Above find is for production only. Copy any partial exports from the last 30 minutes
+		# Note: the space after the equals is important in  "while FILES= read FILE;"
+		if test "`find $FILE -mmin -1`"; then
+			echo "$FILE was modified less than 1 minute ago, waiting to copy "
+		else
+			cp --update --preserve=timestamps $FILE /data/vufind-plus/${PIKASERVER}/marc_updates/ >> ${OUTPUT_FILE}
+		fi
+	done
+	umount /mnt/ftp >> ${OUTPUT_FILE}
+
+	#Get holds files from Google Drive
+	cd /data/vufind-plus/aacpl.test/marc
+	wget -q https://drive.google.com/file/d/0B_xqNQMfUrAzanJUZkNXekgtU2s/view?usp=sharing -O "Pika - Hold - Periodicals Information.csv"
+	wget -q https://drive.google.com/file/d/0B_xqNQMfUrAzNGJrajJzQWs3ZGs/view?usp=sharing -O "Pika - Hold - Information.csv"
+
+    cd /usr/local/vufind-plus/vufind/symphony_export/
+	java -server -jar symphony_export.jar  ${PIKASERVER} >> ${OUTPUT_FILE}
 
 	#export from overdrive
 	#echo "Starting OverDrive Extract - `date`" >> ${OUTPUT_FILE}

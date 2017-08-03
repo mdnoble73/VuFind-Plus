@@ -45,15 +45,47 @@ while {![eof $fd]} {
         }
 }
 
+# MOVE OLD MRC TO SAV
+if {[file exists "$localPath/fullExport.mrc"] == 1} {
+	file rename -force "$localPath/fullExport.mrc" "$localPath/fullExport.sav"
+}
+
 set prompt {sftp> $}
-set size1 0
-set size2 1
 spawn sftp $FTPUser@$FTPHost:/carl.output/
 expect "$FTPUser@$FTPHost\'s password:*"
 send "$FTPPassword\r"
 expect $prompt
-send "cd /carl.output/utilities/marcout/pika\r"
+send "cd /carl.output/\r"
+set size1 0
+set size2 1
+while {$size1 != $size2} {
+	send "ls -l fullExport\r"
+	#result should look like
+	#ls: cannot access fullExport: No such file or directory
+	# OR
+	#-rw-r--r--    1 appmgr      dba     1004939812 Jun 22 22:10 fullExport\r\nsftp>
 
+	expect {
+		"not found" {
+			sleep 10
+			break
+		}
+		-re "\[^ ]+ +\[^ ]+ +\[^ ]+ +\[^ ]+ +(\[^ ]+) +(\[^ ]+) (\[0-9]+) .+fullExport\.gz" {
+			# Deterimine whether file is growing
+			set size2 $expect_out(1,string)
+			#puts "\n\nSIZE1: $size1\n\n"
+			#puts "\n\nSIZE2: $size2\n\n"
+			if {$size1 == $size2} {break}
+			set size1 $size2
+			set size2 0
+			sleep 10
+		}
+	}
+}
+expect $prompt
+send "cd /carl.output/utilities/marcout/pika\r"
+set size1 0
+set size2 1
 while {$size1 != $size2} {
 	send "ls -l fullExport.gz\r"
 	#result should look like
@@ -62,21 +94,11 @@ while {$size1 != $size2} {
 	#-rw-r--r--    1 appmgr      dba      304939812 Jun 22 22:10 fullExport.gz\r\nsftp>
 
 	expect {
-		"No such file or directory" {
+		"not found" {
 			sleep 10
 			continue
 		}
-
-		-re "\[^ ]+ +\[^ ]+ +\[^ ]+ +\[^ ]+ +\(\[^ ]+) +(\[^ ]+) (\[0-9]+) .+fullExport\.gz" {
-
-#			# Compare date NOW against file mtime date # COMMENTED OUT 20170623 - date check during full_update.sh
-#			#puts "MTIME: $expect_out(2,string) $expect_out(3,string)"
-#			#puts "NOW: [clock format [clock seconds] -format {%b %d}]"
-#			if {[clock format [clock seconds] -format {%b %d}] ne "$expect_out(2,string) $expect_out(3,string)"} {
-#				sleep 10
-#				continue
-#			}
-			
+		-re "\[^ ]+ +\[^ ]+ +\[^ ]+ +\[^ ]+ +(\[^ ]+) +(\[^ ]+) (\[0-9]+) .+fullExport\.gz" {
 			# Deterimine whether file is growing
 			set size2 $expect_out(1,string)
 			#puts "\n\nSIZE1: $size1\n\n"
