@@ -22,6 +22,7 @@ class UserList extends DB_DataObject
 	protected $userListSortOptions = array(
 		// URL_value => SQL code for Order BY clause
 		'dateAdded' => 'dateAdded ASC',
+		'recentlyAdded' => 'dateAdded DESC',
 		'custom' => 'weight ASC',  // this puts items with no set weight towards the end of the list
 		//								'custom' => 'weight IS NULL, weight ASC',  // this puts items with no set weight towards the end of the list
 	);
@@ -111,9 +112,11 @@ class UserList extends DB_DataObject
 //		return $listEntry->count();
 //	}
 
-	function insert(){
-		$this->created = time();
-		$this->dateUpdated = time();
+	function insert($createNow = true){
+		if ($createNow) {
+			$this->created     = time();
+			$this->dateUpdated = time();
+		}
 		return parent::insert();
 	}
 	function update(){
@@ -142,6 +145,9 @@ class UserList extends DB_DataObject
 		require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
 		$listEntry = new UserListEntry();
 		$listEntry->listId = $this->id;
+		if ($sort == 'author' || $sort == 'title') {
+
+		}
 		if ($sort) $listEntry->orderBy($sort);
 
 		// These conditions retrieve list items with a valid groupedworked or archive ID.
