@@ -113,7 +113,7 @@ do
 	umount /mnt/ftp >> ${OUTPUT_FILE}
 
 	#Get holds files from Google Drive
-	cd /data/vufind-plus/aacpl.test/marc
+	cd /data/vufind-plus/aacpl.productions/marc
 	wget -q https://drive.google.com/file/d/0B_xqNQMfUrAzanJUZkNXekgtU2s/view?usp=sharing -O "Pika - Hold - Periodicals Information.csv"
 	wget -q https://drive.google.com/file/d/0B_xqNQMfUrAzNGJrajJzQWs3ZGs/view?usp=sharing -O "Pika - Hold - Information.csv"
 
