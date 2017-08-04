@@ -8,7 +8,7 @@
 # CONFIGURATION
 # PLEASE SET CONFLICTING PROCESSES AND PROHIBITED TIMES IN FUNCTION CALLS IN SCRIPT MAIN DO LOOP
 # this version emails script output as a round finishes
-EMAIL=root@amalthea
+EMAIL=root@amalthea.marmot.org
 PIKASERVER=wcpl.production
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/extract_and_reindex_output.log"
 
