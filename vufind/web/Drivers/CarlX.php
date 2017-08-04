@@ -1280,16 +1280,59 @@ class CarlX extends SIP2Driver{
 
 	}
 
-	private function getBranchInformation($branchNumber) {
+	private function getBranchInformation($branchNumber = null, $branchCode = null) {
 //		TODO: Store in Memcache instead
+		/** @var Memcache $memCache */
+		global $memcache;
 
-		$request                    = new stdClass();
-		$request->BranchSearchType  = 'Branch Number';
-		$request->BranchSearchValue = $branchNumber;
-		$request->Modifiers         = '';
+		if (!empty($branchNumber)) {
+			$branchInfo = $memCache->get('carlx_branchNumbers');
+			if (!empty($branchInfo) and isset($branchInfo[$branchNumber])) {
+				return $branchInfo[$branchNumber];
+			} else {
+				$request                    = new stdClass();
+				$request->BranchSearchType  = 'Branch Number';
+				$request->BranchSearchValue = $branchNumber;
+				$request->Modifiers         = '';
+			}
+		} elseif (!empty($branchCode)) {
+			$branchInfo = $memCache->get('carlx_branchCodes');
+			if (!empty($branchInfo) and isset($branchInfo[$branchCode])) {
+				return $branchInfo[$branchCode];
+			} else {
+				$request                    = new stdClass();
+				$request->BranchSearchType  = 'Branch Code';
+				$request->BranchSearchValue = $branchCode;
+				$request->Modifiers         = '';
+			}
+		} else {
+			return false;
+		}
 
 		$result = $this->doSoapRequest('GetBranchInformation', $request, $this->catalogWsdl);
+		global $configArray;
 		if ($result && $result->BranchInfo) {
+			if (!empty($branchNumber)) {
+				$branchInfo = $memCache->get('carlx_branchNumbers');
+				if ($branchInfo) {
+					$branchInfo[$branchNumber] = $result->BranchInfo;
+				} else {
+					$branchInfo = array(
+						$branchNumber = $result->BranchInfo
+					);
+				}
+				$memCache->add('carlx_branchNumbers', $branchInfo , false, $configArray['Caching']['carlx_branchNumbers']);
+			} elseif (!empty($branchCode)) {
+				$branchInfo = $memCache->get('carlx_branchCodes');
+				if ($branchInfo) {
+					$branchInfo[$branchCode] = $result->BranchInfo;
+				} else {
+					$branchInfo = array(
+						$branchCode => $result->BranchInfo
+					);
+				}
+				$memCache->add('carlx_branchCodes', $branchInfo, false, $configArray['Caching']['carlx_branchCodes']);
+			}
 			return $result->BranchInfo; // convert to array instead?
 		}
 		return false;
@@ -1458,6 +1501,8 @@ class CarlX extends SIP2Driver{
 				}else{
 					$pickupBranch = strtoupper($pickupBranch);
 				}
+				$pickupBranchInfo = $this->getBranchInformation(null, $pickupBranch);
+				$pickupBranchNumber = $pickupBranchInfo->BranchNumber;
 
 				//place the hold
 				if ($type == 'cancel' || $type == 'recall'){
@@ -1488,7 +1533,7 @@ class CarlX extends SIP2Driver{
 					$expirationTime = time() + 2 * 365 * 24 * 60 * 60;
 				}
 
-				$in = $mySip->msgHold($mode, $expirationTime, '2', '', $holdId, '', $pickupBranch);
+				$in = $mySip->msgHold($mode, $expirationTime, '2', '', $holdId, '', $pickupBranchNumber);
 				$msg_result = $mySip->get_message($in);
 
 //				$title = $this->getRecordTitle($recordId); //TODO: method isn't defined
