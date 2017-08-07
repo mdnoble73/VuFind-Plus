@@ -62,7 +62,7 @@
 ###############################################
 # Copy Original Covers from Marmot FTP Server #
 ###############################################
-14 */2 * * * scp flatirons_pika_covers@ftp1.marmot.org:/ftp/flatirons_pika_covers/* /data/vufind-plus/flatirons.production/covers/original/
+14 */2 * * * scp flatirons_pika_covers@sftp.marmot.org:/ftp/flatirons_pika_covers/* /data/vufind-plus/flatirons.production/covers/original/
 
 ################
 # Pika Cleanup #

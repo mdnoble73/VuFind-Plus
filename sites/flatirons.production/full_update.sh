@@ -101,22 +101,22 @@ cd /data/vufind-plus/; curl --remote-name --remote-time --silent --show-error --
 cd /data/vufind-plus/accelerated_reader; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/accelerated_reader/RLI-ARDataTAB.txt https://cassini.marmot.org/RLI-ARDataTAB.txt >> ${OUTPUT_FILE}
 
 #Zinio Marc Updates
-scp flatirons_sideload@ftp1.marmot.org:/ftp/flatirons_sideload/zinio/shared/*.mrc /data/vufind-plus/zinio/boulderBroomfield/marc/ >> ${OUTPUT_FILE}
+scp flatirons_sideload@sftp.marmot.org:/ftp/flatirons_sideload/zinio/shared/*.mrc /data/vufind-plus/zinio/boulderBroomfield/marc/ >> ${OUTPUT_FILE}
 
 #Ebrary Marc Updates
-scp flatirons_sideload@ftp1.marmot.org:/ftp/flatirons_sideload/ebrary/boulder/*.mrc /data/vufind-plus/ebrary/bpl/marc/merge >> ${OUTPUT_FILE}
-scp flatirons_sideload@ftp1.marmot.org:/ftp/flatirons_sideload/ebrary/boulder/deletes.*.mrc /data/vufind-plus/ebrary/bpl/deletes/marc/ >> ${OUTPUT_FILE}
+scp flatirons_sideload@sftp.marmot.org:/ftp/flatirons_sideload/ebrary/boulder/*.mrc /data/vufind-plus/ebrary/bpl/marc/merge >> ${OUTPUT_FILE}
+scp flatirons_sideload@sftp.marmot.org:/ftp/flatirons_sideload/ebrary/boulder/deletes.*.mrc /data/vufind-plus/ebrary/bpl/deletes/marc/ >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh ebrary/bpl >> ${OUTPUT_FILE}
 
-scp flatirons_sideload@ftp1.marmot.org:/ftp/flatirons_sideload/ebrary/broomfield/*.mrc /data/vufind-plus/ebrary/mde/marc/ >> ${OUTPUT_FILE}
+scp flatirons_sideload@sftp.marmot.org:/ftp/flatirons_sideload/ebrary/broomfield/*.mrc /data/vufind-plus/ebrary/mde/marc/ >> ${OUTPUT_FILE}
 
 # Possible curl version; if I can figure out how to implement the --time-condition check on a range of files
 # (Can't do *.mrc; have to specify a range of files that curl will check for each one in the range)
-#curl --verbose --remote-name --remote-time --compressed --pubkey ~/.ssh/id_rsa.pub --key ~/.ssh/id_rsa sftp://flatirons_sideload@ftp1.marmot.org:22//ftp/flatirons_sideload/ebrary/boulder/Zinio_boulderco_1619_Magazine_[1-12]_[1-31]_[2016-2017].mrc
+#curl --verbose --remote-name --remote-time --compressed --pubkey ~/.ssh/id_rsa.pub --key ~/.ssh/id_rsa sftp://flatirons_sideload@sftp.marmot.org:22//ftp/flatirons_sideload/ebrary/boulder/Zinio_boulderco_1619_Magazine_[1-12]_[1-31]_[2016-2017].mrc
 
 #OneClick Digit Marc Updates
-scp flatirons_sideload@ftp1.marmot.org:/ftp/flatirons_sideload/oneclickdigital/longmont/*.mrc /data/vufind-plus/oneclickdigital/longmont/marc/ >> ${OUTPUT_FILE}
-scp flatirons_sideload@ftp1.marmot.org:/ftp/flatirons_sideload/oneclickdigital/loveland/*.mrc /data/vufind-plus/oneclickdigital/loveland/marc/ >> ${OUTPUT_FILE}
+scp flatirons_sideload@sftp.marmot.org:/ftp/flatirons_sideload/oneclickdigital/longmont/*.mrc /data/vufind-plus/oneclickdigital/longmont/marc/ >> ${OUTPUT_FILE}
+scp flatirons_sideload@sftp.marmot.org:/ftp/flatirons_sideload/oneclickdigital/loveland/*.mrc /data/vufind-plus/oneclickdigital/loveland/marc/ >> ${OUTPUT_FILE}
 
 #Colorado State Goverment Documents Updates
 curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/colorado_gov_docs/marc/fullexport.mrc http://cassini.marmot.org/colorado_state_docs.mrc
@@ -171,7 +171,7 @@ then
 		cat /dev/null >| /data/vufind-plus/${PIKASERVER}/marc/changed_items_to_process.csv
 
 		#Send Export to Marmot for the test server
-		scp -q /data/vufind-plus/flatirons.production/marc/pika1.mrc flatirons_marc_export@ftp1.marmot.org:~/ >> ${OUTPUT_FILE}
+		scp -q /data/vufind-plus/flatirons.production/marc/pika1.mrc flatirons_marc_export@sftp.marmot.org:~/ >> ${OUTPUT_FILE}
 #		scp -q /data/vufind-plus/flatirons.production/marc/pika1.mrc flatirons_marc_export@sftp.marmot.org:~/ >> ${OUTPUT_FILE}
 
 		# Delete any exports over 7 days
