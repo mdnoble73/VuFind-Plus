@@ -130,7 +130,8 @@ public class SymphonyExportMain {
 			}else{
 				writeHolds = true;
 				try {
-					CSVReader holdsReader = new CSVReader(new FileReader(holdFile));
+
+					CSVReader holdsReader = new CSVReader(new InputStreamReader(new FileInputStream(holdFile), "UTF-16"));
 					String[] holdsData = holdsReader.readNext();
 					while (holdsData != null){
 						if (holdsData.length == 3){
@@ -166,7 +167,7 @@ public class SymphonyExportMain {
 			}else {
 				writeHolds = true;
 				try {
-					CSVReader holdsReader = new CSVReader(new FileReader(periodicalsHoldFile));
+					CSVReader holdsReader = new CSVReader(new InputStreamReader(new FileInputStream(periodicalsHoldFile), "UTF-16"));
 					String[] holdsData = holdsReader.readNext();
 					while (holdsData != null){
 						if (holdsData.length == 3){
