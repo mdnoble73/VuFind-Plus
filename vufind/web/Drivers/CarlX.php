@@ -1283,7 +1283,7 @@ class CarlX extends SIP2Driver{
 	private function getBranchInformation($branchNumber = null, $branchCode = null) {
 //		TODO: Store in Memcache instead
 		/** @var Memcache $memCache */
-		global $memcache;
+		global $memCache;
 
 		if (!empty($branchNumber)) {
 			$branchInfo = $memCache->get('carlx_branchNumbers');
