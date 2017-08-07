@@ -114,8 +114,8 @@ do
 
 	#Get holds files from Google Drive
 	cd /data/vufind-plus/aacpl.production/marc
-	wget -q "https://drive.google.com/uc?export=download&id=0B_xqNQMfUrAzanJUZkNXekgtU2s" -O "Pika - Hold - Periodicals Information.csv"
-	wget -q "https://drive.google.com/uc?export=download&id=0B_xqNQMfUrAzNGJrajJzQWs3ZGs" -O "Pika - Hold Information.csv"
+	wget -q "https://drive.google.com/uc?export=download&id=0B_xqNQMfUrAzanJUZkNXekgtU2s" -O "Pika_Hold_Periodicals.csv"
+	wget -q "https://drive.google.com/uc?export=download&id=0B_xqNQMfUrAzNGJrajJzQWs3ZGs" -O "Pika_Holds.csv"
 
 	#merge the changes with the full extract
 	cd /usr/local/vufind-plus/vufind/symphony_export/

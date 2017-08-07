@@ -121,7 +121,7 @@ public class SymphonyExportMain {
 	private static void processNewHoldsFile(long lastExportTime, Connection pikaConn) {
 		HashMap<String, Integer> holdsByBib = new HashMap<>();
 		boolean writeHolds = false;
-		File holdFile = new File(indexingProfile.marcPath + "/Pika - Hold Information.csv");
+		File holdFile = new File(indexingProfile.marcPath + "/Pika_Holds.csv");
 		if (holdFile.exists()){
 			long now = new Date().getTime();
 			long holdFileLastModified = holdFile.lastModified();
@@ -153,11 +153,11 @@ public class SymphonyExportMain {
 				logger.info("Read " + holdsByBib.size() + " bibs with holds");
 			}
 		}else{
-			logger.warn("No holds file found");
+			logger.warn("No holds file found at " + indexingProfile.marcPath + "/Pika_Holds.csv");
 			hadErrors = true;
 		}
 
-		File periodicalsHoldFile = new File(indexingProfile.marcPath + "/Pika - Hold - Periodicals Information.csv");
+		File periodicalsHoldFile = new File(indexingProfile.marcPath + "/Pika_Hold_Periodicals.csv");
 		if (periodicalsHoldFile.exists()){
 			long now = new Date().getTime();
 			long holdFileLastModified = periodicalsHoldFile.lastModified();
@@ -189,7 +189,7 @@ public class SymphonyExportMain {
 				}
 			}
 		}else{
-			logger.warn("No periodicals holds file found");
+			logger.warn("No periodicals holds file found at " + indexingProfile.marcPath + "/Pika_Hold_Periodicals.csv" );
 			hadErrors = true;
 		}
 
