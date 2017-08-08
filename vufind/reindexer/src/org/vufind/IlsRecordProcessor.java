@@ -42,6 +42,7 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	char collectionSubfield;
 	private char dueDateSubfield;
 	String dueDateFormat;
+	SimpleDateFormat dueDateFormatter;
 	private char lastCheckInSubfield;
 	private String lastCheckInFormat;
 	private char dateCreatedSubfield;
@@ -143,6 +144,9 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 			dueDateSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "dueDate");
 			dueDateFormat = indexingProfileRS.getString("dueDateFormat");
+			if (dueDateFormat.length() > 0) {
+				dueDateFormatter = new SimpleDateFormat(dueDateFormat);
+			}
 
 			ytdCheckoutSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "yearToDateCheckouts");
 			lastYearCheckoutSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "lastYearCheckouts");
@@ -727,6 +731,7 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		}
 		ItemInfo itemInfo = new ItemInfo();
 		//Load base information from the Marc Record
+		itemInfo.setItemIdentifier(getItemSubfieldData(itemRecordNumberSubfieldIndicator, itemField));
 
 		String itemStatus = getItemStatus(itemField, recordInfo.getRecordIdentifier());
 
@@ -749,8 +754,7 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		itemInfo.setShelfLocation(getShelfLocationForItem(itemInfo, itemField, recordInfo.getRecordIdentifier()));
 
 		loadDateAdded(recordInfo.getRecordIdentifier(), itemField, itemInfo);
-		String dueDateStr = getItemSubfieldData(dueDateSubfield, itemField);
-		itemInfo.setDueDate(dueDateStr);
+		getDueDate(itemField, itemInfo);
 
 		itemInfo.setITypeCode(getItemSubfieldData(iTypeSubfield, itemField));
 		itemInfo.setIType(translateValue("itype", getItemSubfieldData(iTypeSubfield, itemField), recordInfo.getRecordIdentifier()));
@@ -759,7 +763,6 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		groupedWork.addPopularity(itemPopularity);
 
 		loadItemCallNumber(record, itemField, itemInfo);
-		itemInfo.setItemIdentifier(getItemSubfieldData(itemRecordNumberSubfieldIndicator, itemField));
 
 		itemInfo.setCollection(translateValue("collection", getItemSubfieldData(collectionSubfield, itemField), recordInfo.getRecordIdentifier()));
 
@@ -806,6 +809,11 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 		recordInfo.addItem(itemInfo);
 		return itemInfo;
+	}
+
+	protected void getDueDate(DataField itemField, ItemInfo itemInfo) {
+		String dueDateStr = getItemSubfieldData(dueDateSubfield, itemField);
+		itemInfo.setDueDate(dueDateStr);
 	}
 
 	protected void setShelfLocationCode(DataField itemField, ItemInfo itemInfo, String recordIdentifier) {

@@ -109,6 +109,7 @@ public class SierraExportMain{
 				orderStatusesToExport = "o|1";
 			}
 			exportActiveOrders(exportPath, conn);
+			exportDueDates(exportPath, conn);
 
 			exportHolds(conn, vufindConn);
 
@@ -596,6 +597,42 @@ public class SierraExportMain{
 		}catch (Exception e){
 			logger.error("Error updating marc record for bib " + curBibId, e);
 		}
+	}
+
+	private static void exportDueDates(String exportPath, Connection conn) throws SQLException, IOException {
+		logger.info("Starting export of due dates");
+		String dueDatesSQL = "select record_num, due_gmt from sierra_view.checkout inner join sierra_view.item_view on item_record_id = item_view.id where due_gmt is not null";
+		PreparedStatement getDueDatesStmt = conn.prepareStatement(dueDatesSQL, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+		ResultSet dueDatesRS = null;
+		boolean loadError = false;
+		try{
+			dueDatesRS = getDueDatesStmt.executeQuery();
+		} catch (SQLException e1){
+			logger.error("Error loading active orders", e1);
+			loadError = true;
+		}
+		if (!loadError){
+			File dueDateFile = new File(exportPath + "/due_dates.csv");
+			CSVWriter dueDateWriter = new CSVWriter(new FileWriter(dueDateFile));
+			while (dueDatesRS.next()){
+				try {
+					String recordNum = dueDatesRS.getString("record_num");
+					if (recordNum != null){
+						String dueDateRaw = dueDatesRS.getString("due_gmt");
+						String itemId = ".i" + recordNum + getCheckDigit(recordNum);
+						Date dueDate = dueDatesRS.getDate("due_gmt");
+						dueDateWriter.writeNext(new String[]{itemId, Long.toString(dueDate.getTime()), dueDateRaw});
+					}else{
+						logger.warn("No record number found while exporting due dates");
+					}
+				}catch (Exception e){
+					logger.error("Error writing due dates", e);
+				}
+			}
+			dueDateWriter.close();
+			dueDatesRS.close();
+		}
+		logger.info("Finished exporting due dates");
 	}
 
 	private static void exportActiveOrders(String exportPath, Connection conn) throws SQLException, IOException {
