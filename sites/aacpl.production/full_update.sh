@@ -157,7 +157,7 @@ then
 fi
 
 #Extract from ILS
-mount 10.1.2.6:/ftp/aacpl /mnt/ftp
+mount 10.1.2.7:/ftp/aacpl /mnt/ftp
 
 # Copy Over Holds data
 cp --update --preserve=timestamps /mnt/ftp/symphony-holds/*.csv /data/vufind-plus/${PIKASERVER}/
