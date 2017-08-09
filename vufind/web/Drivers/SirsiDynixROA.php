@@ -1077,7 +1077,8 @@ abstract class SirsiDynixROA extends HorizonAPI
 	{
 
 		//Get the session token for the user
-		$sessionToken = $this->getSessionToken($patron);
+//		$sessionToken = $this->getSessionToken($patron);
+		$sessionToken = $this->getStaffSessionToken();
 		if (!$sessionToken) {
 			return array(
 				'success' => false,
@@ -1228,7 +1229,7 @@ abstract class SirsiDynixROA extends HorizonAPI
 
 	function changeHoldPickupLocation($patron, $recordId, $holdId, $newPickupLocation)
 	{
-		$sessionToken = $this->getSessionToken($patron);
+		$sessionToken = $this->getStaffSessionToken();
 		if (!$sessionToken) {
 			return array(
 				'success' => false,
@@ -1272,7 +1273,7 @@ abstract class SirsiDynixROA extends HorizonAPI
 
 	function freezeHold($patron, $recordId, $holdToFreezeId, $dateToReactivate)
 	{
-		$sessionToken = $this->getSessionToken($patron);
+		$sessionToken = $this->getStaffSessionToken();
 		if (!$sessionToken) {
 			return array(
 				'success' => false,
@@ -1321,7 +1322,7 @@ abstract class SirsiDynixROA extends HorizonAPI
 
 	function thawHold($patron, $recordId, $holdToThawId)
 	{
-		$sessionToken = $this->getSessionToken($patron);
+		$sessionToken = $this->getStaffSessionToken();
 		if (!$sessionToken) {
 			return array(
 				'success' => false,
@@ -1372,7 +1373,7 @@ abstract class SirsiDynixROA extends HorizonAPI
 	 */
 	public function renewItem($patron, $recordId, $itemId, $itemIndex)
 	{
-		$sessionToken = $this->getSessionToken($patron);
+		$sessionToken = $this->getStaffSessionToken();
 		if (!$sessionToken) {
 			return array(
 				'success' => false,
