@@ -87,8 +87,8 @@
 # Data Extract from other systems #
 ###################################
 # Library supplied covers
-*/10 * * * * /root/cron/copyCovers.sh
-1-51/10 * * * * /root/cron/copyAspencatCovers.sh
+*/10 * * * * /usr/local/vufind-plus/sites/opac.marmot.org/copyCovers.sh
+1-51/10 * * * * /usr/local/vufind-plus/sites/aspencat.production/copyCovers.sh
 # 10 minute gap was missed for 51-01. plb 6-9-2015
 
 # Check Apache Solr process and website that it has not stalled.

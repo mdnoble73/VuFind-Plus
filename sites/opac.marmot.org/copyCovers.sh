@@ -3,6 +3,9 @@
 # copyCovers.sh
 #
 # author: Mark Noble
+#   date:
+#
+# script is run by cron at 10 minutes after every hour
 #
 #-------------------------------------------------------------------------
 # 19 Mar 14 - v0.0.2 - sml - updated for maintainablility
@@ -12,26 +15,22 @@
 # 24 Apr 14 - v0.0.6 - mdn - update to use new data directory
 #                            add optional all parameter to force copy of
 #                            all covers
-# 15 Sep 14 - v0.0.7 - plb - re-adjusted to 10 minute intervals
-# 08 Nov 16          - plb - Refactored for easy plug-and-play on test servers
-
-##-------------------------------------------------------------------------
+# 15 Sep 14 - v0.0.7 - plb - interval changes to correspond to current crontab
+#                            settings
+#-------------------------------------------------------------------------
 # declare variables
 #-------------------------------------------------------------------------
-
-FTPACCOUNT="aspencat/covers"
-PIKASITENAME="aspencat.production"
-
 REMOTE="10.1.2.7:/ftp"
-LOCAL="/mnt/ftp"
-SRC="/mnt/ftp/${FTPACCOUNT}"
-DEST="/data/vufind-plus/${PIKASITENAME}/covers/original"
+LOCAL="/mnt/ftp_covers"
+SRC="/mnt/ftp_covers/vufind_covers"
+#DEST="/data/vufind-plus/opac.marmot.org/covers/original"
+DEST="/data2/pika/covers/original"
 LOG="logger -t copyCovers "
 
 #-------------------------------------------------------------------------
 # main loop
 #-------------------------------------------------------------------------
-$LOG "~> starting copyCovers.sh ${PIKASITENAME}"
+$LOG "~> starting copyCovers.sh"
 
 #------------------------------------------------
 # mount external drive
@@ -48,7 +47,7 @@ fi
 #------------------------------------------------
 # copy new files from SRC to DEST
 #------------------------------------------------
-
+# reset intervals to 11 minutes to reflect crontab intervals. pascal 9-15-2014
 if [ -z "$1" ]
 then
   #Grab Covers newer than 11 minutes
@@ -93,6 +92,6 @@ if [ $EXITCODE -ne 0 ];then
   exit 3
 fi
 
-$LOG "~> finished copyCovers.sh ${PIKASITENAME}"
+$LOG "~> finished copyCovers.sh"
 #-------------------------------------------------------------------------
 #-- eof --
