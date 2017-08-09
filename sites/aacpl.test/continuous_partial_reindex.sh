@@ -96,7 +96,7 @@ do
 	# reset the output file each round
 
 	#Fetch partial updates from FTP server
-	mount 10.1.2.6:/ftp/aacpl /mnt/ftp >> ${OUTPUT_FILE}
+	mount 10.1.2.7:/ftp/aacpl /mnt/ftp >> ${OUTPUT_FILE}
 	find /mnt/ftp/symphony-updates -maxdepth 1 -mmin -60 -name *.mrc| while FILES= read FILE; do
 		#Above find is for test only. Copy any partial exports from the last 30 minutes because of the moving out the partials is only done in production
 

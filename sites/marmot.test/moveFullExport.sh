@@ -15,12 +15,7 @@ else
 	LOG="logger -t $0"
 	# tag logging with script name and command line options
 
-	if [[ $# == 3 && $3 == "-n" ]]; then
-		REMOTE="10.1.2.7:/ftp"
-	else
-		REMOTE="10.1.2.6:/ftp"
-	fi
-
+REMOTE="10.1.2.7:/ftp"
 	LOCAL="/mnt/ftp"
 
 	$LOG "~~ mount $REMOTE $LOCAL"
