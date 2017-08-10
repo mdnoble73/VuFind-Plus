@@ -25,6 +25,7 @@ import java.util.regex.Pattern;
 abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	protected boolean fullReindex;
 	private String individualMarcPath;
+	String marcPath;
 	String profileType;
 
 	private String recordNumberTag;
@@ -41,7 +42,6 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	char shelvingLocationSubfield;
 	char collectionSubfield;
 	private char dueDateSubfield;
-	String dueDateFormat;
 	SimpleDateFormat dueDateFormatter;
 	private char lastCheckInSubfield;
 	private String lastCheckInFormat;
@@ -94,6 +94,7 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		try {
 			profileType = indexingProfileRS.getString("name");
 			individualMarcPath = indexingProfileRS.getString("individualMarcPath");
+			marcPath = indexingProfileRS.getString("marcPath");
 			numCharsToCreateFolderFrom         = indexingProfileRS.getInt("numCharsToCreateFolderFrom");
 			createFolderFromLeadingCharacters  = indexingProfileRS.getBoolean("createFolderFromLeadingCharacters");
 
@@ -143,7 +144,7 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			}
 
 			dueDateSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "dueDate");
-			dueDateFormat = indexingProfileRS.getString("dueDateFormat");
+			String dueDateFormat = indexingProfileRS.getString("dueDateFormat");
 			if (dueDateFormat.length() > 0) {
 				dueDateFormatter = new SimpleDateFormat(dueDateFormat);
 			}

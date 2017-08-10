@@ -8,6 +8,7 @@ import org.ini4j.Profile;
 import org.marc4j.MarcReader;
 import org.marc4j.MarcStreamReader;
 import org.marc4j.MarcStreamWriter;
+import org.marc4j.MarcWriter;
 import org.marc4j.marc.*;
 
 import java.io.*;
@@ -76,6 +77,9 @@ public class SymphonyExportMain {
 		//Check for a new holds file
 		processNewHoldsFile(lastExportTime, pikaConn);
 
+		//Check for new orders file(lastExportTime, pikaConn);
+		processOrdersFile(lastExportTime, pikaConn);
+
 		//update the last export start time
 		try {
 			// Wrap Up
@@ -107,6 +111,55 @@ public class SymphonyExportMain {
 			}
 		} catch (Exception e) {
 			logger.error("MySQL Error: " + e.toString());
+		}
+	}
+
+	private static void processOrdersFile(long lastExportTime, Connection pikaConn) {
+		File ordersFile = new File(indexingProfile.marcPath + "/Pika_orders.csv");
+		File ordersFileMarc = new File(indexingProfile.marcPath + "/Pika_orders.mrc");
+		if (ordersFile.exists()){
+			long now = new Date().getTime();
+			long orderFileLastModified = ordersFile.lastModified();
+			if (now - orderFileLastModified > 2 * 24 * 60 * 60 * 1000){
+				logger.warn("Orders File was last written more than 2 days ago");
+			}else if (orderFileLastModified > lastExportTime){
+				try{
+					MarcWriter writer = new MarcStreamWriter(new FileOutputStream(ordersFileMarc, false));
+					CSVReader ordersReader = new CSVReader(new InputStreamReader(new FileInputStream(ordersFile)));
+					String[] ordersData = ordersReader.readNext();
+					while (ordersData != null){
+						//Check to see if the bib already exists
+						if (ordersData.length >= 7){
+							String recordNumber = cleanIniValue(ordersData[0]);
+							if (recordNumber.matches("^\\d+$")) {
+								File marcRecordFile = indexingProfile.getFileForIlsRecord("a" + recordNumber);
+								if (!marcRecordFile.exists()){
+									//The marc record does not exist, create a temporary bib in the orders file which will get processed by record grouping
+									MarcFactory factory = MarcFactory.newInstance();
+									Record marcRecord = factory.newRecord();
+									marcRecord.addVariableField(factory.newControlField("001", "a" + recordNumber));
+									marcRecord.addVariableField(factory.newDataField("100", '0', '0', "a", cleanIniValue(ordersData[2])));
+									marcRecord.addVariableField(factory.newDataField("245", '0', '0', "a", cleanIniValue(ordersData[3])));
+									writer.write(marcRecord);
+								}else{
+									logger.info("Marc record already exists for a" + recordNumber);
+								}
+							}
+						}
+						ordersData = ordersReader.readNext();
+					}
+					writer.close();
+					logger.info("Finished writing Orders to MARC record");
+				}catch (Exception e){
+					logger.error("Error reading orders file ", e);
+				}
+			}else{
+				logger.info("Orders file has not changed since the last export");
+			}
+
+
+		}else{
+			logger.warn("Could not find orders file at " + ordersFile.getAbsolutePath());
 		}
 	}
 
