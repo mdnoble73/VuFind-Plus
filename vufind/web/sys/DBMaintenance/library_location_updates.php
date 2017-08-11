@@ -1594,8 +1594,8 @@ function getLibraryLocationUpdates(){
 			),
 
 		'ill_link' => array(
-			'title' => 'Add Inter Library Loan Links at the bottom of search results and no results pages',
-			'description' => 'Add Inter Library Loan Links at the bottom of search results and no results pages',
+			'title' => 'Add Interlibrary Loan Links at the bottom of search results and no results pages',
+			'description' => 'Add Interlibrary Loan Links at the bottom of search results and no results pages',
 			'continueOnError' => true,
 			'sql' => array(
 				"ALTER TABLE `library` ADD COLUMN `interLibraryLoanName` VARCHAR(30);",
