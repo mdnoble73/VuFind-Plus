@@ -96,7 +96,7 @@ cd /usr/local/vufind-plus/vufind/cron;./GetHooplaFromMarmot.sh >> ${OUTPUT_FILE}
 
 
 # Colorado State Gov Docs Marc Updates
-/usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh cologovdocs colorado_gov_docs >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh marmot/coloGovDocs colorado_gov_docs >> ${OUTPUT_FILE}
 
 # Lynda.com Marc Updates (recieved on marmot ftp server)
 /usr/local/vufind-plus/sites/opac.marmot.org/moveSideloadAdds.sh lynda.com/evld lynda/evld/merge >> ${OUTPUT_FILE}
