@@ -192,7 +192,7 @@ then
 		umount /mnt/ftp
 	fi
 else
-	echo "Did not find a Sierra export file from the last 24 hours, Full Regrouping & Full Reindexing skipped." >> ${OUTPUT_FILE}
+	echo "Did not find a Symphony export file from the last 24 hours, Full Regrouping & Full Reindexing skipped." >> ${OUTPUT_FILE}
 	umount /mnt/ftp
 fi
 
