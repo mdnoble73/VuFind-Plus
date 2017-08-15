@@ -18,7 +18,7 @@ VuFind.Record = (function(){
 					source = 'ils';
 				}
 
-				var isPrimaryEditionCheckedOout = $('#relatedRecordPopup__Book tbody>tr:first-child .related-manifestation-shelf-status').hasClass('checked_out');
+				var isPrimaryEditionCheckedOout = $('#relatedRecordPopup__Book>table>tbody>tr').length > 1 && $('#relatedRecordPopup__Book>table>tbody>tr:first-child .related-manifestation-shelf-status').hasClass('checked_out');
 				if (promptForAlternateEdition && isPrimaryEditionCheckedOout) {
 					VuFind.showMessageWithButtons('Place Hold on Alternate Edition?',
 							'<div class="alert alert-info">This edition is currently checked out. Are you interested in requesting a different edition that may be available faster?</div>',
