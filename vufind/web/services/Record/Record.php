@@ -106,7 +106,7 @@ abstract class Record_Record extends Action
 			$interface->assign('classicId', $this->id);
 			$interface->assign('classicUrl', $configArray['Catalog']['url'] . '/cgi-bin/koha/opac-detail.pl?biblionumber=' . $this->id);
 			$interface->assign('staffClientUrl', $configArray['Catalog']['staffClientUrl'] . '/cgi-bin/koha/catalogue/detail.pl?biblionumber=' . $this->id);
-		}elseif ($configArray['Catalog']['ils'] == 'CARLX'){
+		}elseif ($configArray['Catalog']['ils'] == 'CarlX'){
 			$shortId = str_replace('CARL', '', $this->id);
 			$shortId = ltrim($shortId, '0');
 			$interface->assign('staffClientUrl', $configArray['Catalog']['staffClientUrl'] . '/Items/' . $shortId);
