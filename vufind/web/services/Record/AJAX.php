@@ -33,7 +33,7 @@ class Record_AJAX extends Action {
 		$timer->logTime("Starting method $method");
 
 		// Methods intend to return JSON data
-		if (in_array($method, array('getPlaceHoldForm', 'getBookMaterialForm', 'placeHold', 'reloadCover', 'bookMaterial'))){
+		if (in_array($method, array('getPlaceHoldForm', 'getPlaceHoldEditionsForm', 'getBookMaterialForm', 'placeHold', 'reloadCover', 'bookMaterial'))){
 			header('Content-type: text/plain');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
@@ -205,7 +205,7 @@ class Record_AJAX extends Action {
 				);
 			}else{
 				$results = array(
-					'title' => 'Place Hold on ' . $title,
+					'title' => empty($title) ? 'Place Hold' : 'Place Hold on ' . $title,
 					'modalBody' => $interface->fetch("Record/hold-popup.tpl"),
 					'modalButtons' => "<input type='submit' name='submit' id='requestTitleButton' value='Submit Hold Request' class='btn btn-primary' onclick='return VuFind.Record.submitHoldForm();'>"
 				);
@@ -220,6 +220,45 @@ class Record_AJAX extends Action {
 		}
 		return $results;
 	}
+
+	function getPlaceHoldEditionsForm() {
+		global $interface;
+		global $user;
+		if ($user) {
+			$id           = $_REQUEST['id'];
+			$recordSource = $_REQUEST['recordSource'];
+			$interface->assign('recordSource', $recordSource);
+			if (isset($_REQUEST['volume'])) {
+				$interface->assign('volume', $_REQUEST['volume']);
+			}
+
+			require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
+			$marcRecord = new MarcRecord($id);
+			$groupedWork = $marcRecord->getGroupedWorkDriver();
+			$relatedManifestations = $groupedWork->getRelatedManifestations();
+			//TODO: trim Manifestations
+			$relatedManifestations = $relatedManifestations['Book'];
+			foreach ($relatedManifestations['relatedRecords'] as &$relatedRecord) {
+				foreach ($relatedRecord['actions'] as &$action) {
+					//TODO preg_replace
+					$action['onclick'] = str_replace("');", "', false);", $action['onclick']);
+				}
+			}
+			$interface->assign('relatedManifestation', $relatedManifestations);
+			$results = array(
+				'title' => 'Place Hold on Alternate Edition',
+				'modalBody' => $interface->fetch('Record/hold-select-edition-popup.tpl'),
+				'modalButtons' => ""
+			);
+		}else{
+			$results = array(
+				'title' => 'Please login',
+				'modalBody' => "You must be logged in.  Please close this dialog and login before placing your hold.",
+				'modalButtons' => ""
+			);
+		}
+		return $results;
+		}
 
 	function getBookMaterialForm($errorMessage = null){
 		global $interface;
