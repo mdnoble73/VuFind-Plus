@@ -236,25 +236,19 @@ class Record_AJAX extends Action {
 			$marcRecord = new MarcRecord($id);
 			$groupedWork = $marcRecord->getGroupedWorkDriver();
 			$relatedManifestations = $groupedWork->getRelatedManifestations();
-			//TODO: trim Manifestations
-			$relatedManifestations = $relatedManifestations['Book'];
-			foreach ($relatedManifestations['relatedRecords'] as &$relatedRecord) {
-				foreach ($relatedRecord['actions'] as &$action) {
-					//TODO preg_replace
-					$action['onclick'] = str_replace("');", "', false);", $action['onclick']);
-				}
-			}
+			$format = $marcRecord->getFormat();
+			$relatedManifestations = $relatedManifestations[$format[0]];
 			$interface->assign('relatedManifestation', $relatedManifestations);
 			$results = array(
-				'title' => 'Place Hold on Alternate Edition',
+				'title' => 'Place Hold on Alternate Edition?',
 				'modalBody' => $interface->fetch('Record/hold-select-edition-popup.tpl'),
-				'modalButtons' => ""
+				'modalButtons' => '<a href="#" class="btn btn-primary" onclick="return VuFind.Record.showPlaceHold(\'Record\', \'' . $id . '\', false);">No, place a hold on this edition</a>'
 			);
 		}else{
 			$results = array(
 				'title' => 'Please login',
 				'modalBody' => "You must be logged in.  Please close this dialog and login before placing your hold.",
-				'modalButtons' => ""
+				'modalButtons' => ''
 			);
 		}
 		return $results;
