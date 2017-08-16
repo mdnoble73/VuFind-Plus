@@ -36,10 +36,14 @@ class AACPLRecordProcessor extends IlsRecordProcessor {
 				String[] ordersData = ordersReader.readNext();
 				while (ordersData != null){
 					//Check to see if the bib already exists
-					if (ordersData.length >= 7){
-						String recordNumber = Util.cleanIniValue(ordersData[0]);
+					if (ordersData.length >= 4){
+						String recordNumber = Util.cleanIniValue(ordersData[3]);
+						recordNumber = recordNumber.replace("XX(", "");
+						recordNumber = recordNumber.replace(".1)", "");
 						if (recordNumber.matches("^\\d+$")) {
-							String shelfLocation = Util.cleanIniValue(ordersData[1]);
+							//TODO see if robert can provide the shelf location again
+							//String shelfLocation = Util.cleanIniValue(ordersData[1]);
+							String shelfLocation = "A-FIC";
 							bibsWithOrders.put("a" + recordNumber, shelfLocation);
 						}
 					}
@@ -184,28 +188,34 @@ class AACPLRecordProcessor extends IlsRecordProcessor {
 
 	protected void loadOnOrderItems(GroupedWorkSolr groupedWork, RecordInfo recordInfo, Record record, boolean hasTangibleItems){
 		if (bibsWithOrders.containsKey(recordInfo.getRecordIdentifier())){
-			ItemInfo itemInfo = new ItemInfo();
-			itemInfo.setLocationCode("aacpl");
-			itemInfo.setItemIdentifier(recordInfo.getRecordIdentifier());
-			itemInfo.setNumCopies(1);
-			itemInfo.setIsEContent(false);
-			itemInfo.setIsOrderItem(true);
-			itemInfo.setCallNumber("ON ORDER");
-			itemInfo.setSortableCallNumber("ON ORDER");
-			itemInfo.setDetailedStatus("On Order");
-			Date tomorrow = new Date();
-			tomorrow.setTime(tomorrow.getTime() + 1000 * 60 * 60 * 24);
-			itemInfo.setDateAdded(tomorrow);
-			//Format and Format Category should be set at the record level, so we don't need to set them here.
+			if (recordInfo.getNumPrintCopies() == 0 && recordInfo.getNumCopiesOnOrder() == 0) {
+				ItemInfo itemInfo = new ItemInfo();
+				itemInfo.setLocationCode("aacpl");
+				itemInfo.setItemIdentifier(recordInfo.getRecordIdentifier());
+				itemInfo.setNumCopies(1);
+				itemInfo.setIsEContent(false);
+				itemInfo.setIsOrderItem(true);
+				itemInfo.setCallNumber("ON ORDER");
+				itemInfo.setSortableCallNumber("ON ORDER");
+				itemInfo.setDetailedStatus("On Order");
+				Date tomorrow = new Date();
+				tomorrow.setTime(tomorrow.getTime() + 1000 * 60 * 60 * 24);
+				itemInfo.setDateAdded(tomorrow);
+				//Format and Format Category should be set at the record level, so we don't need to set them here.
 
-			String formatByShelfLocation = translateValue("shelf_location_to_format", bibsWithOrders.get(recordInfo.getRecordIdentifier()), recordInfo.getRecordIdentifier());
-			itemInfo.setFormat(translateValue("format", formatByShelfLocation, recordInfo.getRecordIdentifier()));
-			itemInfo.setFormatCategory(translateValue("format_category", formatByShelfLocation, recordInfo.getRecordIdentifier()));
+				String formatByShelfLocation = translateValue("shelf_location_to_format", bibsWithOrders.get(recordInfo.getRecordIdentifier()), recordInfo.getRecordIdentifier());
+				//itemInfo.setFormat(translateValue("format", formatByShelfLocation, recordInfo.getRecordIdentifier()));
+				//itemInfo.setFormatCategory(translateValue("format_category", formatByShelfLocation, recordInfo.getRecordIdentifier()));
+				itemInfo.setFormat("On Order");
+				itemInfo.setFormatCategory("");
 
-			//Add the library this is on order for
-			itemInfo.setShelfLocation("On Order");
+				//Add the library this is on order for
+				itemInfo.setShelfLocation("On Order");
 
-			recordInfo.addItem(itemInfo);
+				recordInfo.addItem(itemInfo);
+			}else{
+				logger.debug("Skipping order item because there are print or order records available");
+			}
 		}
 	}
 }
