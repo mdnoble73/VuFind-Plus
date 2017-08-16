@@ -1,14 +1,18 @@
 package org.vufind;
 
+import au.com.bytecode.opencsv.CSVReader;
 import org.apache.log4j.Logger;
 import org.marc4j.marc.DataField;
 import org.marc4j.marc.Record;
 import org.marc4j.marc.Subfield;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.regex.Pattern;
 
@@ -20,14 +24,33 @@ import java.util.regex.Pattern;
  * Time: 11:02 AM
  */
 class AACPLRecordProcessor extends IlsRecordProcessor {
-	private PreparedStatement getDateAddedStmt;
+	private HashMap<String, String> bibsWithOrders = new HashMap<>();
 	AACPLRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
 		super(indexer, vufindConn, indexingProfileRS, logger, fullReindex);
 
-		try{
-			getDateAddedStmt = vufindConn.prepareStatement("SELECT dateFirstDetected FROM ils_marc_checksums WHERE ilsId = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-		}catch (Exception e){
-			logger.error("Unable to setup prepared statement for date added to catalog");
+		//get a list of bibs that have order records on them
+		File ordersFile = new File(marcPath + "/Pika_orders.csv");
+		if (ordersFile.exists()){
+			try{
+				CSVReader ordersReader = new CSVReader(new InputStreamReader(new FileInputStream(ordersFile)));
+				String[] ordersData = ordersReader.readNext();
+				while (ordersData != null){
+					//Check to see if the bib already exists
+					if (ordersData.length >= 7){
+						String recordNumber = Util.cleanIniValue(ordersData[0]);
+						if (recordNumber.matches("^\\d+$")) {
+							String shelfLocation = Util.cleanIniValue(ordersData[1]);
+							bibsWithOrders.put("a" + recordNumber, shelfLocation);
+						}
+					}
+					ordersData = ordersReader.readNext();
+				}
+				logger.info("Finished reading records with orders");
+			}catch (Exception e){
+				logger.error("Error reading orders file ", e);
+			}
+		}else{
+			logger.warn("Could not find orders file at " + ordersFile.getAbsolutePath());
 		}
 	}
 
@@ -157,5 +180,32 @@ class AACPLRecordProcessor extends IlsRecordProcessor {
 			subfieldData = getItemSubfieldData(shelvingLocationSubfield, itemField);
 		}
 		itemInfo.setShelfLocationCode(subfieldData);
+	}
+
+	protected void loadOnOrderItems(GroupedWorkSolr groupedWork, RecordInfo recordInfo, Record record, boolean hasTangibleItems){
+		if (bibsWithOrders.containsKey(recordInfo.getRecordIdentifier())){
+			ItemInfo itemInfo = new ItemInfo();
+			itemInfo.setLocationCode("aacpl");
+			itemInfo.setItemIdentifier(recordInfo.getRecordIdentifier());
+			itemInfo.setNumCopies(1);
+			itemInfo.setIsEContent(false);
+			itemInfo.setIsOrderItem(true);
+			itemInfo.setCallNumber("ON ORDER");
+			itemInfo.setSortableCallNumber("ON ORDER");
+			itemInfo.setDetailedStatus("On Order");
+			Date tomorrow = new Date();
+			tomorrow.setTime(tomorrow.getTime() + 1000 * 60 * 60 * 24);
+			itemInfo.setDateAdded(tomorrow);
+			//Format and Format Category should be set at the record level, so we don't need to set them here.
+
+			String formatByShelfLocation = translateValue("shelf_location_to_format", bibsWithOrders.get(recordInfo.getRecordIdentifier()), recordInfo.getRecordIdentifier());
+			itemInfo.setFormat(translateValue("format", formatByShelfLocation, recordInfo.getRecordIdentifier()));
+			itemInfo.setFormatCategory(translateValue("format_category", formatByShelfLocation, recordInfo.getRecordIdentifier()));
+
+			//Add the library this is on order for
+			itemInfo.setShelfLocation("On Order");
+
+			recordInfo.addItem(itemInfo);
+		}
 	}
 }
