@@ -542,6 +542,15 @@ abstract class SirsiDynixROA extends HorizonAPI
 					}
 				}
 
+				$numCheckedOut = 0;
+				if (isset($lookupMyAccountInfoResponse->fields->circRecordList)) {
+					foreach ($lookupMyAccountInfoResponse->fields->circRecordList as $checkedOut) {
+						if (empty($checkedOut->fields->claimsReturnedDate)) {
+							$numCheckedOut++;
+						}
+					}
+				}
+
 				$user->address1              = $Address1;
 				$user->address2              = $City . ', ' . $State;
 				$user->city                  = $City;
@@ -550,7 +559,7 @@ abstract class SirsiDynixROA extends HorizonAPI
 //				$user->phone                 = isset($phone) ? $phone : '';
 				$user->fines                 = sprintf('$%01.2f', $finesVal);
 				$user->finesVal              = $finesVal;
-				$user->numCheckedOutIls      = isset($lookupMyAccountInfoResponse->fields->circRecordList) ? count($lookupMyAccountInfoResponse->fields->circRecordList) : 0;
+				$user->numCheckedOutIls      = $numCheckedOut;
 				$user->numHoldsIls           = $numHoldsAvailable + $numHoldsRequested;
 				$user->numHoldsAvailableIls  = $numHoldsAvailable;
 				$user->numHoldsRequestedIls  = $numHoldsRequested;
