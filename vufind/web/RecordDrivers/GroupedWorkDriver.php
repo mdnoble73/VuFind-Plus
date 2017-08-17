@@ -1517,27 +1517,32 @@ class GroupedWorkDriver extends RecordInterface{
 			} else {
 				//Figure out what the preferred record is to place a hold on.  Since sorting has been done properly, this should always be the first
 				$bestRecord = reset($manifestation['relatedRecords']);
-				if (count($manifestation['relatedRecords']) > 1 && $bestRecord['groupedStatus'] == 'Checked Out') {
-					$promptForAlternateEdition = false;
-					foreach ($manifestation['relatedRecords'] as $relatedRecord) {
-						if ($relatedRecord['groupedStatus'] == 'On Shelf') {
-							$promptForAlternateEdition = true;
-							break;
-						}
-					}
-					if ($promptForAlternateEdition) {
-						$alteredActions = array();
-						foreach ($bestRecord['actions'] as $action) {
-							$action['onclick'] = str_replace('Record.showPlaceHold', 'Record.showPlaceHoldEditions', $action['onclick']);
-							$alteredActions[] = $action;
-						}
-						$manifestation['actions'] = $alteredActions;
-					} else {
-						$manifestation['actions'] = $bestRecord['actions'];
-					}
-				 } else {
-					$manifestation['actions'] = $bestRecord['actions'];
-				}
+				$manifestation['actions'] = $bestRecord['actions']; // Comment this out when the below is added back
+
+// Commented out until memory issues can be fixed. pascal 8-17-2017
+//				if ($manifestation['numRelatedRecords'] > 1 && $bestRecord['groupedStatus'] == 'Checked Out') {
+//					$promptForAlternateEdition = false;
+//					foreach ($manifestation['relatedRecords'] as $relatedRecord) {
+//						if ($relatedRecord['groupedStatus'] == 'On Shelf') {
+//							$promptForAlternateEdition = true;
+//							unset($relatedRecord);
+//							break;
+//						}
+//					}
+//					if ($promptForAlternateEdition) {
+//						$alteredActions = array();
+//						foreach ($bestRecord['actions'] as $action) {
+//							$action['onclick'] = str_replace('Record.showPlaceHold', 'Record.showPlaceHoldEditions', $action['onclick']);
+//							$alteredActions[] = $action;
+//						}
+//						$manifestation['actions'] = $alteredActions;
+//						unset($action, $alteredActions);
+//					} else {
+//						$manifestation['actions'] = $bestRecord['actions'];
+//					}
+//				 } else {
+//					$manifestation['actions'] = $bestRecord['actions'];
+//				}
 			}
 			if ($selectedFormat && $selectedFormat != $manifestation['format']) {
 				//Do a secondary check to see if we have a more detailed format in the facet

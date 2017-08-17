@@ -24,8 +24,15 @@
 			<th></th>
 		</tr>
 		</thead>
-		{foreach from=$relatedRecords item=relatedRecord key=index}
-			<tr{if $promptAlternateEdition && $index===0} class="danger"{/if}>
+		{foreach from=$relatedRecords item=relatedRecord}
+			<tr>
+				
+{* Below replaces above when memory issues are figured out. pascal 8-17-2017
+				{foreach from=$relatedRecords item=relatedRecord key=index}
+		<tr{if $promptAlternateEdition && $index===0} class="danger"{/if}>
+*}
+
+
 				{* <td>
 				{$relatedRecord.holdRatio}
 				</td> *}
