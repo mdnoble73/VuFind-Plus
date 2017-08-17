@@ -818,69 +818,69 @@ abstract class SirsiDynixROA extends HorizonAPI
 			require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
 
 			foreach ($patronCheckouts->fields->circRecordList as $checkout) {
-				$curTitle['checkoutSource'] = 'ILS';
+				if (empty($checkout->fields->claimsReturnedDate)) { // Titles with a claims return date will not be displayed in check outs.
+					$curTitle['checkoutSource'] = 'ILS';
 
-				list($bibId)                = explode(':', $checkout->key);
-				$curTitle['recordId']       = $bibId;
-				$curTitle['shortId']        = $bibId;
-				$curTitle['id']             = $bibId;
+					list($bibId) = explode(':', $checkout->key);
+					$curTitle['recordId'] = $bibId;
+					$curTitle['shortId']  = $bibId;
+					$curTitle['id']       = $bibId;
 
-				$curTitle['dueDate']        = strtotime($checkout->fields->dueDate);
-				$curTitle['checkoutdate']   = strtotime($checkout->fields->checkOutDate);
-				// Note: there is an overdue flag
-				$curTitle['renewCount']     = $checkout->fields->renewalCount;
-				$curTitle['canrenew']       = $checkout->fields->seenRenewalsRemaining > 0;
-				$curTitle['renewIndicator'] = $checkout->fields->item->key;
+					$curTitle['dueDate']      = strtotime($checkout->fields->dueDate);
+					$curTitle['checkoutdate'] = strtotime($checkout->fields->checkOutDate);
+					// Note: there is an overdue flag
+					$curTitle['renewCount']     = $checkout->fields->renewalCount;
+					$curTitle['canrenew']       = $checkout->fields->seenRenewalsRemaining > 0;
+					$curTitle['renewIndicator'] = $checkout->fields->item->key;
 
-				$curTitle['format'] = 'Unknown';
-				$recordDriver = new MarcRecord('a' . $bibId);
-				if ($recordDriver->isValid()) {
-					$curTitle['coverUrl']      = $recordDriver->getBookcoverUrl('medium');
-					$curTitle['groupedWorkId'] = $recordDriver->getGroupedWorkId();
-					$curTitle['format']        = $recordDriver->getPrimaryFormat();
-					$curTitle['title']         = $recordDriver->getTitle();
-					$curTitle['title_sort']    = $recordDriver->getSortableTitle();
-					$curTitle['author']        = $recordDriver->getPrimaryAuthor();
-					$curTitle['link']          = $recordDriver->getLinkUrl();
-					$curTitle['ratingData']    = $recordDriver->getRatingData();
-				} else {
-					// Presumably ILL Items
-					$bibInfo                   = $this->getWebServiceResponse($webServiceURL . '/v1/catalog/bib/key/' .$bibId, null, $sessionToken);
-					$curTitle['title']         = $bibInfo->fields->title;
-					$curTitle['title_sort']    = $bibInfo->fields->title;
-					$curTitle['author']        = $bibInfo->fields->author;
-				}
-
-				$sCount++;
-				$sortTitle = isset($curTitle['title_sort']) ? $curTitle['title_sort'] : $curTitle['title'];
-				$sortKey = $sortTitle;
-				if ($sortOption == 'title'){
-					$sortKey = $sortTitle;
-				}elseif ($sortOption == 'author'){
-					$sortKey = (isset($curTitle['author']) ? $curTitle['author'] : "Unknown") . '-' . $sortTitle;
-				}elseif ($sortOption == 'dueDate'){
-					if (isset($curTitle['dueDate'])){
-						if (preg_match('/.*?(\\d{1,2})[-\/](\\d{1,2})[-\/](\\d{2,4}).*/', $curTitle['dueDate'], $matches)) {
-							$sortKey = $matches[3] . '-' . $matches[1] . '-' . $matches[2] . '-' . $sortTitle;
-						} else {
-							$sortKey = $curTitle['dueDate'] . '-' . $sortTitle;
-						}
+					$curTitle['format'] = 'Unknown';
+					$recordDriver       = new MarcRecord('a' . $bibId);
+					if ($recordDriver->isValid()) {
+						$curTitle['coverUrl']      = $recordDriver->getBookcoverUrl('medium');
+						$curTitle['groupedWorkId'] = $recordDriver->getGroupedWorkId();
+						$curTitle['format']        = $recordDriver->getPrimaryFormat();
+						$curTitle['title']         = $recordDriver->getTitle();
+						$curTitle['title_sort']    = $recordDriver->getSortableTitle();
+						$curTitle['author']        = $recordDriver->getPrimaryAuthor();
+						$curTitle['link']          = $recordDriver->getLinkUrl();
+						$curTitle['ratingData']    = $recordDriver->getRatingData();
+					} else {
+						// Presumably ILL Items
+						$bibInfo                = $this->getWebServiceResponse($webServiceURL . '/v1/catalog/bib/key/' . $bibId, null, $sessionToken);
+						$curTitle['title']      = $bibInfo->fields->title;
+						$curTitle['title_sort'] = $bibInfo->fields->title;
+						$curTitle['author']     = $bibInfo->fields->author;
 					}
-				}elseif ($sortOption == 'format'){
-					$sortKey = (isset($curTitle['format']) ? $curTitle['format'] : "Unknown") . '-' . $sortTitle;
-				}elseif ($sortOption == 'renewed'){
-					$sortKey = (isset($curTitle['renewCount']) ? $curTitle['renewCount'] : 0) . '-' . $sortTitle;
-				}elseif ($sortOption == 'holdQueueLength'){
-					$sortKey = (isset($curTitle['holdQueueLength']) ? $curTitle['holdQueueLength'] : 0) . '-' . $sortTitle;
-				}
-				$sortKey .= "_$sCount";
-				$checkedOutTitles[$sortKey] = $curTitle;
 
+					$sCount++;
+					$sortTitle = isset($curTitle['title_sort']) ? $curTitle['title_sort'] : $curTitle['title'];
+					$sortKey   = $sortTitle;
+					if ($sortOption == 'title') {
+						$sortKey = $sortTitle;
+					} elseif ($sortOption == 'author') {
+						$sortKey = (isset($curTitle['author']) ? $curTitle['author'] : "Unknown") . '-' . $sortTitle;
+					} elseif ($sortOption == 'dueDate') {
+						if (isset($curTitle['dueDate'])) {
+							if (preg_match('/.*?(\\d{1,2})[-\/](\\d{1,2})[-\/](\\d{2,4}).*/', $curTitle['dueDate'], $matches)) {
+								$sortKey = $matches[3] . '-' . $matches[1] . '-' . $matches[2] . '-' . $sortTitle;
+							} else {
+								$sortKey = $curTitle['dueDate'] . '-' . $sortTitle;
+							}
+						}
+					} elseif ($sortOption == 'format') {
+						$sortKey = (isset($curTitle['format']) ? $curTitle['format'] : "Unknown") . '-' . $sortTitle;
+					} elseif ($sortOption == 'renewed') {
+						$sortKey = (isset($curTitle['renewCount']) ? $curTitle['renewCount'] : 0) . '-' . $sortTitle;
+					} elseif ($sortOption == 'holdQueueLength') {
+						$sortKey = (isset($curTitle['holdQueueLength']) ? $curTitle['holdQueueLength'] : 0) . '-' . $sortTitle;
+					}
+					$sortKey                    .= "_$sCount";
+					$checkedOutTitles[$sortKey] = $curTitle;
+				}
 			}
 		}
 		return $checkedOutTitles;
 	}
-
 	/**
 	 * Get Patron Holds
 	 *
