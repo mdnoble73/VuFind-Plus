@@ -5,10 +5,7 @@ import org.apache.log4j.PropertyConfigurator;
 import org.ini4j.Ini;
 import org.ini4j.InvalidFileFormatException;
 import org.ini4j.Profile;
-import org.marc4j.MarcReader;
-import org.marc4j.MarcStreamReader;
-import org.marc4j.MarcStreamWriter;
-import org.marc4j.MarcWriter;
+import org.marc4j.*;
 import org.marc4j.marc.*;
 
 import java.io.*;
@@ -115,51 +112,68 @@ public class SymphonyExportMain {
 	}
 
 	private static void processOrdersFile(long lastExportTime, Connection pikaConn) {
+		File mainFile = new File(indexingProfile.marcPath + "/fullexport.mrc");
+		HashSet<String> idsInMainFile = new HashSet<>();
+		if (mainFile.exists()){
+			try {
+				MarcReader reader = new MarcPermissiveStreamReader(new FileInputStream(mainFile), true, true);
+				int numRecordsRead = 0;
+				while (reader.hasNext()) {
+					try {
+						Record marcRecord = reader.next();
+						numRecordsRead++;
+						String id = getPrimaryIdentifierFromMarcRecord(marcRecord);
+						idsInMainFile.add(id);
+					}catch (MarcException me){
+						logger.warn("Error processing individual record  on record " + numRecordsRead + " of " + mainFile.getAbsolutePath(), me);
+					}
+				}
+			}catch (Exception e){
+				logger.error("Error loading existing marc ids", e);
+			}
+		}
+
 		File ordersFile = new File(indexingProfile.marcPath + "/Pika_orders.csv");
 		File ordersFileMarc = new File(indexingProfile.marcPath + "/Pika_orders.mrc");
 		if (ordersFile.exists()){
-			long now = new Date().getTime();
-			long orderFileLastModified = ordersFile.lastModified();
-			if (now - orderFileLastModified > 2 * 24 * 60 * 60 * 1000){
-				logger.warn("Orders File was last written more than 2 days ago");
-			}else if (orderFileLastModified > lastExportTime){
-				try{
-					MarcWriter writer = new MarcStreamWriter(new FileOutputStream(ordersFileMarc, false));
-					CSVReader ordersReader = new CSVReader(new InputStreamReader(new FileInputStream(ordersFile)));
-					String[] ordersData = ordersReader.readNext();
-					while (ordersData != null){
-						//Check to see if the bib already exists
-						if (ordersData.length >= 4){
-							String recordNumber = cleanIniValue(ordersData[3]);
-							recordNumber = recordNumber.replace("XX(", "");
-							recordNumber = recordNumber.replace(".1)", "");
-							if (recordNumber.matches("^\\d+$")) {
-								File marcRecordFile = indexingProfile.getFileForIlsRecord("a" + recordNumber);
-								if (!marcRecordFile.exists()){
-									//The marc record does not exist, create a temporary bib in the orders file which will get processed by record grouping
-									MarcFactory factory = MarcFactory.newInstance();
-									Record marcRecord = factory.newRecord();
-									marcRecord.addVariableField(factory.newControlField("001", "a" + recordNumber));
-									marcRecord.addVariableField(factory.newDataField("100", '0', '0', "a", cleanIniValue(ordersData[1])));
-									marcRecord.addVariableField(factory.newDataField("245", '0', '0', "a", cleanIniValue(ordersData[2])));
-									writer.write(marcRecord);
-								}else{
-									logger.info("Marc record already exists for a" + recordNumber);
-								}
+			//Always process since we only received one export and we are gradually removing records as they appear in the full export.
+			try{
+				MarcWriter writer = new MarcStreamWriter(new FileOutputStream(ordersFileMarc, false));
+				CSVReader ordersReader = new CSVReader(new InputStreamReader(new FileInputStream(ordersFile)));
+				String[] ordersData = ordersReader.readNext();
+				int numOrderRecordsWritten = 0;
+				int numOrderRecordsSkipped = 0;
+				while (ordersData != null){
+					//Check to see if the bib already exists
+					if (ordersData.length >= 4){
+						String recordNumber = cleanIniValue(ordersData[3]);
+						recordNumber = recordNumber.replace("XX(", "");
+						recordNumber = recordNumber.replace(".1)", "");
+						if (recordNumber.matches("^\\d+$")) {
+							if (!idsInMainFile.contains("a" + recordNumber)){
+								//The marc record does not exist, create a temporary bib in the orders file which will get processed by record grouping
+								MarcFactory factory = MarcFactory.newInstance();
+								Record marcRecord = factory.newRecord();
+								marcRecord.addVariableField(factory.newControlField("001", "a" + recordNumber));
+								marcRecord.addVariableField(factory.newDataField("100", '0', '0', "a", cleanIniValue(ordersData[1])));
+								marcRecord.addVariableField(factory.newDataField("245", '0', '0', "a", cleanIniValue(ordersData[2])));
+								writer.write(marcRecord);
+								numOrderRecordsWritten++;
+							}else{
+								logger.info("Marc record already exists for a" + recordNumber);
+								numOrderRecordsSkipped++;
 							}
 						}
-						ordersData = ordersReader.readNext();
 					}
-					writer.close();
-					logger.info("Finished writing Orders to MARC record");
-				}catch (Exception e){
-					logger.error("Error reading orders file ", e);
+					ordersData = ordersReader.readNext();
 				}
-			}else{
-				logger.info("Orders file has not changed since the last export");
+				writer.close();
+				logger.info("Finished writing Orders to MARC record");
+				logger.info("Wrote " + numOrderRecordsWritten);
+				logger.info("Skipped " + numOrderRecordsSkipped + " because they are in the main export");
+			}catch (Exception e){
+				logger.error("Error reading orders file ", e);
 			}
-
-
 		}else{
 			logger.warn("Could not find orders file at " + ordersFile.getAbsolutePath());
 		}
