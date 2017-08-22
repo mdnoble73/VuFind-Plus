@@ -24,6 +24,12 @@
 				<div><label for="password1">{$ILSname} Password</label>:</div>
 				<div><input type="password" name="password1" id="password1" value="{$lastPassword1}" class="required" onchange="clearOfflineCircResults();"></div>
 			</div>
+			<div class="col-xs-4">
+				<label for="showPwd" class="checkbox">
+					<input type="checkbox" id="showPwd" name="showPwd" onclick="return VuFind.pwdToText('password1')">
+					Show {$ILSname} Password
+				</label>
+			</div>
 		</div>
 		<div class="row">
 			<fieldset>
