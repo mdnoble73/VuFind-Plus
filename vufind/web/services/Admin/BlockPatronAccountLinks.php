@@ -87,9 +87,9 @@ class Admin_BlockPatronAccountLinks extends ObjectEditor
 		return '<p>To block a patron from viewing the information of another patron by linking accounts:</p>
 		<br>
  		<ul>
- 		<li>First enter the barcode of the user you want to prevent from seeing the other account as the <b>Barcode of the Account to Block</b></li>
- 		<li>Next enter the barcode of the user you want to prevent from being viewed by the other account as the <b>Prevent linking to the Account with this barcode</b></li>
- 		<li>If the user should not be able to see any other accounts at all, check <b>Block Linking to All Accounts</b></li>
+ 		<li>First enter the barcode of the user you want to prevent from seeing the other account as the <b>"The following blocked barcode will not have access to the account below."</b></li>
+ 		<li>Next enter the barcode of the user you want to prevent from being viewed by the other account as the <b>"The following barcode will not be accessible by the blocked barcode above."</b></li>
+ 		<li>If the user should not be able to see any other accounts at all, check <b>"Check this box to prevent the blocked barcode from accessing ANY linked accounts."</b></li>
  		<li>Now select a <b>Save Changes</b> button</li>
  		</ul>
  		<br>
