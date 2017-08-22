@@ -828,6 +828,7 @@ abstract class SirsiDynixROA extends HorizonAPI
 
 			foreach ($patronCheckouts->fields->circRecordList as $checkout) {
 				if (empty($checkout->fields->claimsReturnedDate)) { // Titles with a claims return date will not be displayed in check outs.
+					$curTitle = array();
 					$curTitle['checkoutSource'] = 'ILS';
 
 					list($bibId) = explode(':', $checkout->key);
