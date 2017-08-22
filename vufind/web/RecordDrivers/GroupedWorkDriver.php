@@ -1519,12 +1519,11 @@ class GroupedWorkDriver extends RecordInterface{
 			} else {
 				//Figure out what the preferred record is to place a hold on.  Since sorting has been done properly, this should always be the first
 				$bestRecord = reset($manifestation['relatedRecords']);
-				//$manifestation['actions'] = $bestRecord['actions']; // Comment this out when the below is added back
 
 				if ($manifestation['numRelatedRecords'] > 1 && $bestRecord['groupedStatus'] == 'Checked Out') {
 					$promptForAlternateEdition = false;
 					foreach ($manifestation['relatedRecords'] as $relatedRecord) {
-						if ($relatedRecord['available'] == true) {
+						if ($relatedRecord['available'] == true && $relatedRecord['holdable'] == true) {
 							$promptForAlternateEdition = true;
 							unset($relatedRecord);
 							break;
