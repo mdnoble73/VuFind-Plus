@@ -1437,26 +1437,26 @@ abstract class IslandoraDriver extends RecordInterface {
 						if (strlen($linkType) == 0) {
 							$linkText = $link;
 						} else {
-							switch ($linkType) {
-								case 'relatedPika':
+							switch (strtolower($linkType)) {
+								case 'relatedpika':
 									$linkText = 'Related title from the catalog';
 									break;
-								case 'marmotGenealogy':
+								case 'marmotgenealogy':
 									$linkText = 'Genealogy Record';
 									break;
-								case 'findAGrave':
+								case 'findagrave':
 									$linkText = 'Grave Site Information from Find a Grave';
 									break;
-								case 'fortLewisGeoPlaces':
+								case 'fortlewisgeoplaces':
 									//Skip this one
 									continue;
-								case 'geoNames':
+								case 'geonames':
 									$linkText = 'Geographic information from GeoNames.org';
 									continue;
-								case 'samePika':
+								case 'samepika':
 									$linkText = 'This record within the catalog';
 									continue;
-								case 'whosOnFirst':
+								case 'whosonfirst':
 									$linkText = 'Geographic information from Who\'s on First';
 									continue;
 								case 'wikipedia':
@@ -2222,7 +2222,7 @@ abstract class IslandoraDriver extends RecordInterface {
 				$wikipediaData = $wikipediaParser->getWikipediaPage($url);
 				$interface->assign('wikipediaData', $wikipediaData);
 
-			}elseif($link['type'] == 'marmotGenealogy'){
+			}elseif(strcasecmp($link['type'], 'marmotGenealogy') == 0){
 				$matches = array();
 				if (preg_match('/.*Person\/(\d+)/', $link['link'], $matches)){
 					$personId = $matches[1];
