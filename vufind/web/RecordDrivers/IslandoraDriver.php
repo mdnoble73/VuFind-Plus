@@ -2210,18 +2210,17 @@ abstract class IslandoraDriver extends RecordInterface {
 		foreach ($this->getLinks() as $link){
 			if ($link['type'] == 'wikipedia'){
 				global $library;
-				if ($library->showWikipediaContent){
-					require_once ROOT_DIR . '/sys/WikipediaParser.php';
-					$wikipediaParser = new WikipediaParser('en');
 
-					//Transform from a regular wikipedia link to an api link
-					$searchTerm = str_replace('https://en.wikipedia.org/wiki/', '', $link['link']);
-					$url = "http://en.wikipedia.org/w/api.php" .
-							'?action=query&prop=revisions&rvprop=content&format=json' .
-							'&titles=' . urlencode(urldecode($searchTerm));
-					$wikipediaData = $wikipediaParser->getWikipediaPage($url);
-					$interface->assign('wikipediaData', $wikipediaData);
-				}
+				require_once ROOT_DIR . '/sys/WikipediaParser.php';
+				$wikipediaParser = new WikipediaParser('en');
+
+				//Transform from a regular wikipedia link to an api link
+				$searchTerm = str_replace('https://en.wikipedia.org/wiki/', '', $link['link']);
+				$url = "http://en.wikipedia.org/w/api.php" .
+						'?action=query&prop=revisions&rvprop=content&format=json' .
+						'&titles=' . urlencode(urldecode($searchTerm));
+				$wikipediaData = $wikipediaParser->getWikipediaPage($url);
+				$interface->assign('wikipediaData', $wikipediaData);
 
 			}elseif($link['type'] == 'marmotGenealogy'){
 				$matches = array();
