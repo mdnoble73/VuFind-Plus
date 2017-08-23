@@ -133,6 +133,9 @@ abstract class Archive_Object extends Action {
 		}
 
 		$this->archiveObject = $fedoraUtils->getObject($this->pid);
+		if ($this->archiveObject == null){
+			PEAR_Singleton::raiseError(new PEAR_Error("Could not load object for PID {$this->pid}"));
+		}
 		$this->recordDriver = RecordDriverFactory::initRecordDriver($this->archiveObject);
 		$interface->assign('recordDriver', $this->recordDriver);
 
