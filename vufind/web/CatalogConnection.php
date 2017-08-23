@@ -330,7 +330,10 @@ class CatalogConnection
 			$curTitle['fullId'] = $this->accountProfile->recordSource . ':' . $curTitle['id'];
 
 			if ($curTitle['dueDate']){
-				$daysUntilDue = ceil(($curTitle['dueDate'] - time()) / (24 * 60 * 60));
+				// use the same time of day to calculate days until due, in order to avoid errors wiht rounding
+				$dueDate = strtotime('midnight', $curTitle['dueDate']);
+				$today = strtotime('midnight');
+				$daysUntilDue = ceil(($dueDate - $today) / (24 * 60 * 60));
 				$overdue = $daysUntilDue < 0;
 				$curTitle['overdue'] = $overdue;
 				$curTitle['daysUntilDue'] = $daysUntilDue;
