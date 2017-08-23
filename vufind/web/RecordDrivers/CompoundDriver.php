@@ -53,6 +53,7 @@ EOQ;
 					'title' => $this->getTitle(),
 					'seq' => 0,
 					'cover' => $this->getBookcoverUrl('small'),
+					'transcript' => ''
 			);
 			$sectionObject = $fedoraUtils->getObject($this->getUniqueID());
 			$sectionDetails = $this->loadPagesForSection($sectionObject, $sectionDetails);
@@ -85,11 +86,20 @@ EOQ;
 						'pid' => $objectPid,
 						'title' => $result['title']['value'],
 						'seq' => $result['seq']['value'],
-						'cover' => $fedoraUtils->getObjectImageUrl($sectionObject, 'thumbnail')
+						'cover' => $fedoraUtils->getObjectImageUrl($sectionObject, 'thumbnail'),
+						'transcript' => ''
 				);
 				$pdfStream = $sectionObject->getDatastream('PDF');
 				if ($pdfStream != null){
 					$sectionDetails['pdf'] = $objectUrl . '/' . $objectPid . '/datastream/PDF/view';;
+				}
+				$videoStream = $sectionObject->getDatastream('MP4');
+				if ($videoStream != null){
+					$sectionDetails['video'] = $objectUrl . '/' . $objectPid . '/datastream/MP4/view';;
+				}
+				$objStream = $sectionObject->getDatastream('OBJ');
+				if ($objStream && $objStream->mimetype == 'audio/mpeg'){
+					$sectionDetails['audio'] = $objectUrl . '/' . $objectPid . '/datastream/OBJ/view';;
 				}
 				//Load individual pages for this section
 				$sectionDetails = $this->loadPagesForSection($sectionObject, $sectionDetails);

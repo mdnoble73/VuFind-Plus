@@ -1437,26 +1437,26 @@ abstract class IslandoraDriver extends RecordInterface {
 						if (strlen($linkType) == 0) {
 							$linkText = $link;
 						} else {
-							switch ($linkType) {
-								case 'relatedPika':
+							switch (strtolower($linkType)) {
+								case 'relatedpika':
 									$linkText = 'Related title from the catalog';
 									break;
-								case 'marmotGenealogy':
+								case 'marmotgenealogy':
 									$linkText = 'Genealogy Record';
 									break;
-								case 'findAGrave':
+								case 'findagrave':
 									$linkText = 'Grave Site Information from Find a Grave';
 									break;
-								case 'fortLewisGeoPlaces':
+								case 'fortlewisgeoplaces':
 									//Skip this one
 									continue;
-								case 'geoNames':
+								case 'geonames':
 									$linkText = 'Geographic information from GeoNames.org';
 									continue;
-								case 'samePika':
+								case 'samepika':
 									$linkText = 'This record within the catalog';
 									continue;
-								case 'whosOnFirst':
+								case 'whosonfirst':
 									$linkText = 'Geographic information from Who\'s on First';
 									continue;
 								case 'wikipedia':
@@ -2210,20 +2210,19 @@ abstract class IslandoraDriver extends RecordInterface {
 		foreach ($this->getLinks() as $link){
 			if ($link['type'] == 'wikipedia'){
 				global $library;
-				if ($library->showWikipediaContent){
-					require_once ROOT_DIR . '/sys/WikipediaParser.php';
-					$wikipediaParser = new WikipediaParser('en');
 
-					//Transform from a regular wikipedia link to an api link
-					$searchTerm = str_replace('https://en.wikipedia.org/wiki/', '', $link['link']);
-					$url = "http://en.wikipedia.org/w/api.php" .
-							'?action=query&prop=revisions&rvprop=content&format=json' .
-							'&titles=' . urlencode(urldecode($searchTerm));
-					$wikipediaData = $wikipediaParser->getWikipediaPage($url);
-					$interface->assign('wikipediaData', $wikipediaData);
-				}
+				require_once ROOT_DIR . '/sys/WikipediaParser.php';
+				$wikipediaParser = new WikipediaParser('en');
 
-			}elseif($link['type'] == 'marmotGenealogy'){
+				//Transform from a regular wikipedia link to an api link
+				$searchTerm = str_replace('https://en.wikipedia.org/wiki/', '', $link['link']);
+				$url = "http://en.wikipedia.org/w/api.php" .
+						'?action=query&prop=revisions&rvprop=content&format=json' .
+						'&titles=' . urlencode(urldecode($searchTerm));
+				$wikipediaData = $wikipediaParser->getWikipediaPage($url);
+				$interface->assign('wikipediaData', $wikipediaData);
+
+			}elseif(strcasecmp($link['type'], 'marmotGenealogy') == 0){
 				$matches = array();
 				if (preg_match('/.*Person\/(\d+)/', $link['link'], $matches)){
 					$personId = $matches[1];

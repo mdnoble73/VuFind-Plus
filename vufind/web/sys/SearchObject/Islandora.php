@@ -1161,11 +1161,15 @@ class SearchObject_Islandora extends SearchObject_Base
 						}
 					}elseif ($lookupPid) {
 						$pid = str_replace('info:fedora/', '', $value);
-						$display = $fedoraUtils->getObjectLabel($pid);
-						if ($display == 'Invalid Object'){
+						$archiveObject = $fedoraUtils->getObject($pid);
+						if ($fedoraUtils->isObjectValidForPika($archiveObject)){
+							$display = $fedoraUtils->getObjectLabel($pid);
+							if ($display == 'Invalid Object'){
+								continue;
+							}
+						}else{
 							continue;
 						}
-
 					}elseif ($translate){
 						$display = translate($value);
 					}else{
