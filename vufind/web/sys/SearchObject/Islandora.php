@@ -1137,6 +1137,7 @@ class SearchObject_Islandora extends SearchObject_Base
 	public function getFilterList($excludeCheckboxFilters = false)
 	{
 		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
+		global $library;
 		$fedoraUtils = FedoraUtils::getInstance();
 
 		// Get a list of checkbox filters to skip if necessary:
@@ -1161,8 +1162,12 @@ class SearchObject_Islandora extends SearchObject_Base
 						}
 					}elseif ($lookupPid) {
 						$pid = str_replace('info:fedora/', '', $value);
-						$archiveObject = $fedoraUtils->getObject($pid);
-						if ($fedoraUtils->isObjectValidForPika($archiveObject)){
+						if ($field == 'RELS_EXT_isMemberOfCollection_uri_ms'){
+							$okToShow = $this->showCollectionAsFacet($pid);
+						}else{
+							$okToShow = true;
+						}
+						if ($okToShow){
 							$display = $fedoraUtils->getObjectLabel($pid);
 							if ($display == 'Invalid Object'){
 								continue;
@@ -1253,8 +1258,18 @@ class SearchObject_Islandora extends SearchObject_Base
 					}
 				}elseif ($lookupPid) {
 					$pid = str_replace('info:fedora/', '', $facet[0]);
-					$currentSettings['display'] = $fedoraUtils->getObjectLabel($pid);
-					if ($currentSettings['display'] == 'Invalid Object'){
+					if ($field == 'RELS_EXT_isMemberOfCollection_uri_ms'){
+						$okToShow = $this->showCollectionAsFacet($pid);
+					}else{
+						$okToShow = true;
+					}
+
+					if ($okToShow) {
+						$currentSettings['display'] = $fedoraUtils->getObjectLabel($pid);
+						if ($currentSettings['display'] == 'Invalid Object') {
+							continue;
+						}
+					}else{
 						continue;
 					}
 
@@ -1872,6 +1887,33 @@ class SearchObject_Islandora extends SearchObject_Base
 			}
 			$this->searchTerms[] = $newTerm;
 		}
+	}
+
+	private function showCollectionAsFacet($pid){
+		global $library;
+		global $fedoraUtils;
+		if ($library->hideAllCollectionsFromOtherLibraries && $library->archiveNamespace) {
+			$namespace = substr($pid, 0, strpos($pid, ':'));
+			if ($namespace == $library->archiveNamespace || $namespace == 'marmot') {
+				$okToShow = true;
+			} else {
+				$okToShow = false;
+			}
+		}elseif (strlen($library->collectionsToHide) > 0){
+			$okToShow = strpos($library->collectionsToHide, $pid) === false;
+		}else{
+			$okToShow = true;
+		}
+		if ($okToShow){
+			$fedoraUtils = FedoraUtils::getInstance();
+			$archiveObject = $fedoraUtils->getObject($pid);
+			if ($archiveObject == null){
+				$okToShow = true; //These are things like People, Places, Events, Large Image Collection, etc
+			}else if (!$fedoraUtils->isObjectValidForPika($archiveObject)){
+				$okToShow = false;
+			}
+		}
+		return $okToShow;
 	}
 
 }
