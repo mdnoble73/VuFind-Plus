@@ -1655,12 +1655,6 @@ abstract class IslandoraDriver extends RecordInterface {
 								if ($value == $this->getUniqueID()) {
 									if (isset($doc['mods_extension_marmotLocal_relatedPersonOrg_role_ms'][$index])){
 										$role = $doc['mods_extension_marmotLocal_relatedPersonOrg_role_ms'][$index];
-										//Reverse roles as appropriate
-										if ($role == 'child'){
-											$role = 'parent';
-										}elseif ($role == 'parent'){
-											$role = 'child';
-										}
 									}
 								}
 							}
@@ -1670,6 +1664,12 @@ abstract class IslandoraDriver extends RecordInterface {
 					if ($entityDriver instanceof EventDriver) {
 						$this->addRelatedEntityToArrays($entityDriver->getUniqueID(), $entityDriver->getTitle(), 'event', '', $role);
 					}elseif ($entityDriver instanceof PersonDriver){
+						//Reverse roles as appropriate
+						if ($role == 'child'){
+							$role = 'parent';
+						}elseif ($role == 'parent'){
+							$role = 'child';
+						}
 						$this->addRelatedEntityToArrays($entityDriver->getUniqueID(), $entityDriver->getTitle(), 'person', '', $role);
 					}elseif ($entityDriver instanceof OrganizationDriver){
 						$this->addRelatedEntityToArrays($entityDriver->getUniqueID(), $entityDriver->getTitle(), 'organization', '', $role);
