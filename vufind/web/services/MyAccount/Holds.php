@@ -23,7 +23,7 @@ class MyAccount_Holds extends MyAccount{
 		$ils = $configArray['Catalog']['ils'];
 		$showPosition = ($ils == 'Horizon' || $ils == 'Koha' || $ils == 'Symphony' || $ils == 'CarlX');
 		$showExpireTime = ($ils == 'Horizon');
-		$suspendRequiresReactivationDate = ($ils == 'Horizon' || $ils == 'CarlX' || $ils == 'Symphony');
+		$suspendRequiresReactivationDate = ($ils == 'Horizon' || $ils == 'CarlX' || $ils == 'Symphony'|| $ils == 'Koha');
 		$interface->assign('suspendRequiresReactivationDate', $suspendRequiresReactivationDate);
 		$canChangePickupLocation = ($ils != 'Koha');
 		$interface->assign('canChangePickupLocation', $canChangePickupLocation);
@@ -57,7 +57,7 @@ class MyAccount_Holds extends MyAccount{
 //		$showPlacedColumn = true;
 		$showPlacedColumn = false;
 		$interface->assign('showPlacedColumn', $showPlacedColumn);
-		$showDateWhenSuspending = ($ils == 'Horizon' || $ils == 'CarlX' || $ils == 'Symphony');
+		$showDateWhenSuspending = ($ils == 'Horizon' || $ils == 'CarlX' || $ils == 'Symphony' || $ils == 'Koha');
 		$interface->assign('showDateWhenSuspending', $showDateWhenSuspending);
 
 		$interface->assign('showPosition', $showPosition);
@@ -236,7 +236,7 @@ class MyAccount_Holds extends MyAccount{
 					$statusCell = '';
 				}
 
-				if (isset($row['frozen']) && $row['frozen'] && $showDateWhenSuspending){
+				if (isset($row['frozen']) && $row['frozen'] && $showDateWhenSuspending && !empty($row['reactivateTime'])){
 					$statusCell .= " until " . date('M d, Y', strtotime($row['reactivateTime']));
 				}
 				$objPHPExcel->getActiveSheet()
