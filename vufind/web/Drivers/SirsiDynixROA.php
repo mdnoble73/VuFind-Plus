@@ -858,7 +858,8 @@ abstract class SirsiDynixROA extends HorizonAPI
 						// Presumably ILL Items
 						$bibInfo                = $this->getWebServiceResponse($webServiceURL . '/v1/catalog/bib/key/' . $bibId, null, $sessionToken);
 						$curTitle['title']      = $bibInfo->fields->title;
-						$curTitle['title_sort'] = $bibInfo->fields->title;
+						$simpleSortTitle       = preg_replace('/^The\s|^A\s/i', '', $bibInfo->fields->title); // remove begining The or A
+						$curTitle['title_sort'] = empty($simpleSortTitle) ? $bibInfo->fields->title : $simpleSortTitle;
 						$curTitle['author']     = $bibInfo->fields->author;
 					}
 
@@ -924,24 +925,21 @@ abstract class SirsiDynixROA extends HorizonAPI
 		if ($patronHolds && isset($patronHolds->fields)) {
 			require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
 			foreach ($patronHolds->fields->holdRecordList as $hold) {
-				$holdInfo              = $this->getWebServiceResponse($webServiceURL . '/ws/circulation/holdRecord/key/' . $hold->key, null, $sessionToken);
 				$curHold               = array();
-				$bibId                 = $holdInfo->fields->bib->key;
-				$expireDate            = $holdInfo->fields->expirationDate;
-				$reactivateDate        = $holdInfo->fields->suspendEndDate;
-				$curHold['user']       = $patron->getNameAndLibraryLabel(); //TODO: Likely not needed, because Done in Catalog Connection
+				$bibId                 = $hold->fields->bib->key;
+				$expireDate            = $hold->fields->expirationDate;
+				$reactivateDate        = $hold->fields->suspendEndDate;
+				$createDate            = $hold->fields->placedDate;
+//				$curHold['user']       = $patron->getNameAndLibraryLabel(); //TODO: Likely not needed, because Done in Catalog Connection
 				$curHold['id']         = $hold->key;
 				$curHold['holdSource'] = 'ILS';
-				$curHold['itemId']     = $holdInfo->fields->item->key;
+				$curHold['itemId']     = empty($hold->fields->item->key) ? '' : $hold->fields->item->key;
 				$curHold['cancelId']   = $hold->key;
-				$curHold['position']   = $holdInfo->fields->queuePosition;
+				$curHold['position']   = $hold->fields->queuePosition;
 				$curHold['recordId']   = $bibId;
 				$curHold['shortId']    = $bibId;
-				//$curHold['title']              = (string)$hold->title;
-				//$curHold['sortTitle']          = (string)$hold->title;
-				//$curHold['author']             = (string)$hold->author;
 				$curPickupBranch       = new Location();
-				$curPickupBranch->code = $holdInfo->fields->pickupLibrary->key;
+				$curPickupBranch->code = $hold->fields->pickupLibrary->key;
 				if ($curPickupBranch->find(true)) {
 					$curPickupBranch->fetch();
 					$curHold['currentPickupId']   = $curPickupBranch->locationId;
@@ -949,7 +947,8 @@ abstract class SirsiDynixROA extends HorizonAPI
 					$curHold['location']          = $curPickupBranch->displayName;
 				}
 				$curHold['currentPickupName']  = $curHold['location'];
-				$curHold['status']             = ucfirst(strtolower($holdInfo->fields->status));
+				$curHold['status']             = ucfirst(strtolower($hold->fields->status));
+				$curHold['create']             = strtotime($createDate);
 				$curHold['expire']             = strtotime($expireDate);
 				$curHold['reactivate']         = $reactivateDate;
 				$curHold['reactivateTime']     = strtotime($reactivateDate);
@@ -965,8 +964,8 @@ abstract class SirsiDynixROA extends HorizonAPI
 				}
 
 				$recordDriver = new MarcRecord('a' . $bibId);
-				if ($holdInfo->fields->holdType == 'COPY'){
-					$itemInfo = $this->getWebServiceResponse($webServiceURL . '/ws' . $holdInfo->fields->selectedItem->resource . '/key/' . $holdInfo->fields->selectedItem->key, null, $sessionToken);
+				if ($hold->fields->holdType == 'COPY'){
+					$itemInfo = $this->getWebServiceResponse($webServiceURL . '/v1' . $hold->fields->selectedItem->resource . '/key/' . $hold->fields->selectedItem->key, null, $sessionToken);
 					if (isset($itemInfo->fields)){
 						$barcode = $itemInfo->fields->barcode;
 						$copies = $recordDriver->getCopies();
@@ -996,6 +995,13 @@ abstract class SirsiDynixROA extends HorizonAPI
 					if (empty($curHold['author'])) {
 						$curHold['author'] = $recordDriver->getPrimaryAuthor();
 					}
+				} else {
+					// If we don't have good marc record, ask the ILS for title info
+					$bibInfo                = $this->getWebServiceResponse($webServiceURL . '/v1/catalog/bib/key/' . $bibId, null, $sessionToken);
+					$curHold['title']      = $bibInfo->fields->title;
+					$simpleSortTitle       = preg_replace('/^The\s|^A\s/i', '', $bibInfo->fields->title); // remove begining The or A
+					$curHold['sortTitle'] = empty($simpleSortTitle) ? $bibInfo->fields->title : $simpleSortTitle;
+					$curHold['author']     = $bibInfo->fields->author;
 				}
 
 				if (!isset($curHold['status']) || strcasecmp($curHold['status'], "being_held") != 0) {

@@ -112,7 +112,7 @@
 						<div class="row">
 							<div class="result-label col-tn-3">{translate text='Date Placed'}</div>
 							<div class="col-tn-9 result-value">
-								{$record.create|date_format}
+								{$record.create|date_format:"%b %d, %Y"}
 							</div>
 						</div>
 					{/if}
