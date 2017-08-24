@@ -239,7 +239,7 @@ class MyAccount_Holds extends MyAccount{
 				->setCellValue('A'.$a, $titleCell)
 				->setCellValue('B'.$a, $authorCell)
 				->setCellValue('C'.$a, $formatString)
-				->setCellValue('D'.$a, isset($row['createTime']) ? date('M d, Y', $row['createTime']) : '');
+				->setCellValue('D'.$a, isset($row['create']) ? date('M d, Y', $row['create']) : '');
 				if (isset($row['location'])){
 					$objPHPExcel->getActiveSheet()->setCellValue('E'.$a, $row['location']);
 				}else{
