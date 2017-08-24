@@ -1294,8 +1294,7 @@ abstract class SirsiDynixROA extends HorizonAPI
 		$webServiceURL = $this->getWebServiceURL();
 
 		$today = date('Y-m-d');
-		$formattedDateToReactivate = date('Y-m-d', strtotime($dateToReactivate));
-		//TODO: case where suspend date is empty
+		$formattedDateToReactivate = $dateToReactivate ? date('Y-m-d', strtotime($dateToReactivate)) : null;
 
 		$params = array(
 			'key' => $holdToFreezeId,
@@ -1308,7 +1307,7 @@ abstract class SirsiDynixROA extends HorizonAPI
 
 		$updateHoldResponse = $this->getWebServiceResponse($webServiceURL . "/ws/circulation/holdRecord/key/$holdToFreezeId", $params, $sessionToken, 'PUT');
 
-		if (isset($updateHoldResponse->key) && isset($updateHoldResponse->fields->suspendEndDate) && $updateHoldResponse->fields->suspendEndDate == $formattedDateToReactivate) {
+		if (isset($updateHoldResponse->key) && isset($updateHoldResponse->fields->status) && $updateHoldResponse->fields->status == "SUSPENDED") {
 			$frozen = translate('frozen');
 			return array(
 				'success' => true,
