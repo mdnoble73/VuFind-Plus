@@ -686,7 +686,15 @@ abstract class MarcRecordProcessor {
 		//MDN 2/6/2016 add np to subtitle #ARL-163
 		groupedWork.setSubTitle(MarcUtil.getFirstFieldVal(record, "245bnp"));
 		//title full
-		groupedWork.addFullTitles(MarcUtil.getAllSubfields(record, "245", " "));
+		String authorInTitleField = MarcUtil.getFirstFieldVal(record, "245c");
+		String standardAuthorData = MarcUtil.getFirstFieldVal(record, "100abcdq:110ab");
+		if ((authorInTitleField != null && authorInTitleField.length() > 0) || (standardAuthorData == null || standardAuthorData.length() == 0)) {
+			groupedWork.addFullTitles(MarcUtil.getAllSubfields(record, "245", " "));
+		}else{
+			//We didn't get an author from the 245, combine with the 100
+			groupedWork.addFullTitle(MarcUtil.getFirstFieldVal(record, "245") + " " + standardAuthorData);
+		}
+
 		//title alt
 		groupedWork.addAlternateTitles(MarcUtil.getFieldList(record, "130adfgklnpst:240a:246a:700tnr:730adfgklnpst:740a"));
 		//title old
