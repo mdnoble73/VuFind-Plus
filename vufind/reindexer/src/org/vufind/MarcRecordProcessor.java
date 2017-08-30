@@ -692,7 +692,10 @@ abstract class MarcRecordProcessor {
 			groupedWork.addFullTitles(MarcUtil.getAllSubfields(record, "245", " "));
 		}else{
 			//We didn't get an author from the 245, combine with the 100
-			groupedWork.addFullTitle(MarcUtil.getFirstFieldVal(record, "245") + " " + standardAuthorData);
+			Set<String> titles = MarcUtil.getAllSubfields(record, "245", " ");
+			for (String title : titles){
+				groupedWork.addFullTitle(title + " " + standardAuthorData);
+			}
 		}
 
 		//title alt
