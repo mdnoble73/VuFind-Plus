@@ -1892,13 +1892,12 @@ class SearchObject_Islandora extends SearchObject_Base
 	private function showCollectionAsFacet($pid){
 		global $library;
 		global $fedoraUtils;
-		if ($library->hideAllCollectionsFromOtherLibraries && $library->archiveNamespace) {
-			$namespace = substr($pid, 0, strpos($pid, ':'));
-			if ($namespace == $library->archiveNamespace || $namespace == 'marmot') {
-				$okToShow = true;
-			} else {
-				$okToShow = false;
-			}
+		$namespace = substr($pid, 0, strpos($pid, ':'));
+		if ($namespace == 'marmot'){
+			$okToShow = true;
+			return $okToShow;
+		}elseif ($library->hideAllCollectionsFromOtherLibraries && $library->archiveNamespace) {
+			$okToShow = ($namespace == $library->archiveNamespace);
 		}elseif (strlen($library->collectionsToHide) > 0){
 			$okToShow = strpos($library->collectionsToHide, $pid) === false;
 		}else{
