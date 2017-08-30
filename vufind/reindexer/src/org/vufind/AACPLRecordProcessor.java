@@ -89,10 +89,15 @@ class AACPLRecordProcessor extends IlsRecordProcessor {
 
 	protected String getItemStatus(DataField itemField, String recordIdentifier){
 		String subfieldData = getItemSubfieldData(statusSubfieldIndicator, itemField);
-		if (subfieldData == null){
-			subfieldData = "ONSHELF";
-		}else if (translateValue("item_status", subfieldData, recordIdentifier, false) == null){
-			subfieldData = "ONSHELF";
+		String shelfLocationData = getItemSubfieldData(shelvingLocationSubfield, itemField);
+		if (shelfLocationData.equalsIgnoreCase("Z-ON-ORDER")){
+			subfieldData = "On Order";
+		}else {
+			if (subfieldData == null) {
+				subfieldData = "ONSHELF";
+			} else if (translateValue("item_status", subfieldData, recordIdentifier, false) == null) {
+				subfieldData = "ONSHELF";
+			}
 		}
 		return subfieldData;
 	}
