@@ -2176,12 +2176,18 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		return translatedValue;
 	}
 
-	HashSet<String> translateCollection(String mapName, HashSet<String> values, String identifier) {
+	HashSet<String> translateCollection(String mapName, Set<String> values, String identifier) {
 		TranslationMap translationMap = translationMaps.get(mapName);
 		HashSet<String> translatedValues;
 		if (translationMap == null){
 			logger.error("Unable to find translation map for " + mapName + " in profile " + profileType);
-			translatedValues = values;
+			if (values instanceof HashSet){
+				translatedValues = (HashSet<String>)values;
+			}else{
+				translatedValues = new HashSet<>();
+				translatedValues.addAll(values);
+			}
+
 		}else{
 			translatedValues = translationMap.translateCollection(values, identifier);
 		}
