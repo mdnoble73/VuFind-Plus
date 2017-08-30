@@ -163,7 +163,7 @@ mount 10.1.2.7:/ftp/aacpl /mnt/ftp
 cp --update --preserve=timestamps /mnt/ftp/symphony-holds/*.csv /data/vufind-plus/${PIKASERVER}/
 
 #Copy extracts from FTP Server
-FILE1=$(find /mnt/ftp/symphony -name Pika*.mrc -mtime -1 | sort -n | tail -1)
+FILE=$(find /mnt/ftp/symphony -name Pika*.mrc -mtime -1 | sort -n | tail -1)
 if [ -n "$FILE" ]
 then
   #check file size
