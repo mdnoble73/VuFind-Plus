@@ -11,10 +11,10 @@
 
 		{foreach from=$result.response.docs item="doc"}
 			<item>
-				<title>{$doc.title_display}</title>
+				<title>{$doc.title_display|escape}</title>
 				<link>{$doc.recordUrl|escape}</link>
 				{if $doc.author_display}
-					<author>{$doc.author_display}</author>
+					<author>{$doc.author_display|escape}</author>
 				{/if}
 				<guid isPermaLink="true">{$doc.recordUrl|escape}</guid>
 				{if $doc.publishDate}
