@@ -337,11 +337,13 @@ class SearchAPI extends Action {
 			$prtg_results = array(
 				'prtg' => array(
 					'result' => array(
+						0 => array(
 						'channel'         => 'Pika Status',
 						'value'           => $prtgStatusValues[ $result['status'] ],
 						'limitmode'=> 1,
 						'limitmaxwarning' => $prtgStatusValues[self::STATUS_WARN],
 						'limitmaxerror'   => $prtgStatusValues[self::STATUS_CRITICAL]
+						)
 					),
 					'text' => $result['message']
 				)
