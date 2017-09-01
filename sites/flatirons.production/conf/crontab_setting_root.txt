@@ -2,4 +2,23 @@
 # it has permissions to connect to the Millennium server
 
 # Restart apache
-0 0-7 * * * /usr/sbin/apachectl restart > /dev/null 2>&1
+#0 0-7 * * * /usr/sbin/apachectl restart > /dev/null 2>&1
+
+###################
+## 9-1-2017 Flatirons Pika Migration Crontab
+##
+##################
+
+
+#Kill continuous reindexing
+0 0 2 9 * kill `ps auxww|grep conti[n]uous_partial_reindex.sh|awk '{print $2}'`
+
+# stop apache
+1 0 2 9 * /usr/sbin/apachectl stop
+
+#Turn off solr
+2 0 2 9 cd /usr/local/vufind-plus/sites/santafe.production/; ./flatirons.production.sh stop
+
+
+# stop mysql
+1 0 2 9 * service mysqld stop
