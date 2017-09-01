@@ -341,8 +341,8 @@ class SearchAPI extends Action {
 						'channel'         => 'Pika Status',
 						'value'           => $prtgStatusValues[ $result['status'] ],
 						'limitmode'=> 1,
-						'limitmaxwarning' => $prtgStatusValues[self::STATUS_WARN],
-						'limitmaxerror'   => $prtgStatusValues[self::STATUS_CRITICAL]
+						'limitmaxwarning' => $prtgStatusValues[self::STATUS_OK],
+						'limitmaxerror'   => $prtgStatusValues[self::STATUS_WARN]
 						)
 					),
 					'text' => $result['message']
