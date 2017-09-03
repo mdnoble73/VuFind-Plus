@@ -3,3 +3,15 @@
 
 # Restart apache
 0 0-7 * * * /usr/sbin/apachectl restart > /dev/null 2>&1
+
+################
+# Pika Cleanup #
+################
+# Clean Up Temporary Files
+26 * * * * cd /tmp; /bin/rm -rf CURLCOOKIE*
+
+###############################################
+# Copy Original Covers from Marmot FTP Server #
+###############################################
+14 */2 * * * /usr/local/vufind-plus/sites/flatirons.production/copyCovers.sh
+

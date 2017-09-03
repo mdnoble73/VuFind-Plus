@@ -59,16 +59,10 @@
 07 7 * * 0 /usr/local/vufind-plus/vufind/cron/updateNYTLists.sh flatirons.production
 # update on Sundays at 7:07
 
-###############################################
-# Copy Original Covers from Marmot FTP Server #
-###############################################
-14 */2 * * * /usr/local/vufind-plus/sites/flatirons.production/copyCovers.sh
-
 ################
 # Pika Cleanup #
 ################
 # Clean Up Temporary Files
-26 * * * * cd /tmp; /bin/rm -rf CURLCOOKIE*
 27 */2 * * * cd /tmp; /bin/rm -rf epb*
 
 # Check Apache Solr process and website that it has not stalled.
