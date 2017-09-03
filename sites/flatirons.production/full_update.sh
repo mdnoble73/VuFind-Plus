@@ -151,7 +151,7 @@ TODAY=$(date +"%m_%d_%Y")
 #Extract from ILS
 #Copy extracts from FTP Server
 mount 10.1.2.7:/ftp/flatirons_marc_export /mnt/ftp
-FILE=$(find /mnt/ftp/ -name pika*.mrc -mtime -1 | sort -n | tail -1)
+FILE=$(find /mnt/ftp/ -name script.MARC.* -mtime -1 | sort -n | tail -1)
 
 if [ -n "$FILE" ]
 then
@@ -165,9 +165,9 @@ then
 		echo "The export file is $PERCENTABOVE (%) larger than the minimum size check." >> ${OUTPUT_FILE}
 
 		# Copy to data directory to process
-		cp $FILE /data/vufind-plus/flatirons.production/marc/pika1.mrc
+		cp $FILE /data/vufind-plus/${PIKASERVER}/marc/pika1.mrc
 		# Move to marc_export to keep as a backup
-		mv $FILE /data/vufind-plus/flatirons.production/marc_export/pika.$TODAY.mrc
+		mv $FILE /data/vufind-plus/${PIKASERVER}/marc_export/pika.$TODAY.mrc
 		#TODO: Does this remove it off the ftp server?
 
 
