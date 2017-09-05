@@ -302,6 +302,7 @@ function loadSearchInformation(){
 	}
 
 	$solrScope = trim($solrScope);
+	$solrScope = preg_replace('/[^a-zA-Z_]/', '', $solrScope);
 	if (strlen($solrScope) == 0){
 		$solrScope = false;
 		$scopeType = 'Unscoped';
