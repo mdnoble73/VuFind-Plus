@@ -172,7 +172,7 @@ then
 		echo "The export file is $PERCENTABOVE (%) larger than the minimum size check." >> ${OUTPUT_FILE}
 
 		# Copy to data directory to process
-		cp $FILE /data/vufind-plus/${PIKASERVER}/marc/pika1.mrc
+		umount /mnt/ftp
 
 		#Validate the export
 		cd /usr/local/vufind-plus/vufind/cron; java -server -XX:+UseG1GC -jar cron.jar ${PIKASERVER} ValidateMarcExport >> ${OUTPUT_FILE}
@@ -191,6 +191,7 @@ then
 	fi
 else
 	echo "Did not find a Sierra export file from the last 24 hours, Full Regrouping & Full Reindexing skipped." >> ${OUTPUT_FILE}
+	umount /mnt/ftp
 fi
 
 # Clean-up Solr Logs
