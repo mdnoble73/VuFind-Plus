@@ -172,6 +172,7 @@ then
 		echo "The export file is $PERCENTABOVE (%) larger than the minimum size check." >> ${OUTPUT_FILE}
 
 		# Copy to data directory to process
+		cp $FILE /data/vufind-plus/${PIKASERVER}/marc/fullexport.mrc
 		umount /mnt/ftp
 
 		#Validate the export
