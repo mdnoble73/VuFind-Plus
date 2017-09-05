@@ -35,12 +35,6 @@
 # Continuous Re-Indexing
 @reboot cd /usr/local/vufind-plus/sites/flatirons.production; ./continuous_partial_reindex.sh
 
-#####################
-# Daily full update #
-#####################
-# Set the start for 3:30 am after exports finish
-30 3 * * * cd /usr/local/vufind-plus/sites/flatirons.production; ./full_update.sh
-
 ######################
 # MySQL Nightly Dump #
 ######################
