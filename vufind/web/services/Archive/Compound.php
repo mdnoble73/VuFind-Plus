@@ -1,6 +1,6 @@
 <?php
 /**
- * Allows display of a single image from Islandora
+ * Allows display of a compound object from Islandora
  *
  * @category Pika
  * @author Mark Noble <mark@marmot.org>
