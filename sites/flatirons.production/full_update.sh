@@ -106,15 +106,15 @@ cd /data/vufind-plus/accelerated_reader; curl --remote-name --remote-time --sile
 
 #Ebrary Marc Updates
 #scp flatirons_sideload@sftp.marmot.org:/ftp/flatirons_sideload/ebrary/boulder/*.mrc /data/vufind-plus/ebrary/bpl/marc/merge >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/sites/${PIKASERVER}/moveSideloadAdds.sh flatirons_sideload/ebrary/boulder /ebrary/bpl/marc/merge >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/${PIKASERVER}/moveSideloadAdds.sh flatirons_sideload/ebrary/boulder ebrary/bpl/marc/merge >> ${OUTPUT_FILE}
 #TODO: refactor this data directory
 
 #scp flatirons_sideload@sftp.marmot.org:/ftp/flatirons_sideload/ebrary/boulder/deletes/*.mrc /data/vufind-plus/ebrary/bpl/deletes/marc/ >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/sites/${PIKASERVER}/moveSideloadAdds.sh flatirons_sideload/ebrary/boulder/deletes /ebrary/bpl/deletes >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/${PIKASERVER}/moveSideloadAdds.sh flatirons_sideload/ebrary/boulder/deletes ebrary/bpl/deletes >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh ebrary/bpl >> ${OUTPUT_FILE}
 
 #scp flatirons_sideload@sftp.marmot.org:/ftp/flatirons_sideload/ebrary/broomfield/*.mrc /data/vufind-plus/ebrary/mde/marc/ >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/sites/${PIKASERVER}/moveFullExport.sh flatirons_sideload/ebrary/broomfield /ebrary/broomfield >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/${PIKASERVER}/moveFullExport.sh flatirons_sideload/ebrary/broomfield ebrary/broomfield >> ${OUTPUT_FILE}
 
 # Possible curl version; if I can figure out how to implement the --time-condition check on a range of files
 # (Can't do *.mrc; have to specify a range of files that curl will check for each one in the range)
@@ -165,9 +165,10 @@ then
 		echo "The export file is $PERCENTABOVE (%) larger than the minimum size check." >> ${OUTPUT_FILE}
 
 		# Copy to data directory to process
-		cp $FILE /data/vufind-plus/${PIKASERVER}/marc/pika1.mrc
+		cp --update --preserve=timestamps $FILE /data/vufind-plus/${PIKASERVER}/marc/fullexport.mrc
 		# Move to marc_export to keep as a backup
 		mv $FILE /data/vufind-plus/${PIKASERVER}/marc_export/pika.$TODAY.mrc
+		umount /mnt/ftp
 		#TODO: Does this remove it off the ftp server?
 
 
@@ -191,6 +192,7 @@ then
 	fi
 else
 	echo "Did not find a Sierra export file from the last 24 hours, Full Regrouping & Full Reindexing skipped." >> ${OUTPUT_FILE}
+	umount /mnt/ftp
 fi
 
 # Clean-up Solr Logs

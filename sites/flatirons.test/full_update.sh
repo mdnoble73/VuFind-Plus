@@ -130,18 +130,18 @@ cd /data/vufind-plus/; curl --remote-name --remote-time --silent --show-error --
 cd /data/vufind-plus/accelerated_reader; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/accelerated_reader/RLI-ARDataTAB.txt https://cassini.marmot.org/RLI-ARDataTAB.txt >> ${OUTPUT_FILE}
 
 #Zinio Marc Updates
-/usr/local/vufind-plus/sites/flatirons.test/moveFullExport.sh flatirons_sideload/zinio/shared zinio >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/${PIKASERVER}/moveFullExport.sh flatirons_sideload/zinio/shared zinio >> ${OUTPUT_FILE}
 
 #OneClick Digital Marc Updates
-/usr/local/vufind-plus/sites/flatirons.test/moveFullExport.sh flatirons_sideload/oneclickdigital/longmont oneclickdigital/longmont >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/sites/flatirons.test/moveFullExport.sh flatirons_sideload/oneclickdigital/loveland oneclickdigital/loveland >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/${PIKASERVER}/moveFullExport.sh flatirons_sideload/oneclickdigital/longmont oneclickdigital/longmont >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/${PIKASERVER}/moveFullExport.sh flatirons_sideload/oneclickdigital/loveland oneclickdigital/loveland >> ${OUTPUT_FILE}
 
 #Ebrary Marc Updates
-/usr/local/vufind-plus/sites/flatirons.test/moveSideloadAdds.sh flatirons_sideload/ebrary/boulder ebrary/bpl/merge >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/sites/flatirons.test/moveSideloadAdds.sh flatirons_sideload/ebrary/boulder/deletes ebrary/bpl/deletes >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/${PIKASERVER}/moveSideloadAdds.sh flatirons_sideload/ebrary/boulder ebrary/bpl/merge >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/${PIKASERVER}/moveSideloadAdds.sh flatirons_sideload/ebrary/boulder/deletes ebrary/bpl/deletes >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh ebrary/bpl >> ${OUTPUT_FILE}
 
-/usr/local/vufind-plus/sites/flatirons.test/moveFullExport.sh flatirons_sideload/ebrary/broomfield ebrary/mde >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/${PIKASERVER}/moveFullExport.sh flatirons_sideload/ebrary/broomfield ebrary/mde >> ${OUTPUT_FILE}
 
 #Colorado State Goverment Documents Updates
 curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/colorado_gov_docs/marc/fullexport.mrc https://cassini.marmot.org/colorado_state_docs.mrc
@@ -172,7 +172,8 @@ then
 		echo "The export file is $PERCENTABOVE (%) larger than the minimum size check." >> ${OUTPUT_FILE}
 
 		# Copy to data directory to process
-		cp $FILE /data/vufind-plus/${PIKASERVER}/marc/pika1.mrc
+		cp $FILE /data/vufind-plus/${PIKASERVER}/marc/fullexport.mrc
+		umount /mnt/ftp
 
 		#Validate the export
 		cd /usr/local/vufind-plus/vufind/cron; java -server -XX:+UseG1GC -jar cron.jar ${PIKASERVER} ValidateMarcExport >> ${OUTPUT_FILE}
@@ -191,6 +192,7 @@ then
 	fi
 else
 	echo "Did not find a Sierra export file from the last 24 hours, Full Regrouping & Full Reindexing skipped." >> ${OUTPUT_FILE}
+	umount /mnt/ftp
 fi
 
 # Clean-up Solr Logs
