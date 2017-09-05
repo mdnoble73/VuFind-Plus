@@ -166,11 +166,10 @@ then
 
 		# Copy to data directory to process
 		cp --update --preserve=timestamps $FILE /data/vufind-plus/${PIKASERVER}/marc/fullexport.mrc
-		# Move to marc_export to keep as a backup
-		mv $FILE /data/vufind-plus/${PIKASERVER}/marc_export/pika.$TODAY.mrc
 		umount /mnt/ftp
-		#TODO: Does this remove it off the ftp server?
 
+		# Copy to marc_export to keep as a backup
+		cp /data/vufind-plus/${PIKASERVER}/marc/fullexport.mrc /data/vufind-plus/${PIKASERVER}/marc_export/pika.$TODAY.mrc
 
 		#Validate the export
 		cd /usr/local/vufind-plus/vufind/cron; java -server -XX:+UseG1GC -jar cron.jar ${PIKASERVER} ValidateMarcExport >> ${OUTPUT_FILE}
