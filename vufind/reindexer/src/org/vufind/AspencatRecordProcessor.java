@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 import org.ini4j.Ini;
 import org.marc4j.marc.DataField;
 import org.marc4j.marc.Record;
+import org.marc4j.marc.Subfield;
 import org.marc4j.marc.VariableField;
 
 import java.sql.Connection;
@@ -68,14 +69,19 @@ class AspencatRecordProcessor extends IlsRecordProcessor {
 
 	@Override
 	public void loadPrintFormatInformation(RecordInfo recordInfo, Record record) {
-		Set<String> printFormatsRaw = MarcUtil.getFieldList(record, itemTag + iTypeSubfield);
+		List<DataField> printFormatsRaw = MarcUtil.getDataFields(record, itemTag);
+
 		HashMap<String, Integer> printFormats = new HashMap<>();
-		for (String curFormat : printFormatsRaw){
-			String printFormatLower = curFormat.toLowerCase();
-			if (!printFormats.containsKey(printFormatLower)) {
-				printFormats.put(printFormatLower, 1);
-			} else {
-				printFormats.put(printFormatLower, printFormats.get(printFormatLower) + 1);
+		for (DataField curField : printFormatsRaw){
+			Subfield curFormatSubField = curField.getSubfield(iTypeSubfield);
+			if (curFormatSubField != null) {
+				String curFormat = curFormatSubField.getData();
+				String printFormatLower = curFormat.toLowerCase();
+				if (!printFormats.containsKey(printFormatLower)) {
+					printFormats.put(printFormatLower, 1);
+				} else {
+					printFormats.put(printFormatLower, printFormats.get(printFormatLower) + 1);
+				}
 			}
 		}
 
