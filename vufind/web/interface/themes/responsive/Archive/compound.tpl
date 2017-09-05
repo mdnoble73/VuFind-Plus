@@ -112,7 +112,7 @@
 								{foreach from=$bookContents item=section}
 									{if count($section.pages) == 0}
 										<li class="relatedTitle">
-											<a href="{$section.link}">
+											<a href="{$section.link}?pagePid={$section.pid}" onclick="return VuFind.Archive.handleBookClick('{$pid}', '{$section.pid}', VuFind.Archive.activeBookViewer);">
 												<figure class="thumbnail">
 													<img src="{$section.cover}" alt="{$section.title|removeTrailingPunctuation|truncate:80:"..."}">
 													<figcaption>{$section.title|removeTrailingPunctuation|truncate:80:"..."}</figcaption>
