@@ -25,6 +25,22 @@
 ## taken from https://en.wikipedia.org/wiki/Cron
 ##############
 
+# Below are common cron tasks used in Pika setups.
+# Uncomment (& adjust timing/settings) to implement the cron tasks your installation needs
+#
+
+#############
+# On Reboot #
+#############
+# Continuous Re-Indexing
+@reboot cd /usr/local/vufind-plus/sites/flatirons.production; ./continuous_partial_reindex.sh
+
+######################
+# MySQL Nightly Dump #
+######################
+# backup important bits at 12:10am daily
+10 0 * * * /usr/local/vufind-plus/vufind/cron/nightly_mysql_dump.sh flatirons.production 2>&1 >/dev/null
+
 # Restart apache
 0 0-7 * * * /usr/sbin/apachectl restart > /dev/null 2>&1
 
@@ -45,3 +61,23 @@
 ###############################################
 14 */2 * * * /usr/local/vufind-plus/sites/flatirons.production/copyCovers.sh
 
+###################
+# Pika Cron Jobs  #
+###################
+7 20 * * * cd /usr/local/vufind-plus/vufind/cron/; java -Dhttps.protocols="TLSv1.1,TLSv1.2" -jar cron.jar flatirons.production UpdateReadingHistory
+20 0 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar flatirons.production DatabaseCleanup
+
+#############################################
+# New York Times Best seller Lists Updating #
+#############################################
+07 7 * * 0 /usr/local/vufind-plus/vufind/cron/updateNYTLists.sh flatirons.production
+# update on Sundays at 7:07
+
+################
+# Pika Cleanup #
+################
+# Clean Up Temporary Files
+27 */2 * * * cd /tmp; /bin/rm -rf epb*
+
+# Check Apache Solr process and website that it has not stalled.
+*/3 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./solrTest.sh

@@ -9,7 +9,6 @@
 
 # this version emails script output
 EMAIL=mark@marmot.org,pascal@marmot.org
-ILSSERVER=nell.boulderlibrary.org
 PIKASERVER=flatirons.production
 PIKADBNAME=pika
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
@@ -150,7 +149,7 @@ TODAY=$(date +"%m_%d_%Y")
 #Extract from ILS
 #Copy extracts from FTP Server
 mount 10.1.2.7:/ftp/flatirons_marc_export /mnt/ftp
-FILE=$(find /mnt/ftp/ -name script.MARC.* -mtime -1 | sort -n | tail -1)
+FILE=$(find /mnt/ftp -name "script.MARC.*" -mtime -1 | sort -n | tail -1)
 
 if [ -n "$FILE" ]
 then
@@ -187,6 +186,7 @@ then
 
 	else
 		echo $FILE " size " $FILE1SIZE "is less than minimum size :" $MINFILE1SIZE "; Export was not moved to data directory, Full Regrouping & Full Reindexing skipped." >> ${OUTPUT_FILE}
+		umount /mnt/ftp
 	fi
 else
 	echo "Did not find a Sierra export file from the last 24 hours, Full Regrouping & Full Reindexing skipped." >> ${OUTPUT_FILE}

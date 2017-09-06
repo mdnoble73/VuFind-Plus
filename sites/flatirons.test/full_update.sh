@@ -158,7 +158,7 @@ fi
 #Extract from ILS
 #Copy extracts from FTP Server
 mount 10.1.2.7:/ftp/flatirons_marc_export /mnt/ftp
-FILE=$(find /mnt/ftp/ -name script.MARC.* -mtime -1 | sort -n | tail -1)
+FILE=$(find /mnt/ftp -name "script.MARC.*" -mtime -1 | sort -n | tail -1)
 
 if [ -n "$FILE" ]
 then
