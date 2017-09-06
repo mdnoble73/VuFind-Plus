@@ -829,30 +829,27 @@ class CarlX extends SIP2Driver{
 	public function getSelfRegistrationFields() {
 		global $library;
 		$fields = array();
-		$fields[] = array('property'=>'firstName',   'type'=>'text', 'label'=>'First Name', 'description'=>'Your first name', 'maxLength' => 40, 'required' => true);
-		$fields[] = array('property'=>'middleName',  'type'=>'text', 'label'=>'Middle Name', 'description'=>'Your middle name', 'maxLength' => 40, 'required' => true);
-		// gets added to the first name separated by a space
-		$fields[] = array('property'=>'lastName',   'type'=>'text', 'label'=>'Last Name', 'description'=>'Your last name', 'maxLength' => 40, 'required' => true);
+		$fields[] = array('default'=>'PIKA','property'=>'firstName',   'type'=>'text', 'label'=>'First Name', 'description'=>'Your first name', 'maxLength' => 40, 'required' => true);
+		$fields[] = array('default'=>'SELF REGISTRATION','property'=>'middleName',  'type'=>'text', 'label'=>'Middle Name', 'description'=>'Your middle name', 'maxLength' => 40, 'required' => false);
+		$fields[] = array('default'=>'TEST','property'=>'lastName',   'type'=>'text', 'label'=>'Last Name', 'description'=>'Your last name', 'maxLength' => 40, 'required' => true);
 		if ($library && $library->promptForBirthDateInSelfReg){
-			$fields[] = array('property'=>'birthDate', 'type'=>'date', 'label'=>'Date of Birth (MM-DD-YYYY)', 'description'=>'Date of birth', 'maxLength' => 10, 'required' => true);
+			$fields[] = array('default'=>'01-01-1991','property'=>'birthDate', 'type'=>'date', 'label'=>'Date of Birth (MM-DD-YYYY)', 'description'=>'Date of birth', 'maxLength' => 10, 'required' => true);
 		}
-		$fields[] = array('property'=>'address',     'type'=>'text', 'label'=>'Mailing Address', 'description'=>'Mailing Address', 'maxLength' => 128, 'required' => true);
-		$fields[] = array('property'=>'city',        'type'=>'text', 'label'=>'City', 'description'=>'City', 'maxLength' => 48, 'required' => true);
-		$fields[] = array('property'=>'state',       'type'=>'text', 'label'=>'State', 'description'=>'State', 'maxLength' => 32, 'required' => true);
-		$fields[] = array('property'=>'zip',         'type'=>'text', 'label'=>'Zip Code', 'description'=>'Zip Code', 'maxLength' => 32, 'required' => true);
-		$fields[] = array('property'=>'email',       'type'=>'email', 'label'=>'E-Mail', 'description'=>'E-Mail', 'maxLength' => 128, 'required' => false);
-		$fields[] = array('property'=>'pin',         'type'=>'pin',   'label'=>'Pin', 'description'=>'Your desired 4-digit pin', 'maxLength' => 4, 'size' => 4, 'required' => true);
-		$fields[] = array('property'=>'pin1',        'type'=>'pin',   'label'=>'Confirm Pin', 'description'=>'Re-type your desired 4-digit pin', 'maxLength' => 4, 'size' => 4, 'required' => true);
-		//$fields[] = array('property'=>'universityID', 'type'=>'text', 'label'=>'Drivers License #', 'description'=>'Drivers License', 'maxLength' => 128, 'required' => false);
-
-		//TODO: Home Branch
+		$fields[] = array('default'=>'7 E ST','property'=>'address',     'type'=>'text', 'label'=>'Mailing Address', 'description'=>'Mailing Address', 'maxLength' => 128, 'required' => true);
+		$fields[] = array('default'=>'NASHVILLE','property'=>'city',        'type'=>'text', 'label'=>'City', 'description'=>'City', 'maxLength' => 48, 'required' => true);
+		$fields[] = array('default'=>'TN','property'=>'state',       'type'=>'text', 'label'=>'State', 'description'=>'State', 'maxLength' => 32, 'required' => true);
+		$fields[] = array('default'=>'37219','property'=>'zip',         'type'=>'text', 'label'=>'Zip Code', 'description'=>'Zip Code', 'maxLength' => 32, 'required' => true);
+		$fields[] = array('default'=>'615-862-5800','property'=>'phone',       'type'=>'text',  'label'=>'Primary Phone', 'description'=>'Primary Phone', 'maxLength'=>15, 'required'=>true);
+		$fields[] = array('default'=>'james.staub@nashville.gov','property'=>'email',       'type'=>'email', 'label'=>'E-Mail', 'description'=>'E-Mail', 'maxLength' => 128, 'required' => true);
+		$fields[] = array('default'=>'7357','property'=>'pin',         'type'=>'pin',   'label'=>'Pin', 'description'=>'Your desired 4-digit pin', 'maxLength' => 4, 'size' => 4, 'required' => true);
+		$fields[] = array('default'=>'7357','property'=>'pin1',        'type'=>'pin',   'label'=>'Confirm Pin', 'description'=>'Re-type your desired 4-digit pin', 'maxLength' => 4, 'size' => 4, 'required' => true);
 		return $fields;
-
 	}
 
 	public function selfRegister(){
 		global $library,
-		       $configArray;
+		       $configArray,
+		       $active_ip;
 		$success = false;
 
 		$lastPatronID = new Variable();
@@ -873,25 +870,65 @@ class CarlX extends SIP2Driver{
 			$email      = trim($_REQUEST['email']);
 			$pin        = trim($_REQUEST['pin']);
 			$pin1       = trim($_REQUEST['pin1']);
+			$phone       = trim($_REQUEST['phone']);
 
 			if (!empty($pin) && !empty($pin1) && $pin == $pin1) {
+				// DENY REGISTRATION IF DUPLICATE EMAIL IS FOUND IN CARL.X
+				$request				= new stdClass();
+				$request->Modifiers			= '';
+				$request->AllSearchTermMatch		= 'true';
+				$request->SearchTerms			= new stdClass();
+				$request->SearchTerms->ApplicationType	= 'exact match';
+				$request->SearchTerms->Attribute	= 'Email';
+				$request->SearchTerms->Value		= $email;
+				$request->PagingParameters		= new stdClass();
+				$request->PagingParameters->StartPos	= 0;
+				$request->PagingParameters->NoOfRecords	= 1;
+				$request->Modifiers			= new stdClass();
+				$request->Modifiers->InstitutionCode	= 'NASH';
+				$result = $this->doSoapRequest('searchPatron', $request, $this->patronWsdl, $this->genericResponseSOAPCallOptions);
+				if ($result) {
+					$noEmailMatch = stripos($result->ResponseStatuses->ResponseStatus->ShortMessage, 'No matching records found');
+					if ($noEmailMatch === false) {
+						global $logger;
+						$logger->log('Online Registration Email already exists in Carl. Email: ' . $email . ' IP: ' . $active_ip, PEAR_LOG_ERR);
+						return array(
+							'success' => false,
+							'barcode' => $tempPatronID,
+						);
+					}
+				}
 
+				// SEND CREATE PATRON REQUEST
 				$request                                         = new stdClass();
 				$request->Modifiers                              = '';
-				$request->PatronFlags->PatronFlag                = 'DUPCHECK_NAME_DOB'; // Do a duplicate name/date of birth check
+				//$request->PatronFlags->PatronFlag                = 'DUPCHECK_ALTID'; // Duplicate check for alt id
+				$request->PatronFlags->PatronFlag[0]                = 'DUPCHECK_NAME_DOB'; // Duplicate check for name/date of birth
+				$request->PatronFlags->PatronFlag[1]                = 'VALIDATE_ZIPCODE'; // Validate ZIP against Carl.X Admin legal ZIPs
+				$request->Patron				= new stdClass();
 				$request->Patron->PatronID                       = $tempPatronID;
 				$request->Patron->Email                          = $email;
 				$request->Patron->FirstName                      = $firstName;
 				$request->Patron->MiddleName                     = $middleName;
 				$request->Patron->LastName                       = $lastName;
+				$request->Patron->Addresses			= new stdClass();
+				$request->Patron->Addresses->Address		= new stdClass();
 				$request->Patron->Addresses->Address->Type       = 'Primary';
 				$request->Patron->Addresses->Address->Street     = $address;
 				$request->Patron->Addresses->Address->City       = $city;
 				$request->Patron->Addresses->Address->State      = $state;
 				$request->Patron->Addresses->Address->PostalCode = $zip;
-				$request->Patron->PatronPIN                      = $pin;
-				// TODO: Set Home Branch?
-				// TODO: Set Expiration Date?
+				$request->Patron->PatronPIN			= $pin;
+				$request->Patron->Phone1			= $phone;
+				$request->Patron->RegistrationDate		= date('c'); // Registration Date, format ISO 8601
+				
+				$request->Patron->EmailNotices			= $configArray['Catalog']['selfRegEmailNotices'];
+				$request->Patron->DefaultBranch			= $configArray['Catalog']['selfRegDefaultBranch'];
+				$request->Patron->PatronExpirationDate		= $configArray['Catalog']['selfRegPatronExpirationDate'];
+				$request->Patron->PatronStatusCode		= $configArray['Catalog']['selfRegPatronStatusCode'];
+				$request->Patron->PatronType			= $configArray['Catalog']['selfRegPatronType'];
+				$request->Patron->RegBranch			= $configArray['Catalog']['selfRegRegBranch'];
+				$request->Patron->RegisteredBy			= $configArray['Catalog']['selfRegRegisteredBy'];
 
 				if ($library && $library->promptForBirthDateInSelfReg) {
 					$birthDate                  = trim($_REQUEST['birthDate']);
@@ -899,19 +936,15 @@ class CarlX extends SIP2Driver{
 					$request->Patron->BirthDate = $date->format('Y-m-d');
 				}
 
-				$request->Patron->RegisteredBy = 'Pika Discovery Layer';
-
 				$result = $this->doSoapRequest('createPatron', $request, $this->patronWsdl, $this->genericResponseSOAPCallOptions);
-
 				if (is_null($result) && $this->soapClient) {
 					$result = $this->soapClient->__getLastResponse();
-//				echo '<pre>';
-//				print_r($this->soapClient->__getFunctions());
-//				echo '</pre>';
+
 					if ($result) {
 						$unxml = new XML_Unserializer();
 						$unxml->unserialize($result);
 						$response = $unxml->getUnserializedData();
+
 						if ($response) {
 							$success = isset($response['SOAP-ENV:Body']['ns3:GenericResponse']['ns3:ResponseStatuses']['ns2:ResponseStatus']['ns2:ShortMessage'])
 								&& stripos($response['SOAP-ENV:Body']['ns3:GenericResponse']['ns3:ResponseStatuses']['ns2:ResponseStatus']['ns2:ShortMessage'], 'Success') !== false;
@@ -933,8 +966,6 @@ class CarlX extends SIP2Driver{
 										$logger->log('Failed to update Variables table with new value ' . $currentPatronIDNumber . ' for "last_selfreg_patron_id" in CarlX Driver', PEAR_LOG_ERR);
 									}
 								}
-//						$updateErrors[] = 'Failed to update your information'. ($errorMessage ? ' : ' .$errorMessage : '');
-
 							} else {
 								$lastPatronID->value = $currentPatronIDNumber;
 								if (!$lastPatronID->update()) {
@@ -975,6 +1006,34 @@ class CarlX extends SIP2Driver{
 										}
 									}
 								}
+								$request 			= new stdClass();
+								$request->Modifiers		= '';
+								$request->Note			= new stdClass();
+								$request->Note->PatronID	= $tempPatronID;
+								$request->Note->NoteType	= 2;
+								$request->Note->NoteText	= "Online registration from IP " . $active_ip;
+								$result = $this->doSoapRequest('addPatronNote', $request, $this->patronWsdl,  $this->genericResponseSOAPCallOptions);
+
+								if (is_null($result)) {
+									$result = $this->soapClient->__getLastResponse();
+									if ($result) {
+										$unxml = new XML_Unserializer();
+										$unxml->unserialize($result);
+										$response = $unxml->getUnserializedData();
+											if ($response) {
+											$success = stripos($response['SOAP-ENV:Body']['ns3:GenericResponse']['ns3:ResponseStatuses']['ns2:ResponseStatus']['ns2:ShortMessage'], 'Success') !== false;
+											if (!$success) {
+												global $logger;
+												$logger->log('Unable to write IP address in Patron Note.', PEAR_LOG_ERR);
+												// Return Success Any way, because the account was created.
+												return array(
+													'success' => true,
+													'barcode' => $tempPatronID,
+												);
+											}
+										}
+									}
+								}
 
 								return array(
 									'success' => $success,
@@ -983,17 +1042,16 @@ class CarlX extends SIP2Driver{
 							}
 
 						} else {
-//					$updateErrors[] = 'Unable to update your information.';
 							global $logger;
 							$logger->log('Unable to read XML from CarlX response when attempting to create Patron.', PEAR_LOG_ERR);
 						}
 
 					} else {
-//				$updateErrors[] = 'Unable to update your information.';
 						global $logger;
 						$logger->log('CarlX ILS gave no response when attempting to create Patron.', PEAR_LOG_ERR);
 					}
 				}
+
 			} else {
 				global $logger;
 				$logger->log('CarlX Self Registration Form was passed bad data for a user\'s pin.', PEAR_LOG_WARNING);
