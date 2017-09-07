@@ -338,7 +338,10 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 					break;
 				}
 			}
-			if (primaryFormat == null) primaryFormat = "Unknown";
+			if (primaryFormat == null || primaryFormat.equals("Unknown")) {
+				primaryFormat = "Unknown";
+				logger.warn("No primary format found setting to unknown to load standard marc data");
+			}
 			updateGroupedWorkSolrDataBasedOnStandardMarcData(groupedWork, record, recordInfo.getRelatedItems(), identifier, primaryFormat);
 
 			//Special processing for ILS Records
