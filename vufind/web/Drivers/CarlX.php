@@ -1238,6 +1238,16 @@ class CarlX extends SIP2Driver{
 				$result->FineItems->FineItem = array($result->FineItems->FineItem);
 			}
 			foreach($result->FineItems->FineItem as $fine) {
+				// hard coded Nashville school branch IDs
+				if ($fine->Branch == 0) {
+					$fine->Branch = $fines->TransactionBranch;
+				}
+				if ($fine->Branch >= 30 && $fines->Branch <= 178 && $fines->Branch != 42 && $fines->Branch != 171) {
+					$fine->System = "MNPS";
+				} else {
+					$fine->System = "NPL";
+				}
+
 				if ($fine->FineAmountPaid > 0) {
 					$fine->FineAmount -= $fine->FineAmountPaid;
 				}
@@ -1246,6 +1256,7 @@ class CarlX extends SIP2Driver{
 					'amount'  => $fine->FineAmount,
 					'message' => $fine->Title,
 					'date'    => date('M j, Y', strtotime($fine->FineAssessedDate)),
+					'system'  => $fine->System,
 				);
 			}
 		}
@@ -1262,12 +1273,23 @@ class CarlX extends SIP2Driver{
 				$result->LostItems->LostItem = array($result->LostItems->LostItem);
 			}
 			foreach($result->LostItems->LostItem as $fine) {
+				// hard coded Nashville school branch IDs
+				if ($fine->Branch == 0) {
+					$fine->Branch = $fines->TransactionBranch;
+				}
+				if ($fine->Branch >= 30 && $fines->Branch <= 178 && $fines->Branch != 42 && $fines->Branch != 171) {
+					$fine->System = "MNPS";
+				} else {
+					$fine->System = "NPL";
+				}
+					
 				$myFines[] = array(
 					'reason'  => $fine->FeeNotes,
 //					'amount'  => $fine->FineAmount, // TODO: There is no corresponding amount
 					'amount'  => $fine->FeeAmount,
 					'message' => $fine->Title,
 					'date'    => date('M j, Y', strtotime($fine->TransactionDate)),
+					'system'  => $fine->System,
 				);
 			}
 		}
