@@ -69,23 +69,13 @@ class AspencatRecordProcessor extends IlsRecordProcessor {
 
 	@Override
 	public void loadPrintFormatInformation(RecordInfo recordInfo, Record record) {
-		List<DataField> printFormatsRaw = MarcUtil.getDataFields(record, itemTag);
-
-		HashMap<String, Integer> printFormats = new HashMap<>();
-		for (DataField curField : printFormatsRaw){
-			Subfield curFormatSubField = curField.getSubfield(iTypeSubfield);
-			if (curFormatSubField != null) {
-				String curFormat = curFormatSubField.getData();
-				String printFormatLower = curFormat.toLowerCase();
-				if (!printFormats.containsKey(printFormatLower)) {
-					printFormats.put(printFormatLower, 1);
-				} else {
-					printFormats.put(printFormatLower, printFormats.get(printFormatLower) + 1);
-				}
-			}
+		Set<String> printFormatsRaw = MarcUtil.getFieldList(record, itemTag + iTypeSubfield);
+		HashSet<String> printFormats = new HashSet<>();
+		for (String curFormat : printFormatsRaw){
+			printFormats.add(curFormat.toLowerCase());
 		}
 
-		HashSet<String> translatedFormats = translateCollection("format", printFormats.keySet(), recordInfo.getRecordIdentifier());
+		HashSet<String> translatedFormats = translateCollection("format", printFormats, recordInfo.getRecordIdentifier());
 
 		//If all formats are book, don't use the format from iType
 		boolean allBook = true;
@@ -101,44 +91,11 @@ class AspencatRecordProcessor extends IlsRecordProcessor {
 			super.loadPrintFormatFromBib(recordInfo, record);
 		} else{
 			//logger.debug("Using default method of loading formats from iType");
-			HashSet<String> selectedPrintFormats = new HashSet<>();
-			int maxPrintFormats = 0;
-			String selectedFormat = "";
-			if (printFormats.containsKey("lp")) {
-				selectedFormat = "lp";
-			}else if (printFormats.containsKey("musiccd")){
-				selectedFormat = "MusicCD";
-			}else if (printFormats.containsKey("musiccassette")){
-				selectedFormat = "MusicCassette";
-			}else if (printFormats.containsKey("musicrecording")){
-				selectedFormat = "MusicRecording";
-			}else if (printFormats.size() > 1) {
-				for (String printFormat : printFormats.keySet()) {
-					int numUsages = printFormats.get(printFormat);
-					logger.info("  " + printFormat + " used " + numUsages + " times");
-					if (numUsages > maxPrintFormats) {
-						if (selectedFormat.length() > 0) {
-							logger.debug("Record " + recordInfo.getRecordIdentifier() + " " + printFormat + " has more usages (" + numUsages + ") than " + selectedFormat + " (" + maxPrintFormats + ")");
-						}
-						selectedFormat = printFormat;
-						maxPrintFormats = numUsages;
-					}
-				}
-				logger.info("  Selected Format is " + selectedFormat);
-			}else if (printFormats.size() == 1) {
-				selectedFormat = printFormats.keySet().iterator().next();
-			}else{
-				logger.warn("No format found for record " + recordInfo.getRecordIdentifier());
-				selectedFormat = "Unknown";
-			}
-			selectedPrintFormats.add(selectedFormat);
-
-			translatedFormats = translateCollection("format", selectedPrintFormats, recordInfo.getRecordIdentifier());
-			HashSet<String> translatedFormatCategories = translateCollection("format_category", selectedPrintFormats, recordInfo.getRecordIdentifier());
+			HashSet<String> translatedFormatCategories = translateCollection("format_category", printFormats, recordInfo.getRecordIdentifier());
 			recordInfo.addFormats(translatedFormats);
 			recordInfo.addFormatCategories(translatedFormatCategories);
 			Long formatBoost = 0L;
-			HashSet<String> formatBoosts = translateCollection("format_boost", selectedPrintFormats, recordInfo.getRecordIdentifier());
+			HashSet<String> formatBoosts = translateCollection("format_boost", printFormats, recordInfo.getRecordIdentifier());
 			for (String tmpFormatBoost : formatBoosts){
 				if (Util.isNumeric(tmpFormatBoost)) {
 					Long tmpFormatBoostLong = Long.parseLong(tmpFormatBoost);
