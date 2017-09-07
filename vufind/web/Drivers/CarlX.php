@@ -829,34 +829,35 @@ class CarlX extends SIP2Driver{
 	public function getSelfRegistrationFields() {
 		global $library;
 		$fields = array();
-		$fields[] = array('default'=>'PIKA','property'=>'firstName',   'type'=>'text', 'label'=>'First Name', 'description'=>'Your first name', 'maxLength' => 40, 'required' => true);
-		$fields[] = array('default'=>'SELF REGISTRATION','property'=>'middleName',  'type'=>'text', 'label'=>'Middle Name', 'description'=>'Your middle name', 'maxLength' => 40, 'required' => false);
-		$fields[] = array('default'=>'TEST','property'=>'lastName',   'type'=>'text', 'label'=>'Last Name', 'description'=>'Your last name', 'maxLength' => 40, 'required' => true);
+		$fields[] = array('property'=>'firstName',   'type'=>'text', 'label'=>'First Name', 'description'=>'Your first name', 'maxLength' => 40, 'required' => true);
+		$fields[] = array('property'=>'middleName',  'type'=>'text', 'label'=>'Middle Name', 'description'=>'Your middle name', 'maxLength' => 40, 'required' => false);
+		$fields[] = array('property'=>'lastName',   'type'=>'text', 'label'=>'Last Name', 'description'=>'Your last name', 'maxLength' => 40, 'required' => true);
 		if ($library && $library->promptForBirthDateInSelfReg){
-			$fields[] = array('default'=>'01-01-1991','property'=>'birthDate', 'type'=>'date', 'label'=>'Date of Birth (MM-DD-YYYY)', 'description'=>'Date of birth', 'maxLength' => 10, 'required' => true);
+			$fields[] = array('property'=>'birthDate', 'type'=>'date', 'label'=>'Date of Birth (MM-DD-YYYY)', 'description'=>'Date of birth', 'maxLength' => 10, 'required' => true);
 		}
-		$fields[] = array('default'=>'7 E ST','property'=>'address',     'type'=>'text', 'label'=>'Mailing Address', 'description'=>'Mailing Address', 'maxLength' => 128, 'required' => true);
-		$fields[] = array('default'=>'NASHVILLE','property'=>'city',        'type'=>'text', 'label'=>'City', 'description'=>'City', 'maxLength' => 48, 'required' => true);
-		$fields[] = array('default'=>'TN','property'=>'state',       'type'=>'text', 'label'=>'State', 'description'=>'State', 'maxLength' => 32, 'required' => true);
-		$fields[] = array('default'=>'37219','property'=>'zip',         'type'=>'text', 'label'=>'Zip Code', 'description'=>'Zip Code', 'maxLength' => 32, 'required' => true);
-		$fields[] = array('default'=>'615-862-5800','property'=>'phone',       'type'=>'text',  'label'=>'Primary Phone', 'description'=>'Primary Phone', 'maxLength'=>15, 'required'=>true);
-		$fields[] = array('default'=>'james.staub@nashville.gov','property'=>'email',       'type'=>'email', 'label'=>'E-Mail', 'description'=>'E-Mail', 'maxLength' => 128, 'required' => true);
-		$fields[] = array('default'=>'7357','property'=>'pin',         'type'=>'pin',   'label'=>'Pin', 'description'=>'Your desired 4-digit pin', 'maxLength' => 4, 'size' => 4, 'required' => true);
-		$fields[] = array('default'=>'7357','property'=>'pin1',        'type'=>'pin',   'label'=>'Confirm Pin', 'description'=>'Re-type your desired 4-digit pin', 'maxLength' => 4, 'size' => 4, 'required' => true);
+		$fields[] = array('property'=>'address',     'type'=>'text', 'label'=>'Mailing Address', 'description'=>'Mailing Address', 'maxLength' => 128, 'required' => true);
+		$fields[] = array('property'=>'city',        'type'=>'text', 'label'=>'City', 'description'=>'City', 'maxLength' => 48, 'required' => true);
+		$fields[] = array('default'=>'TN','property'=>'state',       'type'=>'text', 'label'=>'State', 'description'=>'State', 'maxLength' => 2, 'required' => true);
+		$fields[] = array('property'=>'zip',         'type'=>'text', 'label'=>'Zip Code', 'description'=>'Zip Code', 'maxLength' => 32, 'required' => true);
+		$fields[] = array('property'=>'phone',       'type'=>'text',  'label'=>'Primary Phone', 'description'=>'Primary Phone', 'maxLength'=>15, 'required'=>true);
+		$fields[] = array('property'=>'email',       'type'=>'email', 'label'=>'E-Mail', 'description'=>'E-Mail', 'maxLength' => 128, 'required' => true);
+		$fields[] = array('property'=>'pin',         'type'=>'pin',   'label'=>'Pin', 'description'=>'Your desired 4-digit pin', 'maxLength' => 4, 'size' => 4, 'required' => true);
+		$fields[] = array('property'=>'pin1',        'type'=>'pin',   'label'=>'Confirm Pin', 'description'=>'Re-type your desired 4-digit pin', 'maxLength' => 4, 'size' => 4, 'required' => true);
 		return $fields;
 	}
 
 	public function selfRegister(){
 		global $library,
 		       $configArray,
-		       $active_ip;
+		       $active_ip,
+		       $interface;
 		$success = false;
 
 		$lastPatronID = new Variable();
 		$lastPatronID->get('name', 'last_selfreg_patron_id');
 
 		if (!empty($lastPatronID->value)) {
-			$currentPatronIDNumber = ++$lastPatronID->value;
+			$currentPatronIDNumber = rand(1,13) + $lastPatronID->value;
 
 			$tempPatronID = $configArray['Catalog']['selfRegIDPrefix'] . str_pad($currentPatronIDNumber, $configArray['Catalog']['selfRegIDNumberLength'], '0', STR_PAD_LEFT);
 
@@ -873,7 +874,10 @@ class CarlX extends SIP2Driver{
 			$phone       = trim($_REQUEST['phone']);
 
 			if (!empty($pin) && !empty($pin1) && $pin == $pin1) {
+/*
 				// DENY REGISTRATION IF DUPLICATE EMAIL IS FOUND IN CARL.X
+				// searchPatron on Email appears to be case-insensitive and 
+				// appears to eliminate spurious whitespace
 				$request				= new stdClass();
 				$request->Modifiers			= '';
 				$request->AllSearchTermMatch		= 'true';
@@ -898,7 +902,7 @@ class CarlX extends SIP2Driver{
 						);
 					}
 				}
-
+*/
 				// SEND CREATE PATRON REQUEST
 				$request                                         = new stdClass();
 				$request->Modifiers                              = '';
@@ -1006,6 +1010,8 @@ class CarlX extends SIP2Driver{
 										}
 									}
 								}
+
+								// FOLLOWING SUCCESSFUL SELF REGISTRATION, INPUT PATRON IP ADDRESS INTO PATRON RECORD NOTE
 								$request 			= new stdClass();
 								$request->Modifiers		= '';
 								$request->Note			= new stdClass();
@@ -1035,23 +1041,40 @@ class CarlX extends SIP2Driver{
 									}
 								}
 
+								// FOLLOWING SUCCESSFUL SELF REGISTRATION, EMAIL PATRON THE LIBRARY CARD NUMBER
+								$body = $interface->fetch('Emails/self-registration.tpl');
+								$body = $firstName . " " . $lastName . "\n\nThank you for registering for an Online Library Card. Your library card number is:\n\n" . $tempPatronID . "\n\n" . $body;
+								require_once ROOT_DIR . '/sys/Mailer.php';
+								$mail = new VuFindMailer();
+								$subject = 'Welcome to the Nashville Public Library';
+								$emailResult = $mail->send($email, 'no-reply@nashville.gov', $subject, $body);
+								if ($emailResult === true){
+									$result = array(
+										'result' => true,
+										'message' => 'Your e-mail was sent successfully.'
+									);
+								} elseif (PEAR_Singleton::isError($emailResult)){
+									$interface->assign('error', "Your request could not be sent: {$emailResult->message}.");
+								} else {
+									$interface->assign('error', "Your request could not be sent due to an unknown error.");
+									global $logger;
+									$logger->log("Mail List Failure (unknown reason), parameters: $email, $newObject->email, $subject, $body", PEAR_LOG_ERR);
+								}
 								return array(
 									'success' => $success,
 									'barcode' => $tempPatronID,
+									'patronName' => $firstName . ' ' . $lastName,
 								);
 							}
-
 						} else {
 							global $logger;
 							$logger->log('Unable to read XML from CarlX response when attempting to create Patron.', PEAR_LOG_ERR);
 						}
-
 					} else {
 						global $logger;
 						$logger->log('CarlX ILS gave no response when attempting to create Patron.', PEAR_LOG_ERR);
 					}
 				}
-
 			} else {
 				global $logger;
 				$logger->log('CarlX Self Registration Form was passed bad data for a user\'s pin.', PEAR_LOG_WARNING);
@@ -1059,9 +1082,7 @@ class CarlX extends SIP2Driver{
 		} else {
 			global $logger;
 			$logger->log('No value for "last_selfreg_patron_id" set in Variables table. Can not self-register patron in CarlX Driver.', PEAR_LOG_ERR);
-
 		}
-
 		return array(
 			'success' => $success
 		);
