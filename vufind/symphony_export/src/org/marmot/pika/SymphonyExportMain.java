@@ -198,15 +198,18 @@ public class SymphonyExportMain {
 				logger.warn("Holds File was last written more than 2 days ago");
 			}else{
 				writeHolds = true;
+				String lastCatalogIdRead = "";
 				try {
-
-					CSVReader holdsReader = new CSVReader(new InputStreamReader(new FileInputStream(holdFile), "UTF-16"));
-					String[] holdsData = holdsReader.readNext();
-					while (holdsData != null){
-						if (holdsData.length == 3){
-							String catalogId = holdsData[0];
+					BufferedReader reader = new BufferedReader(new FileReader(holdFile));
+					String line = reader.readLine();
+					while (line != null){
+						int firstComma = line.indexOf(',');
+						if (firstComma > 0){
+							String catalogId = line.substring(0, firstComma);
+							catalogId = catalogId.replaceAll("\\D", "");
+							lastCatalogIdRead = catalogId;
 							//Make sure the catalog is numeric
-							if (catalogId.matches("^\\d+$")){
+							if (catalogId.length() > 0 && catalogId.matches("^\\d+$")){
 								if (holdsByBib.containsKey(catalogId)){
 									holdsByBib.put(catalogId, holdsByBib.get(catalogId) +1);
 								}else{
@@ -214,13 +217,13 @@ public class SymphonyExportMain {
 								}
 							}
 						}
-						holdsData = holdsReader.readNext();
+						line = reader.readLine();
 					}
 				}catch (Exception e){
 					logger.error("Error reading holds file ", e);
 					hadErrors = true;
 				}
-				logger.info("Read " + holdsByBib.size() + " bibs with holds");
+				logger.info("Read " + holdsByBib.size() + " bibs with holds, lastCatalogIdRead = " + lastCatalogIdRead);
 			}
 		}else{
 			logger.warn("No holds file found at " + indexingProfile.marcPath + "/Pika_Holds.csv");
@@ -236,13 +239,17 @@ public class SymphonyExportMain {
 			}else {
 				writeHolds = true;
 				try {
-					CSVReader holdsReader = new CSVReader(new InputStreamReader(new FileInputStream(periodicalsHoldFile), "UTF-16"));
-					String[] holdsData = holdsReader.readNext();
-					while (holdsData != null){
-						if (holdsData.length == 3){
-							String catalogId = holdsData[0];
+					BufferedReader reader = new BufferedReader(new FileReader(periodicalsHoldFile));
+					String line = reader.readLine();
+					String lastCatalogIdRead = "";
+					while (line != null){
+						int firstComma = line.indexOf(',');
+						if (firstComma > 0){
+							String catalogId = line.substring(0, firstComma);
+							catalogId = catalogId.replaceAll("\\D", "");
+							lastCatalogIdRead = catalogId;
 							//Make sure the catalog is numeric
-							if (catalogId.matches("^\\d+$")){
+							if (catalogId.length() > 0 && catalogId.matches("^\\d+$")){
 								if (holdsByBib.containsKey(catalogId)){
 									holdsByBib.put(catalogId, holdsByBib.get(catalogId) +1);
 								}else{
@@ -250,9 +257,9 @@ public class SymphonyExportMain {
 								}
 							}
 						}
-						holdsData = holdsReader.readNext();
+						line = reader.readLine();
 					}
-					logger.info(holdsByBib.size() + " bibs with holds (including periodicals)");
+					logger.info(holdsByBib.size() + " bibs with holds (including periodicals) lastCatalogIdRead for periodicals = " + lastCatalogIdRead);
 				}catch (Exception e){
 					logger.error("Error reading periodicals holds file ", e);
 					hadErrors = true;

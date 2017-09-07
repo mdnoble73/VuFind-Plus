@@ -20,6 +20,7 @@ class InclusionRule {
 	private Pattern locationCodePattern;
 	private Pattern subLocationCodePattern;
 	private Pattern iTypePattern;
+	private boolean matchAllAudiences = false;
 	private Pattern audiencePattern;
 	private Pattern formatPattern;
 	private boolean includeHoldableOnly;
@@ -54,6 +55,7 @@ class InclusionRule {
 
 		if (audience == null || audience.length() == 0){
 			audience = ".*";
+			matchAllAudiences = true;
 		}
 		this.audiencePattern = Pattern.compile(audience, Pattern.CASE_INSENSITIVE);
 
@@ -114,10 +116,14 @@ class InclusionRule {
 					isIncluded =  false;
 				}else{
 					boolean audienceMatched = false;
-					for (String audience : audiences){
-						if (audiencePattern.matcher(audience).lookingAt()){
-							audienceMatched = true;
-							break;
+					if (matchAllAudiences){
+						audienceMatched = true;
+					}else {
+						for (String audience : audiences) {
+							if (audiencePattern.matcher(audience).lookingAt()) {
+								audienceMatched = true;
+								break;
+							}
 						}
 					}
 					isIncluded = audienceMatched;
