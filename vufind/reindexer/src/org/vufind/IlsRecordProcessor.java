@@ -338,7 +338,10 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 					break;
 				}
 			}
-			if (primaryFormat == null) primaryFormat = "Unknown";
+			if (primaryFormat == null || primaryFormat.equals("Unknown")) {
+				primaryFormat = "Unknown";
+				logger.info("No primary format for " + recordInfo.getRecordIdentifier() + " found setting to unknown to load standard marc data");
+			}
 			updateGroupedWorkSolrDataBasedOnStandardMarcData(groupedWork, record, recordInfo.getRelatedItems(), identifier, primaryFormat);
 
 			//Special processing for ILS Records
@@ -1317,8 +1320,10 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			logger.debug("Print formats from bib:");
 			logger.debug("    " + format);
 		}*/
-
 		HashSet<String> translatedFormats = translateCollection("format", printFormats, recordInfo.getRecordIdentifier());
+		if (translatedFormats.size() == 0){
+			logger.warn("Did not find a format for " + recordInfo.getRecordIdentifier() + " using standard format method " + printFormats.toString());
+		}
 		HashSet<String> translatedFormatCategories = translateCollection("format_category", printFormats, recordInfo.getRecordIdentifier());
 		recordInfo.addFormats(translatedFormats);
 		recordInfo.addFormatCategories(translatedFormatCategories);
