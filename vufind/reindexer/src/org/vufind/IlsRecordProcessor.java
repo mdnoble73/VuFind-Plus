@@ -1317,8 +1317,10 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			logger.debug("Print formats from bib:");
 			logger.debug("    " + format);
 		}*/
-
 		HashSet<String> translatedFormats = translateCollection("format", printFormats, recordInfo.getRecordIdentifier());
+		if (translatedFormats.size() == 0){
+			logger.warn("Did not find a format for " + recordInfo.getRecordIdentifier() + " using standard format method " + printFormats.toString());
+		}
 		HashSet<String> translatedFormatCategories = translateCollection("format_category", printFormats, recordInfo.getRecordIdentifier());
 		recordInfo.addFormats(translatedFormats);
 		recordInfo.addFormatCategories(translatedFormatCategories);

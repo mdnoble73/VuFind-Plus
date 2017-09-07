@@ -118,7 +118,7 @@ class AspencatRecordProcessor extends IlsRecordProcessor {
 					logger.info("  " + printFormat + " used " + numUsages + " times");
 					if (numUsages > maxPrintFormats) {
 						if (selectedFormat.length() > 0) {
-							logger.info("Record " + recordInfo.getRecordIdentifier() + " " + printFormat + " has more usages (" + numUsages + ") than " + selectedFormat + " (" + maxPrintFormats + ")");
+							logger.debug("Record " + recordInfo.getRecordIdentifier() + " " + printFormat + " has more usages (" + numUsages + ") than " + selectedFormat + " (" + maxPrintFormats + ")");
 						}
 						selectedFormat = printFormat;
 						maxPrintFormats = numUsages;
@@ -127,6 +127,9 @@ class AspencatRecordProcessor extends IlsRecordProcessor {
 				logger.info("  Selected Format is " + selectedFormat);
 			}else if (printFormats.size() == 1) {
 				selectedFormat = printFormats.keySet().iterator().next();
+			}else{
+				logger.warn("No format found for record " + recordInfo.getRecordIdentifier());
+				selectedFormat = "Unknown";
 			}
 			selectedPrintFormats.add(selectedFormat);
 
