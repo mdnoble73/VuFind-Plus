@@ -273,6 +273,7 @@ public class SymphonyExportMain {
 		//Now that we've counted all the holds, update the database
 		if (!hadErrors && writeHolds){
 			try {
+				pikaConn.setAutoCommit(false);
 				pikaConn.prepareCall("DELETE FROM ils_hold_summary").executeUpdate();
 				logger.info("Removed existing holds");
 				PreparedStatement updateHoldsStmt = pikaConn.prepareStatement("INSERT INTO ils_hold_summary (ilsId, numHolds) VALUES (?, ?)");
@@ -284,6 +285,8 @@ public class SymphonyExportMain {
 						logger.info("Hold was not inserted " + "a" + ilsId + " " + holdsByBib.get(ilsId));
 					}
 				}
+				pikaConn.commit();
+				pikaConn.setAutoCommit(true);
 				logger.info("Finished adding new holds to the database");
 			}catch (Exception e){
 				logger.error("Error updating holds database", e);
