@@ -1277,7 +1277,7 @@ class CarlX extends SIP2Driver{
 				if ($fine->Branch == 0) {
 					$fine->Branch = $fines->TransactionBranch;
 				}
-				if ($fine->Branch >= 30 && $fines->Branch <= 178 && $fines->Branch != 42 && $fines->Branch != 171) {
+				if ($fine->Branch >= 30 && $fine->Branch <= 178 && $fine->Branch != 42 && $fine->Branch != 171) {
 					$fine->System = "MNPS";
 				} else {
 					$fine->System = "NPL";
