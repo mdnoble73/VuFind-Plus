@@ -888,8 +888,8 @@ public class CarlXExportMain {
 										case "LocationCode":
 											currentItem.setShelvingLocation(detailValue);
 											break;
-										case "Status":
-											// Set itemIdentifier for logging with info that we know at this point.
+										case "StatusCode":
+											/*// Set itemIdentifier for logging with info that we know at this point.
 											String itemIdentifier;
 											// Use code below if we every turn on switch fullReindex (logs missing translation values)
 											if (currentItem.getBID().isEmpty()) {
@@ -900,9 +900,8 @@ public class CarlXExportMain {
 											String statusCode = translateValue("status_codes", detailValue, itemIdentifier);
 											if (statusCode.equals("U")) {
 												logger.warn("Unknown status " + detailValue);
-											}
-											//TODO: If status code wasn't translate, set to Unknown (U) (Not an actual listed value)?
-											currentItem.setStatus(statusCode);
+											}*/
+											currentItem.setStatus(detailValue);
 											break;
 										case "DueDate":
 											String dueDateMarc = formatDateFieldForMarc(indexingProfile.dueDateFormat, detailValue);
@@ -971,6 +970,16 @@ public class CarlXExportMain {
 										case "OwningBranchName":
 										case "OwningBranchNumber":
 										case "Type":
+										case "Status":
+										case "AlternateStatus":
+										case "MediaNumber":
+										case "CreatedBy":
+										case "LastUpdatedBy":
+										case "LocationName":
+										case "LocationNumber":
+										case "OwningLocationCode":
+										case "OwningLocationName":
+										case "OwningLocationNumber":
 											// Do Nothing
 											break;
 										default:
