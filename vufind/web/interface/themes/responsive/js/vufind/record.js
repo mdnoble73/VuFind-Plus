@@ -30,6 +30,81 @@ VuFind.Record = (function(){
 			return false;
 		},
 
+		// showPlaceHold: function(module, id, promptForAlternateEdition){
+		// 	if (Globals.loggedIn){
+		// 		if (typeof promptForAlternateEdition == 'undefined') {
+		// 			promptForAlternateEdition = true;
+		// 		}
+		// 		var source;
+		// 		var volume = null;
+		// 		if (id.indexOf(":") > 0){
+		// 			var idParts = id.split(":");
+		// 			source = idParts[0];
+		// 			id = idParts[1];
+		// 			if (idParts.length > 2){
+		// 				volume = idParts[2];
+		// 			}
+		// 		}else{
+		// 			source = 'ils';
+		// 		}
+		//
+		// 		var isPrimaryEditionCheckedOout = $('#relatedRecordPopup__Book>table>tbody>tr').length > 1 && $('#relatedRecordPopup__Book>table>tbody>tr:first-child .related-manifestation-shelf-status').hasClass('checked_out');
+		// 		if (promptForAlternateEdition && isPrimaryEditionCheckedOout) {
+		// 			VuFind.showMessageWithButtons('Place Hold on Alternate Edition?',
+		// 					'<div class="alert alert-info">This edition is currently checked out. Are you interested in requesting a different edition that may be available faster?</div>',
+		// 					'<a href="#" class="btn btn-primary" onclick="return VuFind.Record.showPlaceHoldEditions(\''+ module + '\', \'' + id + '\');">Yes, show more editions</a>' +
+		// 					'<a href="#" class="btn btn-primary" onclick="return VuFind.Record.showPlaceHold(\''+ module + '\', \'' + id + '\', false);">No, place a hold on this edition</a>'
+		// 			);
+		// 			return false;
+		// 		}
+		//
+		// 		var url = Globals.path + "/" + module + "/" + id + "/AJAX?method=getPlaceHoldForm&recordSource=" + source;
+		// 		if (volume != null){
+		// 			url += "&volume=" + volume;
+		// 		}
+		// 		//VuFind.showMessage('Loading...', 'Loading, please wait.');
+		// 		$.getJSON(url, function(data){
+		// 			VuFind.showMessageWithButtons(data.title, data.modalBody, data.modalButtons);
+		// 		}).fail(VuFind.ajaxFail);
+		// 	}else{
+		// 		VuFind.Account.ajaxLogin(null, function(){
+		// 			VuFind.Record.showPlaceHold(module, id);
+		// 		}, false);
+		// 	}
+		// 	return false;
+		// },
+		//
+	showPlaceHoldEditions: function (module, id) {
+			if (Globals.loggedIn){
+				var source;
+				var volume = null;
+				if (id.indexOf(":") > 0){
+					var idParts = id.split(":");
+					source = idParts[0];
+					id = idParts[1];
+					if (idParts.length > 2){
+						volume = idParts[2];
+					}
+				}else{
+					source = 'ils';
+				}
+
+				var url = Globals.path + "/" + module + "/" + id + "/AJAX?method=getPlaceHoldEditionsForm&recordSource=" + source;
+				if (volume != null){
+					url += "&volume=" + volume;
+				}
+				$.getJSON(url, function(data){
+					VuFind.showMessageWithButtons(data.title, data.modalBody, data.modalButtons);
+				}).fail(VuFind.ajaxFail);
+			}else{
+				VuFind.Account.ajaxLogin(null, function(){
+					VuFind.Record.showPlaceHoldEditions(module, id);
+				}, false);
+			}
+			return false;
+
+		},
+
 		showBookMaterial: function(module, id){
 			if (Globals.loggedIn){
 				VuFind.loadingMessage();

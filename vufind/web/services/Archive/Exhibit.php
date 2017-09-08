@@ -244,6 +244,8 @@ class Archive_Exhibit extends Archive_Object{
 		$searchObject->setDebugging(false, false);
 		$searchObject->clearHiddenFilters();
 		$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
+		//Don't show pages of books or parts of an album
+		$searchObject->addHiddenFilter('!RELS_EXT_isConstituentOf_uri_ms', "*");
 		$searchObject->clearFilters();
 		$searchObject->addFilter("RELS_EXT_isMemberOfCollection_uri_ms:\"info:fedora/{$this->pid}\"");
 		$searchObject->clearFacets();

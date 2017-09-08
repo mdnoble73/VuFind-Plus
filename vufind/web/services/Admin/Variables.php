@@ -58,7 +58,7 @@ class Admin_Variables extends ObjectEditor{
 		if ($existingObject && $existingObject->id != ''){
 			$actions[] = array(
 				'text' => '<span class="glyphicon glyphicon-time" aria-hidden="true"></span> Set to Current Timestamp (seconds)',
-				'url' => "/{$this->getModule()}/{$this->getToolName()}?objectAction=setToNowS&amp;id=" . $existingObject->id,
+				'url' => "/{$this->getModule()}/{$this->getToolName()}?objectAction=setToNow&amp;id=" . $existingObject->id,
 			);
 			$actions[] = array(
 				'text' => '<span class="glyphicon glyphicon-time" aria-hidden="true"></span> Set to Current Timestamp (milliseconds)',

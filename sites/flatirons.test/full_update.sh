@@ -14,6 +14,8 @@ PIKASERVER=flatirons.test
 PIKADBNAME=pika
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
 
+MINFILE1SIZE=$((1160000000))
+
 # Check if full_update is already running
 #TODO: Verify that the PID file doesn't get log-rotated
 PIDFILE="/var/log/vufind-plus/${PIKASERVER}/full_update.pid"
@@ -130,18 +132,18 @@ cd /data/vufind-plus/; curl --remote-name --remote-time --silent --show-error --
 cd /data/vufind-plus/accelerated_reader; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/accelerated_reader/RLI-ARDataTAB.txt https://cassini.marmot.org/RLI-ARDataTAB.txt >> ${OUTPUT_FILE}
 
 #Zinio Marc Updates
-/usr/local/vufind-plus/sites/flatirons.test/moveFullExport.sh flatirons_sideload/zinio/shared zinio >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/${PIKASERVER}/moveFullExport.sh flatirons_sideload/zinio/shared zinio >> ${OUTPUT_FILE}
 
 #OneClick Digital Marc Updates
-/usr/local/vufind-plus/sites/flatirons.test/moveFullExport.sh flatirons_sideload/oneclickdigital/longmont oneclickdigital/longmont >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/sites/flatirons.test/moveFullExport.sh flatirons_sideload/oneclickdigital/loveland oneclickdigital/loveland >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/${PIKASERVER}/moveFullExport.sh flatirons_sideload/oneclickdigital/longmont oneclickdigital/longmont >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/${PIKASERVER}/moveFullExport.sh flatirons_sideload/oneclickdigital/loveland oneclickdigital/loveland >> ${OUTPUT_FILE}
 
 #Ebrary Marc Updates
-/usr/local/vufind-plus/sites/flatirons.test/moveSideloadAdds.sh flatirons_sideload/ebrary/boulder ebrary/bpl/merge >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/sites/flatirons.test/moveSideloadAdds.sh flatirons_sideload/ebrary/boulder/deletes ebrary/bpl/deletes >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/${PIKASERVER}/moveSideloadAdds.sh flatirons_sideload/ebrary/boulder ebrary/bpl/merge >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/${PIKASERVER}/moveSideloadAdds.sh flatirons_sideload/ebrary/boulder/deletes ebrary/bpl/deletes >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh ebrary/bpl >> ${OUTPUT_FILE}
 
-/usr/local/vufind-plus/sites/flatirons.test/moveFullExport.sh flatirons_sideload/ebrary/broomfield ebrary/mde >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/${PIKASERVER}/moveFullExport.sh flatirons_sideload/ebrary/broomfield ebrary/mde >> ${OUTPUT_FILE}
 
 #Colorado State Goverment Documents Updates
 curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/colorado_gov_docs/marc/fullexport.mrc https://cassini.marmot.org/colorado_state_docs.mrc
@@ -155,22 +157,46 @@ then
 	nice -n -10 java -jar overdrive_extract.jar ${PIKASERVER} fullReload >> ${OUTPUT_FILE}
 fi
 
-# should test for new bib extract file
-/usr/local/vufind-plus/sites/flatirons.test/moveFullExport.sh flatirons_marc_export flatirons.test >> ${OUTPUT_FILE}
+#Extract from ILS
+#Copy extracts from FTP Server
+mount 10.1.2.7:/ftp/flatirons_marc_export /mnt/ftp
+FILE=$(find /mnt/ftp -name "script.MARC.*" -mtime -1 | sort -n | tail -1)
 
-# should copy old bib extract file
+if [ -n "$FILE" ]
+then
+  #check file size
+	FILE1SIZE=$(wc -c <"$FILE")
+	if [ $FILE1SIZE -ge $MINFILE1SIZE ]; then
 
-#Validate the export
-cd /usr/local/vufind-plus/vufind/cron; java -server -XX:+UseG1GC -jar cron.jar ${PIKASERVER} ValidateMarcExport >> ${OUTPUT_FILE}
+		echo "Latest export file is " $FILE >> ${OUTPUT_FILE}
+		DIFF=$(($FILE1SIZE - $MINFILE1SIZE))
+		PERCENTABOVE=$((100 * $DIFF / $MINFILE1SIZE))
+		echo "The export file is $PERCENTABOVE (%) larger than the minimum size check." >> ${OUTPUT_FILE}
 
-#Full Regroup
-cd /usr/local/vufind-plus/vufind/record_grouping; java -server -XX:+UseG1GC -Xmx6G -jar record_grouping.jar ${PIKASERVER} fullRegroupingNoClear >> ${OUTPUT_FILE}
+		# Copy to data directory to process
+		cp $FILE /data/vufind-plus/${PIKASERVER}/marc/fullexport.mrc
+		umount /mnt/ftp
 
-#Full Reindex
-cd /usr/local/vufind-plus/vufind/reindexer; java -server -XX:+UseG1GC -jar reindexer.jar ${PIKASERVER} fullReindex >> ${OUTPUT_FILE}
+		#Validate the export
+		cd /usr/local/vufind-plus/vufind/cron; java -server -XX:+UseG1GC -jar cron.jar ${PIKASERVER} ValidateMarcExport >> ${OUTPUT_FILE}
 
-# Truncate Continous Reindexing list of changed items
-cat /dev/null >| /data/vufind-plus/${PIKASERVER}/marc/changed_items_to_process.csv
+		#Full Regroup
+		cd /usr/local/vufind-plus/vufind/record_grouping; java -server -XX:+UseG1GC -Xmx6G -jar record_grouping.jar ${PIKASERVER} fullRegroupingNoClear >> ${OUTPUT_FILE}
+
+		#Full Reindex
+		cd /usr/local/vufind-plus/vufind/reindexer; java -server -XX:+UseG1GC -jar reindexer.jar ${PIKASERVER} fullReindex >> ${OUTPUT_FILE}
+
+		# Truncate Continous Reindexing list of changed items
+		cat /dev/null >| /data/vufind-plus/${PIKASERVER}/marc/changed_items_to_process.csv
+
+	else
+		echo $FILE " size " $FILE1SIZE "is less than minimum size :" $MINFILE1SIZE "; Export was not moved to data directory, Full Regrouping & Full Reindexing skipped." >> ${OUTPUT_FILE}
+		umount /mnt/ftp
+	fi
+else
+	echo "Did not find a Sierra export file from the last 24 hours, Full Regrouping & Full Reindexing skipped." >> ${OUTPUT_FILE}
+	umount /mnt/ftp
+fi
 
 # Clean-up Solr Logs
 find /usr/local/vufind-plus/sites/default/solr/jetty/logs -name "solr_log_*" -mtime +7 -delete

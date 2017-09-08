@@ -20,6 +20,7 @@ class SantaFeRecordProcessor extends IIIRecordProcessor {
 
 	SantaFeRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
 		super(indexer, vufindConn, indexingProfileRS, logger, fullReindex);
+		loadOrderInformationFromExport();
 	}
 
 	@Override
@@ -79,6 +80,10 @@ class SantaFeRecordProcessor extends IIIRecordProcessor {
 
 		}
 		return super.isItemSuppressed(curItem);
+	}
+
+	protected boolean isOrderItemValid(String status, String code3) {
+		return status.equals("o") || status.equals("1") || status.equals("a");
 	}
 
 }

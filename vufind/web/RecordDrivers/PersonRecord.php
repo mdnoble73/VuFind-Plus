@@ -10,11 +10,30 @@ require_once ROOT_DIR . '/sys/Genealogy/Person.php';
  */
 class PersonRecord extends IndexRecord
 {
+	/** @var Person $person */
 	private $person;
+	private $id;
+	private $shortId;
 	public function __construct($record)
 	{
 		// Call the parent's constructor...
 		parent::__construct($record);
+
+		$this->id = $this->getUniqueID();
+		$this->shortId = substr($this->id, 6);
+	}
+
+	private function getPerson(){
+		if (!isset($this->person)){
+			$person = new Person();
+			$person->personId = $this->shortId;
+			$person->find();
+			if ($person->N > 0){
+				$person->fetch();
+				$this->person = $person;
+			}
+		}
+		return $this->person;
 	}
 
 	/**
@@ -29,19 +48,11 @@ class PersonRecord extends IndexRecord
 	{
 		global $interface;
 
-		$id = $this->getUniqueID();
-		$interface->assign('summId', $id);
-		$shortId = substr($id, 6);
-		$interface->assign('summShortId', $shortId); //Trim the list prefix for the short id
+		$interface->assign('summId', $this->id);
+		$interface->assign('summShortId', $this->shortId); //Trim the person prefix for the short id
 
-		$person = new Person();
-		$person->personId = $shortId;
-		$person->find();
-		if ($person->N > 0){
-			$person->fetch();
-			$interface->assign('summPicture', $person->picture);
-			$this->person = $person;
-		}
+		$person = $this->getPerson();
+		$interface->assign('summPicture', $person->picture);
 
 		$name = $this->getName();
 		$interface->assign('summTitle', trim($name));
@@ -79,6 +90,31 @@ class PersonRecord extends IndexRecord
 	}
 
 	function getPermanentId() {
-		return $this->person->id;
+		return $this->shortId;
+	}
+
+	function getRecordUrl(){
+		global $configArray;
+		$recordId = $this->getPermanentId();
+
+		//TODO: This should have the correct module set
+		return $configArray['Site']['path'] . '/' . $this->getModule() . '/' . $recordId;
+	}
+
+	function getAbsoluteUrl(){
+		global $configArray;
+		$recordId = $this->getPermanentId();
+
+		return $configArray['Site']['url'] . '/' . $this->getModule() . '/' . $recordId;
+	}
+
+	function getBookcoverUrl($size = 'small'){
+		global $configArray;
+		$person = $this->getPerson();
+		if ($person->picture){
+			return $configArray['Site']['path'] . '/files/thumbnail/' . $this->person->picture;
+		}else{
+			return $configArray['Site']['path'] . '/interface/themes/default/images/person.png';
+		}
 	}
 }

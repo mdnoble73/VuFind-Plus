@@ -5,9 +5,7 @@ import org.apache.log4j.PropertyConfigurator;
 import org.ini4j.Ini;
 import org.ini4j.InvalidFileFormatException;
 import org.ini4j.Profile;
-import org.marc4j.MarcReader;
-import org.marc4j.MarcStreamReader;
-import org.marc4j.MarcStreamWriter;
+import org.marc4j.*;
 import org.marc4j.marc.*;
 
 import java.io.*;
@@ -76,6 +74,9 @@ public class SymphonyExportMain {
 		//Check for a new holds file
 		processNewHoldsFile(lastExportTime, pikaConn);
 
+		//Check for new orders file(lastExportTime, pikaConn);
+		processOrdersFile(lastExportTime, pikaConn);
+
 		//update the last export start time
 		try {
 			// Wrap Up
@@ -110,6 +111,74 @@ public class SymphonyExportMain {
 		}
 	}
 
+	private static void processOrdersFile(long lastExportTime, Connection pikaConn) {
+		File mainFile = new File(indexingProfile.marcPath + "/fullexport.mrc");
+		HashSet<String> idsInMainFile = new HashSet<>();
+		if (mainFile.exists()){
+			try {
+				MarcReader reader = new MarcPermissiveStreamReader(new FileInputStream(mainFile), true, true);
+				int numRecordsRead = 0;
+				while (reader.hasNext()) {
+					try {
+						Record marcRecord = reader.next();
+						numRecordsRead++;
+						String id = getPrimaryIdentifierFromMarcRecord(marcRecord);
+						idsInMainFile.add(id);
+					}catch (MarcException me){
+						logger.warn("Error processing individual record  on record " + numRecordsRead + " of " + mainFile.getAbsolutePath(), me);
+					}
+				}
+			}catch (Exception e){
+				logger.error("Error loading existing marc ids", e);
+			}
+		}
+
+		File ordersFile = new File(indexingProfile.marcPath + "/Pika_orders.csv");
+		File ordersFileMarc = new File(indexingProfile.marcPath + "/Pika_orders.mrc");
+		if (ordersFile.exists()){
+			//Always process since we only received one export and we are gradually removing records as they appear in the full export.
+			try{
+				MarcWriter writer = new MarcStreamWriter(new FileOutputStream(ordersFileMarc, false));
+				CSVReader ordersReader = new CSVReader(new InputStreamReader(new FileInputStream(ordersFile)));
+				String[] ordersData = ordersReader.readNext();
+				int numOrderRecordsWritten = 0;
+				int numOrderRecordsSkipped = 0;
+				while (ordersData != null){
+					//Check to see if the bib already exists
+					if (ordersData.length >= 4){
+						String recordNumber = cleanIniValue(ordersData[3]);
+						recordNumber = recordNumber.replace("XX(", "");
+						recordNumber = recordNumber.replace(".1)", "");
+						if (recordNumber.matches("^\\d+$")) {
+							if (!idsInMainFile.contains("a" + recordNumber)){
+								//The marc record does not exist, create a temporary bib in the orders file which will get processed by record grouping
+								MarcFactory factory = MarcFactory.newInstance();
+								Record marcRecord = factory.newRecord();
+								marcRecord.addVariableField(factory.newControlField("001", "a" + recordNumber));
+								marcRecord.addVariableField(factory.newDataField("100", '0', '0', "a", cleanIniValue(ordersData[1])));
+								marcRecord.addVariableField(factory.newDataField("245", '0', '0', "a", cleanIniValue(ordersData[2])));
+								writer.write(marcRecord);
+								numOrderRecordsWritten++;
+							}else{
+								logger.info("Marc record already exists for a" + recordNumber);
+								numOrderRecordsSkipped++;
+							}
+						}
+					}
+					ordersData = ordersReader.readNext();
+				}
+				writer.close();
+				logger.info("Finished writing Orders to MARC record");
+				logger.info("Wrote " + numOrderRecordsWritten);
+				logger.info("Skipped " + numOrderRecordsSkipped + " because they are in the main export");
+			}catch (Exception e){
+				logger.error("Error reading orders file ", e);
+			}
+		}else{
+			logger.warn("Could not find orders file at " + ordersFile.getAbsolutePath());
+		}
+	}
+
 	/**
 	 * Check the marc folder to see if the holds files have been updated since the last export time.
 	 *
@@ -121,7 +190,7 @@ public class SymphonyExportMain {
 	private static void processNewHoldsFile(long lastExportTime, Connection pikaConn) {
 		HashMap<String, Integer> holdsByBib = new HashMap<>();
 		boolean writeHolds = false;
-		File holdFile = new File(indexingProfile.marcPath + "/Pika - Hold Information.csv");
+		File holdFile = new File(indexingProfile.marcPath + "/Pika_Holds.csv");
 		if (holdFile.exists()){
 			long now = new Date().getTime();
 			long holdFileLastModified = holdFile.lastModified();
@@ -129,14 +198,18 @@ public class SymphonyExportMain {
 				logger.warn("Holds File was last written more than 2 days ago");
 			}else{
 				writeHolds = true;
+				String lastCatalogIdRead = "";
 				try {
-					CSVReader holdsReader = new CSVReader(new FileReader(holdFile));
-					String[] holdsData = holdsReader.readNext();
-					while (holdsData != null){
-						if (holdsData.length == 3){
-							String catalogId = holdsData[0];
+					BufferedReader reader = new BufferedReader(new FileReader(holdFile));
+					String line = reader.readLine();
+					while (line != null){
+						int firstComma = line.indexOf(',');
+						if (firstComma > 0){
+							String catalogId = line.substring(0, firstComma);
+							catalogId = catalogId.replaceAll("\\D", "");
+							lastCatalogIdRead = catalogId;
 							//Make sure the catalog is numeric
-							if (catalogId.matches("^\\d+$")){
+							if (catalogId.length() > 0 && catalogId.matches("^\\d+$")){
 								if (holdsByBib.containsKey(catalogId)){
 									holdsByBib.put(catalogId, holdsByBib.get(catalogId) +1);
 								}else{
@@ -144,20 +217,20 @@ public class SymphonyExportMain {
 								}
 							}
 						}
-						holdsData = holdsReader.readNext();
+						line = reader.readLine();
 					}
 				}catch (Exception e){
 					logger.error("Error reading holds file ", e);
 					hadErrors = true;
 				}
-				logger.info("Read " + holdsByBib.size() + " bibs with holds");
+				logger.info("Read " + holdsByBib.size() + " bibs with holds, lastCatalogIdRead = " + lastCatalogIdRead);
 			}
 		}else{
-			logger.warn("No holds file found");
+			logger.warn("No holds file found at " + indexingProfile.marcPath + "/Pika_Holds.csv");
 			hadErrors = true;
 		}
 
-		File periodicalsHoldFile = new File(indexingProfile.marcPath + "/Pika - Hold - Periodicals Information.csv");
+		File periodicalsHoldFile = new File(indexingProfile.marcPath + "/Pika_Hold_Periodicals.csv");
 		if (periodicalsHoldFile.exists()){
 			long now = new Date().getTime();
 			long holdFileLastModified = periodicalsHoldFile.lastModified();
@@ -166,13 +239,17 @@ public class SymphonyExportMain {
 			}else {
 				writeHolds = true;
 				try {
-					CSVReader holdsReader = new CSVReader(new FileReader(periodicalsHoldFile));
-					String[] holdsData = holdsReader.readNext();
-					while (holdsData != null){
-						if (holdsData.length == 3){
-							String catalogId = holdsData[0];
+					BufferedReader reader = new BufferedReader(new FileReader(periodicalsHoldFile));
+					String line = reader.readLine();
+					String lastCatalogIdRead = "";
+					while (line != null){
+						int firstComma = line.indexOf(',');
+						if (firstComma > 0){
+							String catalogId = line.substring(0, firstComma);
+							catalogId = catalogId.replaceAll("\\D", "");
+							lastCatalogIdRead = catalogId;
 							//Make sure the catalog is numeric
-							if (catalogId.matches("^\\d+$")){
+							if (catalogId.length() > 0 && catalogId.matches("^\\d+$")){
 								if (holdsByBib.containsKey(catalogId)){
 									holdsByBib.put(catalogId, holdsByBib.get(catalogId) +1);
 								}else{
@@ -180,22 +257,23 @@ public class SymphonyExportMain {
 								}
 							}
 						}
-						holdsData = holdsReader.readNext();
+						line = reader.readLine();
 					}
-					logger.info(holdsByBib.size() + " bibs with holds (including periodicals)");
+					logger.info(holdsByBib.size() + " bibs with holds (including periodicals) lastCatalogIdRead for periodicals = " + lastCatalogIdRead);
 				}catch (Exception e){
 					logger.error("Error reading periodicals holds file ", e);
 					hadErrors = true;
 				}
 			}
 		}else{
-			logger.warn("No periodicals holds file found");
+			logger.warn("No periodicals holds file found at " + indexingProfile.marcPath + "/Pika_Hold_Periodicals.csv" );
 			hadErrors = true;
 		}
 
 		//Now that we've counted all the holds, update the database
 		if (!hadErrors && writeHolds){
 			try {
+				pikaConn.setAutoCommit(false);
 				pikaConn.prepareCall("DELETE FROM ils_hold_summary").executeUpdate();
 				logger.info("Removed existing holds");
 				PreparedStatement updateHoldsStmt = pikaConn.prepareStatement("INSERT INTO ils_hold_summary (ilsId, numHolds) VALUES (?, ?)");
@@ -207,6 +285,8 @@ public class SymphonyExportMain {
 						logger.info("Hold was not inserted " + "a" + ilsId + " " + holdsByBib.get(ilsId));
 					}
 				}
+				pikaConn.commit();
+				pikaConn.setAutoCommit(true);
 				logger.info("Finished adding new holds to the database");
 			}catch (Exception e){
 				logger.error("Error updating holds database", e);

@@ -27,7 +27,7 @@
 				</div>
 			</div>
 		{/if}
-		{assign value=$recordDriver->getRelatedManifestations() var="relatedManifestations"}
-		{include file="GroupedWork/relatedManifestations.tpl"}
+		{*{assign value=$recordDriver->getRelatedManifestations() var="relatedManifestations"}*}
+		{include file="GroupedWork/relatedManifestations.tpl" relatedManifestations=$recordDriver->getRelatedManifestations() inPopUp=true}
 	</div>
 {/strip}

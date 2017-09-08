@@ -177,7 +177,7 @@ class Location extends DB_DataObject
 						array('property'=>'defaultPType', 'type'=>'text', 'label'=>'Default P-Type', 'description'=>'The P-Type to use when accessing a subdomain if the patron is not logged in.  Use -1 to use the library default PType.', 'default'=>-1),
 						array('property'=>'validHoldPickupBranch', 'type'=>'enum', 'values' => array('1' => 'Valid for all patrons', '0' => 'Valid for patrons of this branch only', '2' => 'Not Valid' ), 'label'=>'Valid Hold Pickup Branch?', 'description'=>'Determines if the location can be used as a pickup location if it is not the patrons home location or the location they are in.', 'hideInLists' => true, 'default' => 1),
 						array('property'=>'showHoldButton', 'type'=>'checkbox', 'label'=>'Show Hold Button', 'description'=>'Whether or not the hold button is displayed so patrons can place holds on items', 'hideInLists' => true, 'default'=>true),
-						array('property'=>'ptypesToAllowRenewals', 'type'=>'text', 'label'=>'PTypes that can renew', 'description'=>'A list of P-Types that can renew items or * to allow all P-Types to renew items.', 'hideInLists' => true),
+						array('property'=>'ptypesToAllowRenewals', 'type'=>'text', 'label'=>'PTypes that can renew', 'description'=>'A list of P-Types that can renew items or * to allow all P-Types to renew items.', 'hideInLists' => true, 'default' => '*'),
 						array('property'=>'suppressHoldings','type'=>'checkbox', 'label'=>'Suppress Holdings', 'description'=>'Whether or not all items for the title should be suppressed', 'hideInLists' => true, 'default'=>false),
 				)),
 
@@ -558,6 +558,19 @@ class Location extends DB_DataObject
 						}else{
 							// If the active location doesn't belong to the library we are browsing at, turn off the active location
 							Location::$activeLocation = null;
+						}
+					}else{
+						//Check to see if we can get the active location based off the sublocation
+						$activeLocation = new Location();
+						$activeLocation->subdomain = $locationCode;
+						if ($activeLocation->find(true)){
+							//Only use the location if we are in the subdomain for the parent library
+							if ($library->libraryId == $activeLocation->libraryId){
+								Location::$activeLocation = clone $activeLocation;
+							}else{
+								// If the active location doesn't belong to the library we are browsing at, turn off the active location
+								Location::$activeLocation = null;
+							}
 						}
 					}
 				}

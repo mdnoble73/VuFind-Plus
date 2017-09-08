@@ -67,6 +67,7 @@ class Archive_AJAX extends Action {
 			$searchObject->setDebugging(false, false);
 			$searchObject->clearHiddenFilters();
 			$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
+			$searchObject->addHiddenFilter('!RELS_EXT_isConstituentOf_uri_ms', "*");
 			$searchObject->clearFilters();
 			$searchObject->addFilter("RELS_EXT_isMemberOfCollection_uri_ms:\"info:fedora/{$pid}\"");
 			$searchObject->clearFacets();
@@ -169,6 +170,7 @@ class Archive_AJAX extends Action {
 			$searchObject->setDebugging(false, false);
 			$searchObject->clearHiddenFilters();
 			$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
+			$searchObject->addHiddenFilter('!RELS_EXT_isConstituentOf_uri_ms', "*");
 			$searchObject->clearFilters();
 			$searchObject->clearFacets();
 
@@ -282,6 +284,7 @@ class Archive_AJAX extends Action {
 			//$searchObject->setDebugging(false, false);
 			$searchObject->clearHiddenFilters();
 			$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
+			$searchObject->addHiddenFilter('!RELS_EXT_isConstituentOf_uri_ms', "*");
 			$searchObject->clearFilters();
 			$searchObject->addFilter("RELS_EXT_isMemberOfCollection_uri_ms:\"info:fedora/{$pid}\"");
 			$searchObject->clearFacets();
@@ -418,6 +421,7 @@ class Archive_AJAX extends Action {
 			$searchObject->setDebugging(false, false);
 			$searchObject->clearHiddenFilters();
 			$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
+			$searchObject->addHiddenFilter('!RELS_EXT_isConstituentOf_uri_ms', "*");
 			$searchObject->clearFilters();
 			$searchObject->addFilter("RELS_EXT_isMemberOfCollection_uri_ms:\"info:fedora/{$pid}\"");
 			$searchObject->setBasicQuery("mods_extension_marmotLocal_relatedEntity_place_entityPid_ms:\"{$placeId}\" OR " .

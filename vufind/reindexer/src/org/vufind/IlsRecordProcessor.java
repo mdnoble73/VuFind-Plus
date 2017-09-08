@@ -25,6 +25,7 @@ import java.util.regex.Pattern;
 abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	protected boolean fullReindex;
 	private String individualMarcPath;
+	String marcPath;
 	String profileType;
 
 	private String recordNumberTag;
@@ -41,7 +42,6 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	char shelvingLocationSubfield;
 	char collectionSubfield;
 	private char dueDateSubfield;
-	String dueDateFormat;
 	SimpleDateFormat dueDateFormatter;
 	private char lastCheckInSubfield;
 	private String lastCheckInFormat;
@@ -94,6 +94,7 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		try {
 			profileType = indexingProfileRS.getString("name");
 			individualMarcPath = indexingProfileRS.getString("individualMarcPath");
+			marcPath = indexingProfileRS.getString("marcPath");
 			numCharsToCreateFolderFrom         = indexingProfileRS.getInt("numCharsToCreateFolderFrom");
 			createFolderFromLeadingCharacters  = indexingProfileRS.getBoolean("createFolderFromLeadingCharacters");
 
@@ -143,7 +144,7 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			}
 
 			dueDateSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "dueDate");
-			dueDateFormat = indexingProfileRS.getString("dueDateFormat");
+			String dueDateFormat = indexingProfileRS.getString("dueDateFormat");
 			if (dueDateFormat.length() > 0) {
 				dueDateFormatter = new SimpleDateFormat(dueDateFormat);
 			}
@@ -337,7 +338,10 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 					break;
 				}
 			}
-			if (primaryFormat == null) primaryFormat = "Unknown";
+			if (primaryFormat == null || primaryFormat.equals("Unknown")) {
+				primaryFormat = "Unknown";
+				logger.info("No primary format for " + recordInfo.getRecordIdentifier() + " found setting to unknown to load standard marc data");
+			}
 			updateGroupedWorkSolrDataBasedOnStandardMarcData(groupedWork, record, recordInfo.getRelatedItems(), identifier, primaryFormat);
 
 			//Special processing for ILS Records
@@ -1316,8 +1320,10 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			logger.debug("Print formats from bib:");
 			logger.debug("    " + format);
 		}*/
-
 		HashSet<String> translatedFormats = translateCollection("format", printFormats, recordInfo.getRecordIdentifier());
+		if (translatedFormats.size() == 0){
+			logger.warn("Did not find a format for " + recordInfo.getRecordIdentifier() + " using standard format method " + printFormats.toString());
+		}
 		HashSet<String> translatedFormatCategories = translateCollection("format_category", printFormats, recordInfo.getRecordIdentifier());
 		recordInfo.addFormats(translatedFormats);
 		recordInfo.addFormatCategories(translatedFormatCategories);
@@ -2175,12 +2181,18 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		return translatedValue;
 	}
 
-	HashSet<String> translateCollection(String mapName, HashSet<String> values, String identifier) {
+	HashSet<String> translateCollection(String mapName, Set<String> values, String identifier) {
 		TranslationMap translationMap = translationMaps.get(mapName);
 		HashSet<String> translatedValues;
 		if (translationMap == null){
 			logger.error("Unable to find translation map for " + mapName + " in profile " + profileType);
-			translatedValues = values;
+			if (values instanceof HashSet){
+				translatedValues = (HashSet<String>)values;
+			}else{
+				translatedValues = new HashSet<>();
+				translatedValues.addAll(values);
+			}
+
 		}else{
 			translatedValues = translationMap.translateCollection(values, identifier);
 		}

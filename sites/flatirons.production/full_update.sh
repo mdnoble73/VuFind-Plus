@@ -9,12 +9,11 @@
 
 # this version emails script output
 EMAIL=mark@marmot.org,pascal@marmot.org
-ILSSERVER=nell.boulderlibrary.org
 PIKASERVER=flatirons.production
 PIKADBNAME=pika
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
 
-MINFILE1SIZE=$((1410000000))
+MINFILE1SIZE=$((1160000000))
 
 # Check for conflicting processes currently running
 function checkConflictingProcesses() {
@@ -27,7 +26,7 @@ function checkConflictingProcesses() {
 	until ((${countConflictingProcesses} == 0)); do
 		countConflictingProcesses=$(ps aux | grep -v sudo | grep -c "$1")
 		countConflictingProcesses=$((countConflictingProcesses-1))
-		#echo "Count of conflicting process" $1 $countConflictingProcesses
+		#echo "Count of conflicting process" $1 $countConfliGrouctingProcesses
 		sleep 300
 	done
 	#Return the number of conflicts we found initially.
@@ -101,22 +100,30 @@ cd /data/vufind-plus/; curl --remote-name --remote-time --silent --show-error --
 cd /data/vufind-plus/accelerated_reader; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/accelerated_reader/RLI-ARDataTAB.txt https://cassini.marmot.org/RLI-ARDataTAB.txt >> ${OUTPUT_FILE}
 
 #Zinio Marc Updates
-scp flatirons_sideload@sftp.marmot.org:/ftp/flatirons_sideload/zinio/shared/*.mrc /data/vufind-plus/zinio/boulderBroomfield/marc/ >> ${OUTPUT_FILE}
+#scp flatirons_sideload@sftp.marmot.org:/ftp/flatirons_sideload/zinio/shared/*.mrc /data/vufind-plus/zinio/boulderBroomfield/marc/ >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/${PIKASERVER}/moveFullExport.sh flatirons_sideload/zinio/shared zinio/boulderBroomfield >> ${OUTPUT_FILE}
 
 #Ebrary Marc Updates
-scp flatirons_sideload@sftp.marmot.org:/ftp/flatirons_sideload/ebrary/boulder/*.mrc /data/vufind-plus/ebrary/bpl/marc/merge >> ${OUTPUT_FILE}
-scp flatirons_sideload@sftp.marmot.org:/ftp/flatirons_sideload/ebrary/boulder/deletes.*.mrc /data/vufind-plus/ebrary/bpl/deletes/marc/ >> ${OUTPUT_FILE}
+#scp flatirons_sideload@sftp.marmot.org:/ftp/flatirons_sideload/ebrary/boulder/*.mrc /data/vufind-plus/ebrary/bpl/marc/merge >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/${PIKASERVER}/moveSideloadAdds.sh flatirons_sideload/ebrary/boulder ebrary/bpl/merge >> ${OUTPUT_FILE}
+
+#scp flatirons_sideload@sftp.marmot.org:/ftp/flatirons_sideload/ebrary/boulder/deletes/*.mrc /data/vufind-plus/ebrary/bpl/deletes/marc/ >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/${PIKASERVER}/moveSideloadAdds.sh flatirons_sideload/ebrary/boulder/deletes ebrary/bpl/deletes >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh ebrary/bpl >> ${OUTPUT_FILE}
 
-scp flatirons_sideload@sftp.marmot.org:/ftp/flatirons_sideload/ebrary/broomfield/*.mrc /data/vufind-plus/ebrary/mde/marc/ >> ${OUTPUT_FILE}
+#scp flatirons_sideload@sftp.marmot.org:/ftp/flatirons_sideload/ebrary/broomfield/*.mrc /data/vufind-plus/ebrary/mde/marc/ >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/${PIKASERVER}/moveFullExport.sh flatirons_sideload/ebrary/broomfield ebrary/mde >> ${OUTPUT_FILE}
 
 # Possible curl version; if I can figure out how to implement the --time-condition check on a range of files
 # (Can't do *.mrc; have to specify a range of files that curl will check for each one in the range)
 #curl --verbose --remote-name --remote-time --compressed --pubkey ~/.ssh/id_rsa.pub --key ~/.ssh/id_rsa sftp://flatirons_sideload@sftp.marmot.org:22//ftp/flatirons_sideload/ebrary/boulder/Zinio_boulderco_1619_Magazine_[1-12]_[1-31]_[2016-2017].mrc
 
 #OneClick Digit Marc Updates
-scp flatirons_sideload@sftp.marmot.org:/ftp/flatirons_sideload/oneclickdigital/longmont/*.mrc /data/vufind-plus/oneclickdigital/longmont/marc/ >> ${OUTPUT_FILE}
-scp flatirons_sideload@sftp.marmot.org:/ftp/flatirons_sideload/oneclickdigital/loveland/*.mrc /data/vufind-plus/oneclickdigital/loveland/marc/ >> ${OUTPUT_FILE}
+#scp flatirons_sideload@sftp.marmot.org:/ftp/flatirons_sideload/oneclickdigital/longmont/*.mrc /data/vufind-plus/oneclickdigital/longmont/marc/ >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/${PIKASERVER}/moveSideloadAdds.sh flatirons_sideload/oneclickdigital/longmont oneclickdigital/longmont/ >> ${OUTPUT_FILE}
+
+#scp flatirons_sideload@sftp.marmot.org:/ftp/flatirons_sideload/oneclickdigital/loveland/*.mrc /data/vufind-plus/oneclickdigital/loveland/marc/ >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/${PIKASERVER}/moveSideloadAdds.sh flatirons_sideload/oneclickdigital/loveland oneclickdigital/loveland/ >> ${OUTPUT_FILE}
 
 #Colorado State Goverment Documents Updates
 curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/colorado_gov_docs/marc/fullexport.mrc http://cassini.marmot.org/colorado_state_docs.mrc
@@ -139,7 +146,10 @@ fi
 # Date For Backup filename
 TODAY=$(date +"%m_%d_%Y")
 
-FILE=$(find /home/sierraftp/ -name script.MARC.* -mtime -1 | sort -n | tail -1)
+#Extract from ILS
+#Copy extracts from FTP Server
+mount 10.1.2.7:/ftp/flatirons_marc_export /mnt/ftp
+FILE=$(find /mnt/ftp -name "script.MARC.*" -mtime -1 | sort -n | tail -1)
 
 if [ -n "$FILE" ]
 then
@@ -153,10 +163,11 @@ then
 		echo "The export file is $PERCENTABOVE (%) larger than the minimum size check." >> ${OUTPUT_FILE}
 
 		# Copy to data directory to process
-		cp $FILE /data/vufind-plus/flatirons.production/marc/pika1.mrc
-		# Move to marc_export to keep as a backup
-		mv $FILE /data/vufind-plus/flatirons.production/marc_export/pika.$TODAY.mrc
+		cp --update --preserve=timestamps $FILE /data/vufind-plus/${PIKASERVER}/marc/fullexport.mrc
+		umount /mnt/ftp
 
+		# Copy to marc_export to keep as a backup
+		cp /data/vufind-plus/${PIKASERVER}/marc/fullexport.mrc /data/vufind-plus/${PIKASERVER}/marc_export/pika.$TODAY.mrc
 
 		#Validate the export
 		cd /usr/local/vufind-plus/vufind/cron; java -server -XX:+UseG1GC -jar cron.jar ${PIKASERVER} ValidateMarcExport >> ${OUTPUT_FILE}
@@ -170,18 +181,16 @@ then
 		# Truncate Continous Reindexing list of changed items
 		cat /dev/null >| /data/vufind-plus/${PIKASERVER}/marc/changed_items_to_process.csv
 
-		#Send Export to Marmot for the test server
-		scp -q /data/vufind-plus/flatirons.production/marc/pika1.mrc flatirons_marc_export@sftp.marmot.org:~/ >> ${OUTPUT_FILE}
-#		scp -q /data/vufind-plus/flatirons.production/marc/pika1.mrc flatirons_marc_export@sftp.marmot.org:~/ >> ${OUTPUT_FILE}
-
 		# Delete any exports over 7 days
 		find /data/vufind-plus/flatirons.production/marc_export/ -mindepth 1 -maxdepth 1 -name *.mrc -type f -mtime +7 -delete
 
 	else
 		echo $FILE " size " $FILE1SIZE "is less than minimum size :" $MINFILE1SIZE "; Export was not moved to data directory, Full Regrouping & Full Reindexing skipped." >> ${OUTPUT_FILE}
+		umount /mnt/ftp
 	fi
 else
 	echo "Did not find a Sierra export file from the last 24 hours, Full Regrouping & Full Reindexing skipped." >> ${OUTPUT_FILE}
+	umount /mnt/ftp
 fi
 
 # Clean-up Solr Logs

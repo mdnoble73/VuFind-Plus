@@ -848,6 +848,9 @@ class Aspencat implements DriverInterface{
 			$hold_result['success'] = false;
 			$hold_result['message'] = '';
 			foreach ($matches[1] as $errorMsg){
+				$errorMsg = trim($errorMsg);
+				$errorMsg = str_replace(array("\r","\n"), '', $errorMsg);
+				$errorMsg = translate($errorMsg);
 				$hold_result['message'] .= $errorMsg . '<br/>';
 			}
 			return $hold_result;
@@ -1259,6 +1262,14 @@ class Aspencat implements DriverInterface{
 						if (preg_match('/<input type="hidden" name="reservenumber" value="(.*?)" \/>/', $tableCell, $matches)) {
 							$curHold['cancelId'] = $matches[1];
 						}
+					}elseif ($headerLabels[$col] == 'resume on'){
+						$tableCell = trim($tableCell);
+						if (strlen($tableCell) != 0){
+							$tempDate = DateTime::createFromFormat('m/d/Y', $tableCell);
+							$curHold['reactivate']         = $tableCell;
+							$curHold['reactivateTime']     = $tempDate->getTimestamp();
+							$curHold['status']             = 'Frozen';
+						}
 					}
 				}
 				if ($bibId){
@@ -1273,6 +1284,12 @@ class Aspencat implements DriverInterface{
 						$curHold['coverUrl']        = $recordDriver->getBookcoverUrl();
 						$curHold['link']            = $recordDriver->getRecordUrl();
 						$curHold['ratingData']      = $recordDriver->getRatingData();
+						if (empty($curHold['title'])) {
+							$curHold['title'] = $recordDriver->getTitle();
+						}
+						if (empty($curHold['author'])) {
+							$curHold['author'] = $recordDriver->getPrimaryAuthor();
+						}
 					}
 				}
 				$curHold['user'] = $patron->getNameAndLibraryLabel();
