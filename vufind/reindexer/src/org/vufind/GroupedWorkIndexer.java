@@ -609,10 +609,10 @@ public class GroupedWorkIndexer {
 					String isbn = lexileFields[3];
 					titleInfo.setLexileCode(lexileFields[4]);
 					titleInfo.setLexileScore(lexileFields[5]);
-					titleInfo.setSeries(lexileFields[9]);
-					titleInfo.setAwards(lexileFields[10]);
-					if (lexileFields.length >= 12) {
-						titleInfo.setDescription(lexileFields[11]);
+					titleInfo.setSeries(lexileFields[10]);
+					titleInfo.setAwards(lexileFields[11]);
+					if (lexileFields.length >= 13) {
+						titleInfo.setDescription(lexileFields[12]);
 					}
 					lexileInformation.put(isbn, titleInfo);
 				}
