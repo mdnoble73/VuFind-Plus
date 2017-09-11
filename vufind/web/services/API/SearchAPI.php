@@ -25,22 +25,26 @@ class SearchAPI extends Action {
 
 	function launch()
 	{
-		//header('Content-type: application/json');
-		header('Content-type: text/html');
-		header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
-		header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
-
 		if (!empty($_REQUEST['method']) && is_callable(array($this, $_REQUEST['method']))) {
 			if (in_array($_REQUEST['method'] , array('getSearchBar', 'getListWidget'))){
 				$output = $this->$_GET['method']();
 			}else{
-				$output = json_encode(array('result'=>$this->$_REQUEST['method']()));
+				$jsonOutput = json_encode(array('result'=>$this->$_REQUEST['method']()));
 			}
 		} else {
-			$output = json_encode(array('error'=>'invalid_method'));
+			$jsonOutput = json_encode(array('error'=>'invalid_method'));
 		}
 
-		echo $output;
+		// Set Headers
+		if (isset($jsonOutput)) {
+			header('Content-type: application/json');
+		} else{
+			header('Content-type: text/html');
+		}
+		header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
+		header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
+
+		echo isset($jsonOutput) ? $jsonOutput : $output;
 	}
 
 	// The time intervals in seconds beyond which we consider the status as not current
@@ -225,7 +229,8 @@ class SearchAPI extends Action {
 					$minNumRecords = $minNumRecordVariable->value;
 					if (!empty($minNumRecords)) {
 						if ($numRecords < $minNumRecords) {
-						$status[] = self::STATUS_CRITICAL;
+							// Warn till more that 500 works below the limit
+						$status[] = $numRecords < ($minNumRecords - 500) ? self::STATUS_CRITICAL : self::STATUS_WARN;
 						$notes[]  = "Solr Index (Grouped) Record Count ($numRecords) in below the minimum ($minNumRecords)";
 					} elseif ($numRecords > $minNumRecords + 10000) {
 							$status[] = self::STATUS_WARN;
@@ -318,6 +323,37 @@ class SearchAPI extends Action {
 				'status'  => self::STATUS_OK,
 				'message' => "Everything is current"
 			);
+		}
+
+		if (isset($_REQUEST['prtg'])) {
+			// Reformat $result to the structure expected by PRTG
+
+			$prtgStatusValues = array(
+				self::STATUS_OK       => 0,
+				self::STATUS_WARN     => 1,
+				self::STATUS_CRITICAL => 2
+			);
+
+			$prtg_results = array(
+				'prtg' => array(
+					'result' => array(
+						0 => array(
+						'channel'         => 'Pika Status',
+						'value'           => $prtgStatusValues[ $result['status'] ],
+						'limitmode'=> 1,
+						'limitmaxwarning' => $prtgStatusValues[self::STATUS_OK],
+						'limitmaxerror'   => $prtgStatusValues[self::STATUS_WARN]
+						)
+					),
+					'text' => $result['message']
+				)
+			);
+
+			header('Content-type: application/json');
+			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
+			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
+
+			die(json_encode($prtg_results));
 		}
 
 		return $result;

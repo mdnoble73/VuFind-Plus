@@ -927,10 +927,16 @@ class MyAccount_AJAX
 	function getReactivationDateForm(){
 		global $interface;
 		global $user;
+		global $configArray;
+
 		$id = $_REQUEST['holdId'];
 		$interface->assign('holdId', $id);
 		$interface->assign('patronId', $user->id);
 		$interface->assign('recordId', $_REQUEST['recordId']);
+
+		$ils = $configArray['Catalog']['ils'];
+		$reactivateDateNotRequired = ($ils == 'Symphony');
+		$interface->assign('reactivateDateNotRequired', $reactivateDateNotRequired);
 
 		$title = translate('Freeze Hold'); // language customization
 		$results = array(

@@ -53,6 +53,7 @@ public class Scope implements Comparable<Scope>{
 
 	void setScopeName(String scopeName) {
 		this.scopeName = scopeName;
+		this.scopeName = this.scopeName.replaceAll("[^a-zA-Z0-9_]", "");
 	}
 
 	void setRelatedPTypes(String[] relatedPTypes) {

@@ -1137,6 +1137,7 @@ class SearchObject_Islandora extends SearchObject_Base
 	public function getFilterList($excludeCheckboxFilters = false)
 	{
 		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
+		global $library;
 		$fedoraUtils = FedoraUtils::getInstance();
 
 		// Get a list of checkbox filters to skip if necessary:
@@ -1161,11 +1162,19 @@ class SearchObject_Islandora extends SearchObject_Base
 						}
 					}elseif ($lookupPid) {
 						$pid = str_replace('info:fedora/', '', $value);
-						$display = $fedoraUtils->getObjectLabel($pid);
-						if ($display == 'Invalid Object'){
+						if ($field == 'RELS_EXT_isMemberOfCollection_uri_ms'){
+							$okToShow = $this->showCollectionAsFacet($pid);
+						}else{
+							$okToShow = true;
+						}
+						if ($okToShow){
+							$display = $fedoraUtils->getObjectLabel($pid);
+							if ($display == 'Invalid Object'){
+								continue;
+							}
+						}else{
 							continue;
 						}
-
 					}elseif ($translate){
 						$display = translate($value);
 					}else{
@@ -1249,8 +1258,18 @@ class SearchObject_Islandora extends SearchObject_Base
 					}
 				}elseif ($lookupPid) {
 					$pid = str_replace('info:fedora/', '', $facet[0]);
-					$currentSettings['display'] = $fedoraUtils->getObjectLabel($pid);
-					if ($currentSettings['display'] == 'Invalid Object'){
+					if ($field == 'RELS_EXT_isMemberOfCollection_uri_ms'){
+						$okToShow = $this->showCollectionAsFacet($pid);
+					}else{
+						$okToShow = true;
+					}
+
+					if ($okToShow) {
+						$currentSettings['display'] = $fedoraUtils->getObjectLabel($pid);
+						if ($currentSettings['display'] == 'Invalid Object') {
+							continue;
+						}
+					}else{
 						continue;
 					}
 
@@ -1335,6 +1354,7 @@ class SearchObject_Islandora extends SearchObject_Base
 	 */
 	public function buildRSS($result = null)
 	{
+		global $configArray;
 		// XML HTTP header
 		header('Content-type: text/xml', true);
 
@@ -1345,64 +1365,38 @@ class SearchObject_Islandora extends SearchObject_Base
 			$result = $this->processSearch(false, false);
 		}
 
-		// Now prepare the serializer
-		$serializer_options = array (
-            'addDecl'  => TRUE,
-            'encoding' => 'UTF-8',
-            'indent'   => '  ',
-            'rootName' => 'json',
-            'mode'     => 'simplexml',
-		);
+		for ($i = 0; $i < count($result['response']['docs']); $i++) {
+			$current = & $this->indexResult['response']['docs'][$i];
 
-		$serializer = new XML_Serializer($serializer_options);
-
-		// Serialize our results from PHP arrays to XML
-		if ($serializer->serialize($result)) {
-			$xmlResults = $serializer->getSerializedData();
+			$record = RecordDriverFactory::initRecordDriver($current);
+			if (!PEAR_Singleton::isError($record)) {
+				$result['response']['docs'][$i]['recordUrl'] = $record->getLinkUrl();
+				$result['response']['docs'][$i]['title_display'] = $record->getTitle();
+				$image = $record->getBookcoverUrl('medium');
+				$description = "<img src='$image'/> " . $record->getDescription();
+				$result['response']['docs'][$i]['rss_description'] = $description;
+			} else {
+				$html[] = "Unable to find record";
+			}
 		}
 
-		// Prepare an XSLT processor and pass it some variables
-		$xsl = new XSLTProcessor();
-		$xsl->registerPHPFunctions('urlencode');
-		$xsl->registerPHPFunctions('translate');
+		global $interface;
 
 		// On-screen display value for our search
-		if ($this->searchType == 'newitem') {
-			$lookfor = translate('New Items');
-		} else if ($this->searchType == 'reserves') {
-			$lookfor = translate('Course Reserves');
-		} else {
-			$lookfor = $this->displayQuery();
-		}
+		$lookfor = $this->displayQuery();
 		if (count($this->filterList) > 0) {
 			// TODO : better display of filters
-			$xsl->setParameter('', 'lookfor', $lookfor . " (" . translate('with filters') . ")");
+			$interface->assign('lookfor', $lookfor . " (" . translate('with filters') . ")");
 		} else {
-			$xsl->setParameter('', 'lookfor', $lookfor);
+			$interface->assign('lookfor', $lookfor);
 		}
 		// The full url to recreate this search
-		$xsl->setParameter('', 'searchUrl', $this->renderSearchUrl());
+		$interface->assign('searchUrl', $configArray['Site']['url']. $this->renderSearchUrl());
 		// Stub of a url for a records screen
-		$xsl->setParameter('', 'baseUrl',   $this->serverUrl."/Record/");
+		$interface->assign('baseUrl',    $configArray['Site']['url']);
 
-		// Load up the style sheet
-		$style = new DOMDocument;
-		$style->load('services/Search/xsl/json-rss.xsl');
-		$xsl->importStyleSheet($style);
-
-		// Load up the XML document
-		$xml = new DOMDocument;
-		$xml->loadXML($xmlResults);
-
-		// Process and return the xml through the style sheet
-		try{
-			$xmlResult = $xsl->transformToXML($xml);
-			return $xmlResult;
-		}catch (Exception $e){
-			global $logger;
-			$logger->log("Error loading RSS feed $e", PEAR_LOG_ERR);
-			return "";
-		}
+		$interface->assign('result', $result);
+		return $interface->fetch('Search/rss.tpl');
 	}
 
 	/**
@@ -1868,6 +1862,32 @@ class SearchObject_Islandora extends SearchObject_Base
 			}
 			$this->searchTerms[] = $newTerm;
 		}
+	}
+
+	private function showCollectionAsFacet($pid){
+		global $library;
+		global $fedoraUtils;
+		$namespace = substr($pid, 0, strpos($pid, ':'));
+		if ($namespace == 'marmot'){
+			$okToShow = true;
+			return $okToShow;
+		}elseif ($library->hideAllCollectionsFromOtherLibraries && $library->archiveNamespace) {
+			$okToShow = ($namespace == $library->archiveNamespace);
+		}elseif (strlen($library->collectionsToHide) > 0){
+			$okToShow = strpos($library->collectionsToHide, $pid) === false;
+		}else{
+			$okToShow = true;
+		}
+		if ($okToShow){
+			$fedoraUtils = FedoraUtils::getInstance();
+			$archiveObject = $fedoraUtils->getObject($pid);
+			if ($archiveObject == null){
+				$okToShow = true; //These are things like People, Places, Events, Large Image Collection, etc
+			}else if (!$fedoraUtils->isObjectValidForPika($archiveObject)){
+				$okToShow = false;
+			}
+		}
+		return $okToShow;
 	}
 
 }

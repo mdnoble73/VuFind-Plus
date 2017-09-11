@@ -107,12 +107,16 @@ VuFind.Archive = (function(){
 				$("#view-pdf").show();
 				$("#view-image").hide();
 				$("#view-transcription").hide();
+				$("#view-audio").hide();
+				$("#view-video").hide();
 			}else if (viewerName == 'image' || (viewerName == 'pdf' && !this.allowPDFView)){
 				$('#view-toggle-image').prop('checked', true);
 						// .parent('.btn').addClass('active');
 				$("#view-image").show();
 				$("#view-pdf").hide();
 				$("#view-transcription").hide();
+				$("#view-audio").hide();
+				$("#view-video").hide();
 				this.activeBookViewer = 'image';
 			}else if (viewerName == 'transcription'){
 				$('#view-toggle-transcription').prop('checked', true);
@@ -120,6 +124,24 @@ VuFind.Archive = (function(){
 				$("#view-transcription").show();
 				$("#view-pdf").hide();
 				$("#view-image").hide();
+				$("#view-audio").hide();
+				$("#view-video").hide();
+			}else if (viewerName == 'audio'){
+				$('#view-toggle-transcription').prop('checked', true);
+				// .parent('.btn').addClass('active');
+				$("#view-audio").show();
+				$("#view-pdf").hide();
+				$("#view-image").hide();
+				$("#view-transcription").hide();
+				$("#view-video").hide();
+			}else if (viewerName == 'audio'){
+				$('#view-toggle-transcription').prop('checked', true);
+				// .parent('.btn').addClass('active');
+				$("#view-video").show();
+				$("#view-pdf").hide();
+				$("#view-image").hide();
+				$("#view-transcription").hide();
+				$("#view-audio").hide();
 
 			}
 			return this.loadPage(pagePid);
@@ -404,6 +426,26 @@ VuFind.Archive = (function(){
 			}else{
 				$('#view-toggle-transcription').parent().show();
 			}
+			if (this.pageDetails[pid]['pdf'] == ''){
+				$('#view-toggle-pdf').parent().hide();
+			}else{
+				$('#view-toggle-pdf').parent().show();
+			}
+			if (this.pageDetails[pid]['jp2'] == ''){
+				$('#view-toggle-image').parent().hide();
+			}else{
+				$('#view-toggle-image').parent().show();
+			}
+			if (this.pageDetails[pid]['audio'] == ''){
+				$('#view-toggle-audio').parent().hide();
+			}else{
+				$('#view-toggle-audio').parent().show();
+			}
+			if (this.pageDetails[pid]['video'] == ''){
+				$('#view-toggle-video').parent().hide();
+			}else{
+				$('#view-toggle-video').parent().show();
+			}
 
 			if (this.activeBookViewer == 'pdf') {
 				// console.log('PDF View called');
@@ -452,25 +494,58 @@ VuFind.Archive = (function(){
 					VuFind.Archive.openSeaDragonViewer.open(tile);
 				}
 				//VuFind.Archive.openSeaDragonViewer.viewport.fitVertically(true);
+			}else if(this.activeBookViewer == 'audio') {
+				$('#view-audio').show();
+				$('#audio-player-src').attr('src', this.pageDetails[pid]['audio']);
+				var audioPlayer = document.getElementById("audio-player");
+				audioPlayer.load();
+				//audioPlayer.play();
+			}else if(this.activeBookViewer == 'video') {
+				$('#view-video').html(
+					$('<source />').attr({
+						type: 'video/mp4',
+						src: this.pageDetails[pid]['video'],
+						class: 'book-video' // Class that styles/sizes the PDF page
+					})
+				).show();
 			}
 			if (pageChanged && this.multiPage){
-				var imageOnlyShown = true;
+				var numSectionsShown = 0;
 				if (this.pageDetails[pid]['transcript'] == ''){
 					$('#view-toggle-transcription').parent().hide();
 				}else{
 					$('#view-toggle-transcription').parent().show();
-					imageOnlyShown = false;
+					numSectionsShown++;
 				}
 				if (this.pageDetails[pid]['pdf'] == ''){
 					$('#view-toggle-pdf').parent().hide();
 				}else{
 					$('#view-toggle-pdf').parent().show();
 					imageOnlyShown = false;
+					numSectionsShown++;
 				}
-				if (imageOnlyShown){
+				if (this.pageDetails[pid]['jp2'] == ''){
 					$('#view-toggle-image').parent().hide();
 				}else{
 					$('#view-toggle-image').parent().show();
+					numSectionsShown++;
+				}
+				if (this.pageDetails[pid]['audio'] == ''){
+					$('#view-toggle-audio').parent().hide();
+				}else{
+					$('#view-toggle-audio').parent().show();
+					numSectionsShown++;
+				}
+				if (this.pageDetails[pid]['video'] == ''){
+					$('#view-toggle-video').parent().hide();
+				}else{
+					$('#view-toggle-video').parent().show();
+					numSectionsShown++;
+				}
+				if (numSectionsShown <= 1){
+					$('#view-toggle').hide();
+				}else{
+					$('#view-toggle').show();
 				}
 
 				this.loadMetadata(this.activeBookPid, pid);

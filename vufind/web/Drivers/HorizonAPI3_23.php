@@ -38,7 +38,7 @@ abstract class HorizonAPI3_23 extends HorizonAPI
 			return 'Sorry, it does not look like you are logged in currently.  Please login and try again';
 		}
 
-		$updatePinUrl = $this->getBaseWebServiceUrl() . '/hzws/v1/user/patron/changeMyPin';
+		$updatePinUrl = $this->getBaseWebServiceUrl() . '/hzws/user/patron/changeMyPin';
 		$jsonParameters = array(
 			'currentPin' => $oldPin,
 			'newPin' => $newPin,
@@ -52,7 +52,7 @@ abstract class HorizonAPI3_23 extends HorizonAPI
 			global $logger;
 			$logger->log('WCPL Driver error updating user\'s Pin :'.$errors, PEAR_LOG_ERR);
 			return 'Sorry, we encountered an error while attempting to update your pin. Please contact your local library.';
-		} elseif ($updatePinResponse['sessionToken'] == $sessionToken){
+		} elseif (!empty($updatePinResponse['sessionToken'])){
 			// Success response isn't particularly clear, but returning the session Token seems to indicate the pin updated. plb 8-15-2016
 			$user->cat_password = $newPin;
 			$user->update();
@@ -72,7 +72,7 @@ abstract class HorizonAPI3_23 extends HorizonAPI
 			);
 		}
 
-		$changeMyPinAPIUrl = $this->getBaseWebServiceUrl() . '/hzws/v1/user/patron/changeMyPin';
+		$changeMyPinAPIUrl = $this->getBaseWebServiceUrl() . '/hzws/user/patron/changeMyPin';
 		$jsonParameters = array(
 			'resetPinToken' => $resetToken,
 			'newPin' => $newPin,
@@ -121,7 +121,7 @@ abstract class HorizonAPI3_23 extends HorizonAPI
 
 			// If possible, check if Horizon has an email address for the patron
 			if (!empty($patron->cat_password)) {
-				list($userValid, $sessionToken, $userID) = $this->loginViaWebService($barcode, $patron->cat_password);
+				list($userValid, $sessionToken, $ilsUserID) = $this->loginViaWebService($barcode, $patron->cat_password);
 				if ($userValid) {
 					// Yay! We were able to login with the pin Pika has!
 
@@ -141,10 +141,10 @@ abstract class HorizonAPI3_23 extends HorizonAPI
 			}
 
 			// email the pin to the user
-			$resetPinAPIUrl = $this->getBaseWebServiceUrl() . '/hzws/v1/user/patron/resetMyPin';
+			$resetPinAPIUrl = $this->getBaseWebServiceUrl() . '/hzws/user/patron/resetMyPin';
 			$jsonPOST       = array(
 				'login' => $barcode,
-				'resetPinUrl' => $configArray['Site']['url'] . '/MyAccount/ResetPin?resetToken=<RESET_PIN_TOKEN>&uid=' . $userID
+				'resetPinUrl' => $configArray['Site']['url'] . '/MyAccount/ResetPin?resetToken=<RESET_PIN_TOKEN>' . (empty($userID) ?  '' : '&uid=' . $userID)
 			);
 
 			$resetPinResponse = $this->getWebServiceResponseUpdated($resetPinAPIUrl, $jsonPOST);

@@ -7,7 +7,7 @@
 		{/if}
 	{/foreach}
 	{* Show more list *}
-	<div class="facetValue" id="more{$title}"><a href="#" onclick="VuFind.ResultsList.moreFacetPopup('More {$cluster.label}s', '{$title}'); return false;">{translate text='more'} ...</a></div>
+	<div class="facetValue" id="more{$title}"><a href="#" onclick="VuFind.ResultsList.moreFacetPopup('More {$cluster.label}{if substr($cluster.label, -1) != 's'}s{/if}', '{$title}'); return false;">{translate text='more'} ...</a></div>
 	<div id="moreFacetPopup_{$title}" style="display:none">
 		<p>Please select one of the items below to narrow your search by {$cluster.label}.</p>
 		<div class="container-12">

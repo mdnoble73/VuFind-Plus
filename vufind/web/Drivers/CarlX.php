@@ -830,36 +830,34 @@ class CarlX extends SIP2Driver{
 		global $library;
 		$fields = array();
 		$fields[] = array('property'=>'firstName',   'type'=>'text', 'label'=>'First Name', 'description'=>'Your first name', 'maxLength' => 40, 'required' => true);
-		$fields[] = array('property'=>'middleName',  'type'=>'text', 'label'=>'Middle Name', 'description'=>'Your middle name', 'maxLength' => 40, 'required' => true);
-		// gets added to the first name separated by a space
+		$fields[] = array('property'=>'middleName',  'type'=>'text', 'label'=>'Middle Name', 'description'=>'Your middle name', 'maxLength' => 40, 'required' => false);
 		$fields[] = array('property'=>'lastName',   'type'=>'text', 'label'=>'Last Name', 'description'=>'Your last name', 'maxLength' => 40, 'required' => true);
 		if ($library && $library->promptForBirthDateInSelfReg){
 			$fields[] = array('property'=>'birthDate', 'type'=>'date', 'label'=>'Date of Birth (MM-DD-YYYY)', 'description'=>'Date of birth', 'maxLength' => 10, 'required' => true);
 		}
 		$fields[] = array('property'=>'address',     'type'=>'text', 'label'=>'Mailing Address', 'description'=>'Mailing Address', 'maxLength' => 128, 'required' => true);
 		$fields[] = array('property'=>'city',        'type'=>'text', 'label'=>'City', 'description'=>'City', 'maxLength' => 48, 'required' => true);
-		$fields[] = array('property'=>'state',       'type'=>'text', 'label'=>'State', 'description'=>'State', 'maxLength' => 32, 'required' => true);
+		$fields[] = array('default'=>'TN','property'=>'state',       'type'=>'text', 'label'=>'State', 'description'=>'State', 'maxLength' => 2, 'required' => true);
 		$fields[] = array('property'=>'zip',         'type'=>'text', 'label'=>'Zip Code', 'description'=>'Zip Code', 'maxLength' => 32, 'required' => true);
-		$fields[] = array('property'=>'email',       'type'=>'email', 'label'=>'E-Mail', 'description'=>'E-Mail', 'maxLength' => 128, 'required' => false);
+		$fields[] = array('property'=>'phone',       'type'=>'text',  'label'=>'Primary Phone', 'description'=>'Primary Phone', 'maxLength'=>15, 'required'=>true);
+		$fields[] = array('property'=>'email',       'type'=>'email', 'label'=>'E-Mail', 'description'=>'E-Mail', 'maxLength' => 128, 'required' => true);
 		$fields[] = array('property'=>'pin',         'type'=>'pin',   'label'=>'Pin', 'description'=>'Your desired 4-digit pin', 'maxLength' => 4, 'size' => 4, 'required' => true);
 		$fields[] = array('property'=>'pin1',        'type'=>'pin',   'label'=>'Confirm Pin', 'description'=>'Re-type your desired 4-digit pin', 'maxLength' => 4, 'size' => 4, 'required' => true);
-		//$fields[] = array('property'=>'universityID', 'type'=>'text', 'label'=>'Drivers License #', 'description'=>'Drivers License', 'maxLength' => 128, 'required' => false);
-
-		//TODO: Home Branch
 		return $fields;
-
 	}
 
 	public function selfRegister(){
 		global $library,
-		       $configArray;
+		       $configArray,
+		       $active_ip,
+		       $interface;
 		$success = false;
 
 		$lastPatronID = new Variable();
 		$lastPatronID->get('name', 'last_selfreg_patron_id');
 
 		if (!empty($lastPatronID->value)) {
-			$currentPatronIDNumber = ++$lastPatronID->value;
+			$currentPatronIDNumber = rand(1,13) + $lastPatronID->value;
 
 			$tempPatronID = $configArray['Catalog']['selfRegIDPrefix'] . str_pad($currentPatronIDNumber, $configArray['Catalog']['selfRegIDNumberLength'], '0', STR_PAD_LEFT);
 
@@ -873,25 +871,66 @@ class CarlX extends SIP2Driver{
 			$email      = trim($_REQUEST['email']);
 			$pin        = trim($_REQUEST['pin']);
 			$pin1       = trim($_REQUEST['pin1']);
+			$phone       = trim($_REQUEST['phone']);
 
 			if (!empty($pin) && !empty($pin1) && $pin == $pin1) {
-
+				// DENY REGISTRATION IF DUPLICATE EMAIL IS FOUND IN CARL.X
+				// searchPatron on Email appears to be case-insensitive and 
+				// appears to eliminate spurious whitespace
+				$request				= new stdClass();
+				$request->Modifiers			= '';
+				$request->AllSearchTermMatch		= 'true';
+				$request->SearchTerms			= new stdClass();
+				$request->SearchTerms->ApplicationType	= 'exact match';
+				$request->SearchTerms->Attribute	= 'Email';
+				$request->SearchTerms->Value		= $email;
+				$request->PagingParameters		= new stdClass();
+				$request->PagingParameters->StartPos	= 0;
+				$request->PagingParameters->NoOfRecords	= 1;
+				$request->Modifiers			= new stdClass();
+				$request->Modifiers->InstitutionCode	= 'NASH';
+				$result = $this->doSoapRequest('searchPatron', $request, $this->patronWsdl, $this->genericResponseSOAPCallOptions);
+				if ($result) {
+					$noEmailMatch = stripos($result->ResponseStatuses->ResponseStatus->ShortMessage, 'No matching records found');
+					if ($noEmailMatch === false) {
+						global $logger;
+						$logger->log('Online Registration Email already exists in Carl. Email: ' . $email . ' IP: ' . $active_ip, PEAR_LOG_ERR);
+						return array(
+							'success' => false,
+							'barcode' => $tempPatronID,
+						);
+					}
+				}
+				// SEND CREATE PATRON REQUEST
 				$request                                         = new stdClass();
 				$request->Modifiers                              = '';
-				$request->PatronFlags->PatronFlag                = 'DUPCHECK_NAME_DOB'; // Do a duplicate name/date of birth check
+				//$request->PatronFlags->PatronFlag                = 'DUPCHECK_ALTID'; // Duplicate check for alt id
+				$request->PatronFlags->PatronFlag[0]                = 'DUPCHECK_NAME_DOB'; // Duplicate check for name/date of birth
+				$request->PatronFlags->PatronFlag[1]                = 'VALIDATE_ZIPCODE'; // Validate ZIP against Carl.X Admin legal ZIPs
+				$request->Patron				= new stdClass();
 				$request->Patron->PatronID                       = $tempPatronID;
 				$request->Patron->Email                          = $email;
 				$request->Patron->FirstName                      = $firstName;
 				$request->Patron->MiddleName                     = $middleName;
 				$request->Patron->LastName                       = $lastName;
+				$request->Patron->Addresses			= new stdClass();
+				$request->Patron->Addresses->Address		= new stdClass();
 				$request->Patron->Addresses->Address->Type       = 'Primary';
 				$request->Patron->Addresses->Address->Street     = $address;
 				$request->Patron->Addresses->Address->City       = $city;
 				$request->Patron->Addresses->Address->State      = $state;
 				$request->Patron->Addresses->Address->PostalCode = $zip;
-				$request->Patron->PatronPIN                      = $pin;
-				// TODO: Set Home Branch?
-				// TODO: Set Expiration Date?
+				$request->Patron->PatronPIN			= $pin;
+				$request->Patron->Phone1			= $phone;
+				$request->Patron->RegistrationDate		= date('c'); // Registration Date, format ISO 8601
+				
+				$request->Patron->EmailNotices			= $configArray['Catalog']['selfRegEmailNotices'];
+				$request->Patron->DefaultBranch			= $configArray['Catalog']['selfRegDefaultBranch'];
+				$request->Patron->PatronExpirationDate		= $configArray['Catalog']['selfRegPatronExpirationDate'];
+				$request->Patron->PatronStatusCode		= $configArray['Catalog']['selfRegPatronStatusCode'];
+				$request->Patron->PatronType			= $configArray['Catalog']['selfRegPatronType'];
+				$request->Patron->RegBranch			= $configArray['Catalog']['selfRegRegBranch'];
+				$request->Patron->RegisteredBy			= $configArray['Catalog']['selfRegRegisteredBy'];
 
 				if ($library && $library->promptForBirthDateInSelfReg) {
 					$birthDate                  = trim($_REQUEST['birthDate']);
@@ -899,19 +938,15 @@ class CarlX extends SIP2Driver{
 					$request->Patron->BirthDate = $date->format('Y-m-d');
 				}
 
-				$request->Patron->RegisteredBy = 'Pika Discovery Layer';
-
 				$result = $this->doSoapRequest('createPatron', $request, $this->patronWsdl, $this->genericResponseSOAPCallOptions);
-
 				if (is_null($result) && $this->soapClient) {
 					$result = $this->soapClient->__getLastResponse();
-//				echo '<pre>';
-//				print_r($this->soapClient->__getFunctions());
-//				echo '</pre>';
+
 					if ($result) {
 						$unxml = new XML_Unserializer();
 						$unxml->unserialize($result);
 						$response = $unxml->getUnserializedData();
+
 						if ($response) {
 							$success = isset($response['SOAP-ENV:Body']['ns3:GenericResponse']['ns3:ResponseStatuses']['ns2:ResponseStatus']['ns2:ShortMessage'])
 								&& stripos($response['SOAP-ENV:Body']['ns3:GenericResponse']['ns3:ResponseStatuses']['ns2:ResponseStatus']['ns2:ShortMessage'], 'Success') !== false;
@@ -933,8 +968,6 @@ class CarlX extends SIP2Driver{
 										$logger->log('Failed to update Variables table with new value ' . $currentPatronIDNumber . ' for "last_selfreg_patron_id" in CarlX Driver', PEAR_LOG_ERR);
 									}
 								}
-//						$updateErrors[] = 'Failed to update your information'. ($errorMessage ? ' : ' .$errorMessage : '');
-
 							} else {
 								$lastPatronID->value = $currentPatronIDNumber;
 								if (!$lastPatronID->update()) {
@@ -976,20 +1009,66 @@ class CarlX extends SIP2Driver{
 									}
 								}
 
+								// FOLLOWING SUCCESSFUL SELF REGISTRATION, INPUT PATRON IP ADDRESS INTO PATRON RECORD NOTE
+								$request 			= new stdClass();
+								$request->Modifiers		= '';
+								$request->Note			= new stdClass();
+								$request->Note->PatronID	= $tempPatronID;
+								$request->Note->NoteType	= 2;
+								$request->Note->NoteText	= "Online registration from IP " . $active_ip;
+								$result = $this->doSoapRequest('addPatronNote', $request, $this->patronWsdl,  $this->genericResponseSOAPCallOptions);
+
+								if (is_null($result)) {
+									$result = $this->soapClient->__getLastResponse();
+									if ($result) {
+										$unxml = new XML_Unserializer();
+										$unxml->unserialize($result);
+										$response = $unxml->getUnserializedData();
+											if ($response) {
+											$success = stripos($response['SOAP-ENV:Body']['ns3:GenericResponse']['ns3:ResponseStatuses']['ns2:ResponseStatus']['ns2:ShortMessage'], 'Success') !== false;
+											if (!$success) {
+												global $logger;
+												$logger->log('Unable to write IP address in Patron Note.', PEAR_LOG_ERR);
+												// Return Success Any way, because the account was created.
+												return array(
+													'success' => true,
+													'barcode' => $tempPatronID,
+												);
+											}
+										}
+									}
+								}
+
+								// FOLLOWING SUCCESSFUL SELF REGISTRATION, EMAIL PATRON THE LIBRARY CARD NUMBER
+								$body = $interface->fetch('Emails/self-registration.tpl');
+								$body = $firstName . " " . $lastName . "\n\nThank you for registering for an Online Library Card. Your library card number is:\n\n" . $tempPatronID . "\n\n" . $body;
+								require_once ROOT_DIR . '/sys/Mailer.php';
+								$mail = new VuFindMailer();
+								$subject = 'Welcome to the Nashville Public Library';
+								$emailResult = $mail->send($email, 'no-reply@nashville.gov', $subject, $body);
+								if ($emailResult === true){
+									$result = array(
+										'result' => true,
+										'message' => 'Your e-mail was sent successfully.'
+									);
+								} elseif (PEAR_Singleton::isError($emailResult)){
+									$interface->assign('error', "Your request could not be sent: {$emailResult->message}.");
+								} else {
+									$interface->assign('error', "Your request could not be sent due to an unknown error.");
+									global $logger;
+									$logger->log("Mail List Failure (unknown reason), parameters: $email, $newObject->email, $subject, $body", PEAR_LOG_ERR);
+								}
 								return array(
 									'success' => $success,
 									'barcode' => $tempPatronID,
+									'patronName' => $firstName . ' ' . $lastName,
 								);
 							}
-
 						} else {
-//					$updateErrors[] = 'Unable to update your information.';
 							global $logger;
 							$logger->log('Unable to read XML from CarlX response when attempting to create Patron.', PEAR_LOG_ERR);
 						}
-
 					} else {
-//				$updateErrors[] = 'Unable to update your information.';
 						global $logger;
 						$logger->log('CarlX ILS gave no response when attempting to create Patron.', PEAR_LOG_ERR);
 					}
@@ -1001,9 +1080,7 @@ class CarlX extends SIP2Driver{
 		} else {
 			global $logger;
 			$logger->log('No value for "last_selfreg_patron_id" set in Variables table. Can not self-register patron in CarlX Driver.', PEAR_LOG_ERR);
-
 		}
-
 		return array(
 			'success' => $success
 		);
@@ -1161,6 +1238,16 @@ class CarlX extends SIP2Driver{
 				$result->FineItems->FineItem = array($result->FineItems->FineItem);
 			}
 			foreach($result->FineItems->FineItem as $fine) {
+				// hard coded Nashville school branch IDs
+				if ($fine->Branch == 0) {
+					$fine->Branch = $fines->TransactionBranch;
+				}
+				if ($fine->Branch >= 30 && $fines->Branch <= 178 && $fines->Branch != 42 && $fines->Branch != 171) {
+					$fine->System = "MNPS";
+				} else {
+					$fine->System = "NPL";
+				}
+
 				if ($fine->FineAmountPaid > 0) {
 					$fine->FineAmount -= $fine->FineAmountPaid;
 				}
@@ -1169,6 +1256,7 @@ class CarlX extends SIP2Driver{
 					'amount'  => $fine->FineAmount,
 					'message' => $fine->Title,
 					'date'    => date('M j, Y', strtotime($fine->FineAssessedDate)),
+					'system'  => $fine->System,
 				);
 			}
 		}
@@ -1185,12 +1273,23 @@ class CarlX extends SIP2Driver{
 				$result->LostItems->LostItem = array($result->LostItems->LostItem);
 			}
 			foreach($result->LostItems->LostItem as $fine) {
+				// hard coded Nashville school branch IDs
+				if ($fine->Branch == 0) {
+					$fine->Branch = $fines->TransactionBranch;
+				}
+				if ($fine->Branch >= 30 && $fine->Branch <= 178 && $fine->Branch != 42 && $fine->Branch != 171) {
+					$fine->System = "MNPS";
+				} else {
+					$fine->System = "NPL";
+				}
+					
 				$myFines[] = array(
 					'reason'  => $fine->FeeNotes,
 //					'amount'  => $fine->FineAmount, // TODO: There is no corresponding amount
 					'amount'  => $fine->FeeAmount,
 					'message' => $fine->Title,
 					'date'    => date('M j, Y', strtotime($fine->TransactionDate)),
+					'system'  => $fine->System,
 				);
 			}
 		}
@@ -1280,16 +1379,59 @@ class CarlX extends SIP2Driver{
 
 	}
 
-	private function getBranchInformation($branchNumber) {
+	private function getBranchInformation($branchNumber = null, $branchCode = null) {
 //		TODO: Store in Memcache instead
+		/** @var Memcache $memCache */
+		global $memCache;
 
-		$request                    = new stdClass();
-		$request->BranchSearchType  = 'Branch Number';
-		$request->BranchSearchValue = $branchNumber;
-		$request->Modifiers         = '';
+		if (!empty($branchNumber)) {
+			$branchInfo = $memCache->get('carlx_branchNumbers');
+			if (!empty($branchInfo) and isset($branchInfo[$branchNumber])) {
+				return $branchInfo[$branchNumber];
+			} else {
+				$request                    = new stdClass();
+				$request->BranchSearchType  = 'Branch Number';
+				$request->BranchSearchValue = $branchNumber;
+				$request->Modifiers         = '';
+			}
+		} elseif (!empty($branchCode)) {
+			$branchInfo = $memCache->get('carlx_branchCodes');
+			if (!empty($branchInfo) and isset($branchInfo[$branchCode])) {
+				return $branchInfo[$branchCode];
+			} else {
+				$request                    = new stdClass();
+				$request->BranchSearchType  = 'Branch Code';
+				$request->BranchSearchValue = $branchCode;
+				$request->Modifiers         = '';
+			}
+		} else {
+			return false;
+		}
 
 		$result = $this->doSoapRequest('GetBranchInformation', $request, $this->catalogWsdl);
+		global $configArray;
 		if ($result && $result->BranchInfo) {
+			if (!empty($branchNumber)) {
+				$branchInfo = $memCache->get('carlx_branchNumbers');
+				if ($branchInfo) {
+					$branchInfo[$branchNumber] = $result->BranchInfo;
+				} else {
+					$branchInfo = array(
+						$branchNumber = $result->BranchInfo
+					);
+				}
+				$memCache->add('carlx_branchNumbers', $branchInfo , false, $configArray['Caching']['carlx_branchNumbers']);
+			} elseif (!empty($branchCode)) {
+				$branchInfo = $memCache->get('carlx_branchCodes');
+				if ($branchInfo) {
+					$branchInfo[$branchCode] = $result->BranchInfo;
+				} else {
+					$branchInfo = array(
+						$branchCode => $result->BranchInfo
+					);
+				}
+				$memCache->add('carlx_branchCodes', $branchInfo, false, $configArray['Caching']['carlx_branchCodes']);
+			}
 			return $result->BranchInfo; // convert to array instead?
 		}
 		return false;
@@ -1458,6 +1600,8 @@ class CarlX extends SIP2Driver{
 				}else{
 					$pickupBranch = strtoupper($pickupBranch);
 				}
+				$pickupBranchInfo = $this->getBranchInformation(null, $pickupBranch);
+				$pickupBranchNumber = $pickupBranchInfo->BranchNumber;
 
 				//place the hold
 				if ($type == 'cancel' || $type == 'recall'){
@@ -1488,7 +1632,7 @@ class CarlX extends SIP2Driver{
 					$expirationTime = time() + 2 * 365 * 24 * 60 * 60;
 				}
 
-				$in = $mySip->msgHold($mode, $expirationTime, '2', '', $holdId, '', $pickupBranch);
+				$in = $mySip->msgHold($mode, $expirationTime, '2', '', $holdId, '', $pickupBranchNumber);
 				$msg_result = $mySip->get_message($in);
 
 //				$title = $this->getRecordTitle($recordId); //TODO: method isn't defined

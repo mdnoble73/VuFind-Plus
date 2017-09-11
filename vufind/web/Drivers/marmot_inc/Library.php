@@ -435,7 +435,7 @@ class Library extends DB_DataObject
 					'showHoldCancelDate'                => array('property'=>'showHoldCancelDate', 'type'=>'checkbox', 'label'=>'Show Cancellation Date', 'description'=>'Whether or not the patron should be able to set a cancellation date (not needed after date) when placing holds.', 'hideInLists' => true, 'default' => 1),
 					'allowFreezeHolds'                  => array('property'=>'allowFreezeHolds', 'type'=>'checkbox', 'label'=>'Allow Freezing Holds', 'description'=>'Whether or not the user can freeze their holds.', 'hideInLists' => true, 'default' => 1),
 					'defaultNotNeededAfterDays'         => array('property'=>'defaultNotNeededAfterDays', 'type'=>'integer', 'label'=>'Default Not Needed After Days', 'description'=>'Number of days to use for not needed after date by default. Use -1 for no default.', 'hideInLists' => true,),
-					'showDetailedHoldNoticeInformation' => array('property' => 'showDetailedHolNoticeIndformation', 'type' => 'checkbox', 'label' => 'Show Detailed Hold Notice Information', 'description' => 'Whether or not the user should be presented with detailed hold notification information, i.e. you will receive an e-mail/phone call to xxx when the hold is available', 'hideInLists' => true, 'default' => 1),
+					'showDetailedHoldNoticeInformation' => array('property' => 'showDetailedHoldNoticeInformation', 'type' => 'checkbox', 'label' => 'Show Detailed Hold Notice Information', 'description' => 'Whether or not the user should be presented with detailed hold notification information, i.e. you will receive an e-mail/phone call to xxx when the hold is available', 'hideInLists' => true, 'default' => 1),
 					'inSystemPickupsOnly'               => array('property'=>'inSystemPickupsOnly', 'type'=>'checkbox', 'label'=>'In System Pickups Only', 'description'=>'Restrict pickup locations to only locations within this library system.', 'hideInLists' => true,),
 					'validPickupSystems'                => array('property'=>'validPickupSystems', 'type'=>'text', 'label'=>'Valid Pickup Library Systems', 'description'=>'Additional Library Systems that can be used as pickup locations if the &quot;In System Pickups Only&quot; is on. List the libraries\' subdomains separated by pipes |', 'size'=>'20', 'hideInLists' => true,),
 					'holdDisclaimer'                    => array('property'=>'holdDisclaimer', 'type'=>'textarea', 'label'=>'Hold Disclaimer', 'description'=>'A disclaimer to display to patrons when they are placing a hold on items letting them know that their information may be available to other libraries.  Leave blank to not show a disclaimer.', 'hideInLists' => true,),
@@ -707,9 +707,9 @@ class Library extends DB_DataObject
 				),
 
 			)),
-			'interLibraryLoanSection' => array('property'=>'interLibraryLoanSectionSection', 'type' => 'section', 'label' =>'Inter Library Loaning', 'hideInLists' => true,  'properties' => array(
-				'interLibraryLoanName' => array('property'=>'interLibraryLoanName', 'type'=>'text', 'label'=>'Name of Inter Library Loan Service', 'description'=>'The name to be displayed in the link to the ILL service ', 'hideInLists' => true, 'size'=>'80'),
-				'interLibraryLoanUrl' => array('property'=>'interLibraryLoanUrl',   'type'=>'text', 'label'=>'Inter Library Loan URL', 'description'=>'The link for the ILL Service.', 'hideInLists' => true, 'size'=>'80'),
+			'interLibraryLoanSection' => array('property'=>'interLibraryLoanSectionSection', 'type' => 'section', 'label' =>'Interlibrary Loaning', 'hideInLists' => true,  'properties' => array(
+				'interLibraryLoanName' => array('property'=>'interLibraryLoanName', 'type'=>'text', 'label'=>'Name of Interlibrary Loan Service', 'description'=>'The name to be displayed in the link to the ILL service ', 'hideInLists' => true, 'size'=>'80'),
+				'interLibraryLoanUrl' => array('property'=>'interLibraryLoanUrl',   'type'=>'text', 'label'=>'Interlibrary Loan URL', 'description'=>'The link for the ILL Service.', 'hideInLists' => true, 'size'=>'80'),
 
 			'prospectorSection' => array('property'=>'prospectorSection', 'type' => 'section', 'label' =>'Prospector', 'hideInLists' => true,
 					'helpLink'=>'https://docs.google.com/document/d/18SVEhciSjO99hcFLLdFR6OpC4_OtjOafTkuWPGXOhu4', 'properties' => array(

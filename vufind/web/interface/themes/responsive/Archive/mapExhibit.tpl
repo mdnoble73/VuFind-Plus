@@ -52,7 +52,7 @@
 								var marker{$smarty.foreach.place.index} = new google.maps.Marker({ldelim}
 									position: {ldelim}lat: {$place.latitude}, lng: {$place.longitude}{rdelim},
 									map: VuFind.Archive.archive_map,
-									title: '{$place.label} ({$place.count})',
+									title: '{$place.label|escapeCSS} ({$place.count})',
 									icon: {ldelim}
 										path: google.maps.SymbolPath.CIRCLE,
 										title: '{$place.count}',
@@ -67,12 +67,12 @@
 
 								VuFind.Archive.markers[{$smarty.foreach.place.index}] = marker{$smarty.foreach.place.index};
 								marker{$smarty.foreach.place.index}.addListener('click', function(){ldelim}
-									VuFind.Archive.handleMapClick({$smarty.foreach.place.index}, '{$pid|urlencode}', '{$place.pid|urlencode}', '{$place.label}');
+									VuFind.Archive.handleMapClick({$smarty.foreach.place.index}, '{$pid|urlencode}', '{$place.pid|urlencode}', '{$place.label|escape:javascript}');
 								{rdelim});
 
 								{if $selectedPlace == $place.pid}
 									{* Click the first marker so we show images by default *}
-									VuFind.Archive.handleMapClick({$smarty.foreach.place.index}, '{$pid|urlencode}', '{$place.pid|urlencode}', '{$place.label}');
+									VuFind.Archive.handleMapClick({$smarty.foreach.place.index}, '{$pid|urlencode}', '{$place.pid|urlencode}', '{$place.label|escape:javascript}');
 								{/if}
 							{/if}
 						{/foreach}
@@ -80,7 +80,7 @@
 							var geomarker{$smarty.foreach.geolocatedObjects.index} = new google.maps.Marker({ldelim}
 								position: {ldelim}lat: {$geolocatedObject.latitude}, lng: {$geolocatedObject.longitude}{rdelim},
 								map: VuFind.Archive.archive_map,
-								title: '{$geolocatedObject.label}',
+								title: '{$geolocatedObject.label|escape:javascript}',
 								{rdelim});
 
 							VuFind.Archive.geomarkers[{$smarty.foreach.geolocatedObjects.index}] = geomarker{$smarty.foreach.geolocatedObjects.index};
@@ -92,7 +92,7 @@
 						{foreach from=$unmappedPlaces item=place}
 							{if $selectedPlace == $place.pid}
 								{* Click the first marker so we show images by default *}
-								VuFind.Archive.handleMapClick(-1, '{$pid|urlencode}', '{$place.pid|urlencode}', '{$place.label}');
+								VuFind.Archive.handleMapClick(-1, '{$pid|urlencode}', '{$place.pid|urlencode}', '{$place.label|escape:javascript}');
 							{/if}
 						{/foreach}
 					{rdelim}
@@ -118,7 +118,7 @@
 				<ol>
 					{foreach from=$unmappedPlaces item=place}
 						<li>
-							<a href="{$place.url}" onclick="VuFind.closeLightbox();return VuFind.Archive.handleMapClick(-1, '{$pid|urlencode}', '{$place.pid|urlencode}', '{$place.label}');">
+							<a href="{$place.url}" onclick="VuFind.closeLightbox();return VuFind.Archive.handleMapClick(-1, '{$pid|urlencode}', '{$place.pid|urlencode}', '{$place.label|escape:javascript}');">
 								{$place.label} has {$place.count} objects
 							</a>
 						</li>

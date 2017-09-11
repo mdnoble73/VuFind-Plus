@@ -96,7 +96,7 @@ do
 	# reset the output file each round
 
 	#Fetch partial updates from FTP server
-	mount 10.1.2.6:/ftp/aacpl /mnt/ftp >> ${OUTPUT_FILE}
+	mount 10.1.2.7:/ftp/aacpl /mnt/ftp >> ${OUTPUT_FILE}
 	#find /mnt/ftp/symphony-updates -maxdepth 1 -mmin -60 -name *.mrc| while FILES= read FILE; do
 	#Above find is for test only. Copy any partial exports from the last 30 minutes because of the moving out the partials is only done in production
 
@@ -113,9 +113,9 @@ do
 	umount /mnt/ftp >> ${OUTPUT_FILE}
 
 	#Get holds files from Google Drive
-	cd /data/vufind-plus/aacpl.test/marc
-	wget -q https://drive.google.com/file/d/0B_xqNQMfUrAzanJUZkNXekgtU2s/view?usp=sharing -O "Pika - Hold - Periodicals Information.csv"
-	wget -q https://drive.google.com/file/d/0B_xqNQMfUrAzNGJrajJzQWs3ZGs/view?usp=sharing -O "Pika - Hold - Information.csv"
+	cd /data/vufind-plus/aacpl.production/marc
+	wget -q "https://drive.google.com/uc?export=download&id=0B_xqNQMfUrAzanJUZkNXekgtU2s" -O "Pika_Hold_Periodicals.csv"
+	wget -q "https://drive.google.com/uc?export=download&id=0B_xqNQMfUrAzNGJrajJzQWs3ZGs" -O "Pika_Holds.csv"
 
 	#merge the changes with the full extract
 	cd /usr/local/vufind-plus/vufind/symphony_export/

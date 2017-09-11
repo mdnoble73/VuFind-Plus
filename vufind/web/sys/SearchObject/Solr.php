@@ -1963,16 +1963,6 @@ class SearchObject_Solr extends SearchObject_Base
 			$result = $this->processSearch(false, false);
 		}
 
-		// Now prepare the serializer
-		$serializer_options = array (
-            'addDecl'  => TRUE,
-            'encoding' => 'UTF-8',
-            'indent'   => '  ',
-            'rootName' => 'json',
-            'mode'     => 'simplexml',
-		);
-		$serializer = new XML_Serializer($serializer_options);
-
 		$baseUrl = $configArray['Site']['url'];
 		for ($i = 0; $i < count($result['response']['docs']); $i++) {
 
@@ -1980,13 +1970,12 @@ class SearchObject_Solr extends SearchObject_Base
 			if (strcasecmp($result['response']['docs'][$i]['recordtype'], 'grouped_work') == 0){
 				$id = $result['response']['docs'][$i]['id'];
 				$result['response']['docs'][$i]['recordUrl'] = $baseUrl . '/GroupedWork/' . $id;
-				$result['response']['docs'][$i]['title'] = $result['response']['docs'][$i]['title_full'];
 				require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
 				$groupedWorkDriver = new GroupedWorkDriver($result['response']['docs'][$i]);
 				if ($groupedWorkDriver->isValid){
 					$image = $groupedWorkDriver->getBookcoverUrl('medium');
 					$description = "<img src='$image'/> " . $groupedWorkDriver->getDescriptionFast();
-					$result['response']['docs'][$i]['description'] = $description;
+					$result['response']['docs'][$i]['rss_description'] = $description;
 				}
 			}else{
 				$id = $result['response']['docs'][$i]['id'];
@@ -1995,15 +1984,7 @@ class SearchObject_Solr extends SearchObject_Base
 
 		}
 
-		// Serialize our results from PHP arrays to XML
-		if ($serializer->serialize($result)) {
-			$xmlResults = $serializer->getSerializedData();
-		}
-
-		// Prepare an XSLT processor and pass it some variables
-		$xsl = new XSLTProcessor();
-		$xsl->registerPHPFunctions('urlencode');
-		$xsl->registerPHPFunctions('translate');
+		global $interface;
 
 		// On-screen display value for our search
 		if ($this->searchType == 'newitem') {
@@ -2015,33 +1996,17 @@ class SearchObject_Solr extends SearchObject_Base
 		}
 		if (count($this->filterList) > 0) {
 			// TODO : better display of filters
-			$xsl->setParameter('', 'lookfor', $lookfor . " (" . translate('with filters') . ")");
+			$interface->assign('lookfor', $lookfor . " (" . translate('with filters') . ")");
 		} else {
-			$xsl->setParameter('', 'lookfor', $lookfor);
+			$interface->assign('lookfor', $lookfor);
 		}
 		// The full url to recreate this search
-		$xsl->setParameter('', 'searchUrl', $this->renderSearchUrl());
+		$interface->assign('searchUrl', $configArray['Site']['url']. $this->renderSearchUrl());
 		// Stub of a url for a records screen
-		$xsl->setParameter('', 'baseUrl',    $configArray['Site']['url']."/Record/");
+		$interface->assign('baseUrl',    $configArray['Site']['url']."/Record/");
 
-		// Load up the style sheet
-		$style = new DOMDocument;
-		$style->load('services/Search/xsl/json-rss.xsl');
-		$xsl->importStyleSheet($style);
-
-		// Load up the XML document
-		$xml = new DOMDocument;
-		$xml->loadXML($xmlResults);
-
-		// Process and return the xml through the style sheet
-		try{
-			$xmlResult = $xsl->transformToXML($xml);
-			return $xmlResult;
-		}catch (Exception $e){
-			global $logger;
-			$logger->log("Error loading RSS feed $e", PEAR_LOG_ERR);
-			return "";
-		}
+		$interface->assign('result', $result);
+		return $interface->fetch('Search/rss.tpl');
 	}
 
 	/**

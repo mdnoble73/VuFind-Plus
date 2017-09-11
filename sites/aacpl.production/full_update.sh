@@ -157,7 +157,7 @@ then
 fi
 
 #Extract from ILS
-mount 10.1.2.6:/ftp/aacpl /mnt/ftp
+mount 10.1.2.7:/ftp/aacpl /mnt/ftp
 
 # Copy Over Holds data
 cp --update --preserve=timestamps /mnt/ftp/symphony-holds/*.csv /data/vufind-plus/${PIKASERVER}/
@@ -192,7 +192,7 @@ then
 		umount /mnt/ftp
 	fi
 else
-	echo "Did not find a Sierra export file from the last 24 hours, Full Regrouping & Full Reindexing skipped." >> ${OUTPUT_FILE}
+	echo "Did not find a Symphony export file from the last 24 hours, Full Regrouping & Full Reindexing skipped." >> ${OUTPUT_FILE}
 	umount /mnt/ftp
 fi
 

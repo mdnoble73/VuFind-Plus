@@ -23,6 +23,7 @@ import java.util.*;
  */
 abstract class IIIRecordProcessor extends IlsRecordProcessor{
 	private HashMap<String, ArrayList<OrderInfo>> orderInfoFromExport = new HashMap<>();
+	private HashMap<String, DueDateInfo> dueDateInfoFromExport = new HashMap<>();
 	private boolean loanRuleDataLoaded = false;
 	private HashMap<Long, LoanRule> loanRules = new HashMap<>();
 	private ArrayList<LoanRuleDeterminer> loanRuleDeterminers = new ArrayList<>();
@@ -38,6 +39,7 @@ abstract class IIIRecordProcessor extends IlsRecordProcessor{
 			logger.error("Unable to load marc path from indexing profile");
 		}
 		loadLoanRuleInformation(vufindConn, logger);
+		loadDueDateInformation();
 		validCheckedOutStatusCodes.add("-");
 	}
 
@@ -233,8 +235,8 @@ abstract class IIIRecordProcessor extends IlsRecordProcessor{
 			String statusCode = itemInfo.getStatusCode();
 			if (validCheckedOutStatusCodes.contains(statusCode)) {
 				//We need to override based on due date
-				String dueDate = itemInfo.getDueDate() == null ? "" : itemInfo.getDueDate();
-				if (dueDate.length() == 0 || dueDate.trim().equals("-  -")) {
+				DueDateInfo dueDate = dueDateInfoFromExport.get(itemInfo.getItemIdentifier());
+				if (dueDate == null) {
 					return translateValue("item_grouped_status", statusCode, identifier);
 				} else {
 					return "Checked Out";
@@ -253,8 +255,8 @@ abstract class IIIRecordProcessor extends IlsRecordProcessor{
 			String statusCode = itemInfo.getStatusCode();
 			if (validCheckedOutStatusCodes.contains(statusCode)) {
 				//We need to override based on due date
-				String dueDate = itemInfo.getDueDate() == null ? "" : itemInfo.getDueDate();
-				if (dueDate.length() == 0 || dueDate.trim().equals("-  -")) {
+				DueDateInfo dueDate = dueDateInfoFromExport.get(itemInfo.getItemIdentifier());
+				if (dueDate == null) {
 					return translateValue("item_status", statusCode, identifier);
 				} else {
 					return "Checked Out";
@@ -265,8 +267,6 @@ abstract class IIIRecordProcessor extends IlsRecordProcessor{
 		}
 	}
 
-
-
 	protected abstract boolean loanRulesAreBasedOnCheckoutLocation();
 
 	protected void setDetailedStatus(ItemInfo itemInfo, DataField itemField, String itemStatus, String identifier) {
@@ -276,10 +276,11 @@ abstract class IIIRecordProcessor extends IlsRecordProcessor{
 			itemInfo.setDetailedStatus(overriddenStatus);
 		}else {
 			if (validCheckedOutStatusCodes.contains(itemStatus)) {
-				if (itemInfo.getDueDate().length() == 0 || itemInfo.getDueDate().trim().equals("-  -")) {
+				DueDateInfo dueDate = dueDateInfoFromExport.get(itemInfo.getItemIdentifier());
+				if (dueDate == null) {
 					itemInfo.setDetailedStatus(translateValue("item_status", itemStatus, identifier));
 				}else{
-					itemInfo.setDetailedStatus("Due " + getDisplayDueDate(itemInfo.getDueDate(), identifier));
+					itemInfo.setDetailedStatus("Due " + getDisplayDueDate(dueDate, itemInfo.getItemIdentifier()));
 				}
 			} else {
 				itemInfo.setDetailedStatus(translateValue("item_status", itemStatus, identifier));
@@ -288,18 +289,22 @@ abstract class IIIRecordProcessor extends IlsRecordProcessor{
 	}
 
 	private SimpleDateFormat displayDateFormatter = new SimpleDateFormat("MMM d, yyyy");
-	private SimpleDateFormat dueDateFormatter;
-	private String getDisplayDueDate(String dueDate, String identifier){
+	private String getDisplayDueDate(DueDateInfo dueDate, String identifier){
 		try {
-			if (dueDateFormatter == null) {
-				dueDateFormatter = new SimpleDateFormat(dueDateFormat);
-			}
-			Date dateAdded = dueDateFormatter.parse(dueDate);
-			return displayDateFormatter.format(dateAdded);
+			return displayDateFormatter.format(dueDate.getDueDate());
 		}catch (Exception e){
-			logger.warn("Could not load display due date for dueDate " + dueDate + " for identifier " + identifier, e);
+			logger.warn("Could not load display due date for dueDate " + dueDate.getDueDate() + " for identifier " + identifier, e);
 		}
 		return "Unknown";
+	}
+
+	protected void getDueDate(DataField itemField, ItemInfo itemInfo) {
+		DueDateInfo dueDate = dueDateInfoFromExport.get(itemInfo.getItemIdentifier());
+		if (dueDate == null) {
+			itemInfo.setDueDate("");
+		}else{
+			itemInfo.setDueDate(dueDateFormatter.format(dueDate.getDueDate()));
+		}
 	}
 
 	/**
@@ -318,6 +323,25 @@ abstract class IIIRecordProcessor extends IlsRecordProcessor{
 			return "x";
 		}else{
 			return Integer.toString(modValue);
+		}
+	}
+
+	void loadDueDateInformation() {
+		File dueDatesFile = new File(this.exportPath + "/due_dates.csv");
+		if (dueDatesFile.exists()){
+			try{
+				CSVReader reader = new CSVReader(new FileReader(dueDatesFile));
+				String[] dueDateData;
+				while ((dueDateData = reader.readNext()) != null){
+					DueDateInfo dueDateInfo = new DueDateInfo();
+					dueDateInfo.setItemId(dueDateData[0]);
+					long dueDate = Long.parseLong(dueDateData[1]);
+					dueDateInfo.setDueDate(new Date(dueDate));
+					dueDateInfoFromExport.put(dueDateInfo.getItemId(), dueDateInfo);
+				}
+			}catch(Exception e){
+				logger.error("Error loading order records from active orders", e);
+			}
 		}
 	}
 

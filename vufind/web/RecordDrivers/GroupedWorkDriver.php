@@ -1000,10 +1000,12 @@ class GroupedWorkDriver extends RecordInterface{
 		if ($this->fastDescription != null){
 			return $this->fastDescription;
 		}
-		if (isset($this->fields['display_description'])){
+		if (!empty($this->fields['display_description'])){
 			$this->fastDescription = $this->fields['display_description'];
 		}else{
-			$relatedRecords = $this->getRelatedRecords(false);
+			$this->fastDescription = "";
+			//This logic mirrors that used in the indexer.  No need to repeat if we didn't find anything in the indexer.
+			/*$relatedRecords = $this->getRelatedRecords();
 			//Look for a description from a book in english
 			foreach ($relatedRecords as $relatedRecord){
 				$language = is_array($relatedRecord['language']) ? $relatedRecord['language'][0] : $relatedRecord['language'];
@@ -1030,7 +1032,7 @@ class GroupedWorkDriver extends RecordInterface{
 				}
 			}
 			$this->fastDescription =  '';
-			return $this->fastDescription;
+			return $this->fastDescription;*/
 		}
 		return $this->fastDescription;
 	}
@@ -1517,7 +1519,30 @@ class GroupedWorkDriver extends RecordInterface{
 			} else {
 				//Figure out what the preferred record is to place a hold on.  Since sorting has been done properly, this should always be the first
 				$bestRecord = reset($manifestation['relatedRecords']);
-				$manifestation['actions'] = $bestRecord['actions'];
+
+				if ($manifestation['numRelatedRecords'] > 1 && $bestRecord['groupedStatus'] == 'Checked Out') {
+					$promptForAlternateEdition = false;
+					foreach ($manifestation['relatedRecords'] as $relatedRecord) {
+						if ($relatedRecord['available'] == true && $relatedRecord['holdable'] == true) {
+							$promptForAlternateEdition = true;
+							unset($relatedRecord);
+							break;
+						}
+					}
+					if ($promptForAlternateEdition) {
+						$alteredActions = array();
+						foreach ($bestRecord['actions'] as $action) {
+							$action['onclick'] = str_replace('Record.showPlaceHold', 'Record.showPlaceHoldEditions', $action['onclick']);
+							$alteredActions[] = $action;
+						}
+						$manifestation['actions'] = $alteredActions;
+						unset($action, $alteredActions);
+					} else {
+						$manifestation['actions'] = $bestRecord['actions'];
+					}
+				 } else {
+					$manifestation['actions'] = $bestRecord['actions'];
+				}
 			}
 			if ($selectedFormat && $selectedFormat != $manifestation['format']) {
 				//Do a secondary check to see if we have a more detailed format in the facet

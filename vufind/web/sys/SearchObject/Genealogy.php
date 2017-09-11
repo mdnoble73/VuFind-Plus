@@ -1133,6 +1133,7 @@ class SearchObject_Genealogy extends SearchObject_Base
 	 */
 	public function buildRSS($result = null)
 	{
+		global $configArray;
 		// XML HTTP header
 		header('Content-type: text/xml', true);
 
@@ -1143,64 +1144,40 @@ class SearchObject_Genealogy extends SearchObject_Base
 			$result = $this->processSearch(false, false);
 		}
 
-		// Now prepare the serializer
-		$serializer_options = array (
-            'addDecl'  => TRUE,
-            'encoding' => 'UTF-8',
-            'indent'   => '  ',
-            'rootName' => 'json',
-            'mode'     => 'simplexml',
-		);
+		for ($i = 0; $i < count($result['response']['docs']); $i++) {
+			$current = & $this->indexResult['response']['docs'][$i];
 
-		$serializer = new XML_Serializer($serializer_options);
-
-		// Serialize our results from PHP arrays to XML
-		if ($serializer->serialize($result)) {
-			$xmlResults = $serializer->getSerializedData();
+			/** @var PersonRecord $record */
+			$record = RecordDriverFactory::initRecordDriver($current);
+			if (!PEAR_Singleton::isError($record)) {
+				$result['response']['docs'][$i]['recordUrl'] = $record->getAbsoluteUrl();
+				$result['response']['docs'][$i]['title_display'] = $record->getName();
+				$image = $record->getBookcoverUrl('medium');
+				$description = "<img src='$image'/> ";
+				$result['response']['docs'][$i]['rss_description'] = $description;
+			} else {
+				$html[] = "Unable to find record";
+			}
 		}
 
-		// Prepare an XSLT processor and pass it some variables
-		$xsl = new XSLTProcessor();
-		$xsl->registerPHPFunctions('urlencode');
-		$xsl->registerPHPFunctions('translate');
+		global $interface;
 
 		// On-screen display value for our search
-		if ($this->searchType == 'newitem') {
-			$lookfor = translate('New Items');
-		} else if ($this->searchType == 'reserves') {
-			$lookfor = translate('Course Reserves');
-		} else {
-			$lookfor = $this->displayQuery();
-		}
+		$lookfor = $this->displayQuery();
+
 		if (count($this->filterList) > 0) {
 			// TODO : better display of filters
-			$xsl->setParameter('', 'lookfor', $lookfor . " (" . translate('with filters') . ")");
+			$interface->assign('lookfor', $lookfor . " (" . translate('with filters') . ")");
 		} else {
-			$xsl->setParameter('', 'lookfor', $lookfor);
+			$interface->assign('lookfor', $lookfor);
 		}
 		// The full url to recreate this search
-		$xsl->setParameter('', 'searchUrl', $this->renderSearchUrl());
+		$interface->assign('searchUrl', $configArray['Site']['url']. $this->renderSearchUrl());
 		// Stub of a url for a records screen
-		$xsl->setParameter('', 'baseUrl',   $this->serverUrl."/Record/");
+		$interface->assign('baseUrl',    $configArray['Site']['url']);
 
-		// Load up the style sheet
-		$style = new DOMDocument;
-		$style->load('services/Search/xsl/json-rss.xsl');
-		$xsl->importStyleSheet($style);
-
-		// Load up the XML document
-		$xml = new DOMDocument;
-		$xml->loadXML($xmlResults);
-
-		// Process and return the xml through the style sheet
-		try{
-			$xmlResult = $xsl->transformToXML($xml);
-			return $xmlResult;
-		}catch (Exception $e){
-			global $logger;
-			$logger->log("Error loading RSS feed $e", PEAR_LOG_ERR);
-			return "";
-		}
+		$interface->assign('result', $result);
+		return $interface->fetch('Search/rss.tpl');
 	}
 
 	/**

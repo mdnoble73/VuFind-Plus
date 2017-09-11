@@ -22,8 +22,8 @@ class MyAccount_Holds extends MyAccount{
 
 		$ils = $configArray['Catalog']['ils'];
 		$showPosition = ($ils == 'Horizon' || $ils == 'Koha' || $ils == 'Symphony' || $ils == 'CarlX');
-		$showExpireTime = ($ils == 'Horizon');
-		$suspendRequiresReactivationDate = ($ils == 'Horizon' || $ils == 'CarlX' || $ils == 'Symphony');
+		$showExpireTime = ($ils == 'Horizon' || $ils == 'Symphony');
+		$suspendRequiresReactivationDate = ($ils == 'Horizon' || $ils == 'CarlX' || $ils == 'Symphony'|| $ils == 'Koha');
 		$interface->assign('suspendRequiresReactivationDate', $suspendRequiresReactivationDate);
 		$canChangePickupLocation = ($ils != 'Koha');
 		$interface->assign('canChangePickupLocation', $canChangePickupLocation);
@@ -51,13 +51,9 @@ class MyAccount_Holds extends MyAccount{
 
 		$allowChangeLocation = ($ils == 'Millennium' || $ils == 'Sierra');
 		$interface->assign('allowChangeLocation', $allowChangeLocation);
-		//$showPlacedColumn = ($ils == 'Horizon');
-		//Horizon Web Services does not include data placed anymore
-		//TODO: ShowPlacedColumn is never displayed on My Holds page
-//		$showPlacedColumn = true;
-		$showPlacedColumn = false;
+		$showPlacedColumn = ($ils == 'Symphony');
 		$interface->assign('showPlacedColumn', $showPlacedColumn);
-		$showDateWhenSuspending = ($ils == 'Horizon' || $ils == 'CarlX' || $ils == 'Symphony');
+		$showDateWhenSuspending = ($ils == 'Horizon' || $ils == 'CarlX' || $ils == 'Symphony' || $ils == 'Koha');
 		$interface->assign('showDateWhenSuspending', $showDateWhenSuspending);
 
 		$interface->assign('showPosition', $showPosition);
@@ -140,6 +136,12 @@ class MyAccount_Holds extends MyAccount{
 		$this->display('holds.tpl', 'My Holds');
 	}
 
+	function isValidTimeStamp($timestamp) {
+		return is_numeric($timestamp)
+			&& ($timestamp <= PHP_INT_MAX)
+			&& ($timestamp >= ~PHP_INT_MAX);
+	}
+
 	public function exportToExcel($result, $exportType, $showDateWhenSuspending, $showPosition, $showExpireTime) {
 		//PHPEXCEL
 		// Create new PHPExcel object
@@ -164,7 +166,7 @@ class MyAccount_Holds extends MyAccount{
 			->setCellValue('D3', 'Placed')
 			->setCellValue('E3', 'Pickup')
 			->setCellValue('F3', 'Available')
-			->setCellValue('G3', 'Expires');
+			->setCellValue('G3', translate('Pick-Up By'));
 		} else {
 			$objPHPExcel->setActiveSheetIndex(0)
 			->setCellValue('A1', 'Holds - '.ucfirst($exportType))
@@ -219,16 +221,35 @@ class MyAccount_Holds extends MyAccount{
 				$formatString = '';
 			}
 
+			if (empty($row['create'])) {
+				$placedDate = '';
+			} else {
+				$placedDate = $this->isValidTimeStamp($row['create']) ? $row['create'] : strtotime($row['create']);
+				$placedDate = date('M d, Y', $placedDate);
+			}
+
+			if (empty($row['expire'])) {
+				$expireDate = '';
+			} else {
+				$expireDate = $this->isValidTimeStamp($row['expire']) ? $row['expire'] : strtotime($row['create']);
+				$expireDate = date('M d, Y', $expireDate);
+			}
+
 			if ($exportType == "available") {
+				if (empty($row['availableTime'])) {
+					$availableDate = 'Now';
+				} else {
+					$availableDate = $this->isValidTimeStamp($row['availableTime']) ? $row['availableTime'] : strtotime($row['availableTime']);
+					$availableDate =  date('M d, Y', $availableDate);
+				}
 				$objPHPExcel->getActiveSheet()
 				->setCellValue('A'.$a, $titleCell)
 				->setCellValue('B'.$a, $authorCell)
 				->setCellValue('C'.$a, $formatString)
-//				->setCellValue('D'.$a, isset($row['createTime']) ? date('M d, Y', $row['createTime']) : '')
-				->setCellValue('D'.$a, isset($row['create']) ? date('M d, Y', $row['create']) : '')
+				->setCellValue('D'.$a, $placedDate)
 				->setCellValue('E'.$a, $row['location'])
-				->setCellValue('F'.$a, isset($row['availableTime']) ? date('M d, Y', strtotime($row['availableTime'])) : 'Now')
-				->setCellValue('G'.$a, date('M d, Y', $row['expire'])); //prefer expireTime because it is a timestamp
+				->setCellValue('F'.$a, $availableDate)
+				->setCellValue('G'.$a, $expireDate);
 			} else {
 				if (isset($row['status'])){
 					$statusCell = $row['status'];
@@ -236,14 +257,15 @@ class MyAccount_Holds extends MyAccount{
 					$statusCell = '';
 				}
 
-				if (isset($row['frozen']) && $row['frozen'] && $showDateWhenSuspending){
-					$statusCell .= " until " . date('M d, Y', strtotime($row['reactivateTime']));
+				if (isset($row['frozen']) && $row['frozen'] && $showDateWhenSuspending && !empty($row['reactivateTime'])){
+					$reactivateTime = $this->isValidTimeStamp($row['reactivateTime']) ? $row['reactivateTime'] : strtotime($row['reactivateTime']);
+					$statusCell .= " until " . date('M d, Y',$reactivateTime);
 				}
 				$objPHPExcel->getActiveSheet()
 				->setCellValue('A'.$a, $titleCell)
 				->setCellValue('B'.$a, $authorCell)
 				->setCellValue('C'.$a, $formatString)
-				->setCellValue('D'.$a, isset($row['createTime']) ? date('M d, Y', $row['createTime']) : '');
+				->setCellValue('D'.$a, $placedDate);
 				if (isset($row['location'])){
 					$objPHPExcel->getActiveSheet()->setCellValue('E'.$a, $row['location']);
 				}else{
@@ -259,12 +281,12 @@ class MyAccount_Holds extends MyAccount{
 
 					$objPHPExcel->getActiveSheet()->setCellValue('G'.$a, $statusCell);
 					if ($showExpireTime){
-						$objPHPExcel->getActiveSheet()->setCellValue('H'.$a, date('M d, Y', $row['expireTime']));
+						$objPHPExcel->getActiveSheet()->setCellValue('H'.$a, $expireDate);
 					}
 				}else{
 					$objPHPExcel->getActiveSheet()->setCellValue('F'.$a, $statusCell);
 					if ($showExpireTime){
-						$objPHPExcel->getActiveSheet()->setCellValue('G'.$a, date('M d, Y', $row['expireTime']));
+						$objPHPExcel->getActiveSheet()->setCellValue('G'.$a, $expireDate);
 					}
 				}
 			}

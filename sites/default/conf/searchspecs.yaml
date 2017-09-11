@@ -921,6 +921,8 @@ IslandoraRelationshipsById:
       - [exact, ~]
     - mods_extension_marmotLocal_hasTranscription_transcriber_entityPid_ms:
       - [exact, ~]
+    - mods_extension_marmotLocal_relatedObject__objectPid_ms:
+      - [exact, ~]
     - mods_extension_marmotLocal_relatedObject_related_publication_objectPid_ms:
       - [exact, ~]
     - mods_extension_marmotLocal_relatedObject_interview_objectPid_ms:

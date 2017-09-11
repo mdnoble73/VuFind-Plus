@@ -14,6 +14,8 @@ PIKASERVER=aacpl.test
 PIKADBNAME=pika
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
 
+MINFILE1SIZE=$((512000000))
+
 # Check if full_update is already running
 #TODO: Verify that the PID file doesn't get log-rotated
 PIDFILE="/var/log/vufind-plus/${PIKASERVER}/full_update.pid"
@@ -134,7 +136,6 @@ cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 /usr/local/vufind-plus/sites/${PIKASERVER}/moveSideloadAdds.sh aacpl/gale gale/aacpl/merge >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh gale/aacpl >> ${OUTPUT_FILE}
 
-
 #Extract from Hoopla
 #cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE}
 cd /usr/local/vufind-plus/vufind/cron;./GetHooplaFromMarmot.sh >> ${OUTPUT_FILE}
@@ -156,24 +157,44 @@ then
 fi
 
 #Extract from ILS
-#Copy extracts from FTP Server
-mount 10.1.2.6:/ftp/aacpl /mnt/ftp
-FILE1=$(find /mnt/ftp/symphony -name Pika*.mrc -mtime -1 | sort -n | tail -1)
-cp --update --preserve=timestamps $FILE1 /data/vufind-plus/${PIKASERVER}/marc/fullexport.mrc
+mount 10.1.2.7:/ftp/aacpl /mnt/ftp
 
 # Copy Over Holds data
 cp --update --preserve=timestamps /mnt/ftp/symphony-holds/*.csv /data/vufind-plus/${PIKASERVER}/
-umount /mnt/ftp
 
+#Copy extracts from FTP Server
+FILE=$(find /mnt/ftp/symphony -name Pika*.mrc -mtime -1 | sort -n | tail -1)
+if [ -n "$FILE" ]
+then
+  #check file size
+	FILE1SIZE=$(wc -c <"$FILE")
+	if [ $FILE1SIZE -ge $MINFILE1SIZE ]; then
 
-#Validate the export
-cd /usr/local/vufind-plus/vufind/cron; java -server -XX:+UseG1GC -jar cron.jar ${PIKASERVER} ValidateMarcExport >> ${OUTPUT_FILE}
+		echo "Latest export file is " $FILE >> ${OUTPUT_FILE}
+		DIFF=$(($FILE1SIZE - $MINFILE1SIZE))
+		PERCENTABOVE=$((100 * $DIFF / $MINFILE1SIZE))
+		echo "The export file is $PERCENTABOVE (%) larger than the minimum size check." >> ${OUTPUT_FILE}
 
-#Full Regroup
-cd /usr/local/vufind-plus/vufind/record_grouping; java -server -XX:+UseG1GC -Xmx2G -jar record_grouping.jar ${PIKASERVER} fullRegroupingNoClear >> ${OUTPUT_FILE}
+		cp --update --preserve=timestamps $FILE /data/vufind-plus/${PIKASERVER}/marc/fullexport.mrc
+		umount /mnt/ftp
 
-#Full Reindex
-cd /usr/local/vufind-plus/vufind/reindexer; java -server -XX:+UseG1GC -Xmx2G -jar reindexer.jar ${PIKASERVER} fullReindex >> ${OUTPUT_FILE}
+		#Validate the export
+		cd /usr/local/vufind-plus/vufind/cron; java -server -XX:+UseG1GC -jar cron.jar ${PIKASERVER} ValidateMarcExport >> ${OUTPUT_FILE}
+
+		#Full Regroup
+		cd /usr/local/vufind-plus/vufind/record_grouping; java -server -XX:+UseG1GC -Xmx2G -jar record_grouping.jar ${PIKASERVER} fullRegroupingNoClear >> ${OUTPUT_FILE}
+
+		#Full Reindex
+		cd /usr/local/vufind-plus/vufind/reindexer; java -server -XX:+UseG1GC -Xmx2G -jar reindexer.jar ${PIKASERVER} fullReindex >> ${OUTPUT_FILE}
+
+	else
+		echo $FILE " size " $FILE1SIZE "is less than minimum size :" $MINFILE1SIZE "; Export was not moved to data directory, Full Regrouping & Full Reindexing skipped." >> ${OUTPUT_FILE}
+		umount /mnt/ftp
+	fi
+else
+	echo "Did not find a Symphony export file from the last 24 hours, Full Regrouping & Full Reindexing skipped." >> ${OUTPUT_FILE}
+	umount /mnt/ftp
+fi
 
 # Clean-up Solr Logs
 find /usr/local/vufind-plus/sites/default/solr/jetty/logs -name "solr_log_*" -mtime +7 -delete

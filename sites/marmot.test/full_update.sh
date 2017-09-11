@@ -127,7 +127,7 @@ cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE
 /usr/local/vufind-plus/sites/marmot.test/moveSideloadAdds.sh vail/learning_express/deletes learning_express/vail/deletes >> ${OUTPUT_FILE}
 
 # Colorado State Gov Docs Marc Updates
-/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh cologovdocs colorado_gov_docs >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh  marmot/coloGovDocs colorado_gov_docs >> ${OUTPUT_FILE}
 
 #Films On Demand
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh cmc/filmsondemand filmsondemand/cmc >> ${OUTPUT_FILE}
