@@ -595,17 +595,17 @@ abstract class IslandoraDriver extends RecordInterface {
 		$description = str_replace("\r\n", '<br>', $description);
 		$description = str_replace("&#xD;", '<br>', $description);
 		if (strlen($description)) {
-			$interface->assign('description', $description);
+			$interface->assignAppendToExisting('description', $description);
 			if ($this instanceof PersonDriver) {
 				$moreDetailsOptions['bio'] = array(
 						'label' => 'Biographical Information',
-						'body' => $description,
+						'body' => $interface->get_template_vars('description'),
 						'hideByDefault' => false,
 				);
 			}else{
 				$moreDetailsOptions['description'] = array(
 						'label' => 'Description',
-						'body' => $description,
+						'body' => $interface->get_template_vars('description'),
 						'hideByDefault' => false,
 				);
 			}
