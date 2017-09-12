@@ -491,8 +491,11 @@ VuFind.Account = (function(){
 			return false;
 		},
 
-		changeAccountSort: function (newSort){
-			var paramString = VuFind.replaceQueryParam('accountSort', newSort);
+		changeAccountSort: function (newSort, sortParameterName){
+			if (typeof sortParameterName === 'undefined') {
+				sortParameterName = 'accountSort'
+			}
+			var paramString = VuFind.replaceQueryParam(sortParameterName, newSort);
 			location.replace(location.pathname + paramString)
 		},
 
