@@ -29,8 +29,7 @@
 			</div>
 			{if (isset($selfRegResult))}
 				<div id="selfRegFail" class="alert alert-warning">
-					Sorry, we were unable to create a library card for you.  You may already have an account or there may be an error with the information you entered.
-					Please try again or visit the library in person (with a valid ID) so we can create a card for you.
+					Sorry, we were unable to create a library card for you.  You may already have an account, you may be too young to reigster online, or there may be an error with the information you entered. Please try again or visit the library in person (with a valid ID) so we can create a card for you.
 				</div>
 			{/if}
 			{if $captchaMessage}
