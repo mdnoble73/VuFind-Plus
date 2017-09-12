@@ -886,6 +886,9 @@ class User extends DB_DataObject
 				case 'format' :
 					$indexToSortBy = $unavailableSort;
 					break;
+				case 'placed' :
+					$indexToSortBy = 'create';
+					break;
 				case 'libraryAccount' :
 					$indexToSortBy = 'user';
 					break;

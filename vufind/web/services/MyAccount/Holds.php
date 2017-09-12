@@ -27,20 +27,23 @@ class MyAccount_Holds extends MyAccount{
 		$interface->assign('suspendRequiresReactivationDate', $suspendRequiresReactivationDate);
 		$canChangePickupLocation = ($ils != 'Koha');
 		$interface->assign('canChangePickupLocation', $canChangePickupLocation);
+		$showPlacedColumn = ($ils == 'Symphony');
+		$interface->assign('showPlacedColumn', $showPlacedColumn);
 
 		// Define sorting options
 		$unavailableHoldSortOptions = array(
 			'title'  => 'Title',
 			'author' => 'Author',
 			'format' => 'Format',
-			'placed' => 'Date Placed',
 			'location' => 'Pickup Location',
 			'status' => 'Status',
 		);
 		if ($showPosition){
 			$unavailableHoldSortOptions['position'] = 'Position';
 		}
-
+		if ($showPlacedColumn) {
+			$unavailableHoldSortOptions['placed'] = 'Date Placed';
+		}
 
 		$availableHoldSortOptions = array(
 			'title'  => 'Title',
@@ -73,8 +76,6 @@ class MyAccount_Holds extends MyAccount{
 
 		$allowChangeLocation = ($ils == 'Millennium' || $ils == 'Sierra');
 		$interface->assign('allowChangeLocation', $allowChangeLocation);
-		$showPlacedColumn = ($ils == 'Symphony');
-		$interface->assign('showPlacedColumn', $showPlacedColumn);
 		$showDateWhenSuspending = ($ils == 'Horizon' || $ils == 'CarlX' || $ils == 'Symphony' || $ils == 'Koha');
 		$interface->assign('showDateWhenSuspending', $showDateWhenSuspending);
 

@@ -585,10 +585,14 @@ class OverDriveDriver3 {
 				}else{
 					//print_r($curTitle);
 				}
-				$hold['holdQueueLength'] = $curTitle->numberOfHolds;
+				$datePlaced                = strtotime($curTitle->holdPlacedDate);
+				if ($datePlaced) {
+					$hold['create']            = $datePlaced;
+				}
+				$hold['holdQueueLength']   = $curTitle->numberOfHolds;
 				$hold['holdQueuePosition'] = $curTitle->holdListPosition;
-				$hold['position'] = $curTitle->holdListPosition;  // this is so that overdrive holds can be sorted by hold position with the IlS holds
-				$hold['available'] = isset($curTitle->actions->checkout);
+				$hold['position']          = $curTitle->holdListPosition;  // this is so that overdrive holds can be sorted by hold position with the IlS holds
+				$hold['available']         = isset($curTitle->actions->checkout);
 				if ($hold['available']){
 					$hold['expire'] = strtotime($curTitle->holdExpires);
 				}
