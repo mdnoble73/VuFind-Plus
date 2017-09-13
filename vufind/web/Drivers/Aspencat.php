@@ -1194,7 +1194,7 @@ class Aspencat implements DriverInterface{
 						$curHold['isbn']            = $recordDriver->getCleanISBN();
 						$curHold['upc']             = $recordDriver->getCleanUPC();
 						$curHold['format_category'] = $recordDriver->getFormatCategory();
-						$curHold['coverUrl']        = $recordDriver->getBookcoverUrl();
+						$curHold['coverUrl']        = $recordDriver->getBookcoverUrl('medium');
 						$curHold['link']            = $recordDriver->getRecordUrl();
 						$curHold['ratingData']      = $recordDriver->getRatingData();
 					}
