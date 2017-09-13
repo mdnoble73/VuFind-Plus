@@ -35,8 +35,8 @@ class MyAccount_Holds extends MyAccount{
 			'title'  => 'Title',
 			'author' => 'Author',
 			'format' => 'Format',
-			'location' => 'Pickup Location',
 			'status' => 'Status',
+			'location' => 'Pickup Location',
 		);
 		if ($showPosition){
 			$unavailableHoldSortOptions['position'] = 'Position';
@@ -49,12 +49,13 @@ class MyAccount_Holds extends MyAccount{
 			'title'  => 'Title',
 			'author' => 'Author',
 			'format' => 'Format',
-			'expire' => 'Expiration Date'
+			'expire' => 'Expiration Date',
+			'location' => 'Pickup Location',
 		);
 
 		if (count($user->getLinkedUsers()) > 0){
 			$unavailableHoldSortOptions['libraryAccount'] = 'Library Account';
-			$availableHoldSortOptions['libraryAccount'] = 'Library Account';
+			$availableHoldSortOptions['libraryAccount']   = 'Library Account';
 		}
 
 		$interface->assign('sortOptions', array(
