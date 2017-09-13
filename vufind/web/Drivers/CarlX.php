@@ -833,7 +833,9 @@ class CarlX extends SIP2Driver{
 		$fields[] = array('property'=>'middleName',  'type'=>'text', 'label'=>'Middle Name', 'description'=>'Your middle name', 'maxLength' => 40, 'required' => false);
 		$fields[] = array('property'=>'lastName',   'type'=>'text', 'label'=>'Last Name', 'description'=>'Your last name', 'maxLength' => 40, 'required' => true);
 		if ($library && $library->promptForBirthDateInSelfReg){
-			$fields[] = array('property'=>'birthDate', 'type'=>'date', 'label'=>'Date of Birth (MM-DD-YYYY)', 'description'=>'Date of birth', 'maxLength' => 10, 'required' => true);
+			$birthDateMin = date('Y-m-d', strtotime('-114 years'));
+			$birthDateMax = date('Y-m-d', strtotime('-14 years'));
+			$fields[] = array('property'=>'birthDate', 'type'=>'date', 'label'=>'Date of Birth (MM-DD-YYYY)', 'description'=>'Date of birth', 'min'=>$birthDateMin, 'max'=>$birthDateMax, 'maxLength' => 10, 'required' => true);
 		}
 		$fields[] = array('property'=>'address',     'type'=>'text', 'label'=>'Mailing Address', 'description'=>'Mailing Address', 'maxLength' => 128, 'required' => true);
 		$fields[] = array('property'=>'city',        'type'=>'text', 'label'=>'City', 'description'=>'City', 'maxLength' => 48, 'required' => true);
@@ -861,19 +863,20 @@ class CarlX extends SIP2Driver{
 
 			$tempPatronID = $configArray['Catalog']['selfRegIDPrefix'] . str_pad($currentPatronIDNumber, $configArray['Catalog']['selfRegIDNumberLength'], '0', STR_PAD_LEFT);
 
-			$firstName  = trim($_REQUEST['firstName']);
-			$middleName = trim($_REQUEST['middleName']);
-			$lastName   = trim($_REQUEST['lastName']);
-			$address    = trim($_REQUEST['address']);
-			$city       = trim($_REQUEST['city']);
-			$state      = trim($_REQUEST['state']);
+			$firstName  = trim(strtoupper($_REQUEST['firstName']));
+			$middleName = trim(strtoupper($_REQUEST['middleName']));
+			$lastName   = trim(strtoupper($_REQUEST['lastName']));
+			$address    = trim(strtoupper($_REQUEST['address']));
+			$city       = trim(strtoupper($_REQUEST['city']));
+			$state      = trim(strtoupper($_REQUEST['state']));
 			$zip        = trim($_REQUEST['zip']);
-			$email      = trim($_REQUEST['email']);
+			$email      = trim(strtoupper($_REQUEST['email']));
 			$pin        = trim($_REQUEST['pin']);
 			$pin1       = trim($_REQUEST['pin1']);
 			$phone       = trim($_REQUEST['phone']);
 
 			if (!empty($pin) && !empty($pin1) && $pin == $pin1) {
+
 				// DENY REGISTRATION IF DUPLICATE EMAIL IS FOUND IN CARL.X
 				// searchPatron on Email appears to be case-insensitive and 
 				// appears to eliminate spurious whitespace
@@ -901,7 +904,8 @@ class CarlX extends SIP2Driver{
 						);
 					}
 				}
-				// SEND CREATE PATRON REQUEST
+
+				// CREATE PATRON REQUEST
 				$request                                         = new stdClass();
 				$request->Modifiers                              = '';
 				//$request->PatronFlags->PatronFlag                = 'DUPCHECK_ALTID'; // Duplicate check for alt id
@@ -920,10 +924,13 @@ class CarlX extends SIP2Driver{
 				$request->Patron->Addresses->Address->City       = $city;
 				$request->Patron->Addresses->Address->State      = $state;
 				$request->Patron->Addresses->Address->PostalCode = $zip;
+				$request->Patron->PreferredAddress		= 'Primary';
 				$request->Patron->PatronPIN			= $pin;
 				$request->Patron->Phone1			= $phone;
 				$request->Patron->RegistrationDate		= date('c'); // Registration Date, format ISO 8601
-				
+				$request->Patron->LastActionDate		= date('c'); // Registration Date, format ISO 8601
+				$request->Patron->LastEditDate			= date('c'); // Registration Date, format ISO 8601
+
 				$request->Patron->EmailNotices			= $configArray['Catalog']['selfRegEmailNotices'];
 				$request->Patron->DefaultBranch			= $configArray['Catalog']['selfRegDefaultBranch'];
 				$request->Patron->PatronExpirationDate		= $configArray['Catalog']['selfRegPatronExpirationDate'];
@@ -932,10 +939,23 @@ class CarlX extends SIP2Driver{
 				$request->Patron->RegBranch			= $configArray['Catalog']['selfRegRegBranch'];
 				$request->Patron->RegisteredBy			= $configArray['Catalog']['selfRegRegisteredBy'];
 
+				// VALIDATE BIRTH DATE. 
+				// DENY REGISTRATION IF REGISTRANT IS NOT 14 - 113 YEARS OLD
 				if ($library && $library->promptForBirthDateInSelfReg) {
-					$birthDate                  = trim($_REQUEST['birthDate']);
-					$date                       = DateTime::createFromFormat('m-d-Y', $birthDate);
-					$request->Patron->BirthDate = $date->format('Y-m-d');
+					$birthDate			= trim($_REQUEST['birthDate']);
+					$date				= strtotime(str_replace('-','/',$birthDate));
+					$birthDateMin			= strtotime('-113 years');
+					$birthDateMax			= strtotime('-14 years');
+					if ($date >= $birthDateMin && $date <= $birthDateMax) {					
+						$request->Patron->BirthDate = date('Y-m-d', $date);
+					} else {
+						global $logger;
+						$logger->log('Online Registrant is too young : birth date : ' . date('Y-m-d', $date), PEAR_LOG_WARNING);
+						return array(
+							'success' => false,
+							'message' => 'You must be 14 years old to register.'
+						);
+					}
 				}
 
 				$result = $this->doSoapRequest('createPatron', $request, $this->patronWsdl, $this->genericResponseSOAPCallOptions);

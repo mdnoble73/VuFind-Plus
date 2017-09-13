@@ -1891,12 +1891,15 @@ abstract class IslandoraDriver extends RecordInterface {
 			foreach ($array2 as $entityInfo){
 				$pid = $entityInfo['pid'];
 				if (array_key_exists($pid, $array1)){
-					$array1[$pid]['role'] .= ', ' . $entityInfo['role'];
+					if (strpos($array1[$pid]['role'], $entityInfo['role']) === false){
+						$array1[$pid]['role'] .= ', ' . $entityInfo['role'];
+					}
 				}else{
 					$array1[$pid] = $entityInfo;
 				}
 			}
 		}
+		return $array1;
 	}
 
 	private $transcriptions = null;
