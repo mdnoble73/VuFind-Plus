@@ -186,102 +186,152 @@ class Browse_AJAX extends Action {
 		return $this->browseCategory;
 	}
 
-
-	private function getBrowseCategoryResults($pageToLoad = 1){
+	private function getSuggestionsBrowseCategoryResults(){
+		// Only Fetches one page of results
 		$browseMode = $this->setBrowseMode();
-
-		if ($pageToLoad == 1 && !isset($_REQUEST['reload'])) {
-			// only first page is cached
+		if (!isset($_REQUEST['reload'])) {
 			/** @var Memcache $memCache */
-			global $memCache, $solrScope;
-			$key = 'browse_category_' . $this->textId . '_' . $solrScope . '_' . $browseMode;
+			global $memCache, $solrScope, $user;
+			$key = 'browse_category_' . $this->textId . '_' . $user->id. '_' . $solrScope . '_' . $browseMode;
 			$browseCategoryInfo = $memCache->get($key);
 			if ($browseCategoryInfo != false){
 				return $browseCategoryInfo;
 			}
 		}
 
-		$result = array('success' => false);
-		$browseCategory = $this->getBrowseCategory();
-		if ($browseCategory){
-			global $interface;
-			$interface->assign('browseCategoryId', $this->textId);
-			$result['success'] = true;
-			$result['textId'] = $browseCategory->textId;
-			$result['label'] = $browseCategory->label;
-			//$result['description'] = $browseCategory->description; // the description is not used anywhere on front end. plb 1-2-2015
+		global $interface;
+		$interface->assign('browseCategoryId', $this->textId);
+		$result['success'] = true;
+		$result['textId'] = $this->textId;
+		$result['label'] = translate('Recommended for you');
+		$result['searchUrl'] = '/MyAccount/SuggestedTitles';
 
-			// User List Browse Category //
-			if ($browseCategory->sourceListId != null && $browseCategory->sourceListId > 0){
-				require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
-				$sourceList = new UserList();
-				$sourceList->id = $browseCategory->sourceListId;
-				if ($sourceList->find(true)){
-					$records = $sourceList->getBrowseRecords(($pageToLoad -1) * self::ITEMS_PER_PAGE, self::ITEMS_PER_PAGE);
-				}else{
-					$records = array();
+		require_once ROOT_DIR . '/services/MyResearch/lib/Suggestions.php';
+		$suggestions = Suggestions::getSuggestions(-1, self::ITEMS_PER_PAGE);
+		$records = array();
+		foreach ($suggestions as $suggestedItemId => $value_ignored) {
+			require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
+			$groupedWork = new GroupedWorkDriver($suggestedItemId);
+			if ($groupedWork->isValid) {
+				if (method_exists($groupedWork, 'getBrowseResult')) {
+					$records[] = $interface->fetch($groupedWork->getBrowseResult());
+				} else {
+					$records[] = 'Browse Result not available';
 				}
-				$result['searchUrl'] = '/MyAccount/MyList/' . $browseCategory->sourceListId;
-
-			// Search Browse Category //
-			}else{
-				$this->searchObject = SearchObjectFactory::initSearchObject();
-				$defaultFilterInfo = $browseCategory->defaultFilter;
-				$defaultFilters = preg_split('/[\r\n,;]+/', $defaultFilterInfo);
-				foreach ($defaultFilters as $filter){
-					$this->searchObject->addFilter(trim($filter));
-				}
-				//Set Sorting, this is actually slightly mangled from the category to Solr
-				$this->searchObject->setSort($browseCategory->getSolrSort());
-				if ($browseCategory->searchTerm != ''){
-					$this->searchObject->setSearchTerm($browseCategory->searchTerm);
-				}
-
-				//Get titles for the list
-				$this->searchObject->clearFacets();
-				$this->searchObject->disableSpelling();
-				$this->searchObject->disableLogging();
-				$this->searchObject->setLimit(self::ITEMS_PER_PAGE);
-				$this->searchObject->setPage($pageToLoad);
-				$this->searchObject->processSearch();
-
-				$records = $this->searchObject->getBrowseRecordHTML();
-
-				// Do we need to initialize the ajax ratings?
-				if ($this->browseMode == 'covers') {
-					// Rating Settings
-					global $library;
-					$location = Location::getActiveLocation();
-					$browseCategoryRatingsMode = null;
-					if ($location) $browseCategoryRatingsMode = $location->browseCategoryRatingsMode; // Try Location Setting
-					if (!$browseCategoryRatingsMode) $browseCategoryRatingsMode = $library->browseCategoryRatingsMode;  // Try Library Setting
-
-					// when the Ajax rating is turned on, they have to be initialized with each load of the category.
-					if ($browseCategoryRatingsMode == 'stars') $records[] = '<script type="text/javascript">VuFind.Ratings.initializeRaters()</script>';
-				}
-
-				$result['searchUrl'] = $this->searchObject->renderSearchUrl();
-
-				//TODO: Check if last page
-
-				// Shutdown the search object
-				$this->searchObject->close();
 			}
-			if (count($records) == 0){
-				$records[] = $interface->fetch('Browse/noResults.tpl');
-			}
-
-			$result['records'] = implode('',$records);
-			$result['numRecords'] = count($records);
+		}
+		if (count($records) == 0){
+			$records[] = $interface->fetch('Browse/noResults.tpl');
 		}
 
-		// Store first page of browse category in the MemCache
-		if ($pageToLoad == 1) {
-			global $memCache, $configArray, $solrScope;
-			$key = 'browse_category_' . $this->textId . '_' . $solrScope . '_' . $browseMode;
-			$memCache->add($key, $result, 0, $configArray['Caching']['browse_category_info']);
-		}
+		$result['records']    = implode('',$records);
+		$result['numRecords'] = count($records);
+
+		global $memCache, $configArray, $solrScope, $user;
+		$key = 'browse_category_' . $this->textId . '_' . $user->id. '_' . $solrScope . '_' . $browseMode;
+		$memCache->add($key, $result, 0, $configArray['Caching']['browse_category_info']);
+
 		return $result;
+	}
+
+	private function getBrowseCategoryResults($pageToLoad = 1){
+		if ($this->textId == 'system_recommended_for_you') {
+			return $this->getSuggestionsBrowseCategoryResults();
+		} else {
+			$browseMode = $this->setBrowseMode();
+			if ($pageToLoad == 1 && !isset($_REQUEST['reload'])) {
+				// only first page is cached
+				/** @var Memcache $memCache */
+				global $memCache, $solrScope;
+				$key                = 'browse_category_' . $this->textId . '_' . $solrScope . '_' . $browseMode;
+				$browseCategoryInfo = $memCache->get($key);
+				if ($browseCategoryInfo != false) {
+					return $browseCategoryInfo;
+				}
+			}
+
+			$result         = array('success' => false);
+			$browseCategory = $this->getBrowseCategory();
+			if ($browseCategory) {
+				global $interface;
+				$interface->assign('browseCategoryId', $this->textId);
+				$result['success'] = true;
+				$result['textId']  = $browseCategory->textId;
+				$result['label']   = $browseCategory->label;
+				//$result['description'] = $browseCategory->description; // the description is not used anywhere on front end. plb 1-2-2015
+
+				// User List Browse Category //
+				if ($browseCategory->sourceListId != null && $browseCategory->sourceListId > 0) {
+					require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
+					$sourceList     = new UserList();
+					$sourceList->id = $browseCategory->sourceListId;
+					if ($sourceList->find(true)) {
+						$records = $sourceList->getBrowseRecords(($pageToLoad - 1) * self::ITEMS_PER_PAGE, self::ITEMS_PER_PAGE);
+					} else {
+						$records = array();
+					}
+					$result['searchUrl'] = '/MyAccount/MyList/' . $browseCategory->sourceListId;
+
+					// Search Browse Category //
+				} else {
+					$this->searchObject = SearchObjectFactory::initSearchObject();
+					$defaultFilterInfo  = $browseCategory->defaultFilter;
+					$defaultFilters     = preg_split('/[\r\n,;]+/', $defaultFilterInfo);
+					foreach ($defaultFilters as $filter) {
+						$this->searchObject->addFilter(trim($filter));
+					}
+					//Set Sorting, this is actually slightly mangled from the category to Solr
+					$this->searchObject->setSort($browseCategory->getSolrSort());
+					if ($browseCategory->searchTerm != '') {
+						$this->searchObject->setSearchTerm($browseCategory->searchTerm);
+					}
+
+					//Get titles for the list
+					$this->searchObject->clearFacets();
+					$this->searchObject->disableSpelling();
+					$this->searchObject->disableLogging();
+					$this->searchObject->setLimit(self::ITEMS_PER_PAGE);
+					$this->searchObject->setPage($pageToLoad);
+					$this->searchObject->processSearch();
+
+					$records = $this->searchObject->getBrowseRecordHTML();
+
+					// Do we need to initialize the ajax ratings?
+					if ($this->browseMode == 'covers') {
+						// Rating Settings
+						global $library;
+						$location                  = Location::getActiveLocation();
+						$browseCategoryRatingsMode = null;
+						if ($location) $browseCategoryRatingsMode = $location->browseCategoryRatingsMode; // Try Location Setting
+						if (!$browseCategoryRatingsMode) $browseCategoryRatingsMode = $library->browseCategoryRatingsMode;  // Try Library Setting
+
+						// when the Ajax rating is turned on, they have to be initialized with each load of the category.
+						if ($browseCategoryRatingsMode == 'stars') $records[] = '<script type="text/javascript">VuFind.Ratings.initializeRaters()</script>';
+					}
+
+					$result['searchUrl'] = $this->searchObject->renderSearchUrl();
+
+					//TODO: Check if last page
+
+					// Shutdown the search object
+					$this->searchObject->close();
+				}
+				if (count($records) == 0) {
+					$records[] = $interface->fetch('Browse/noResults.tpl');
+				}
+
+				$result['records']    = implode('', $records);
+				$result['numRecords'] = count($records);
+			}
+
+			// Store first page of browse category in the MemCache
+			if ($pageToLoad == 1) {
+				global $memCache, $configArray, $solrScope;
+				$key = 'browse_category_' . $this->textId . '_' . $solrScope . '_' . $browseMode;
+				$memCache->add($key, $result, 0, $configArray['Caching']['browse_category_info']);
+			}
+			return $result;
+		}
 	}
 
 	public $browseModes = // Valid Browse Modes

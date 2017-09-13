@@ -33,7 +33,9 @@ class LocationBrowseCategory extends DB_DataObject{
 		$browseCategories = new BrowseCategory();
 		$browseCategories->orderBy('label');
 		$browseCategories->find();
-		$browseCategoryList = array();
+		$browseCategoryList = array(
+			'system_recommended_for_you' =>  translate('Recommended for you'). ' (system_recommended_for_you) [Only displayed when user is logged in]'
+		);
 		while($browseCategories->fetch()){
 			$browseCategoryList[$browseCategories->textId] = $browseCategories->label . " ({$browseCategories->textId})";
 		}
