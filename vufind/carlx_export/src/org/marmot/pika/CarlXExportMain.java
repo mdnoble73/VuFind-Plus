@@ -1046,7 +1046,12 @@ public class CarlXExportMain {
 		itemField.getSubfield(indexingProfile.shelvingLocationSubfield).setData(changeInfo.getShelvingLocation());
 		itemField.getSubfield(indexingProfile.itemStatusSubfield).setData(changeInfo.getStatus());
 		if (indexingProfile.callNumberSubfield != ' ' && !changeInfo.getCallNumber().isEmpty()) {
-			itemField.getSubfield(indexingProfile.callNumberSubfield).setData(changeInfo.getCallNumber());
+			if (itemField.getSubfield(indexingProfile.callNumberSubfield) == null){
+				itemField.addSubfield(new SubfieldImpl(indexingProfile.callNumberSubfield, changeInfo.getCallNumber()));
+			}else{
+				itemField.getSubfield(indexingProfile.callNumberSubfield).setData(changeInfo.getCallNumber());
+			}
+
 		}
 
 		if (indexingProfile.totalCheckoutsSubfield != ' ' && !changeInfo.getTotalCheckouts().isEmpty()) {
