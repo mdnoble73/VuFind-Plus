@@ -36,16 +36,21 @@
 				{/if}
 			</p>
 			{if is_array($recordList.$sectionKey) && count($recordList.$sectionKey) > 0}
-				{* Make sure there is a break between the form and the table *}
-				{if !$hideCoversFormDisplayed}
-					{* Display the Hide Covers switch above the first section that has holds; and only display it once *}
-					<div id="pager" class="navbar form-inline">
+				<div id="pager" class="navbar form-inline">
+					<label for="{$sectionKey}HoldSort" class="control-label">{translate text='Sort by'}:&nbsp;</label>
+					<select name="{$sectionKey}HoldSort" id="{$sectionKey}HoldSort" class="form-control" onchange="VuFind.Account.changeAccountSort($(this).val(), '{$sectionKey}HoldSort');">
+						{foreach from=$sortOptions[$sectionKey] item=sortDesc key=sortVal}
+							<option value="{$sortVal}"{if $defaultSortOption[$sectionKey] == $sortVal} selected="selected"{/if}>{translate text=$sortDesc}</option>
+						{/foreach}
+					</select>
+
+					{if !$hideCoversFormDisplayed}
+						{* Display the Hide Covers switch above the first section that has holds; and only display it once *}
 						<label for="hideCovers" class="control-label checkbox pull-right"> Hide Covers <input id="hideCovers" type="checkbox" onclick="VuFind.Account.toggleShowCovers(!$(this).is(':checked'))" {if $showCovers == false}checked="checked"{/if}></label>
-					</div>
-					{assign var="hideCoversFormDisplayed" value=true}
-				{else}
-					<br>
-				{/if}
+						{assign var="hideCoversFormDisplayed" value=true}
+					{/if}
+				</div>
+
 				<div class="striped">
 					{foreach from=$recordList.$sectionKey item=record name="recordLoop"}
 						{if $record.holdSource == 'ILS'}

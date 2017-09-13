@@ -810,7 +810,7 @@ class User extends DB_DataObject
 		return $allCheckedOut;
 	}
 
-	public function getMyHolds($includeLinkedUsers = true){
+	public function getMyHolds($includeLinkedUsers = true, $unavailableSort = 'sortTitle', $availableSort = 'expire'){
 		$ilsHolds = $this->getCatalogDriver()->getMyHolds($this);
 		if (PEAR_Singleton::isError($ilsHolds)) {
 			$ilsHolds = array();
@@ -831,34 +831,74 @@ class User extends DB_DataObject
 			if ($this->getLinkedUsers() != null) {
 				/** @var User $user */
 				foreach ($this->getLinkedUsers() as $user) {
-					$allHolds = array_merge_recursive($allHolds, $user->getMyHolds(false));
+					$allHolds = array_merge_recursive($allHolds, $user->getMyHolds(false, $unavailableSort, $availableSort));
 				}
 			}
 		}
 
-		//Sort Available Holds by Expiration Date (then title/sort title)
-		$holdSort = function ($a, $b, $indexToSortBy='sortTitle') {
-			if (isset($a['expire']) && !isset($b['expire'])) {
-				return -1;
-			}elseif (!isset($a['expire']) && isset($b['expire'])) {
-				return 1;
-			}elseif (!isset($a['expire']) && !isset($b['expire'])) {
-				return strcasecmp(isset($a[$indexToSortBy]) ? $a[$indexToSortBy] : $a['title'], isset($b[$indexToSortBy]) ? $b[$indexToSortBy] : $b['title']);
-			}elseif ($a['expire'] > $b['expire']){
-				return 1;
-			}elseif ($a['expire'] < $b['expire']){
-				return -1;
-			}else if ($a['expire'] == $b['expire']){
-				return strcasecmp(isset($a[$indexToSortBy]) ? $a[$indexToSortBy] : $a['title'], isset($b[$indexToSortBy]) ? $b[$indexToSortBy] : $b['title']);
-			}
-		};
-		uasort($allHolds['available'], $holdSort);
+		$indexToSortBy='sortTitle';
+		$holdSort = function ($a, $b) use (&$indexToSortBy) {
+			$a = isset($a[$indexToSortBy]) ? $a[$indexToSortBy] : null;
+			$b = isset($b[$indexToSortBy]) ? $b[$indexToSortBy] : null;
 
-		// Sort Pending Holds by Sort Title ( uses title if the sort title is not present )
-		$holdSort = function ($a, $b, $indexToSortBy='sortTitle') {
-			return strcasecmp(isset($a[$indexToSortBy]) ? $a[$indexToSortBy] : $a['title'], isset($b[$indexToSortBy]) ? $b[$indexToSortBy] : $b['title']);
+			// Put empty values (except for specified values of zero) at the bottom of the sort
+			if (modifiedEmpty($a) && modifiedEmpty($b)) {
+				return 0;
+			} elseif (!modifiedEmpty($a) && modifiedEmpty($b)) {
+				return -1;
+			} elseif (modifiedEmpty($a) && !modifiedEmpty($b)) {
+				return 1;
+			}
+
+			if ($indexToSortBy == 'format') {
+				$a = implode($a, ',');
+				$b = implode($b, ',');
+			}
+
+			return strnatcasecmp($a, $b);
+			// This will sort numerically correctly as well
 		};
-		uasort($allHolds['unavailable'], $holdSort);
+
+		if (count($allHolds['available'])) {
+			switch ($availableSort) {
+				case 'author' :
+				case 'format' :
+					$indexToSortBy = $availableSort;
+					break;
+				case 'title' :
+					$indexToSortBy = 'sortTitle';
+					break;
+				case 'libraryAccount' :
+					$indexToSortBy = 'user';
+					break;
+				case 'expire' :
+				default :
+					$indexToSortBy = 'expire';
+			}
+			uasort($allHolds['available'], $holdSort);
+		}
+		if (count($allHolds['unavailable'])) {
+			switch ($unavailableSort) {
+				case 'author' :
+				case 'location' :
+				case 'position' :
+				case 'status' :
+				case 'format' :
+					$indexToSortBy = $unavailableSort;
+					break;
+				case 'placed' :
+					$indexToSortBy = 'create';
+					break;
+				case 'libraryAccount' :
+					$indexToSortBy = 'user';
+					break;
+				case 'title' :
+				default :
+					$indexToSortBy = 'sortTitle';
+			}
+			uasort($allHolds['unavailable'], $holdSort);
+		}
+
 		return $allHolds;
 	}
 
@@ -1278,4 +1318,9 @@ class User extends DB_DataObject
 	{
 		$this->materialsRequestEmailSignature = $materialsRequestEmailSignature;
 	}
+}
+
+function modifiedEmpty($var) {
+	// specified values of zero will not be considered empty
+	return empty($var) && $var !== 0 && $var !== '0';
 }
