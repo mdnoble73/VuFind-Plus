@@ -20,6 +20,8 @@ class LibraryBrowseCategory extends DB_DataObject{
 		//Load Libraries for lookup values
 		$library = new Library();
 		$library->orderBy('displayName');
+//		if (!$user->hasRole('opacAdmin') && ($user->hasRole('libraryAdmin') || $user->hasRole('libraryManager'))){
+//		May need above to replace below.
 		if ($user->hasRole('libraryAdmin')){
 			$homeLibrary = Library::getPatronHomeLibrary();
 			$library->libraryId = $homeLibrary->libraryId;
@@ -33,7 +35,9 @@ class LibraryBrowseCategory extends DB_DataObject{
 		$browseCategories = new BrowseCategory();
 		$browseCategories->orderBy('label');
 		$browseCategories->find();
-		$browseCategoryList = array();
+		$browseCategoryList = array(
+			'system_recommended_for_you' =>  translate('Recommended for you'). ' (system_recommended_for_you) [Only displayed when user is logged in]'
+		);
 		while($browseCategories->fetch()){
 			$browseCategoryList[$browseCategories->textId] = $browseCategories->label . " ({$browseCategories->textId})";
 		}

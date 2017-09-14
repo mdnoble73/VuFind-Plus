@@ -6,7 +6,7 @@ class Suggestions{
 	 * Get suggestions for titles that a user might like based on their rating history
 	 * and related titles from Novelist.
 	 */
-	static function getSuggestions($userId = -1){
+	static function getSuggestions($userId = -1, $numberOfSuggestionsToGet = null){
 		global $configArray;
 
 		//Configuration for suggestions
@@ -14,7 +14,7 @@ class Suggestions{
 		$numTitlesToLoadNovelistRecommendationsFor = 10;
 		$doMetadataRecommendations = true;
 		$doSimilarlyRatedRecommendations = false;
-		$maxRecommendations = 30;
+		$maxRecommendations = empty($numberOfSuggestionsToGet) ? 30 : $numberOfSuggestionsToGet;
 		if ($userId == -1){
 			global $user;
 			$userId = $user->id;
