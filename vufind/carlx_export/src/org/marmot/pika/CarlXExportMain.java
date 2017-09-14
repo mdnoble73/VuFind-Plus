@@ -1069,7 +1069,11 @@ public class CarlXExportMain {
 
 	private static void updateItemDataFieldWithChangeInfo(DataField itemField, ItemChangeInfo changeInfo) {
 		itemField.getSubfield(indexingProfile.locationSubfield).setData(changeInfo.getLocation());
-		itemField.getSubfield(indexingProfile.shelvingLocationSubfield).setData(changeInfo.getShelvingLocation());
+		if (itemField.getSubfield(indexingProfile.shelvingLocationSubfield) == null){
+			itemField.addSubfield(new SubfieldImpl(indexingProfile.shelvingLocationSubfield, changeInfo.getShelvingLocation()));
+		}else{
+			itemField.getSubfield(indexingProfile.shelvingLocationSubfield).setData(changeInfo.getShelvingLocation());
+		}
 		itemField.getSubfield(indexingProfile.itemStatusSubfield).setData(changeInfo.getStatus());
 		if (indexingProfile.callNumberSubfield != ' ' && !changeInfo.getCallNumber().isEmpty()) {
 			if (itemField.getSubfield(indexingProfile.callNumberSubfield) == null){
@@ -1077,7 +1081,6 @@ public class CarlXExportMain {
 			}else{
 				itemField.getSubfield(indexingProfile.callNumberSubfield).setData(changeInfo.getCallNumber());
 			}
-
 		}
 
 		if (indexingProfile.totalCheckoutsSubfield != ' ' && !changeInfo.getTotalCheckouts().isEmpty()) {
