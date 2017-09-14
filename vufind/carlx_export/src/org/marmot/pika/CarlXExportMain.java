@@ -78,6 +78,7 @@ public class CarlXExportMain {
 			vufindConn = DriverManager.getConnection(databaseConnectionInfo);
 		}catch (Exception e){
 			System.out.println("Error connecting to vufind database " + e.toString());
+			logger.error("Error connecting to vufind database ", e);
 			System.exit(1);
 		}
 
@@ -109,6 +110,7 @@ public class CarlXExportMain {
 		logger.debug("Calling GetChangedBibsRequest with BeginTime of " + beginTimeString);
 		if (!getUpdatedBibs(beginTimeString, updatedBibs, createdBibs, deletedBibs)){
 			//Halt execution
+			logger.error("Failed to getUpdatedBibs, exiting");
 			System.exit(1);
 		}
 
@@ -119,14 +121,21 @@ public class CarlXExportMain {
 		logger.debug("Calling GetChangedItemsRequest with BeginTime of " + beginTimeString);
 		if (!getUpdatedItems(beginTimeString, updatedItemIDs, createdItemIDs, deletedItemIDs)){
 			//Halt execution
+			logger.error("Failed to getUpdatedItems, exiting");
 			System.exit(1);
 		}
 
 		// Fetch Item Information for each ID
 		ArrayList<ItemChangeInfo> itemUpdates  = fetchItemInformation(updatedItemIDs);
-		if (hadErrors){ System.exit(1); }
+		if (hadErrors){
+			logger.error("Failed to Fetch Item Information for updated items, exiting");
+			System.exit(1);
+		}
 		ArrayList<ItemChangeInfo> createdItems = fetchItemInformation(createdItemIDs);
-		if (hadErrors){ System.exit(1); }
+		if (hadErrors){
+			logger.error("Failed to Fetch Item Information for created items, exiting");
+			System.exit(1);
+		}
 
 		PreparedStatement markGroupedWorkForBibAsChangedStmt = null;
 		try {
