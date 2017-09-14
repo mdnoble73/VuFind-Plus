@@ -202,33 +202,39 @@ public class CarlXExportMain {
 		}
 
 
-			try {
-				// Wrap Up
-				if (!errorUpdatingDatabase && !hadErrors) {
-					//Update the last extract time
-					if (lastCarlXExtractTimeVariableId != null) {
-						PreparedStatement updateVariableStmt = vufindConn.prepareStatement("UPDATE variables set value = ? WHERE id = ?");
-						updateVariableStmt.setLong(1, exportStartTime);
-						updateVariableStmt.setLong(2, lastCarlXExtractTimeVariableId);
-						updateVariableStmt.executeUpdate();
-						updateVariableStmt.close();
-						logger.warn("Updated last extract time to " + exportStartTime);
-					} else {
-						PreparedStatement insertVariableStmt = vufindConn.prepareStatement("INSERT INTO variables (`name`, `value`) VALUES ('last_carlx_extract_time', ?)");
-						insertVariableStmt.setString(1, Long.toString(exportStartTime));
-						insertVariableStmt.executeUpdate();
-						insertVariableStmt.close();
-						logger.warn("Set last extract time to " + exportStartTime);
-					}
+		try {
+			// Wrap Up
+			if (!errorUpdatingDatabase && !hadErrors) {
+				//Update the last extract time
+				if (lastCarlXExtractTimeVariableId != null) {
+					PreparedStatement updateVariableStmt = vufindConn.prepareStatement("UPDATE variables set value = ? WHERE id = ?");
+					updateVariableStmt.setLong(1, exportStartTime);
+					updateVariableStmt.setLong(2, lastCarlXExtractTimeVariableId);
+					updateVariableStmt.executeUpdate();
+					updateVariableStmt.close();
+					logger.warn("Updated last extract time to " + exportStartTime);
 				} else {
-					logger.error("There was an error updating during the extract, not setting last extract time.");
+					PreparedStatement insertVariableStmt = vufindConn.prepareStatement("INSERT INTO variables (`name`, `value`) VALUES ('last_carlx_extract_time', ?)");
+					insertVariableStmt.setString(1, Long.toString(exportStartTime));
+					insertVariableStmt.executeUpdate();
+					insertVariableStmt.close();
+					logger.warn("Set last extract time to " + exportStartTime);
 				}
+			} else {
+				if (errorUpdatingDatabase){
+					logger.error("There was an error updating the database, not setting last extract time.");
+				}
+				if (hadErrors){
+					logger.error("There was an error during the extract, not setting last extract time.");
+				}
+			}
 
 			try{
 				//Close the connection
 				vufindConn.close();
 			}catch(Exception e){
 				System.out.println("Error closing connection: " + e.toString());
+				logger.error("Error closing connection: ", e);
 			}
 
 		} catch (Exception e) {
@@ -991,8 +997,7 @@ public class CarlXExportMain {
 							}
 						}
 					} else {
-						logger.warn("Did not get a successful SOAP response " + responseStatusCode);
-						hadErrors = true;
+						logger.error("Did not get a successful SOAP response " + responseStatusCode + " loading item information");
 					}
 				}else{
 					logger.error("Did not get a successful SOAP response " + ItemInformationSOAPResponse.getResponseCode() + "\r\n" + ItemInformationSOAPResponse.getMessage());
@@ -1041,7 +1046,12 @@ public class CarlXExportMain {
 		itemField.getSubfield(indexingProfile.shelvingLocationSubfield).setData(changeInfo.getShelvingLocation());
 		itemField.getSubfield(indexingProfile.itemStatusSubfield).setData(changeInfo.getStatus());
 		if (indexingProfile.callNumberSubfield != ' ' && !changeInfo.getCallNumber().isEmpty()) {
-			itemField.getSubfield(indexingProfile.callNumberSubfield).setData(changeInfo.getCallNumber());
+			if (itemField.getSubfield(indexingProfile.callNumberSubfield) == null){
+				itemField.addSubfield(new SubfieldImpl(indexingProfile.callNumberSubfield, changeInfo.getCallNumber()));
+			}else{
+				itemField.getSubfield(indexingProfile.callNumberSubfield).setData(changeInfo.getCallNumber());
+			}
+
 		}
 
 		if (indexingProfile.totalCheckoutsSubfield != ' ' && !changeInfo.getTotalCheckouts().isEmpty()) {
@@ -1473,7 +1483,8 @@ public class CarlXExportMain {
 				}
 			}else{
 				//Call failed
-				hadErrors = true;
+				//hadErrors = true;
+				logger.error("error getting marc record for " + BibID);
 			}
 		} catch(Exception e){
 			logger.error("Error Creating SOAP Request for Marc Records", e);
