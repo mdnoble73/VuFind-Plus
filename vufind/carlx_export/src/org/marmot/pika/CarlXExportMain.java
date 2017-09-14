@@ -66,7 +66,7 @@ public class CarlXExportMain {
 		}else{
 			System.out.println("Could not find log4j configuration " + log4jFile.toString());
 		}
-		logger.info(startTime.toString() + ": Starting CarlX Extract");
+		logger.warn(startTime.toString() + ": Starting CarlX Extract");
 
 		// Read the base INI file to get information about the server (current directory/cron/config.ini)
 		Ini ini = loadConfigFile("config.ini");
@@ -103,6 +103,7 @@ public class CarlXExportMain {
 		// Get MarcOut WSDL url for SOAP calls
 		marcOutURL = ini.get("Catalog", "marcOutApiWsdl");
 
+		logger.warn("Starting export of bibs and items");
 		//Load updated bibs
 		ArrayList<String> updatedBibs = new ArrayList<>();
 		ArrayList<String> createdBibs = new ArrayList<>();
@@ -185,6 +186,8 @@ public class CarlXExportMain {
 			logger.error("MySQL Error: " + e.toString());
 		}
 
+		logger.warn("Finished export of bibs and items, starting export of holds");
+
 			//Connect to the CarlX database
 		String url        = ini.get("Catalog", "carlx_db");
 		String dbUser     = ini.get("Catalog", "carlx_db_user");
@@ -206,6 +209,7 @@ public class CarlXExportMain {
 			carlxConn.close();
 
 		}catch(Exception e){
+			logger.error("Error exporting holds", e);
 			System.out.println("Error: " + e.toString());
 			e.printStackTrace();
 		}
@@ -252,7 +256,7 @@ public class CarlXExportMain {
 
 
 		Date currentTime = new Date();
-		logger.info(currentTime.toString() + ": Finished CarlX Extract");
+		logger.warn(currentTime.toString() + ": Finished CarlX Extract");
 	}
 
 	private static boolean updateChangedItems(Connection vufindConn, long updateTime, ArrayList<String> createdItemIDs, ArrayList<String> deletedItemIDs, ArrayList<ItemChangeInfo> itemUpdates, ArrayList<ItemChangeInfo> createdItems, boolean errorUpdatingDatabase, PreparedStatement markGroupedWorkForBibAsChangedStmt) {
