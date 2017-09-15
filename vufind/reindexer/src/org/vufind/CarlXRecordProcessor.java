@@ -103,7 +103,7 @@ class CarlXRecordProcessor extends IlsRecordProcessor {
 					} else {
 						printFormats.put(printFormatLower, printFormats.get(printFormatLower) + 1);
 					}
-					if (!printFormatLower.equals("bk") && !printFormatLower.equals("oth")){
+					if (!printFormatLower.equals("bk") && !printFormatLower.equals("oth") && !printFormatLower.equals("ord")){
 						allItemsAreOrderRecords = false;
 					}
 				}else{
