@@ -23,6 +23,10 @@ class Admin_ArchiveUsage extends Admin_Admin{
 		$archiveAPI = new API_ArchiveAPI();
 		$dplaUsage = $archiveAPI->getDPLACounts();
 
+		$totalDriveSpace = 0;
+		$totalObjects = 0;
+		$totalDpla = 0;
+
 		$usageByNamespace = array();
 		while ($archiveLibraries->fetch()){
 			/** @var SearchObject_Islandora $searchObject */
@@ -65,14 +69,20 @@ class Admin_ArchiveUsage extends Admin_Admin{
 					}
 				}
 			}
-
-			$diskSpace = $usageByNamespace[$archiveLibraries->ilsCode]['driveSpace'];
-			if ($diskSpace > 100000000){
-				$usageByNamespace[$archiveLibraries->ilsCode]['driveSpace'] = ceil($usageByNamespace[$archiveLibraries->ilsCode]['driveSpace'] * 0.000000001) . ' GB';
-			}else{
-				$usageByNamespace[$archiveLibraries->ilsCode]['driveSpace'] = ceil($usageByNamespace[$archiveLibraries->ilsCode]['driveSpace'] * 0.000001) . ' MB';
-			}
 		}
+
+		foreach ($usageByNamespace as $ilsCode => $namespaceStats){
+			$totalObjects += $namespaceStats['numObjects'];
+			$totalDpla += $namespaceStats['numDpla'];
+			$diskSpace = ceil($namespaceStats['driveSpace'] * 0.000000001);
+			$totalDriveSpace += $diskSpace;
+			$usageByNamespace[$ilsCode]['driveSpace'] = $diskSpace . ' GB';
+		}
+
+
+		$interface->assign('totalDriveSpace', $totalDriveSpace);
+		$interface->assign('totalDpla', $totalDpla);
+		$interface->assign('totalObjects', $totalObjects);
 
 		$interface->assign('usageByNamespace', $usageByNamespace);
 
