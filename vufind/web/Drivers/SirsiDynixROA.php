@@ -328,7 +328,7 @@ abstract class SirsiDynixROA extends HorizonAPI
 		//Authenticate the user via WebService
 		//First call loginUser
 		$logger->log("Logging in through Symphony APIs", PEAR_LOG_INFO);
-		list($userValid, $sessionToken, $userID) = $this->loginViaWebService($username, $password);
+		list($userValid, $sessionToken, $sirsiRoaUserID) = $this->loginViaWebService($username, $password);
 		if ($validatedViaSSO) {
 			$userValid = true;
 		}
@@ -341,13 +341,13 @@ abstract class SirsiDynixROA extends HorizonAPI
 //			$patronStatusInfoDescribeResponse = $this->getWebServiceResponse($webServiceURL . '/v1/user/patronStatusInfo/describe', null, $sessionToken);
 //			$userProfileDescribeResponse      = $this->getWebServiceResponse($webServiceURL . '/v1/policy/profile/describe', null, $sessionToken);
 			// NOt a policy
-//				$patronStatusResponse  = $this->getWebServiceResponse($webServiceURL . '/v1/user/patronStatusInfo/key/' . $userID, null, $sessionToken);
+//				$patronStatusResponse  = $this->getWebServiceResponse($webServiceURL . '/v1/user/patronStatusInfo/key/' . $sirsiRoaUserID, null, $sessionToken);
 			//TODO: This resource is currently hidden
 
-//			$lookupMyAccountInfoResponse = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/key/' . $userID . '?includeFields=firstName,lastName,displayName,privilegeExpiresDate,estimatedOverdueAmount,patronStatusInfo{*},preferredAddress,address1,address2,address3,primaryPhone,library', null, $sessionToken);
+//			$lookupMyAccountInfoResponse = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/key/' . $sirsiRoaUserID . '?includeFields=firstName,lastName,displayName,privilegeExpiresDate,estimatedOverdueAmount,patronStatusInfo{*},preferredAddress,address1,address2,address3,primaryPhone,library', null, $sessionToken);
 			// TODO: Use Primary Phone at all? displayName doesn't seem to be a field
 
-			$lookupMyAccountInfoResponse = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/key/' . $userID . '?includeFields=firstName,lastName,privilegeExpiresDate,patronStatusInfo{*},preferredAddress,address1,address2,address3,library,circRecordList{claimsReturnedDate,status},blockList{owed},holdRecordList{status}', null, $sessionToken);
+			$lookupMyAccountInfoResponse = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/key/' . $sirsiRoaUserID . '?includeFields=firstName,lastName,privilegeExpiresDate,patronStatusInfo{*},preferredAddress,address1,address2,address3,library,circRecordList{claimsReturnedDate,status},blockList{owed},holdRecordList{status}', null, $sessionToken);
 			if ($lookupMyAccountInfoResponse && !isset($lookupMyAccountInfoResponse->messageList)) {
 				$lastName  = $lookupMyAccountInfoResponse->fields->lastName;
 				$firstName = $lookupMyAccountInfoResponse->fields->firstName;
@@ -362,7 +362,7 @@ abstract class SirsiDynixROA extends HorizonAPI
 				/** @var User $user */
 				$user = new User();
 				$user->source = $this->accountProfile->name;
-				$user->username = $userID;
+				$user->username = $sirsiRoaUserID;
 				if ($user->find(true)) {
 					$userExistsInDB = true;
 				}
@@ -393,7 +393,7 @@ abstract class SirsiDynixROA extends HorizonAPI
 				if (isset($lookupMyAccountInfoResponse->fields->preferredAddress)) {
 					$preferredAddress = $lookupMyAccountInfoResponse->fields->preferredAddress;
 					// Set for Account Updating
-					self::$userPreferredAddresses[$userID] = $preferredAddress;
+					self::$userPreferredAddresses[$sirsiRoaUserID] = $preferredAddress;
 					// Used by My Account Profile to update Contact Info
 					if ($preferredAddress == 1) {
 						$address = $lookupMyAccountInfoResponse->fields->address1;
@@ -785,10 +785,10 @@ abstract class SirsiDynixROA extends HorizonAPI
 		} else {
 			//We got at valid user, next call lookupMyAccountInfo
 			if (isset($loginUserResponse->sessionToken)) {
-				$userID                                     = $loginUserResponse->patronKey;
+				$sirsiRoaUserID                                     = $loginUserResponse->patronKey;
 				$sessionToken                               = $loginUserResponse->sessionToken;
-				SirsiDynixROA::$sessionIdsForUsers[$userID] = $sessionToken;
-				return array(true, $sessionToken, $userID);
+				SirsiDynixROA::$sessionIdsForUsers[$sirsiRoaUserID] = $sessionToken;
+				return array(true, $sessionToken, $sirsiRoaUserID);
 			} else {
 				return array(false, false, false);
 			}
@@ -1224,11 +1224,11 @@ abstract class SirsiDynixROA extends HorizonAPI
 
  private function getSessionToken($patron)
  {
-	 $userId = $patron->id;
+	 $sirsiRoaUserId = $patron->username;
 
 	 //Get the session token for the user
-	 if (isset(SirsiDynixROA::$sessionIdsForUsers[$userId])) {
-		 return SirsiDynixROA::$sessionIdsForUsers[$userId];
+	 if (isset(SirsiDynixROA::$sessionIdsForUsers[$sirsiRoaUserId])) {
+		 return SirsiDynixROA::$sessionIdsForUsers[$sirsiRoaUserId];
 	 } else {
 		 list(, $sessionToken) = $this->loginViaWebService($patron->cat_username, $patron->cat_password);
 		 return $sessionToken;
