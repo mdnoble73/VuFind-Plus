@@ -94,7 +94,8 @@ class Search_Home extends Action {
 			foreach ($localBrowseCategories as $index => $localBrowseCategory) {
 				$browseCategory         = new BrowseCategory();
 				$browseCategory->textId = $localBrowseCategory->browseCategoryTextId;
-				if (($browseCategory->textId == 'system_recommended_for_you' && $user) || $browseCategory->find(true)) {
+				if (($browseCategory->textId == 'system_recommended_for_you' && $user && $user->hasRatings()) || $browseCategory->find(true)) {
+					// Only Show the Recommended for You browse category if the user is logged in and has rated titles
 					if ($browseCategory->textId == 'system_recommended_for_you') {
 						$browseCategory->label = translate('Recommended for you');
 					}

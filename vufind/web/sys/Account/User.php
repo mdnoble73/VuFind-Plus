@@ -563,10 +563,12 @@ class User extends DB_DataObject
 	}
 
 	function hasRatings(){
-		require_once ROOT_DIR . '/Drivers/marmot_inc/UserRating.php';
+		require_once ROOT_DIR . '/sys/LocalEnrichment/UserWorkReview.php';
 
-		$rating = new UserRating();
-		$rating->userid = $this->id;
+		$rating = new UserWorkReview();
+//		$rating->userid = $this->id;
+		$rating->whereAdd("`userId` = {$this->id}");
+		$rating->whereAdd('`rating` > 0'); // Some entries are just reviews (and therefore have a default rating of -1)
 		$rating->find();
 		if ($rating->N > 0){
 			return true;
