@@ -52,14 +52,14 @@ fi
 if [ -z "$1" ]
 then
   #Grab Covers newer than 7 days
-  $LOG "~> find $SRC -type f -mtime -7 -exec /bin/cp {} $DEST \;"
-  find $SRC -type f -mtime -7 -exec /bin/cp {} $DEST \;
+  $LOG "~> find $SRC -maxdepth 1 -type f -mtime -7 -exec /bin/cp {} $DEST \;"
+  find $SRC -maxdepth 1 -type f -mtime -7 -exec /bin/cp {} $DEST \;
   $LOG "~> exit code $?"
 	if [ ! -d "$SRC/processed/" ]; then
 		mkdir $SRC/processed/
 	fi
-  $LOG "~> find $SRC -type f -mtime -7 -exec /bin/cp {} $SRC/processed/ \;"
-  find $SRC -type f -mtime -7 -exec /bin/mv {} $SRC/processed/ \;
+  $LOG "~> find $SRC -maxdepth 1 -type f -mtime -7 -exec /bin/mv {} $SRC/processed/ \;"
+  find $SRC -maxdepth 1 -type f -mtime -7 -exec /bin/mv {} $SRC/processed/ \;
 else
   /bin/cp $SRC/* $DEST
   #if a single parameter is passed this will copy over files without any time check.
