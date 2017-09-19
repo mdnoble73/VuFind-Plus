@@ -770,29 +770,35 @@ abstract class SirsiDynixROA extends HorizonAPI
 
 	protected function loginViaWebService($username, $password)
 	{
-		global $configArray;
-//		$loginDescribeResponse = $this->getWebServiceResponse($configArray['Catalog']['webServiceUrl'] . '/user/patron/login/describe');
-		$loginUserUrl          = $configArray['Catalog']['webServiceUrl'] . '/user/patron/login';
-		$params                = array(
-			'login' => $username,
-			'password' => $password,
-		);
-		$loginUserResponse     = $this->getWebServiceResponse($loginUserUrl, $params);
-		if (!$loginUserResponse) {
-			return array(false, false, false);
-		} else if (isset($loginUserResponse->messageList)) {
-			return array(false, false, false);
+		/** @var Memcache $memCache */
+		global $memCache;
+		$memCacheKey = "sirsiROA_session_token_info_$username";
+		$session = $memCache->get($memCacheKey);
+		if ($session) {
+			list(, $sessionToken, $sirsiRoaUserID) = $session;
+			SirsiDynixROA::$sessionIdsForUsers[$sirsiRoaUserID] = $sessionToken;
 		} else {
-			//We got at valid user, next call lookupMyAccountInfo
-			if (isset($loginUserResponse->sessionToken)) {
-				$sirsiRoaUserID                                     = $loginUserResponse->patronKey;
-				$sessionToken                               = $loginUserResponse->sessionToken;
-				SirsiDynixROA::$sessionIdsForUsers[$sirsiRoaUserID] = $sessionToken;
-				return array(true, $sessionToken, $sirsiRoaUserID);
-			} else {
-				return array(false, false, false);
+			$session = array(false, false, false);
+			$webServiceURL = $this->getWebServiceURL();
+//		$loginDescribeResponse = $this->getWebServiceResponse($webServiceURL . '/user/patron/login/describe');
+			$loginUserUrl      = $webServiceURL . '/user/patron/login';
+			$params            = array(
+				'login' => $username,
+				'password' => $password,
+			);
+			$loginUserResponse = $this->getWebServiceResponse($loginUserUrl, $params);
+			if ($loginUserResponse && isset($loginUserResponse->sessionToken)) {
+				//We got at valid user (A bad call will have isset($loginUserResponse->messageList) )
+
+					$sirsiRoaUserID                                     = $loginUserResponse->patronKey;
+					$sessionToken                                       = $loginUserResponse->sessionToken;
+					SirsiDynixROA::$sessionIdsForUsers[$sirsiRoaUserID] = $sessionToken;
+					$session = array(true, $sessionToken, $sirsiRoaUserID);
+					global $configArray;
+					$memCache->set($memCacheKey, $session, 0, $configArray['Caching']['sirsi_roa_session_token']);
 			}
 		}
+		return $session;
 	}
 
 	/**
