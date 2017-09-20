@@ -2656,6 +2656,9 @@ class GroupedWorkDriver extends RecordInterface{
 			$status = $curItem[13];
 			$locallyOwned = $scopingDetails[4] == 'true';
 			$available = $scopingDetails[5] == 'true';
+			if ($status == 'Library Use Only' && !$available){
+				$status = 'Checked Out (library use only)';
+			}
 			$holdable = $scopingDetails[6] == 'true';
 			$bookable = $scopingDetails[7] == 'true';
 			$inLibraryUseOnly = $scopingDetails[8] == 'true';

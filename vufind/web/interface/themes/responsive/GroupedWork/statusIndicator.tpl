@@ -27,7 +27,13 @@
 	{if $isGlobalScope}
 		<div class="related-manifestation-shelf-status available">{translate text='On Shelf'} (library use only)</div>
 	{else}
-		<div class="related-manifestation-shelf-status availableOther">{translate text='Available from another library'} (library use only)</div>
+		{if $statusInformation.available && $statusInformation.hasLocalItem}
+			<div class="related-manifestation-shelf-status availableOther">{translate text='Checked Out/Available Elsewhere'} (library use only)</div>
+		{elseif $statusInformation.available}
+			<div class="related-manifestation-shelf-status availableOther">{translate text='Available from another library'} (library use only)</div>
+		{else}
+			<div class="related-manifestation-shelf-status checked_out">{translate text='Checked Out'} (library use only)</div>
+		{/if}
 	{/if}
 {elseif $statusInformation.available && $statusInformation.hasLocalItem}
 	<div class="related-manifestation-shelf-status availableOther">{translate text='Checked Out/Available Elsewhere'}</div>
