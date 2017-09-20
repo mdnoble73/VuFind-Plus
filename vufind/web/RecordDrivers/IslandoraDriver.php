@@ -2351,12 +2351,14 @@ abstract class IslandoraDriver extends RecordInterface {
 				$hasAddressInfo = true;
 			}
 		}
-		$addressOtherRegion = FedoraUtils::cleanValue($this->getModsValue('addressOtherRegion', 'marmot', $entity));
-		if ($addressOtherRegion) {
-			if (strlen($entityTitle) > 0) {
-				$entityTitle .= '<br/>';
+		$addressOtherRegions = FedoraUtils::cleanValues($this->getModsValues('addressOtherRegion', 'marmot', $entity));
+		if ($addressOtherRegions) {
+			foreach ($addressOtherRegions as $addressOtherRegion) {
+				if (strlen($entityTitle) > 0) {
+					$entityTitle .= '<br/>';
+				}
+				$entityTitle .= $addressOtherRegion;
 			}
-			$entityTitle .= $addressOtherRegion;
 			$hasAddressInfo = true;
 		}
 
@@ -2379,13 +2381,13 @@ abstract class IslandoraDriver extends RecordInterface {
 		$hasDemographicInfo = false;
 		$demographicsDetails = $this->getModsValue('demographicInfo', 'marmot');
 		if (strlen($demographicsDetails) > 0) {
-			$raceEthnicity = FedoraUtils::cleanValue($this->getModsValue('raceEthnicity', 'marmot', $demographicsDetails));
+			$raceEthnicity = FedoraUtils::cleanValues($this->getModsValues('raceEthnicity', 'marmot', $demographicsDetails));
 			if ($raceEthnicity) {
 				$interface->assign('raceEthnicity', $raceEthnicity);
 				$hasDemographicInfo = true;
 			}
 
-			$gender = FedoraUtils::cleanValue($this->getModsValue('gender', 'marmot', $demographicsDetails));
+			$gender = FedoraUtils::cleanValues($this->getModsValues('gender', 'marmot', $demographicsDetails));
 			if ($gender) {
 				$interface->assign('gender', $gender);
 				$hasDemographicInfo = true;
@@ -2540,11 +2542,13 @@ abstract class IslandoraDriver extends RecordInterface {
 					$publicationTitle = $this->getModsValue('academicPublicatonTitle', 'marmot', $publicationSection);
 					$publicationPid = $this->getModsValue('entityPid', 'marmot', $publicationSection);
 					$publicationLink = $this->getModsValue('academicPublicationLink', 'marmot', $publicationSection);
-					$validPublicationPid = false;
-					if ($validPublicationPid) {
-						$publicationObj = $fedoraUtils->getObject($validPublicationPid);
+					if ($publicationPid) {
+						$publicationObj = $fedoraUtils->getObject($publicationPid);
 						if ($publicationObj){
 							$publicationDriver = RecordDriverFactory::initRecordDriver($publicationObj);
+							if (!$publicationTitle) {
+								$publicationTitle = $publicationDriver->getTitle();
+							}
 							$publicationLink = $publicationDriver->getRecordUrl();
 						}
 					}
