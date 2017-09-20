@@ -101,7 +101,7 @@
 					</div>
 				{/if}
 
-				{if $addressInfo}
+				{if $addressInfo && $addressInfo.hasDetailedAddress}
 					<div class="row">
 						<div class="result-label col-sm-4">Address: </div>
 						<div class="result-value col-sm-8">
