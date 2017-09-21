@@ -133,7 +133,7 @@
 				{if $mapsKey && $addressInfo.latitude && $addressInfo.longitude}
 					{if $addressInfo.latitude && $addressInfo.longitude}
 						<div class="row">
-							<div class="result-label col-sm-4">Position: </div>
+							<div class="result-label col-sm-4">Location: </div>
 							<div class="result-value col-sm-8">
 								<iframe width="100%" height="" frameborder="0" style="border:0" src="https://www.google.com/maps/embed/v1/place?q={$addressInfo.latitude|escape}%2C%20{$addressInfo.longitude|escape}&key={$mapsKey}" allowfullscreen></iframe>
 							</div>
