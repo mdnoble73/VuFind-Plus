@@ -69,40 +69,49 @@ class AspencatRecordProcessor extends IlsRecordProcessor {
 
 	@Override
 	public void loadPrintFormatInformation(RecordInfo recordInfo, Record record) {
-		Set<String> printFormatsRaw = MarcUtil.getFieldList(record, itemTag + iTypeSubfield);
-		HashSet<String> printFormats = new HashSet<>();
-		for (String curFormat : printFormatsRaw){
-			printFormats.add(curFormat.toLowerCase());
-		}
+		HashMap<String, Integer> itemCountsByItype = new HashMap<>();
+		HashMap<String, String> itemTypeToFormat = new HashMap<>();
+		int mostUsedCount = 0;
+		String mostPopularIType = "";		//Get a list of all the formats based on the items
+		List<DataField> items = MarcUtil.getDataFields(record, itemTag);
+		for(DataField item : items){
+			Subfield iTypeSubField = item.getSubfield(iTypeSubfield);
+			if (iTypeSubField != null){
+				String iType = iTypeSubField.getData().toLowerCase();
+				if (itemCountsByItype.containsKey(iType)){
+					itemCountsByItype.put(iType, itemCountsByItype.get(iType) + 1);
+				}else{
+					itemCountsByItype.put(iType, 1);
+					//Translate the iType to see what formats we get.  Some item types do not have a format by default and use the default translation
+					//We still will want to record those counts.
+					String translatedFormat = translateValue("format", iType, recordInfo.getRecordIdentifier());
+					//If the format is book, ignore it for now.  We will use the default method later.
+					if (translatedFormat == null || translatedFormat.equalsIgnoreCase("book")){
+						translatedFormat = "";
+					}
+					itemTypeToFormat.put(iType, translatedFormat);
+				}
 
-		HashSet<String> translatedFormats = translateCollection("format", printFormats, recordInfo.getRecordIdentifier());
-
-		//If all formats are book, don't use the format from iType
-		boolean allBook = true;
-		for(String format : translatedFormats){
-			if (!format.equalsIgnoreCase("book")){
-				allBook = false;
+				if (itemCountsByItype.get(iType) > mostUsedCount){
+					mostPopularIType = iType;
+					mostUsedCount = itemCountsByItype.get(iType);
+				}
 			}
 		}
 
-		if (translatedFormats.size() == 0 || allBook){
+		if (itemTypeToFormat.size() == 0 || itemTypeToFormat.get(mostPopularIType) == null || itemTypeToFormat.get(mostPopularIType).length() == 0){
 			//We didn't get any formats from the collections, get formats from the base method (007, 008, etc).
 			//logger.debug("All formats are books or there were no formats found, loading format information from the bib");
 			super.loadPrintFormatFromBib(recordInfo, record);
 		} else{
 			//logger.debug("Using default method of loading formats from iType");
-			HashSet<String> translatedFormatCategories = translateCollection("format_category", printFormats, recordInfo.getRecordIdentifier());
-			recordInfo.addFormats(translatedFormats);
-			recordInfo.addFormatCategories(translatedFormatCategories);
+			String translatedFormatCategory = translateValue("format_category", mostPopularIType, recordInfo.getRecordIdentifier());
+			recordInfo.addFormat(itemTypeToFormat.get(mostPopularIType));
+			recordInfo.addFormatCategory(translatedFormatCategory);
 			Long formatBoost = 0L;
-			HashSet<String> formatBoosts = translateCollection("format_boost", printFormats, recordInfo.getRecordIdentifier());
-			for (String tmpFormatBoost : formatBoosts){
-				if (Util.isNumeric(tmpFormatBoost)) {
-					Long tmpFormatBoostLong = Long.parseLong(tmpFormatBoost);
-					if (tmpFormatBoostLong > formatBoost) {
-						formatBoost = tmpFormatBoostLong;
-					}
-				}
+			String formatBoostStr = translateValue("format_boost", mostPopularIType, recordInfo.getRecordIdentifier());
+			if (Util.isNumeric(formatBoostStr)) {
+				formatBoost = Long.parseLong(formatBoostStr);
 			}
 			recordInfo.setFormatBoost(formatBoost);
 		}
