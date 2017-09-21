@@ -105,11 +105,17 @@ class AspencatRecordProcessor extends IlsRecordProcessor {
 			super.loadPrintFormatFromBib(recordInfo, record);
 		} else{
 			//logger.debug("Using default method of loading formats from iType");
-			String translatedFormatCategory = translateValue("format_category", mostPopularIType, recordInfo.getRecordIdentifier());
 			recordInfo.addFormat(itemTypeToFormat.get(mostPopularIType));
+			String translatedFormatCategory = translateValue("format_category", mostPopularIType, recordInfo.getRecordIdentifier());
+			if (translatedFormatCategory == null){
+				translatedFormatCategory = translateValue("format_category", itemTypeToFormat.get(mostPopularIType), recordInfo.getRecordIdentifier());
+			}
 			recordInfo.addFormatCategory(translatedFormatCategory);
 			Long formatBoost = 0L;
 			String formatBoostStr = translateValue("format_boost", mostPopularIType, recordInfo.getRecordIdentifier());
+			if (formatBoostStr == null){
+				formatBoostStr = translateValue("format_boost", itemTypeToFormat.get(mostPopularIType), recordInfo.getRecordIdentifier());
+			}
 			if (Util.isNumeric(formatBoostStr)) {
 				formatBoost = Long.parseLong(formatBoostStr);
 			}
