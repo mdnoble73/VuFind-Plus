@@ -1662,6 +1662,12 @@ abstract class IslandoraDriver extends RecordInterface {
 					}
 
 					if ($entityDriver instanceof EventDriver) {
+						//Reverse roles as appropriate
+						if ($role == 'child'){
+							$role = 'parent';
+						}elseif ($role == 'parent'){
+							$role = 'child';
+						}
 						$this->addRelatedEntityToArrays($entityDriver->getUniqueID(), $entityDriver->getTitle(), 'event', '', $role);
 					}elseif ($entityDriver instanceof PersonDriver){
 						//Reverse roles as appropriate
@@ -2875,7 +2881,7 @@ abstract class IslandoraDriver extends RecordInterface {
 					$validRightsHolder = true;
 				}
 			}
-			if ($validRightsHolder){
+			if (!$validRightsHolder){
 				$rightsHolderData[] = array(
 						'label' => $rightsHolderTitle,
 				);
