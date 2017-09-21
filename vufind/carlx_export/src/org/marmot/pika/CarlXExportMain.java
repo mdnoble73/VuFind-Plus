@@ -1560,7 +1560,12 @@ public class CarlXExportMain {
 			logger.debug("Found " + numHoldsByBib.size() + " bibs that have title or item level holds");
 
 			for (String bibId : numHoldsByBib.keySet()){
-				addIlsHoldSummary.setString(1, bibId);
+				String bibIdFull = bibId;
+				while (bibIdFull.length() < 10){
+					bibIdFull = "0" + bibIdFull;
+				}
+				bibId = "CARL" + bibIdFull;
+				addIlsHoldSummary.setString(1, bibIdFull);
 				addIlsHoldSummary.setLong(2, numHoldsByBib.get(bibId));
 				addIlsHoldSummary.executeUpdate();
 			}
