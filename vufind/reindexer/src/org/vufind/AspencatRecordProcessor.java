@@ -109,14 +109,17 @@ class AspencatRecordProcessor extends IlsRecordProcessor {
 			String translatedFormatCategory = translateValue("format_category", mostPopularIType, recordInfo.getRecordIdentifier());
 			if (translatedFormatCategory == null){
 				translatedFormatCategory = translateValue("format_category", itemTypeToFormat.get(mostPopularIType), recordInfo.getRecordIdentifier());
+				if (translatedFormatCategory == null){
+					translatedFormatCategory = mostPopularIType;
+				}
 			}
 			recordInfo.addFormatCategory(translatedFormatCategory);
-			Long formatBoost = 0L;
+			Long formatBoost = 1L;
 			String formatBoostStr = translateValue("format_boost", mostPopularIType, recordInfo.getRecordIdentifier());
 			if (formatBoostStr == null){
 				formatBoostStr = translateValue("format_boost", itemTypeToFormat.get(mostPopularIType), recordInfo.getRecordIdentifier());
 			}
-			if (Util.isNumeric(formatBoostStr)) {
+			if (formatBoostStr != null && Util.isNumeric(formatBoostStr)) {
 				formatBoost = Long.parseLong(formatBoostStr);
 			}
 			recordInfo.setFormatBoost(formatBoost);
