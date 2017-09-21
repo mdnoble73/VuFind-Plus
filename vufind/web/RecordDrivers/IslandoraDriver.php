@@ -2369,7 +2369,10 @@ abstract class IslandoraDriver extends RecordInterface {
 		$latitude = $this->getModsValue('latitude', 'marmot', $entity);
 		$longitude = $this->getModsValue('longitude', 'marmot', $entity);
 		if ($latitude || $longitude) {
-			$entityTitle .= " ($latitude, $longitude)";
+			if (strlen($entityTitle) > 0) {
+				$entityTitle .= '<br/>';
+			}
+			$entityTitle .= "$latitude, $longitude";
 			return $entityTitle;
 		}
 		return $entityTitle;
