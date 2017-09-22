@@ -1556,6 +1556,7 @@ public class CarlXExportMain {
 				while (bibIdFull.length() < 10){
 					bibIdFull = "0" + bibIdFull;
 				}
+				bibIdFull = "CARL" + bibIdFull;
 				Long numHolds = bibHoldsRS.getLong("numHolds");
 				numHoldsByBib.put(bibIdFull, numHolds);
 			}
