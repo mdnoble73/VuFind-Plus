@@ -1593,15 +1593,24 @@ function getLibraryLocationUpdates(){
 					),
 			),
 
-		'ill_link' => array(
-			'title' => 'Add Interlibrary Loan Links at the bottom of search results and no results pages',
-			'description' => 'Add Interlibrary Loan Links at the bottom of search results and no results pages',
-			'continueOnError' => true,
-			'sql' => array(
-				"ALTER TABLE `library` ADD COLUMN `interLibraryLoanName` VARCHAR(30);",
-				"ALTER TABLE `library` ADD COLUMN `interLibraryLoanUrl` VARCHAR(100);",
+			'ill_link' => array(
+					'title' => 'Add Interlibrary Loan Links at the bottom of search results and no results pages',
+					'description' => 'Add Interlibrary Loan Links at the bottom of search results and no results pages',
+					'continueOnError' => true,
+					'sql' => array(
+						"ALTER TABLE `library` ADD COLUMN `interLibraryLoanName` VARCHAR(30);",
+						"ALTER TABLE `library` ADD COLUMN `interLibraryLoanUrl` VARCHAR(100);",
+					),
 			),
-		),
 
+			'expiration_message' => array(
+					'title' => 'Expiration Message',
+					'description' => 'Add a configurable expiration message for display in the menu',
+					'continueOnError' => true,
+					'sql' => array(
+							"ALTER TABLE `library` ADD COLUMN `expirationNearMessage` MEDIUMTEXT;",
+							"ALTER TABLE `library` ADD COLUMN `expiredMessage` MEDIUMTEXT;",
+					),
+			),
 	);
 }

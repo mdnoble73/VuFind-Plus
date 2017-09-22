@@ -52,9 +52,17 @@
 									<div class="myAccountLink">
 										<a class="alignright" title="Please contact your local library to have your library card renewed." style="color:red; font-weight:bold;" onclick="alert('Please Contact your local library to have your library card renewed.')" href="#">
 											{if $user->expired}
-												Your library card expired on {$user->expires}.
+												{if $expiredMessage}
+													{$expiredMessage}
+												{else}
+													Your library card expired on {$user->expires}.
+												{/if}
 											{else}
-												Your library card will expire on {$user->expires}.
+												{if $expirationNearMessage}
+													{$expirationNearMessage}
+												{else}
+													Your library card will expire on {$user->expires}.
+												{/if}
 											{/if}
 										</a>
 									</div>

@@ -959,6 +959,13 @@ function loadUserData(){
 		$interface->assign('user', $user); //TODO $user is also assigned to User on line 237
 	}
 
+	if ($interface->getVariable('expiredMessage')){
+		$interface->assign('expiredMessage', str_replace('%date%', $user->expires, $interface->getVariable('expiredMessage')));
+	}
+	if ($interface->getVariable('expirationNearMessage')){
+		$interface->assign('expirationNearMessage', str_replace('%date%', $user->expires, $interface->getVariable('expirationNearMessage')));
+	}
+
 	//Load a list of lists
 	$lists = array();
 	require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';

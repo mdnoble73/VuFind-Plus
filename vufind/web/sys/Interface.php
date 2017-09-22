@@ -380,6 +380,8 @@ class UInterface extends Smarty
 			$this->assign('showSearchTools', $library->showSearchTools);
 			$this->assign('alwaysShowSearchResultsMainDetails', $library->alwaysShowSearchResultsMainDetails);
 			$this->assign('showExpirationWarnings', $library->showExpirationWarnings);
+			$this->assign('expiredMessage', $library->expiredMessage);
+			$this->assign('expirationNearMessage', $library->expirationNearMessage);
 			$this->assign('showSimilarTitles', $library->showSimilarTitles);
 			$this->assign('showSimilarAuthors', $library->showSimilarAuthors);
 			$this->assign('showItsHere', $library->showItsHere);
