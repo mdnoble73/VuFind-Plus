@@ -1552,20 +1552,19 @@ public class CarlXExportMain {
 			ResultSet bibHoldsRS = bibHoldsStmt.executeQuery();
 			while (bibHoldsRS.next()){
 				String bibId = bibHoldsRS.getString("bid");
+				String bibIdFull = bibId;
+				while (bibIdFull.length() < 10){
+					bibIdFull = "0" + bibIdFull;
+				}
 				Long numHolds = bibHoldsRS.getLong("numHolds");
-				numHoldsByBib.put(bibId, numHolds);
+				numHoldsByBib.put(bibIdFull, numHolds);
 			}
 			bibHoldsRS.close();
 
 			logger.debug("Found " + numHoldsByBib.size() + " bibs that have title or item level holds");
 
 			for (String bibId : numHoldsByBib.keySet()){
-				String bibIdFull = bibId;
-				while (bibIdFull.length() < 10){
-					bibIdFull = "0" + bibIdFull;
-				}
-				bibId = "CARL" + bibIdFull;
-				addIlsHoldSummary.setString(1, bibIdFull);
+				addIlsHoldSummary.setString(1, bibId);
 				addIlsHoldSummary.setLong(2, numHoldsByBib.get(bibId));
 				addIlsHoldSummary.executeUpdate();
 			}
