@@ -55,7 +55,7 @@ abstract class SirsiDynixROA extends HorizonAPI
 //		$err  = curl_getinfo($ch);
 //		$headerRequest = curl_getinfo($ch, CURLINFO_HEADER_OUT);
 //		TODO: debugging only, comment out later.
-		$logger->log("Web service response\r\n$json", PEAR_LOG_INFO); //TODO: For debugging
+		$logger->log("Web service response\r\n$json", PEAR_LOG_DEBUG); //TODO: For debugging
 		curl_close($ch);
 
 		if ($json !== false && $json !== 'false') {
@@ -327,13 +327,13 @@ abstract class SirsiDynixROA extends HorizonAPI
 
 		//Authenticate the user via WebService
 		//First call loginUser
-		$logger->log("Logging in through Symphony APIs", PEAR_LOG_INFO);
+		$timer->logTime("Logging in through Symphony APIs");
 		list($userValid, $sessionToken, $sirsiRoaUserID) = $this->loginViaWebService($username, $password);
 		if ($validatedViaSSO) {
 			$userValid = true;
 		}
 		if ($userValid) {
-			$logger->log("User is valid in symphony", PEAR_LOG_INFO);
+			$timer->logTime("User is valid in symphony");
 			$webServiceURL = $this->getWebServiceURL();
 
 

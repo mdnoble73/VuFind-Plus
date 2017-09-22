@@ -274,6 +274,7 @@ function updateConfigForScoping($configArray) {
 	//split the servername based on
 	global $subdomain;
 	$subdomain = null;
+	$timer->logTime('starting updateConfigForScoping');
 
 	$subdomainsToTest = array();
 	if(strpos($_SERVER['SERVER_NAME'], '.')){
@@ -292,14 +293,13 @@ function updateConfigForScoping($configArray) {
 			}
 		}
 		//Trim off test indicator when doing lookups for library/location
-		if (substr($tempSubdomain, -1) == '2' || substr($tempSubdomain, -1) == '3'){
-			$subdomainsToTest[] = substr($tempSubdomain, 0, -1);
-		}elseif (substr($tempSubdomain, -1) == 't' || substr($tempSubdomain, -1) == 'd' || substr($tempSubdomain, -1) == 'x'){
+		$lastChar = substr($tempSubdomain, -1);
+		if ($lastChar == '2' || $lastChar == '3' || $lastChar == 't' || $lastChar == 'd' || $lastChar == 'x'){
 			$subdomainsToTest[] = substr($tempSubdomain, 0, -1);
 		}
 	}
 
-	$timer->logTime('got subdomain');
+	$timer->logTime('found ' . count($subdomainsToTest) . ' subdomains to test');
 
 
 	//Load the library system information
@@ -308,18 +308,22 @@ function updateConfigForScoping($configArray) {
 	if (isset($_SESSION['library']) && isset($_SESSION['location'])){
 		$library = $_SESSION['library'];
 		$locationSingleton = $_SESSION['library'];
+		$timer->logTime('got library and location from session');
 	}else {
 		for ($i = 0; $i < count($subdomainsToTest); $i++){
 			$subdomain = $subdomainsToTest[$i];
+			$timer->logTime("testing subdomain $i $subdomain");
 			$Library = new Library();
-			$Library->whereAdd("subdomain = '$subdomain'");
+			$timer->logTime("created new library object");
+			$Library->subdomain = $subdomain;
 			$Library->find();
-
+			$timer->logTime("searched for library by subdomain $subdomain");
 
 			if ($Library->N == 1) {
 				$Library->fetch();
 				//Make the library information global so we can work with it later.
 				$library = $Library;
+				$timer->logTime("found the library based on subdomain");
 				break;
 			} else {
 				//The subdomain can also indicate a location.
@@ -334,6 +338,7 @@ function updateConfigForScoping($configArray) {
 					global $librarySingleton;
 					$library = $librarySingleton->getLibraryForLocation($Location->locationId);
 					$locationSingleton->setActiveLocation(clone $Location);
+					$timer->logTime("found the location and library based on subdomain");
 					break;
 				} else {
 					//Check to see if there is only one library in the system
@@ -342,6 +347,7 @@ function updateConfigForScoping($configArray) {
 					if ($Library->N == 1) {
 						$Library->fetch();
 						$library = $Library;
+						$timer->logTime("there is only one library for this install");
 						break;
 					} else {
 						//If we are on the last subdomain to test, grab the default.
@@ -353,22 +359,24 @@ function updateConfigForScoping($configArray) {
 							if ($Library->N == 1) {
 								$Library->fetch();
 								$library = $Library;
+								$timer->logTime("found the library based on the default");
 							} else {
 								echo("Could not determine the correct library to use for this install");
 							}
 						}
-
 					}
 				}
 			}
 		}
 	}
+	$timer->logTime('found library and location');
 	if (isset($library) && $library != null){
 		//Update the title
 		$configArray['Site']['theme'] = $library->themeName . ',' . $configArray['Site']['theme'] . ',default';
 		$configArray['Site']['title'] = $library->displayName;
 
 		$location = $locationSingleton->getActiveLocation();
+		$timer->logTime('found active location');
 
 		//Add an extra css file for the location if it exists.
 		$themes = explode(',', $library->themeName);
@@ -386,6 +394,7 @@ function updateConfigForScoping($configArray) {
 				$configArray['Site']['largeLogo'] = '/interface/themes/' . $themeName . '/images/'. $location->code .'_logo_large.png';
 			}
 		}
+		$timer->logTime('loaded themes');
 	}
 	$timer->logTime('finished update config for scoping');
 
