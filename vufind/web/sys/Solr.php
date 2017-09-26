@@ -567,7 +567,7 @@ class Solr implements IndexEngine {
 	{
 		global $configArray;
 		if ($originalResult == null){
-			$originalResult = $this->getRecord($id);
+			$originalResult = $this->getRecord($id, 'target_audience_full,target_audience_full,literary_form,language,isbn,upc');
 		}
 		// Query String Parameters
 		$options = array('q' => "id:$id", 'qt' => 'morelikethis2', 'mlt.interestingTerms' => 'details', 'rows' => 25, 'fl' => SearchObject_Solr::$fields);
