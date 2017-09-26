@@ -50,6 +50,7 @@
 #######################
 27 0 * * * cd /tmp; rm -rf CURLCOOKIE*
 28 0 * * * cd /tmp; rm -rf epb*
+0 * * * * /usr/sbin/apachectl restart > /dev/null 2>&1
 
 ########################
 # Full Update #
