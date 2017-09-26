@@ -2,7 +2,7 @@
 /**
  * API functionality related to Grouped Works
  *
- * @category VuFind-Plus 
+ * @category VuFind-Plus
  * @author Mark Noble <mark@marmot.org>
  * Date: 2/4/14
  * Time: 9:21 AM
@@ -91,9 +91,27 @@ class WorkAPI {
 			$permanentId = $_REQUEST['id'];
 		}
 
-		require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
-		$groupedWorkDriver = new GroupedWorkDriver($permanentId);
-		return $groupedWorkDriver->getISBNs();
+		//Speed this up by not loading the entire grouped work driver since all we need is a list of ISBNs
+		//require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
+		//$groupedWorkDriver = new GroupedWorkDriver($permanentId);
+		//return $groupedWorkDriver->getISBNs();
+
+		global $configArray;
+		$class = $configArray['Index']['engine'];
+		$url = $configArray['Index']['url'];
+		/** @var Solr $db */
+		$db = new $class($url);
+
+		disableErrorHandler();
+		$record = $db->getRecord($permanentId, 'isbn');
+		enableErrorHandler();
+		if ($record == false || PEAR_Singleton::isError($record)){
+			return array();
+		}else{
+			return $record['isbn'];
+		}
+
+
 	}
 
 	public function generateWorkId(){
@@ -108,4 +126,4 @@ class WorkAPI {
 		//TODO: Return normalized title and normalized author as well.
 		return json_decode($result);
 	}
-} 
+}

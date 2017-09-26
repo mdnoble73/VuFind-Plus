@@ -362,26 +362,26 @@ class Solr implements IndexEngine {
 		global $memCache;
 		global $configArray;
 		global $solrScope;
-		$record = $memCache->get("solr_record_{$id}_{$solrScope}");
+		if (!$fieldsToReturn){
+			$validFields = $this->_loadValidFields();
+			$fieldsToReturn = implode(',', $validFields);
+		}
+		$record = $memCache->get("solr_record_{$id}_{$solrScope}_{$fieldsToReturn}");
+
 		if ($record == false || isset($_REQUEST['reload'])){
 
 			// Query String Parameters
 			$options = array('ids' => "$id");
-			if ($fieldsToReturn){
-				$options['fl'] = $fieldsToReturn;
-			}else{
-				$validFields = $this->_loadValidFields();
-				$options['fl'] = implode(',', $validFields);
-			}
+			$options['fl'] = $fieldsToReturn;
 			$this->client->setMethod('GET');
 			$this->client->setURL($this->host . "/get");
 			$this->client->addRawQueryString(http_build_query($options));
 
 			global $timer;
-			$timer->logTime("Prepare to send get (ids)  request to solr");
+			$timer->logTime("Prepare to send get (ids) request to solr returning fields $fieldsToReturn");
 			$result = $this->client->sendRequest();
 			//$this->client->clearPostData();
-			$timer->logTime("Send data to solr during getRecord $id");
+			$timer->logTime("Send data to solr during getRecord $id $fieldsToReturn");
 
 			if (PEAR_Singleton::isError($result)) {
 				PEAR_Singleton::raiseError($result);
@@ -444,7 +444,7 @@ class Solr implements IndexEngine {
 	 * @param	 array	$ids				 A list of document to retrieve from Solr
 	 * @access	public
 	 * @throws	object							PEAR Error
-	 * @return	string							The requested resource
+	 * @return	array							The requested resources
 	 */
 	function getRecords($ids)
 	{

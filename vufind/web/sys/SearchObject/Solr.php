@@ -2107,7 +2107,7 @@ class SearchObject_Solr extends SearchObject_Base
 	 */
 	function getRecord($id)
 	{
-		return $this->indexEngine->getRecord($id);
+		return $this->indexEngine->getRecord($id, $this->getFieldsToReturn());
 	}
 
 	/**
@@ -2116,11 +2116,11 @@ class SearchObject_Solr extends SearchObject_Base
 	 * @param   string[]  $ids        An array of documents to retrieve from Solr
 	 * @access  public
 	 * @throws  object              PEAR Error
-	 * @return  string              The requested resource
+	 * @return  array              The requested resources
 	 */
 	function getRecords($ids)
 	{
-		return $this->indexEngine->getRecords($ids);
+		return $this->indexEngine->getRecords($ids, $this->getFieldsToReturn());
 	}
 
 	/**

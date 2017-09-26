@@ -209,9 +209,13 @@ class Browse_AJAX extends Action {
 		require_once ROOT_DIR . '/services/MyResearch/lib/Suggestions.php';
 		$suggestions = Suggestions::getSuggestions(-1, self::ITEMS_PER_PAGE);
 		$records = array();
-		foreach ($suggestions as $suggestedItemId => $value_ignored) {
+		foreach ($suggestions as $suggestedItemId => $suggestionData) {
 			require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
-			$groupedWork = new GroupedWorkDriver($suggestedItemId);
+			if (array_key_exists('recordDriver', $suggestionData['titleInfo'])) {
+				$groupedWork = $suggestionData['titleInfo']['recordDriver'];
+			}else {
+				$groupedWork = new GroupedWorkDriver($suggestionData['titleInfo']);
+			}
 			if ($groupedWork->isValid) {
 				if (method_exists($groupedWork, 'getBrowseResult')) {
 					$records[] = $interface->fetch($groupedWork->getBrowseResult());

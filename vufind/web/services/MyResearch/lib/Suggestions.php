@@ -8,6 +8,7 @@ class Suggestions{
 	 */
 	static function getSuggestions($userId = -1, $numberOfSuggestionsToGet = null){
 		global $configArray;
+		global $timer;
 
 		//Configuration for suggestions
 		$doNovelistRecommendations = true;
@@ -28,8 +29,9 @@ class Suggestions{
 		while ($notInterested->fetch()){
 			$notInterestedTitles[$notInterested->groupedRecordPermanentId] = $notInterested->groupedRecordPermanentId;
 		}
+		$timer->logTime("Loaded titles the patron is not interested in");
 
-		//Load all titles the user has rated
+		//Load all titles the user has rated.  Need to load all so we don't recommend things they already rated
 		$allRatedTitles = array();
 		$allLikedRatedTitles = array();
 		require_once ROOT_DIR . '/sys/LocalEnrichment/UserWorkReview.php';
@@ -42,6 +44,7 @@ class Suggestions{
 				$allLikedRatedTitles[] = $ratings->groupedRecordPermanentId;
 			}
 		}
+		$timer->logTime("Loaded titles the patron has rated");
 
 		// Setup Search Engine Connection
 		$class = $configArray['Index']['engine'];
@@ -67,13 +70,19 @@ class Suggestions{
 					$groupedWorkId = $ratings->groupedRecordPermanentId;
 					//echo("Found resource for $resourceId - {$resource->title}<br/>");
 					$ratedTitles[$ratings->groupedRecordPermanentId] = clone $ratings;
+					$timer->logTime("Cloned Rating data");
 					$isbns = $workApi->getIsbnsForWork($groupedWorkId);
-					Suggestions::getNovelistRecommendations($ratings, $groupedWorkId, $isbns, $allRatedTitles, $suggestions, $notInterestedTitles);
+					$timer->logTime("Loaded ISBNs for work");
+					if (count($isbns) > 0){
+						Suggestions::getNovelistRecommendations($ratings, $groupedWorkId, $isbns, $allRatedTitles, $suggestions, $notInterestedTitles);
+						$timer->logTime("Got recommendations from Novelist for $groupedWorkId");
+					}
 					/*if (count($suggestions) >= $maxRecommendations){
 						break;
 					}*/
 				}
 			}
+			$timer->logTime("Loaded novelist recommendations");
 		}
 
 		if ($doSimilarlyRatedRecommendations && count($suggestions) < $maxRecommendations){
@@ -94,6 +103,7 @@ class Suggestions{
 					Suggestions::getSimilarlyRatedTitles($workApi, $db, $ratings, $userId, $allRatedTitles, $suggestions, $notInterestedTitles);
 				}
 			}
+			$timer->logTime("Loaded recommendations based on similarly rated titles");
 		}
 
 		//Get metadata recommendations if enabled, we have ratings, and we don't have enough suggestions yet
@@ -124,6 +134,7 @@ class Suggestions{
 					$logger->log('Error looking for Suggested Titles : '.$moreLikeTheseSuggestions['error']['msg'], PEAR_LOG_ERR);
 				}
 			}
+			$timer->logTime("Loaded recommendations based on ratings");
 		}
 
 
@@ -131,6 +142,7 @@ class Suggestions{
 		uasort($suggestions, 'Suggestions::compareSuggestions');
 		//Only return up to $maxRecommendations suggestions to make the page size reasonable
 		$suggestions = array_slice($suggestions, 0, $maxRecommendations, true);
+		$timer->logTime("Sorted and filterd suggestions");
 		//Return suggestions for use in the user interface.
 		return $suggestions;
 	}
