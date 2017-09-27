@@ -1418,6 +1418,9 @@ class Solr implements IndexEngine {
 
 		//Check to see if we need to automatically convert to a proper case only (no stemming search)
 		//We will do this whenever all or part of a string is surrounded by quotes.
+		if (is_array($query)){
+			echo("Invalid query " . print_r($query, true));
+		}
 		if (preg_match('/\\".+?\\"/',$query)){
 			if ($handler == 'Keyword'){
 				$handler = 'KeywordProper';
