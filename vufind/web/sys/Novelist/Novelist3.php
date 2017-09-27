@@ -781,7 +781,7 @@ class Novelist3{
 				$allIsbns .= implode(' OR ', $item->isbns);
 			}
 		}
-		$searchObject->setBasicQuery("isbn:" . $allIsbns);
+		$searchObject->setBasicQuery($allIsbns, "isbn");
 		$searchObject->clearFacets();
 		$searchObject->disableSpelling();
 		$searchObject->disableLogging();
