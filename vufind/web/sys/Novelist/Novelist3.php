@@ -786,7 +786,7 @@ class Novelist3{
 		$searchObject->disableSpelling();
 		$searchObject->disableLogging();
 		$searchObject->setLimit(count($items));
-		$response = $searchObject->processSearch(true, false, true);
+		$response = $searchObject->processSearch(true, false, false);
 
 		//Get all the titles from the catalog
 		$titlesFromCatalog = array();
