@@ -190,7 +190,7 @@
 
 			{* Admin Functionality if Available *}
 			{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('contentEditor') || $user->hasRole('libraryManager') || $user->hasRole('locationManager'))}
-				{if in_array($action, array('Libraries', 'Locations', 'IPAddresses', 'ListWidgets', 'BrowseCategories', 'UserSuggestions', 'PTypes', 'CirculationStatuses', 'LoanRules', 'LoanRuleDeterminers', 'AccountProfiles', 'NYTLists'))}
+				{if in_array($action, array('Libraries', 'Locations', 'IPAddresses', 'ListWidgets', 'BrowseCategories', 'PTypes', 'CirculationStatuses', 'LoanRules', 'LoanRuleDeterminers', 'AccountProfiles', 'NYTLists'))}
 					{assign var="curSection" value=true}
 				{else}
 					{assign var="curSection" value=false}
