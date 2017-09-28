@@ -442,11 +442,12 @@ class Solr implements IndexEngine {
 	 * Retrieves a document specified by the ID.
 	 *
 	 * @param	 array	$ids				 A list of document to retrieve from Solr
+	 * @param string $fieldsToReturn An optional list of fields to return separated by commas
 	 * @access	public
 	 * @throws	object							PEAR Error
 	 * @return	array							The requested resources
 	 */
-	function getRecords($ids)
+	function getRecords($ids, $fieldsToReturn = null)
 	{
 		if (count($ids) == 0){
 			return array();
@@ -469,17 +470,19 @@ class Solr implements IndexEngine {
 			$tmpIds = array_slice($ids, $startIndex, $batchSize);
 
 			// Query String Parameters
-			$idString = 'ids=';
+			$idString = '';
 			foreach ($tmpIds as $id){
-				if (strlen($idString) > 4){
+				if (strlen($idString) > 0){
 					$idString .= ',';
 				}
 				$idString .= $id;
 			}
+			$options = array('ids' => "$idString");
+			$options['fl'] = $fieldsToReturn;
 
 			$this->client->setMethod('GET');
 			$this->client->setURL($this->host . "/get");
-			$this->client->addRawQueryString($idString);
+			$this->client->addRawQueryString(http_build_query($options));
 
 			// Send Request
 			global $timer;

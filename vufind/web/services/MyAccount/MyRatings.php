@@ -2,7 +2,7 @@
 /**
  * A page to display any ratings that the user has done
  *
- * @category VuFind-Plus 
+ * @category VuFind-Plus
  * @author Mark Noble <mark@marmot.org>
  * Date: 5/1/13
  * Time: 9:58 AM
@@ -12,6 +12,7 @@ class MyRatings extends MyAccount{
 	public function launch(){
 		global $interface;
 		global $user;
+		global $timer;
 
 		//Load user ratings
 		require_once ROOT_DIR . '/sys/LocalEnrichment/UserWorkReview.php';
@@ -22,22 +23,33 @@ class MyRatings extends MyAccount{
 		$rating->orderBy('dateRated DESC');
 		$rating->find();
 		$ratings = array();
+		$ratedIds = array();
 		while($rating->fetch()){
-			$groupedWorkDriver = new GroupedWorkDriver($rating->groupedRecordPermanentId);
+			$ratedIds[$rating->groupedRecordPermanentId] = clone($rating);
+		}
+		$timer->logTime("Loaded ids of titles the user has rated");
+
+		/** @var SearchObject_Solr $searchObject */
+		$searchObject = SearchObjectFactory::initSearchObject();
+		$records = $searchObject->getRecords(array_keys($ratedIds));
+		foreach ($records as $record){
+			$groupedWorkDriver = new GroupedWorkDriver($record);
 			if ($groupedWorkDriver->isValid){
+				$rating = $ratedIds[$groupedWorkDriver->getPermanentId()];
 				$ratings[] = array(
-					'id' =>$rating->id,
-					'groupedWorkId' => $rating->groupedRecordPermanentId,
-					'title' => $groupedWorkDriver->getTitle(),
-					'author' => $groupedWorkDriver->getPrimaryAuthor(),
-					'rating' => $rating->rating,
-					'review' => $rating->review,
-					'link' => $groupedWorkDriver->getLinkUrl(),
-					'dateRated' => $rating->dateRated,
-					'ratingData' => $groupedWorkDriver->getRatingData(),
+						'id' =>$rating->id,
+						'groupedWorkId' => $rating->groupedRecordPermanentId,
+						'title' => $groupedWorkDriver->getTitle(),
+						'author' => $groupedWorkDriver->getPrimaryAuthor(),
+						'rating' => $rating->rating,
+						'review' => $rating->review,
+						'link' => $groupedWorkDriver->getLinkUrl(),
+						'dateRated' => $rating->dateRated,
+						'ratingData' => $groupedWorkDriver->getRatingData(),
 				);
 			}
 		}
+
 
 		//Load titles the user is not interested in
 		$notInterested = array();
@@ -47,9 +59,19 @@ class MyRatings extends MyAccount{
 		$notInterestedObj->userId = $user->id;
 		$notInterestedObj->orderBy('dateMarked DESC');
 		$notInterestedObj->find();
-		while ($notInterestedObj->fetch()){
+		$notInterestedIds = array();
+		while ($notInterestedObj->fetch()) {
+			$notInterestedIds[$notInterestedObj->groupedRecordPermanentId] = clone($notInterestedObj);
+		}
+		$timer->logTime("Loaded ids of titles the user is not interested in");
+
+		/** @var SearchObject_Solr $searchObject */
+		$searchObject = SearchObjectFactory::initSearchObject();
+		$records = $searchObject->getRecords(array_keys($notInterestedIds));
+		foreach ($records as $record){
+			$groupedWorkDriver = new GroupedWorkDriver($record) ;
 			$groupedWorkId = $notInterestedObj->groupedRecordPermanentId;
-			$groupedWorkDriver = new GroupedWorkDriver($groupedWorkId) ;
+			$notInterestedObj = $notInterestedIds[$groupedWorkId];
 			if ($groupedWorkDriver->isValid){
 				$notInterested[] = array(
 					'id' => $notInterestedObj->id,
@@ -60,6 +82,7 @@ class MyRatings extends MyAccount{
 				);
 			}
 		}
+		$timer->logTime("Loaded grouped works for titles user is not interested in");
 
 		$interface->assign('ratings', $ratings);
 		$interface->assign('notInterested', $notInterested);

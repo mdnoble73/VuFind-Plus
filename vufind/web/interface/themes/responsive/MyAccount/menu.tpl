@@ -188,9 +188,9 @@
 				</div>
 			{/if}
 
-			{* Admin Functionality if Available *}
-			{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('contentEditor') || $user->hasRole('libraryManager') || $user->hasRole('locationManager'))}
-				{if in_array($action, array('Libraries', 'Locations', 'IPAddresses', 'ListWidgets', 'BrowseCategories', 'UserSuggestions', 'PTypes', 'CirculationStatuses', 'LoanRules', 'LoanRuleDeterminers', 'AccountProfiles', 'NYTLists'))}
+			{if in_array($action, array('Libraries', 'Locations', 'IPAddresses', 'ListWidgets', 'BrowseCategories', 'PTypes', 'CirculationStatuses', 'LoanRules', 'LoanRuleDeterminers', 'AccountProfiles', 'NYTLists'))}
+				{* Admin Functionality if Available *}
+				{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('contentEditor') || $user->hasRole('libraryManager') || $user->hasRole('locationManager'))}
 					{assign var="curSection" value=true}
 				{else}
 					{assign var="curSection" value=false}
@@ -230,7 +230,6 @@
 
 							{* OPAC Admin Actions*}
 							{if $user->hasRole('opacAdmin')}
-								<div class="adminMenuLink{if $action == "UserSuggestions"} active{/if}"><a href="{$path}/Admin/UserSuggestions">User Suggestions</a></div>
 								{* Sierra/Millennium OPAC Admin Actions*}
 								{if ($ils == 'Millennium' || $ils == 'Sierra' || $ils == 'Horizon')}
 								<div class="adminMenuLink{if $action == "PTypes"} active{/if}"><a href="{$path}/Admin/PTypes">P-Types</a></div>
