@@ -166,7 +166,7 @@ class CatalogConnection
 	public function patronLogin($username, $password, $parentAccount = null, $validatedViaSSO = false) {
 		global $timer;
 		global $logger;
-		global $configArray;
+		global $offlineMode;
 
 		//Get the barcode property
 		if ($this->accountProfile->loginConfiguration == 'barcode_pin'){
@@ -180,7 +180,7 @@ class CatalogConnection
 		//$password = preg_replace('/[a-or-zA-OR-Z\W]/', '', $password);
 		//Remove any spaces from the barcode
 		$barcode = preg_replace('/[^a-zA-Z\d\s]/', '', trim($barcode));
-		if ($configArray['Catalog']['offline'] == true){
+		if ($offlineMode){
 			//The catalog is offline, check the database to see if the user is valid
 			$user = new User();
 			if ($this->driver->accountProfile->loginConfiguration == 'barcode_pin') {

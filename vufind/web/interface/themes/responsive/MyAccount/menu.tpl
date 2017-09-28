@@ -26,7 +26,10 @@
 				{*  This content is duplicated in MyAccount/mobilePageHeader.tpl; Update any changes there as well *}
 				<div id="myAccountPanel" class="panel-collapse collapse{if  $displaySidebarMenu || $curSection} in{/if}">
 					<div class="panel-body">
-						{assign var="totalFines" value=$user->getTotalFines()}
+						{if !$offline}
+							{* No need to calculate total fines if in offline mode*}
+							{assign var="totalFines" value=$user->getTotalFines()}
+						{/if}
 						{if ($totalFines > 0 && $showFines) || ($showExpirationWarnings && $user->expireClose)}
 							<div id="myAccountFines">
 								{if $totalFines > 0 && $showFines}
@@ -79,9 +82,10 @@
 						<div class="myAccountLink{if $action=="Holds"} active{/if}">
 							<a href="{$path}/MyAccount/Holds" id="holds">
 								Titles On Hold {if !$offline}<span class="badge">{$user->getNumHoldsTotal()}</span>
-								{if $user->getNumHoldsAvailableTotal() && $user->getNumHoldsAvailableTotal() > 0}
+								{if !offline && $user->getNumHoldsAvailableTotal() && $user->getNumHoldsAvailableTotal() > 0}
 									&nbsp;<span class="label label-success">{$user->getNumHoldsAvailableTotal()} ready for pick up</span>
-								{/if}{/if}
+								{/if}
+								{/if}
 							</a>
 						</div>
 

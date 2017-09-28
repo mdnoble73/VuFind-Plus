@@ -36,9 +36,8 @@ class Fines extends MyAccount
 		$interface->assign('showOutstanding', $useOutstanding);
 
 		if ($user) {
-			if ($configArray['Catalog']['offline']) {
-				$interface->assign('offline', true);
-			} else {
+			global $offlineMode;
+			if (!$offlineMode) {
 				// Get My Fines
 				$fines = $user->getMyFines();
 				$interface->assign('userFines', $fines);

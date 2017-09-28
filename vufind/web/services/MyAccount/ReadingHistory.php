@@ -36,9 +36,8 @@ class ReadingHistory extends MyAccount
 			$interface->assign('showRatings', 1);
 		}
 
-		if ($configArray['Catalog']['offline']){
-			$interface->assign('offline', true);
-		}else{
+		global $offlineMode;
+		if (!$offlineMode) {
 			$interface->assign('offline', false);
 
 			// Get My Transactions
