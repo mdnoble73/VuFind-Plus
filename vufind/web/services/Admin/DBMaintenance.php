@@ -936,6 +936,14 @@ class DBMaintenance extends Admin_Admin {
 						),
 				),
 
+				'variables_offline_mode_when_offline_login_allowed' => array(
+						'title' => 'Variables Offline Mode When Offline Login is Allowed',
+						'description' => 'Add a variable to allow setting offline mode from the Pika interface, as long as offline logins are allowed.',
+						'sql' => array(
+								"INSERT INTO variables (name, value) VALUES ('offline_mode_when_offline_login_allowed', 'false')",
+						),
+				),
+
 
 				'utf8_update' => array(
 					'title' => 'Update to UTF-8',

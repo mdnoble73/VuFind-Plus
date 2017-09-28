@@ -110,4 +110,23 @@ class Admin_Variables extends ObjectEditor{
 			header("Location: /{$this->getModule()}/{$this->getToolName()}?objectAction=edit&id=" . $id);
 		}
 	}
+
+	function editObject($objectAction, $structure)
+	{
+		if ($objectAction == 'save') {
+			if (!empty($_REQUEST['name']) && $_REQUEST['name'] == 'offline_mode_when_offline_login_allowed') {
+				if (!empty($_REQUEST['value']) && $_REQUEST['value'] == 'true' || $_REQUEST['value'] == 1) {
+					global $configArray;
+					if (isset($configArray['Catalog']['enableLoginWhileOffline']) && empty($configArray['Catalog']['enableLoginWhileOffline'])) {
+						$_SESSION['lastError'] = "While offline logins are disabled offline mode can not be turned on with this variable.";
+						header("Location: {$configArray['Site']['path']}{$_SERVER['REQUEST_URI']}");
+						die();
+					}
+				}
+			}
+		}
+		parent::editObject($objectAction, $structure);
+	}
+
+
 }
