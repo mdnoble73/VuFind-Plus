@@ -1133,8 +1133,8 @@ abstract class SirsiDynixROA extends HorizonAPI
 			$title = $record->getTitle();
 		}
 
-		global $configArray;
-		if ($configArray['Catalog']['offline']) {
+		global $offlineMode;
+		if ($offlineMode) {
 			require_once ROOT_DIR . '/sys/OfflineHold.php';
 			$offlineHold                = new OfflineHold();
 			$offlineHold->bibId         = $recordId;

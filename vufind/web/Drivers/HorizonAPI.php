@@ -412,7 +412,8 @@ abstract class HorizonAPI extends Horizon{
 			$title = $record->getTitle();
 		}
 
-		if ($configArray['Catalog']['offline']){
+		global $offlineMode;
+		if ($offlineMode){
 			require_once ROOT_DIR . '/sys/OfflineHold.php';
 			$offlineHold = new OfflineHold();
 			$offlineHold->bibId = $recordId;
@@ -865,8 +866,9 @@ abstract class HorizonAPI extends Horizon{
 	}
 
 	public function getNumHolds($id) {
-		global $configArray;
-		if (!$configArray['Catalog']['offline']){
+		global $offlineMode;
+		if (!$offlineMode){
+			global $configArray;
 			$lookupTitleInfoUrl = $configArray['Catalog']['webServiceUrl'] . '/standard/lookupTitleInfo?clientID=' . $configArray['Catalog']['clientId'] . '&titleKey=' . $id . '&includeItemInfo=false&includeHoldCount=true' ;
 			$lookupTitleInfoResponse = $this->getWebServiceResponse($lookupTitleInfoUrl);
 			if ($lookupTitleInfoResponse->titleInfo){
