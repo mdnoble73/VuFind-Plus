@@ -80,11 +80,12 @@ if ($googleAnalyticsId) {
 	$interface->assign('googleAnalyticsDomainName', $googleAnalyticsDomainName);
 }
 global $library;
+global $offlineMode;
 
 //Set System Message
 if ($configArray['System']['systemMessage']){
 	$interface->assign('systemMessage', $configArray['System']['systemMessage']);
-}else if ($configArray['Catalog']['offline']){
+}else if ($offlineMode){
 	$interface->assign('systemMessage', "<p class='alert alert-warning'><strong>The circulation system is currently offline.</strong>  Access to account information and availability is limited.</p>");
 }else{
 	if ($library && strlen($library->systemMessage) > 0){
@@ -538,7 +539,7 @@ $onInternalIP = false;
 $includeAutoLogoutCode = false;
 $automaticTimeoutLength = 0;
 $automaticTimeoutLengthLoggedOut = 0;
-if (($isOpac || $masqueradeMode || (!empty($ipLocation) && $ipLocation->getOpacStatus()) ) && !$configArray['Catalog']['offline']) {
+if (($isOpac || $masqueradeMode || (!empty($ipLocation) && $ipLocation->getOpacStatus()) ) && !$offlineMode) {
 	// Make sure we don't have timeouts if we are offline (because it's super annoying when doing offline checkouts and holds)
 
 	//$isOpac is set by URL parameter or cookie; ipLocation->getOpacStatus() returns $opacStatus private variable which comes from the ip tables
