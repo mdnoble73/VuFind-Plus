@@ -6,13 +6,10 @@
 				{if $selfRegistrationSuccessMessage}
 					{$selfRegistrationSuccessMessage}
 				{else}
-					Congratulations, you have successfully registered for a new library card.
-					You will have limited privileges.<br>
-					Please bring a valid ID to the library to receive a physical library card.
+					<p>Congratulations, you have successfully registered for a new library card.</p>
+					<p>Your library card number has been emailed to you.</p>
+					<p>Please bring a valid ID to the library to receive a physical library card.</p>
 				{/if}
-			</div>
-			<div class="alert alert-info">
-				Your library card number has been emailed to you.
 			</div>
 		{else}
 			{img_assign filename='self_reg_banner.png' var=selfRegBanner}

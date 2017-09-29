@@ -843,8 +843,8 @@ class CarlX extends SIP2Driver{
 		$fields[] = array('property'=>'zip',         'type'=>'text', 'label'=>'Zip Code', 'description'=>'Zip Code', 'maxLength' => 32, 'required' => true);
 		$fields[] = array('property'=>'phone',       'type'=>'text',  'label'=>'Primary Phone', 'description'=>'Primary Phone', 'maxLength'=>15, 'required'=>true);
 		$fields[] = array('property'=>'email',       'type'=>'email', 'label'=>'E-Mail', 'description'=>'E-Mail', 'maxLength' => 128, 'required' => true);
-		$fields[] = array('property'=>'pin',         'type'=>'pin',   'label'=>'Pin', 'description'=>'Your desired 4-digit pin', 'maxLength' => 4, 'size' => 4, 'required' => true);
-		$fields[] = array('property'=>'pin1',        'type'=>'pin',   'label'=>'Confirm Pin', 'description'=>'Re-type your desired 4-digit pin', 'maxLength' => 4, 'size' => 4, 'required' => true);
+//		$fields[] = array('property'=>'pin',         'type'=>'pin',   'label'=>'Pin', 'description'=>'Your desired 4-digit pin', 'maxLength' => 4, 'size' => 4, 'required' => true);
+//		$fields[] = array('property'=>'pin1',        'type'=>'pin',   'label'=>'Confirm Pin', 'description'=>'Re-type your desired 4-digit pin', 'maxLength' => 4, 'size' => 4, 'required' => true);
 		return $fields;
 	}
 
@@ -872,11 +872,13 @@ class CarlX extends SIP2Driver{
 			$zip        = trim($_REQUEST['zip']);
 			$email      = trim(strtoupper($_REQUEST['email']));
 			$pin        = trim($_REQUEST['pin']);
-			$pin1       = trim($_REQUEST['pin1']);
-			$phone       = trim($_REQUEST['phone']);
+//			$pin1       = trim($_REQUEST['pin1']);
+			$phone      = trim($_REQUEST['phone']);
 
-			if (!empty($pin) && !empty($pin1) && $pin == $pin1) {
+//			if (!empty($pin) && !empty($pin1) && $pin == $pin1) {
 
+
+/*
 				// DENY REGISTRATION IF DUPLICATE EMAIL IS FOUND IN CARL.X
 				// searchPatron on Email appears to be case-insensitive and 
 				// appears to eliminate spurious whitespace
@@ -904,6 +906,7 @@ class CarlX extends SIP2Driver{
 						);
 					}
 				}
+*/
 
 				// CREATE PATRON REQUEST
 				$request                                         = new stdClass();
@@ -925,7 +928,7 @@ class CarlX extends SIP2Driver{
 				$request->Patron->Addresses->Address->State      = $state;
 				$request->Patron->Addresses->Address->PostalCode = $zip;
 				$request->Patron->PreferredAddress		= 'Primary';
-				$request->Patron->PatronPIN			= $pin;
+//				$request->Patron->PatronPIN			= $pin;
 				$request->Patron->Phone1			= $phone;
 				$request->Patron->RegistrationDate		= date('c'); // Registration Date, format ISO 8601
 				$request->Patron->LastActionDate		= date('c'); // Registration Date, format ISO 8601
@@ -1001,6 +1004,9 @@ class CarlX extends SIP2Driver{
 								$request->Modifiers  = '';
 
 								$result = $this->doSoapRequest('getPatronInformation', $request);
+
+/*
+// PATRON-CREATED PIN IS BEING OVERWRITTEN BY CARL.X LAST 4 DIGITS OF PHONE NUMBER
 								// Check That the Pin was set  (the create Patron call does not seem to set the Pin)
 								if ($result && isset($result->Patron) && $result->Patron->PatronPIN == '') {
 									$request->Patron->PatronPIN = $pin;
@@ -1028,6 +1034,7 @@ class CarlX extends SIP2Driver{
 										}
 									}
 								}
+*/
 
 								// FOLLOWING SUCCESSFUL SELF REGISTRATION, INPUT PATRON IP ADDRESS INTO PATRON RECORD NOTE
 								$request 			= new stdClass();
@@ -1093,10 +1100,10 @@ class CarlX extends SIP2Driver{
 						$logger->log('CarlX ILS gave no response when attempting to create Patron.', PEAR_LOG_ERR);
 					}
 				}
-			} else {
-				global $logger;
-				$logger->log('CarlX Self Registration Form was passed bad data for a user\'s pin.', PEAR_LOG_WARNING);
-			}
+//			} else {
+//				global $logger;
+//				$logger->log('CarlX Self Registration Form was passed bad data for a user\'s pin.', PEAR_LOG_WARNING);
+//			}
 		} else {
 			global $logger;
 			$logger->log('No value for "last_selfreg_patron_id" set in Variables table. Can not self-register patron in CarlX Driver.', PEAR_LOG_ERR);
