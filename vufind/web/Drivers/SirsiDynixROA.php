@@ -796,6 +796,13 @@ abstract class SirsiDynixROA extends HorizonAPI
 					$session = array(true, $sessionToken, $sirsiRoaUserID);
 					global $configArray;
 					$memCache->set($memCacheKey, $session, 0, $configArray['Caching']['sirsi_roa_session_token']);
+			} elseif (isset($loginUserResponse->messageList)) {
+				global $logger;
+				$errorMessage = 'Sirsi ROA Webservice Login Error: ';
+				foreach ($loginUserResponse->messageList as $error){
+					$errorMessage .= $error->message.'; ';
+				}
+				$logger->log($errorMessage, PEAR_LOG_ERR);
 			}
 		}
 		return $session;
@@ -1204,6 +1211,12 @@ abstract class SirsiDynixROA extends HorizonAPI
 					$hold_result['message'] = 'Your hold could not be placed. ';
 					if (isset($createHoldResponse->messageList)) {
 						$hold_result['message'] .= (string)$createHoldResponse->messageList[0]->message;
+						global $logger;
+						$errorMessage = 'Sirsi ROA Place Hold Error: ';
+						foreach ($createHoldResponse->messageList as $error){
+							$errorMessage .= $error->message.'; ';
+						}
+						$logger->log($errorMessage, PEAR_LOG_ERR);
 					}
 				} else {
 					$hold_result['success'] = true;
@@ -1261,7 +1274,13 @@ abstract class SirsiDynixROA extends HorizonAPI
 			  'message' => 'The hold was successfully canceled'
 			);
 		} else {
-			//TODO: check out for error message
+			global $logger;
+			$errorMessage = 'Sirsi ROA Cancel Hold Error: ';
+			foreach ($cancelHoldResponse->messageList as $error){
+				$errorMessage .= $error->message.'; ';
+			}
+			$logger->log($errorMessage, PEAR_LOG_ERR);
+
 			return array(
 				'success' => false,
 				'message' => 'Sorry, the hold was not canceled');
@@ -1305,6 +1324,9 @@ abstract class SirsiDynixROA extends HorizonAPI
 					$messages[] = $message->message;
 				}
 			}
+			global $logger;
+			$errorMessage = 'Sirsi ROA Change Hold Pickup Location Error: '. ($messages ? implode('; ', $messages) : '');
+			$logger->log($errorMessage, PEAR_LOG_ERR);
 
 			return array(
 				'success' => false,
@@ -1354,6 +1376,10 @@ abstract class SirsiDynixROA extends HorizonAPI
 			}
 			$freeze = translate('freeze');
 
+			global $logger;
+			$errorMessage = 'Sirsi ROA Freeze Hold Error: '. ($messages ? implode('; ', $messages) : '');
+			$logger->log($errorMessage, PEAR_LOG_ERR);
+
 			return array(
 				'success' => false,
 				'message' => "Failed to $freeze hold : ". implode('; ', $messages)
@@ -1397,6 +1423,10 @@ abstract class SirsiDynixROA extends HorizonAPI
 					$messages[] = $message->message;
 				}
 			}
+			global $logger;
+			$errorMessage = 'Sirsi ROA Thaw Hold Error: '. ($messages ? implode('; ', $messages) : '');
+			$logger->log($errorMessage, PEAR_LOG_ERR);
+
 			$thaw = translate('thaw');
 			return array(
 				'success' => false,
@@ -1449,10 +1479,14 @@ abstract class SirsiDynixROA extends HorizonAPI
 					$messages[] = $message->message;
 				}
 			}
+			global $logger;
+			$errorMessage = 'Sirsi ROA Renew Error: '. ($messages ? implode('; ', $messages) : '');
+			$logger->log($errorMessage, PEAR_LOG_ERR);
+
 			return array(
 				'itemId'  => $itemId,
 				'success' =>false,
-				'message' => "The item failed to renew".  ($messages ? ': '. implode(';', $messages) : '')
+				'message' => "The item failed to renew". ($messages ? ': '. implode(';', $messages) : '')
 			);
 
 		}
