@@ -94,7 +94,8 @@ class MyAccount_Profile extends MyAccount
 			$interface->assign('pickupLocations', $pickupLocations);
 
 			// Save/Update Actions
-			if (isset($_POST['updateScope']) && !$configArray['Catalog']['offline']) {
+			global $offlineMode;
+			if (isset($_POST['updateScope']) && !$offlineMode) {
 				$updateScope = $_REQUEST['updateScope'];
 				if ($updateScope == 'contact') {
 					$errors = $patron->updatePatronInfo($canUpdateContactInfo);
@@ -132,11 +133,10 @@ class MyAccount_Profile extends MyAccount
 				$actionUrl = $configArray['Site']['path'] . '/MyAccount/Profile' . ( $patronId == $user->id ? '' : '?patronId='.$patronId ); // redirect after form submit completion
 				header("Location: " . $actionUrl);
 				exit();
-			} elseif (!$configArray['Catalog']['offline']) {
+			} elseif (!$offlineMode) {
 				$interface->assign('edit', true);
 			} else {
 				$interface->assign('edit', false);
-
 			}
 
 
@@ -187,7 +187,7 @@ class MyAccount_Profile extends MyAccount
 
 
 		// CarlX Specific Options
-		if ($ils == 'CarlX' && !$configArray['Catalog']['offline']) {
+		if ($ils == 'CarlX' && !$offlineMode) {
 			// Get Phone Types
 			$phoneTypes = array();
 			/** @var CarlX $driver */

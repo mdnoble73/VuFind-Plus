@@ -162,16 +162,28 @@ class UInterface extends Smarty
 		$this->assign('primaryTheme', reset($themeArray));
 		$this->assign('device', get_device_name());
 
+		// Determine Offline Mode
+		global $offlineMode;
+		$offlineMode = false;
 		if ($configArray['Catalog']['offline']){
-			$this->assign('offline', true);
+			$offlineMode = true;
 			if (isset($configArray['Catalog']['enableLoginWhileOffline'])){
 				$this->assign('enableLoginWhileOffline', $configArray['Catalog']['enableLoginWhileOffline']);
 			}else{
 				$this->assign('enableLoginWhileOffline', false);
 			}
 		}else{
-			$this->assign('offline', false);
+			if (!empty($configArray['Catalog']['enableLoginWhileOffline'])) {
+				// unless offline login is enabled, don't check the offline mode system variable
+				$offlineModeSystemVariable = new Variable();
+				$offlineModeSystemVariable->get('name', 'offline_mode_when_offline_login_allowed');
+				if ($offlineModeSystemVariable && ($offlineModeSystemVariable->value == 'true' || $offlineModeSystemVariable == '1')) {
+					$this->assign('enableLoginWhileOffline', true);
+					$offlineMode = true;
+				}
+			}
 		}
+		$this->assign('offline', $offlineMode);
 
 		$timer->logTime('Basic configuration');
 

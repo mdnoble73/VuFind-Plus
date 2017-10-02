@@ -5,7 +5,10 @@
 		<div id="mobileHeader" class="col-tn-12 col-xs-12">
 
 			<div id="mobileHeader-myAccountFines">
-				{assign var="totalFines" value=$user->getTotalFines()}
+				{if !$offline}
+					{* No need to calculate total fines if in offline mode*}
+					{assign var="totalFines" value=$user->getTotalFines()}
+				{/if}
 				{if $totalFines > 0 || ($showExpirationWarnings && $user->expireClose)}
 					{* $totalFines is calculated in menu.tpl *}
 					{if $showEcommerceLink && $totalFines > $minimumFineAmount}

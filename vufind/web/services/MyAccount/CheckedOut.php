@@ -11,16 +11,14 @@
 require_once ROOT_DIR . '/services/MyAccount/MyAccount.php';
 class MyAccount_CheckedOut extends MyAccount{
 	function launch(){
-		global $configArray,
-		       $interface,
-		       $library,
-		       $user;
 
 		$allCheckedOut = array();
-		if ($configArray['Catalog']['offline']){
-			$interface->assign('offline', true);
-		}else{
-			$interface->assign('offline', false);
+		global $offlineMode;
+		if (!$offlineMode) {
+			global $configArray,
+			       $interface,
+			       $library,
+			       $user;
 
 			//Determine which columns to show
 			$ils = $configArray['Catalog']['ils'];

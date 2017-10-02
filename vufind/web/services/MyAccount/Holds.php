@@ -84,9 +84,8 @@ class MyAccount_Holds extends MyAccount{
 		$interface->assign('showNotInterested', false);
 
 		// Get My Transactions
-		if ($configArray['Catalog']['offline']){
-			$interface->assign('offline', true);
-		}else{
+		global $offlineMode;
+		if (!$offlineMode) {
 			if ($user) {
 
 				// Paging not implemented on holds page
