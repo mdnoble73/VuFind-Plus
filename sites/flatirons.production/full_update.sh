@@ -164,6 +164,9 @@ then
 
 		# Copy to data directory to process
 		cp --update --preserve=timestamps $FILE /data/vufind-plus/${PIKASERVER}/marc/fullexport.mrc
+
+		# Delete old exports on the ftp server
+		find /mnt/ftp -mindepth 1 -maxdepth 1 -name "script.MARC.*" -type f -mtime +7 -delete
 		umount /mnt/ftp
 
 		# Copy to marc_export to keep as a backup
