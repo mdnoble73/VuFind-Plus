@@ -37,6 +37,7 @@ class User extends DB_DataObject
 	public $promptForOverdriveEmail;
 	public $preferredLibraryInterface;
 	public $noPromptForUserReviews; //tinyint(1)
+
 	private $roles;
 	private $masqueradingRoles;
 	private $masqueradeLevel;
@@ -757,15 +758,22 @@ class User extends DB_DataObject
 		return $myBookings;
 	}
 
+	private $totalFinesForLinkedUsers = -1;
 	public function getTotalFines($includeLinkedUsers = true){
 		$totalFines = $this->finesVal;
 		if ($includeLinkedUsers){
-			if ($this->getLinkedUsers() != null) {
-				/** @var User $user */
-				foreach ($this->linkedUsers as $user) {
-					$totalFines += $user->getTotalFines(false);
+			if ($this->totalFinesForLinkedUsers == -1){
+				if ($this->getLinkedUsers() != null) {
+					/** @var User $user */
+					foreach ($this->linkedUsers as $user) {
+						$totalFines += $user->getTotalFines(false);
+					}
 				}
+				$this->totalFinesForLinkedUsers = $totalFines;
+			}else{
+				$totalFines = $this->totalFinesForLinkedUsers;
 			}
+
 		}
 		return $totalFines;
 	}
@@ -921,11 +929,16 @@ class User extends DB_DataObject
 		return $ilsBookings;
 	}
 
+	private $ilsFinesForUser;
 	public function getMyFines($includeLinkedUsers = true){
-		$ilsFines[$this->id] = $this->getCatalogDriver()->getMyFines($this);
-		if (PEAR_Singleton::isError($ilsFines)) {
-			$ilsFines[$this->id] = array();
+
+		if (!isset($this->ilsFinesForUser)){
+			$this->ilsFinesForUser = $this->getCatalogDriver()->getMyFines($this);
+			if (PEAR_Singleton::isError($this->ilsFinesForUser)) {
+				$this->ilsFinesForUser = array();
+			}
 		}
+		$ilsFines[$this->id] = $this->ilsFinesForUser;
 
 		if ($includeLinkedUsers) {
 			if ($this->getLinkedUsers() != null) {
