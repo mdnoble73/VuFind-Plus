@@ -1520,7 +1520,7 @@ class GroupedWorkDriver extends RecordInterface{
 				//Figure out what the preferred record is to place a hold on.  Since sorting has been done properly, this should always be the first
 				$bestRecord = reset($manifestation['relatedRecords']);
 
-				if ($manifestation['numRelatedRecords'] > 1 && array_key_exists($bestRecord['groupedStatus'], self::$statusRankings) && self::$statusRankings[ $bestRecord['groupedStatus'] ] <= 4) {
+				if ($manifestation['numRelatedRecords'] > 1 && array_key_exists($bestRecord['groupedStatus'], self::$statusRankings) && self::$statusRankings[ $bestRecord['groupedStatus'] ] <= 5) {
 					// Check to set prompt for Alternate Edition for any grouped status equal to or less than that of "Checked Out"
 					$promptForAlternateEdition = false;
 					foreach ($manifestation['relatedRecords'] as $relatedRecord) {
