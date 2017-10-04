@@ -109,6 +109,7 @@ cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE
 
 # Western Kanopy Marc Updates
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh western/kanopy kanopy/western >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/${PIKASERVER}/moveFullExport.sh budwerner/kanopy kanopy/budwerner >> ${OUTPUT_FILE}
 
 # SD51 Mackin VIA Marc Updates
 #/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh sd51/mackinvia/mvcp mackinvia/mvcp >> ${OUTPUT_FILE}
