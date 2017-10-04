@@ -82,7 +82,7 @@
 						<div class="myAccountLink{if $action=="Holds"} active{/if}">
 							<a href="{$path}/MyAccount/Holds" id="holds">
 								Titles On Hold {if !$offline}<span class="badge">{$user->getNumHoldsTotal()}</span>
-								{if !offline && $user->getNumHoldsAvailableTotal() && $user->getNumHoldsAvailableTotal() > 0}
+								{if !$offline && $user->getNumHoldsAvailableTotal() && $user->getNumHoldsAvailableTotal() > 0}
 									&nbsp;<span class="label label-success">{$user->getNumHoldsAvailableTotal()} ready for pick up</span>
 								{/if}
 								{/if}
