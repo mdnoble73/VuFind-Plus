@@ -930,17 +930,3 @@ CREATE TABLE IF NOT EXISTS `user_roles` (
 
 -- --------------------------------------------------------
 
---
--- Table structure for table `user_suggestions`
---
-
-CREATE TABLE IF NOT EXISTS `user_suggestions` (
-  `suggestionId` int(11) NOT NULL AUTO_INCREMENT COMMENT 'The unique id of the suggestion',
-  `name` varchar(50) NOT NULL COMMENT 'The name of the user who entered the suggestion',
-  `email` varchar(100) NOT NULL COMMENT 'The email address of the user who entered the suggestion',
-  `suggestion` longtext NOT NULL COMMENT 'The text of the suggestion',
-  `enteredOn` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'When the suggestion was entered (for sorting)',
-  `hide` tinyint(4) NOT NULL COMMENT 'Whether or not the suggestion should be hidden from the admin panel',
-  `internalNotes` longtext NOT NULL COMMENT 'Internal notes by an administrator if needed.',
-  PRIMARY KEY (`suggestionId`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='Stores suggestions from users of the catalog.' AUTO_INCREMENT=1 ;

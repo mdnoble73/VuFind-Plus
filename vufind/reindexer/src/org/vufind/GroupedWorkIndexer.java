@@ -1019,7 +1019,7 @@ public class GroupedWorkIndexer {
 				//logger.debug("Updated solr \r\n" + inputDocument.toString());
 
 			} catch (Exception e) {
-				logger.error("Error adding record to solr", e);
+				logger.error("Error adding grouped work to solr " + groupedWork.getId(), e);
 			}
 		}else{
 			//Log that this record did not have primary identifiers after

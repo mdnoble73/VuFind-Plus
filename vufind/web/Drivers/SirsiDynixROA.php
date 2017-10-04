@@ -55,7 +55,7 @@ abstract class SirsiDynixROA extends HorizonAPI
 //		$err  = curl_getinfo($ch);
 //		$headerRequest = curl_getinfo($ch, CURLINFO_HEADER_OUT);
 //		TODO: debugging only, comment out later.
-		$logger->log("Web service response\r\n$json", PEAR_LOG_INFO); //TODO: For debugging
+		$logger->log("Web service response\r\n$json", PEAR_LOG_DEBUG); //TODO: For debugging
 		curl_close($ch);
 
 		if ($json !== false && $json !== 'false') {
@@ -327,13 +327,13 @@ abstract class SirsiDynixROA extends HorizonAPI
 
 		//Authenticate the user via WebService
 		//First call loginUser
-		$logger->log("Logging in through Symphony APIs", PEAR_LOG_INFO);
-		list($userValid, $sessionToken, $userID) = $this->loginViaWebService($username, $password);
+		$timer->logTime("Logging in through Symphony APIs");
+		list($userValid, $sessionToken, $sirsiRoaUserID) = $this->loginViaWebService($username, $password);
 		if ($validatedViaSSO) {
 			$userValid = true;
 		}
 		if ($userValid) {
-			$logger->log("User is valid in symphony", PEAR_LOG_INFO);
+			$timer->logTime("User is valid in symphony");
 			$webServiceURL = $this->getWebServiceURL();
 
 
@@ -341,13 +341,13 @@ abstract class SirsiDynixROA extends HorizonAPI
 //			$patronStatusInfoDescribeResponse = $this->getWebServiceResponse($webServiceURL . '/v1/user/patronStatusInfo/describe', null, $sessionToken);
 //			$userProfileDescribeResponse      = $this->getWebServiceResponse($webServiceURL . '/v1/policy/profile/describe', null, $sessionToken);
 			// NOt a policy
-//				$patronStatusResponse  = $this->getWebServiceResponse($webServiceURL . '/v1/user/patronStatusInfo/key/' . $userID, null, $sessionToken);
+//				$patronStatusResponse  = $this->getWebServiceResponse($webServiceURL . '/v1/user/patronStatusInfo/key/' . $sirsiRoaUserID, null, $sessionToken);
 			//TODO: This resource is currently hidden
 
-//			$lookupMyAccountInfoResponse = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/key/' . $userID . '?includeFields=firstName,lastName,displayName,privilegeExpiresDate,estimatedOverdueAmount,patronStatusInfo{*},preferredAddress,address1,address2,address3,primaryPhone,library', null, $sessionToken);
+//			$lookupMyAccountInfoResponse = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/key/' . $sirsiRoaUserID . '?includeFields=firstName,lastName,displayName,privilegeExpiresDate,estimatedOverdueAmount,patronStatusInfo{*},preferredAddress,address1,address2,address3,primaryPhone,library', null, $sessionToken);
 			// TODO: Use Primary Phone at all? displayName doesn't seem to be a field
 
-			$lookupMyAccountInfoResponse = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/key/' . $userID . '?includeFields=firstName,lastName,privilegeExpiresDate,patronStatusInfo{*},preferredAddress,address1,address2,address3,library,circRecordList{claimsReturnedDate,status},blockList{owed},holdRecordList{status}', null, $sessionToken);
+			$lookupMyAccountInfoResponse = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/key/' . $sirsiRoaUserID . '?includeFields=firstName,lastName,privilegeExpiresDate,patronStatusInfo{*},preferredAddress,address1,address2,address3,library,circRecordList{claimsReturnedDate,status},blockList{owed},holdRecordList{status}', null, $sessionToken);
 			if ($lookupMyAccountInfoResponse && !isset($lookupMyAccountInfoResponse->messageList)) {
 				$lastName  = $lookupMyAccountInfoResponse->fields->lastName;
 				$firstName = $lookupMyAccountInfoResponse->fields->firstName;
@@ -362,7 +362,7 @@ abstract class SirsiDynixROA extends HorizonAPI
 				/** @var User $user */
 				$user = new User();
 				$user->source = $this->accountProfile->name;
-				$user->username = $userID;
+				$user->username = $sirsiRoaUserID;
 				if ($user->find(true)) {
 					$userExistsInDB = true;
 				}
@@ -393,7 +393,7 @@ abstract class SirsiDynixROA extends HorizonAPI
 				if (isset($lookupMyAccountInfoResponse->fields->preferredAddress)) {
 					$preferredAddress = $lookupMyAccountInfoResponse->fields->preferredAddress;
 					// Set for Account Updating
-					self::$userPreferredAddresses[$userID] = $preferredAddress;
+					self::$userPreferredAddresses[$sirsiRoaUserID] = $preferredAddress;
 					// Used by My Account Profile to update Contact Info
 					if ($preferredAddress == 1) {
 						$address = $lookupMyAccountInfoResponse->fields->address1;
@@ -770,29 +770,42 @@ abstract class SirsiDynixROA extends HorizonAPI
 
 	protected function loginViaWebService($username, $password)
 	{
-		global $configArray;
-//		$loginDescribeResponse = $this->getWebServiceResponse($configArray['Catalog']['webServiceUrl'] . '/user/patron/login/describe');
-		$loginUserUrl          = $configArray['Catalog']['webServiceUrl'] . '/user/patron/login';
-		$params                = array(
-			'login' => $username,
-			'password' => $password,
-		);
-		$loginUserResponse     = $this->getWebServiceResponse($loginUserUrl, $params);
-		if (!$loginUserResponse) {
-			return array(false, false, false);
-		} else if (isset($loginUserResponse->messageList)) {
-			return array(false, false, false);
+		/** @var Memcache $memCache */
+		global $memCache;
+		$memCacheKey = "sirsiROA_session_token_info_$username";
+		$session = $memCache->get($memCacheKey);
+		if ($session) {
+			list(, $sessionToken, $sirsiRoaUserID) = $session;
+			SirsiDynixROA::$sessionIdsForUsers[$sirsiRoaUserID] = $sessionToken;
 		} else {
-			//We got at valid user, next call lookupMyAccountInfo
-			if (isset($loginUserResponse->sessionToken)) {
-				$userID                                     = $loginUserResponse->patronKey;
-				$sessionToken                               = $loginUserResponse->sessionToken;
-				SirsiDynixROA::$sessionIdsForUsers[$userID] = $sessionToken;
-				return array(true, $sessionToken, $userID);
-			} else {
-				return array(false, false, false);
+			$session = array(false, false, false);
+			$webServiceURL = $this->getWebServiceURL();
+//		$loginDescribeResponse = $this->getWebServiceResponse($webServiceURL . '/user/patron/login/describe');
+			$loginUserUrl      = $webServiceURL . '/user/patron/login';
+			$params            = array(
+				'login' => $username,
+				'password' => $password,
+			);
+			$loginUserResponse = $this->getWebServiceResponse($loginUserUrl, $params);
+			if ($loginUserResponse && isset($loginUserResponse->sessionToken)) {
+				//We got at valid user (A bad call will have isset($loginUserResponse->messageList) )
+
+					$sirsiRoaUserID                                     = $loginUserResponse->patronKey;
+					$sessionToken                                       = $loginUserResponse->sessionToken;
+					SirsiDynixROA::$sessionIdsForUsers[$sirsiRoaUserID] = $sessionToken;
+					$session = array(true, $sessionToken, $sirsiRoaUserID);
+					global $configArray;
+					$memCache->set($memCacheKey, $session, 0, $configArray['Caching']['sirsi_roa_session_token']);
+			} elseif (isset($loginUserResponse->messageList)) {
+				global $logger;
+				$errorMessage = 'Sirsi ROA Webservice Login Error: ';
+				foreach ($loginUserResponse->messageList as $error){
+					$errorMessage .= $error->message.'; ';
+				}
+				$logger->log($errorMessage, PEAR_LOG_ERR);
 			}
 		}
+		return $session;
 	}
 
 	/**
@@ -981,7 +994,7 @@ abstract class SirsiDynixROA extends HorizonAPI
 					$curHold['isbn']            = $recordDriver->getCleanISBN();
 					$curHold['upc']             = $recordDriver->getCleanUPC();
 					$curHold['format_category'] = $recordDriver->getFormatCategory();
-					$curHold['coverUrl']        = $recordDriver->getBookcoverUrl();
+					$curHold['coverUrl']        = $recordDriver->getBookcoverUrl('medium');
 					$curHold['link']            = $recordDriver->getRecordUrl();
 
 					//Load rating information
@@ -1127,8 +1140,8 @@ abstract class SirsiDynixROA extends HorizonAPI
 			$title = $record->getTitle();
 		}
 
-		global $configArray;
-		if ($configArray['Catalog']['offline']) {
+		global $offlineMode;
+		if ($offlineMode) {
 			require_once ROOT_DIR . '/sys/OfflineHold.php';
 			$offlineHold                = new OfflineHold();
 			$offlineHold->bibId         = $recordId;
@@ -1198,6 +1211,12 @@ abstract class SirsiDynixROA extends HorizonAPI
 					$hold_result['message'] = 'Your hold could not be placed. ';
 					if (isset($createHoldResponse->messageList)) {
 						$hold_result['message'] .= (string)$createHoldResponse->messageList[0]->message;
+						global $logger;
+						$errorMessage = 'Sirsi ROA Place Hold Error: ';
+						foreach ($createHoldResponse->messageList as $error){
+							$errorMessage .= $error->message.'; ';
+						}
+						$logger->log($errorMessage, PEAR_LOG_ERR);
 					}
 				} else {
 					$hold_result['success'] = true;
@@ -1224,11 +1243,11 @@ abstract class SirsiDynixROA extends HorizonAPI
 
  private function getSessionToken($patron)
  {
-	 $userId = $patron->id;
+	 $sirsiRoaUserId = $patron->username;
 
 	 //Get the session token for the user
-	 if (isset(SirsiDynixROA::$sessionIdsForUsers[$userId])) {
-		 return SirsiDynixROA::$sessionIdsForUsers[$userId];
+	 if (isset(SirsiDynixROA::$sessionIdsForUsers[$sirsiRoaUserId])) {
+		 return SirsiDynixROA::$sessionIdsForUsers[$sirsiRoaUserId];
 	 } else {
 		 list(, $sessionToken) = $this->loginViaWebService($patron->cat_username, $patron->cat_password);
 		 return $sessionToken;
@@ -1255,7 +1274,13 @@ abstract class SirsiDynixROA extends HorizonAPI
 			  'message' => 'The hold was successfully canceled'
 			);
 		} else {
-			//TODO: check out for error message
+			global $logger;
+			$errorMessage = 'Sirsi ROA Cancel Hold Error: ';
+			foreach ($cancelHoldResponse->messageList as $error){
+				$errorMessage .= $error->message.'; ';
+			}
+			$logger->log($errorMessage, PEAR_LOG_ERR);
+
 			return array(
 				'success' => false,
 				'message' => 'Sorry, the hold was not canceled');
@@ -1299,6 +1324,9 @@ abstract class SirsiDynixROA extends HorizonAPI
 					$messages[] = $message->message;
 				}
 			}
+			global $logger;
+			$errorMessage = 'Sirsi ROA Change Hold Pickup Location Error: '. ($messages ? implode('; ', $messages) : '');
+			$logger->log($errorMessage, PEAR_LOG_ERR);
 
 			return array(
 				'success' => false,
@@ -1348,6 +1376,10 @@ abstract class SirsiDynixROA extends HorizonAPI
 			}
 			$freeze = translate('freeze');
 
+			global $logger;
+			$errorMessage = 'Sirsi ROA Freeze Hold Error: '. ($messages ? implode('; ', $messages) : '');
+			$logger->log($errorMessage, PEAR_LOG_ERR);
+
 			return array(
 				'success' => false,
 				'message' => "Failed to $freeze hold : ". implode('; ', $messages)
@@ -1391,6 +1423,10 @@ abstract class SirsiDynixROA extends HorizonAPI
 					$messages[] = $message->message;
 				}
 			}
+			global $logger;
+			$errorMessage = 'Sirsi ROA Thaw Hold Error: '. ($messages ? implode('; ', $messages) : '');
+			$logger->log($errorMessage, PEAR_LOG_ERR);
+
 			$thaw = translate('thaw');
 			return array(
 				'success' => false,
@@ -1443,10 +1479,14 @@ abstract class SirsiDynixROA extends HorizonAPI
 					$messages[] = $message->message;
 				}
 			}
+			global $logger;
+			$errorMessage = 'Sirsi ROA Renew Error: '. ($messages ? implode('; ', $messages) : '');
+			$logger->log($errorMessage, PEAR_LOG_ERR);
+
 			return array(
 				'itemId'  => $itemId,
 				'success' =>false,
-				'message' => "The item failed to renew".  ($messages ? ': '. implode(';', $messages) : '')
+				'message' => "The item failed to renew". ($messages ? ': '. implode(';', $messages) : '')
 			);
 
 		}

@@ -35,14 +35,17 @@ ob_start();
 
 initMemcache();
 initDatabase();
+$timer->logTime("Initialized Database");
 requireSystemLibraries();
 initLocale();
 // Sets global error handler for PEAR errors
 PEAR_Singleton::setErrorHandling(PEAR_ERROR_CALLBACK, 'handlePEARError');
+$timer->logTime("Basic Initialization");
 loadLibraryAndLocation();
+$timer->logTime("Finished load library and location");
 loadSearchInformation();
 
-$timer->logTime('Bootstrap');
+$timer->logTime('Bootstrap done');
 
 function initMemcache(){
 	//Connect to memcache
@@ -227,6 +230,7 @@ function loadLibraryAndLocation(){
 			setcookie('sublocation', $sublocation, 0, '/');
 		}
 	}
+	$timer->logTime('Got sublocation');
 
 	//Update configuration information for scoping now that the database is setup.
 	$configArray = updateConfigForScoping($configArray);

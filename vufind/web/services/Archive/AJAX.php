@@ -759,9 +759,11 @@ class Archive_AJAX extends Action {
 		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
 		$fedoraUtils = FedoraUtils::getInstance();
 
-		$pid = $_REQUEST['id'];
+		$pids = explode(',', $_REQUEST['id']);
+		$pidIndex = rand(0, count($pids) - 1);
+		$pid = $pids[$pidIndex];
 
-		$archiveObject = $fedoraUtils->getObject($pid);
+		$archiveObject = $fedoraUtils->getObject(trim($pid));
 		/** @var IslandoraDriver $recordDriver */
 		$recordDriver = RecordDriverFactory::initRecordDriver($archiveObject);
 

@@ -66,7 +66,7 @@ public class CarlXExportMain {
 		}else{
 			System.out.println("Could not find log4j configuration " + log4jFile.toString());
 		}
-		logger.info(startTime.toString() + ": Starting CarlX Extract");
+		logger.warn(startTime.toString() + ": Starting CarlX Extract");
 
 		// Read the base INI file to get information about the server (current directory/cron/config.ini)
 		Ini ini = loadConfigFile("config.ini");
@@ -78,6 +78,7 @@ public class CarlXExportMain {
 			vufindConn = DriverManager.getConnection(databaseConnectionInfo);
 		}catch (Exception e){
 			System.out.println("Error connecting to vufind database " + e.toString());
+			logger.error("Error connecting to vufind database ", e);
 			System.exit(1);
 		}
 
@@ -99,82 +100,106 @@ public class CarlXExportMain {
 		// Get Last Extract Time
 		String beginTimeString = getLastExtractTime(vufindConn);
 
-		// Get MarcOut WSDL url for SOAP calls
-		marcOutURL = ini.get("Catalog", "marcOutApiWsdl");
-
-		//Load updated bibs
-		ArrayList<String> updatedBibs = new ArrayList<>();
-		ArrayList<String> createdBibs = new ArrayList<>();
-		ArrayList<String> deletedBibs = new ArrayList<>();
-		logger.debug("Calling GetChangedBibsRequest with BeginTime of " + beginTimeString);
-		if (!getUpdatedBibs(beginTimeString, updatedBibs, createdBibs, deletedBibs)){
-			//Halt execution
-			System.exit(1);
-		}
-
-		//Load updated items
-		ArrayList<String> updatedItemIDs = new ArrayList<>();
-		ArrayList<String> createdItemIDs = new ArrayList<>();
-		ArrayList<String> deletedItemIDs = new ArrayList<>();
-		logger.debug("Calling GetChangedItemsRequest with BeginTime of " + beginTimeString);
-		if (!getUpdatedItems(beginTimeString, updatedItemIDs, createdItemIDs, deletedItemIDs)){
-			//Halt execution
-			System.exit(1);
-		}
-
-		// Fetch Item Information for each ID
-		ArrayList<ItemChangeInfo> itemUpdates  = fetchItemInformation(updatedItemIDs);
-		if (hadErrors){ System.exit(1); }
-		ArrayList<ItemChangeInfo> createdItems = fetchItemInformation(createdItemIDs);
-		if (hadErrors){ System.exit(1); }
-
-		PreparedStatement markGroupedWorkForBibAsChangedStmt = null;
+		boolean errorUpdatingDatabase = false;
 		try {
-			vufindConn.setAutoCommit(false); // turn off for updating grouped worked for re-indexing
-			markGroupedWorkForBibAsChangedStmt = vufindConn.prepareStatement("UPDATE grouped_work SET date_updated = ? where id = (SELECT grouped_work_id from grouped_work_primary_identifiers WHERE type = 'ils' and identifier = ?)");
-		} catch (SQLException e) {
-			logger.error("Failed to prepare statement to mark records for Re-indexing", e);
-		}
+			// Get MarcOut WSDL url for SOAP calls
+			marcOutURL = ini.get("Catalog", "marcOutApiWsdl");
 
-
-		// Update Changed Bibs //
-		boolean errorUpdatingDatabase = updateBibRecords(vufindConn, exportStartTime, updatedBibs, updatedItemIDs, createdItemIDs, deletedItemIDs, itemUpdates, createdItems, markGroupedWorkForBibAsChangedStmt);
-		logger.debug("Done updating Bib Records");
-		errorUpdatingDatabase = updateChangedItems(vufindConn, exportStartTime, createdItemIDs, deletedItemIDs, itemUpdates, createdItems, errorUpdatingDatabase, markGroupedWorkForBibAsChangedStmt);
-		logger.debug("Done updating Item Records");
-
-		// Now remove Any left-over deleted items.  The APIs give us the item id, but not the bib id.  We may need to
-		// look them up within Solr as long as the item id is exported as part of the MARC record
-		if (deletedItemIDs.size() > 0 ) {
-			for (String deletedItemID : deletedItemIDs) {
-				logger.debug("Item " + deletedItemID + " should be deleted, but we didn't get a bib for it.");
-				//TODO: Now you *really* have to get the BID, dude.
+			logger.warn("Starting export of bibs and items");
+			//Load updated bibs
+			ArrayList<String> updatedBibs = new ArrayList<>();
+			ArrayList<String> createdBibs = new ArrayList<>();
+			ArrayList<String> deletedBibs = new ArrayList<>();
+			logger.debug("Calling GetChangedBibsRequest with BeginTime of " + beginTimeString);
+			if (!getUpdatedBibs(beginTimeString, updatedBibs, createdBibs, deletedBibs)) {
+				//Halt execution
+				logger.error("Failed to getUpdatedBibs, exiting");
+				System.exit(1);
+			} else {
+				logger.warn("Loaded updated bibs");
 			}
-		}
 
-		//TODO: Process Deleted Bibs
-		if (deletedBibs.size() > 0){
-			logger.debug("There are " + deletedBibs + " that still need to be processed.");
-			for (String deletedBibID : deletedBibs) {
-				logger.debug("Bib " + deletedBibID + " should be deleted.");
+			//Load updated items
+			ArrayList<String> updatedItemIDs = new ArrayList<>();
+			ArrayList<String> createdItemIDs = new ArrayList<>();
+			ArrayList<String> deletedItemIDs = new ArrayList<>();
+			logger.debug("Calling GetChangedItemsRequest with BeginTime of " + beginTimeString);
+			if (!getUpdatedItems(beginTimeString, updatedItemIDs, createdItemIDs, deletedItemIDs)) {
+				//Halt execution
+				logger.error("Failed to getUpdatedItems, exiting");
+				System.exit(1);
+			} else {
+				logger.warn("Loaded updated items");
 			}
-		}
 
-		//TODO: Process New Bibs
-		if (createdBibs.size() > 0){
-			logger.debug("There are " + createdBibs.size() + " that still need to be processed");
-			for (String createdBibId : createdBibs) {
-				logger.debug("Bib " + createdBibId + " is new and should be created.");
+			// Fetch Item Information for each ID
+			ArrayList<ItemChangeInfo> itemUpdates = fetchItemInformation(updatedItemIDs);
+			if (hadErrors) {
+				logger.error("Failed to Fetch Item Information for updated items, exiting");
+				System.exit(1);
+			} else {
+				logger.warn("Fetched Item information for updated items");
 			}
+			ArrayList<ItemChangeInfo> createdItems = fetchItemInformation(createdItemIDs);
+			if (hadErrors) {
+				logger.error("Failed to Fetch Item Information for created items, exiting");
+				System.exit(1);
+			} else {
+				logger.warn("Fetched Item information for created items");
+			}
+
+			PreparedStatement markGroupedWorkForBibAsChangedStmt = null;
+			try {
+				vufindConn.setAutoCommit(false); // turn off for updating grouped worked for re-indexing
+				markGroupedWorkForBibAsChangedStmt = vufindConn.prepareStatement("UPDATE grouped_work SET date_updated = ? where id = (SELECT grouped_work_id from grouped_work_primary_identifiers WHERE type = 'ils' and identifier = ?)");
+			} catch (SQLException e) {
+				logger.error("Failed to prepare statement to mark records for Re-indexing", e);
+			}
+
+
+			// Update Changed Bibs //
+			errorUpdatingDatabase = updateBibRecords(vufindConn, exportStartTime, updatedBibs, updatedItemIDs, createdItemIDs, deletedItemIDs, itemUpdates, createdItems, markGroupedWorkForBibAsChangedStmt);
+			logger.debug("Done updating Bib Records");
+			errorUpdatingDatabase = updateChangedItems(vufindConn, exportStartTime, createdItemIDs, deletedItemIDs, itemUpdates, createdItems, errorUpdatingDatabase, markGroupedWorkForBibAsChangedStmt);
+			logger.debug("Done updating Item Records");
+
+			// Now remove Any left-over deleted items.  The APIs give us the item id, but not the bib id.  We may need to
+			// look them up within Solr as long as the item id is exported as part of the MARC record
+			if (deletedItemIDs.size() > 0) {
+				for (String deletedItemID : deletedItemIDs) {
+					logger.debug("Item " + deletedItemID + " should be deleted, but we didn't get a bib for it.");
+					//TODO: Now you *really* have to get the BID, dude.
+				}
+			}
+
+			//TODO: Process Deleted Bibs
+			if (deletedBibs.size() > 0) {
+				logger.debug("There are " + deletedBibs + " that still need to be processed.");
+				for (String deletedBibID : deletedBibs) {
+					logger.debug("Bib " + deletedBibID + " should be deleted.");
+				}
+			}
+
+			//TODO: Process New Bibs
+			if (createdBibs.size() > 0) {
+				logger.debug("There are " + createdBibs.size() + " that still need to be processed");
+				for (String createdBibId : createdBibs) {
+					logger.debug("Bib " + createdBibId + " is new and should be created.");
+				}
+			}
+
+			try {
+				// Turn auto commit back on
+				vufindConn.commit();
+				vufindConn.setAutoCommit(true);
+			} catch (Exception e) {
+				logger.error("MySQL Error: " + e.toString());
+			}
+		}catch (Exception e){
+			logger.error("error loading changes to MARC data: ", e);
 		}
 
-		try {
-			// Turn auto commit back on
-			vufindConn.commit();
-			vufindConn.setAutoCommit(true);
-		} catch (Exception e) {
-			logger.error("MySQL Error: " + e.toString());
-		}
+		logger.warn("Finished export of bibs and items, starting export of holds");
 
 			//Connect to the CarlX database
 		String url        = ini.get("Catalog", "carlx_db");
@@ -197,38 +222,45 @@ public class CarlXExportMain {
 			carlxConn.close();
 
 		}catch(Exception e){
+			logger.error("Error exporting holds", e);
 			System.out.println("Error: " + e.toString());
 			e.printStackTrace();
 		}
 
 
-			try {
-				// Wrap Up
-				if (!errorUpdatingDatabase && !hadErrors) {
-					//Update the last extract time
-					if (lastCarlXExtractTimeVariableId != null) {
-						PreparedStatement updateVariableStmt = vufindConn.prepareStatement("UPDATE variables set value = ? WHERE id = ?");
-						updateVariableStmt.setLong(1, exportStartTime);
-						updateVariableStmt.setLong(2, lastCarlXExtractTimeVariableId);
-						updateVariableStmt.executeUpdate();
-						updateVariableStmt.close();
-						logger.warn("Updated last extract time to " + exportStartTime);
-					} else {
-						PreparedStatement insertVariableStmt = vufindConn.prepareStatement("INSERT INTO variables (`name`, `value`) VALUES ('last_carlx_extract_time', ?)");
-						insertVariableStmt.setString(1, Long.toString(exportStartTime));
-						insertVariableStmt.executeUpdate();
-						insertVariableStmt.close();
-						logger.warn("Set last extract time to " + exportStartTime);
-					}
+		try {
+			// Wrap Up
+			if (!errorUpdatingDatabase && !hadErrors) {
+				//Update the last extract time
+				if (lastCarlXExtractTimeVariableId != null) {
+					PreparedStatement updateVariableStmt = vufindConn.prepareStatement("UPDATE variables set value = ? WHERE id = ?");
+					updateVariableStmt.setLong(1, exportStartTime);
+					updateVariableStmt.setLong(2, lastCarlXExtractTimeVariableId);
+					updateVariableStmt.executeUpdate();
+					updateVariableStmt.close();
+					logger.warn("Updated last extract time to " + exportStartTime);
 				} else {
-					logger.error("There was an error updating during the extract, not setting last extract time.");
+					PreparedStatement insertVariableStmt = vufindConn.prepareStatement("INSERT INTO variables (`name`, `value`) VALUES ('last_carlx_extract_time', ?)");
+					insertVariableStmt.setString(1, Long.toString(exportStartTime));
+					insertVariableStmt.executeUpdate();
+					insertVariableStmt.close();
+					logger.warn("Set last extract time to " + exportStartTime);
 				}
+			} else {
+				if (errorUpdatingDatabase){
+					logger.error("There was an error updating the database, not setting last extract time.");
+				}
+				if (hadErrors){
+					logger.error("There was an error during the extract, not setting last extract time.");
+				}
+			}
 
 			try{
 				//Close the connection
 				vufindConn.close();
 			}catch(Exception e){
 				System.out.println("Error closing connection: " + e.toString());
+				logger.error("Error closing connection: ", e);
 			}
 
 		} catch (Exception e) {
@@ -237,7 +269,7 @@ public class CarlXExportMain {
 
 
 		Date currentTime = new Date();
-		logger.info(currentTime.toString() + ": Finished CarlX Extract");
+		logger.warn(currentTime.toString() + ": Finished CarlX Extract");
 	}
 
 	private static boolean updateChangedItems(Connection vufindConn, long updateTime, ArrayList<String> createdItemIDs, ArrayList<String> deletedItemIDs, ArrayList<ItemChangeInfo> itemUpdates, ArrayList<ItemChangeInfo> createdItems, boolean errorUpdatingDatabase, PreparedStatement markGroupedWorkForBibAsChangedStmt) {
@@ -991,8 +1023,7 @@ public class CarlXExportMain {
 							}
 						}
 					} else {
-						logger.warn("Did not get a successful SOAP response " + responseStatusCode);
-						hadErrors = true;
+						logger.error("Did not get a successful SOAP response " + responseStatusCode + " loading item information");
 					}
 				}else{
 					logger.error("Did not get a successful SOAP response " + ItemInformationSOAPResponse.getResponseCode() + "\r\n" + ItemInformationSOAPResponse.getMessage());
@@ -1038,10 +1069,22 @@ public class CarlXExportMain {
 
 	private static void updateItemDataFieldWithChangeInfo(DataField itemField, ItemChangeInfo changeInfo) {
 		itemField.getSubfield(indexingProfile.locationSubfield).setData(changeInfo.getLocation());
-		itemField.getSubfield(indexingProfile.shelvingLocationSubfield).setData(changeInfo.getShelvingLocation());
-		itemField.getSubfield(indexingProfile.itemStatusSubfield).setData(changeInfo.getStatus());
+		if (itemField.getSubfield(indexingProfile.shelvingLocationSubfield) == null){
+			itemField.addSubfield(new SubfieldImpl(indexingProfile.shelvingLocationSubfield, changeInfo.getShelvingLocation()));
+		}else{
+			itemField.getSubfield(indexingProfile.shelvingLocationSubfield).setData(changeInfo.getShelvingLocation());
+		}
+		if (itemField.getSubfield(indexingProfile.itemStatusSubfield) == null){
+			itemField.addSubfield(new SubfieldImpl(indexingProfile.itemStatusSubfield, changeInfo.getStatus()));
+		}else {
+			itemField.getSubfield(indexingProfile.itemStatusSubfield).setData(changeInfo.getStatus());
+		}
 		if (indexingProfile.callNumberSubfield != ' ' && !changeInfo.getCallNumber().isEmpty()) {
-			itemField.getSubfield(indexingProfile.callNumberSubfield).setData(changeInfo.getCallNumber());
+			if (itemField.getSubfield(indexingProfile.callNumberSubfield) == null){
+				itemField.addSubfield(new SubfieldImpl(indexingProfile.callNumberSubfield, changeInfo.getCallNumber()));
+			}else{
+				itemField.getSubfield(indexingProfile.callNumberSubfield).setData(changeInfo.getCallNumber());
+			}
 		}
 
 		if (indexingProfile.totalCheckoutsSubfield != ' ' && !changeInfo.getTotalCheckouts().isEmpty()) {
@@ -1473,7 +1516,8 @@ public class CarlXExportMain {
 				}
 			}else{
 				//Call failed
-				hadErrors = true;
+				//hadErrors = true;
+				logger.error("error getting marc record for " + BibID);
 			}
 		} catch(Exception e){
 			logger.error("Error Creating SOAP Request for Marc Records", e);
@@ -1508,8 +1552,13 @@ public class CarlXExportMain {
 			ResultSet bibHoldsRS = bibHoldsStmt.executeQuery();
 			while (bibHoldsRS.next()){
 				String bibId = bibHoldsRS.getString("bid");
+				String bibIdFull = bibId;
+				while (bibIdFull.length() < 10){
+					bibIdFull = "0" + bibIdFull;
+				}
+				bibIdFull = "CARL" + bibIdFull;
 				Long numHolds = bibHoldsRS.getLong("numHolds");
-				numHoldsByBib.put(bibId, numHolds);
+				numHoldsByBib.put(bibIdFull, numHolds);
 			}
 			bibHoldsRS.close();
 

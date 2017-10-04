@@ -370,10 +370,25 @@ class GroupedWork_AJAX {
 		if ($success) {
 			global $analytics;
 			$analytics->addEvent('User Enrichment', 'Rate Title', $_REQUEST['id']);
+
+			// Reset any cached suggestion browse category for the user
+			$this->clearMySuggestionsBrowseCategoryCache();
+
 			return json_encode(array('rating'=>$rating));
 		} else {
 			return json_encode(array('error'=>'Unable to save your rating.'));
 		}
+	}
+
+	private function clearMySuggestionsBrowseCategoryCache(){
+		// Reset any cached suggestion browse category for the user
+		/** @var Memcache $memCache */
+		global $memCache, $solrScope, $user;
+		foreach (array('covers', 'grid') as $browseMode) { // (Browse modes are set in class Browse_AJAX)
+			$key = 'browse_category_system_recommended_for_you_' . $user->id . '_' . $solrScope . '_' . $browseMode;
+			$memCache->delete($key);
+		}
+
 	}
 
 	function getReviewInfo(){
@@ -573,8 +588,8 @@ class GroupedWork_AJAX {
 		global $interface;
 		require_once ROOT_DIR . '/sys/Mailer.php';
 
-		$sms = new SMSMailer();
-		$interface->assign('carriers', $sms->getCarriers());
+//		$sms = new SMSMailer();
+//		$interface->assign('carriers', $sms->getCarriers());
 		$id = $_REQUEST['id'];
 		$interface->assign('id', $id);
 
@@ -587,6 +602,8 @@ class GroupedWork_AJAX {
 				'title' => 'Share via E-mail',
 				'modalBody' => $interface->fetch("GroupedWork/email-form-body.tpl"),
 				'modalButtons' => "<button class='tool btn btn-primary' onclick='VuFind.GroupedWork.sendEmail(\"{$id}\"); return false;'>Send E-mail</button>"
+//		'modalButtons' => "<button class='tool btn btn-primary' onclick='$(\"#emailForm\").submit()'>Send E-mail</button>"
+		      // triggering submit action to trigger form validation
 		);
 		return json_encode($results);
 	}
@@ -817,6 +834,7 @@ class GroupedWork_AJAX {
 			$result = array(
 					'result' => false,
 					'message' => 'Your text message was count not be sent {$smsResult}.'
+//			'message' => "Your text message count not be sent: {$smsResult->message}."
 			);
 		}else{
 			$result = array(
@@ -830,23 +848,35 @@ class GroupedWork_AJAX {
 
 	function markNotInterested(){
 		global $user;
-		$id = $_REQUEST['id'];
-		require_once ROOT_DIR . '/sys/LocalEnrichment/NotInterested.php';
-		$notInterested = new NotInterested();
-		$notInterested->userId = $user->id;
-		$notInterested->groupedRecordPermanentId = $id;
+		if ($user){
+			$id = $_REQUEST['id'];
+			require_once ROOT_DIR . '/sys/LocalEnrichment/NotInterested.php';
+			$notInterested = new NotInterested();
+			$notInterested->userId = $user->id;
+			$notInterested->groupedRecordPermanentId = $id;
 
-		if (!$notInterested->find(true)){
-			$notInterested->dateMarked = time();
-			$notInterested->insert();
-			$result = array(
-				'result' => true,
-				'message' => "You won't be shown this title in the future.",
-			);
+			if (!$notInterested->find(true)){
+				$notInterested->dateMarked = time();
+				if ($notInterested->insert()) {
+
+					// Reset any cached suggestion browse category for the user
+					$this->clearMySuggestionsBrowseCategoryCache();
+
+					$result = array(
+						'result' => true,
+						'message' => "You won't be shown this title in the future.",
+					);
+				}
+			}else{
+				$result = array(
+					'result' => false,
+					'message' => "This record was already marked as something you aren't interested in.",
+				);
+			}
 		}else{
 			$result = array(
 				'result' => false,
-				'message' => "This record was already marked as something you aren't interested in.",
+				'message' => "Please log in.",
 			);
 		}
 		return json_encode($result);

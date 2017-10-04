@@ -1,8 +1,9 @@
 {* This is a text-only email template; do not include HTML! *}
 Ready to get started?
 1.	 Visit https://www.library.nashville.org and click My Account in the upper right corner of the screen.
-2.	 Enter your library card number, listed above, and your PIN
-3.	 Click Login
+2.	 Enter your library card number, listed above
+4.	 Enter your PIN, initially set to the last 4 digits of your phone number
+4.	 Click Login
 
 WHAT CAN YOU DO WITH YOUR CARD?
 

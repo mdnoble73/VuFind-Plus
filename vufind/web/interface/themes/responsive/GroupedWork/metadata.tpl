@@ -1,6 +1,6 @@
 {strip}
 	<meta property="og:url" content="{$path}/GroupedWork/{$id}">
-	<meta property="og:site_name" content="{$librarySystemName} VuFind+">
+	<meta property="og:site_name" content="{$librarySystemName} Pika Catalog">
 
 	<meta property="title" content="{$recordDriver->getTitle()|removeTrailingPunctuation|escape}">
 	<meta property="og:title" content="{$recordDriver->getTitle()|removeTrailingPunctuation|escape}">

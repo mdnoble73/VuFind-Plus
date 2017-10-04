@@ -3,7 +3,7 @@
 		<div class="row">
 			<div class="result-label col-sm-4">Race and Ethnicity: </div>
 			<div class="result-value col-sm-8">
-				{$raceEthnicity}
+				{implode subject=$raceEthnicity}
 			</div>
 		</div>
 	{/if}
@@ -11,7 +11,7 @@
 		<div class="row">
 			<div class="result-label col-sm-4">Gender Expression/Identity: </div>
 			<div class="result-value col-sm-8">
-				{$gender}
+				{implode subject=$gender}
 			</div>
 		</div>
 	{/if}

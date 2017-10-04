@@ -147,10 +147,10 @@ class Novelist3{
 
 		if ($recordExists){
 			if ($doUpdate){
-				$ret = $novelistData->update();
+				$novelistData->update();
 			}
 		}else{
-			$ret = $novelistData->insert();
+			$novelistData->insert();
 		}
 
 		$memCache->set("novelist_enrichment_basic_$groupedRecordId", $novelistData, 0, $configArray['Caching']['novelist_enrichment']);
@@ -316,9 +316,9 @@ class Novelist3{
 		}//Check for number of ISBNs
 
 		if ($recordExists){
-			$ret = $novelistData->update();
+			$novelistData->update();
 		}else{
-			$ret = $novelistData->insert();
+			$novelistData->insert();
 		}
 
 		//Ignore warnings if the object is too large for the cache
@@ -713,8 +713,8 @@ class Novelist3{
 		$seriesTitles = array();
 		$items = $seriesData->series_titles;
 		$titlesOwned = 0;
-		foreach ($items as $item){
-			$curTitle = $this->loadNoveListTitle($currentId, $item, $seriesTitles, $titlesOwned, $seriesName);
+		$this->loadNoveListTitles($currentId, $items, $seriesTitles, $titlesOwned, $seriesName);
+		foreach ($seriesTitles as $curTitle){
 			if ($curTitle['isCurrent'] && isset($curTitle['volume']) && strlen($curTitle['volume']) > 0){
 				$enrichment['volumeLabel'] = (isset($curTitle['volume']) ? ('volume ' . $curTitle['volume']) : '');
 				$novelistData->volume = $curTitle['volume'];
@@ -755,15 +755,13 @@ class Novelist3{
 		$items = $similarTitles->titles;
 		$titlesOwned = 0;
 		$similarTitlesReturn = array();
-		foreach ($items as $item){
-			$this->loadNoveListTitle($currentId, $item, $similarTitlesReturn, $titlesOwned);
-		}
+		$this->loadNoveListTitles($currentId, $items, $similarTitlesReturn, $titlesOwned);
 		$enrichment->similarTitles = $similarTitlesReturn;
 		$enrichment->similarTitleCount = count($items);
 		$enrichment->similarTitleCountOwned = $titlesOwned;
 	}
 
-	private function loadNoveListTitle($currentId, $item, &$titleList, &$titlesOwned, $seriesName = ''){
+	private function loadNoveListTitles($currentId, $items, &$titleList, &$titlesOwned, $seriesName = ''){
 		global $timer;
 		global $configArray;
 		$timer->logTime("Start loadNoveListTitle");
@@ -774,114 +772,112 @@ class Novelist3{
 		if (function_exists('disableErrorHandler')){
 			disableErrorHandler();
 		}
-		$fields = $searchObject->getRecordByIsbn($item->isbns);
-
-		/** @var SimpleXMLElement $titleItem */
-
-		$permanentId = null;
-		if ($fields != null){
-			$permanentId = $fields['id'];
+		$allIsbns = "";
+		foreach ($items as $item){
+			if (count($item->isbns) > 0){
+				if (strlen($allIsbns) > 0){
+					$allIsbns .= ' OR ';
+				}
+				$allIsbns .= implode(' OR ', $item->isbns);
+			}
 		}
-		$timer->logTime("Load Novelist Title - Find Grouped Work based on identifier $permanentId");
-		$isCurrent = $currentId == $permanentId;
-		if (isset($seriesName)){
-			$series = $seriesName;
-		}else{
-			$series = '';
-		}
-		$volume = '';
-		if (isset($item->volume)){
-			$volume = $item->volume;
+		$searchObject->setBasicQuery($allIsbns, "isbn");
+		$searchObject->clearFacets();
+		$searchObject->disableSpelling();
+		$searchObject->disableLogging();
+		$searchObject->setLimit(count($items));
+		$response = $searchObject->processSearch(true, false, false);
+
+		//Get all the titles from the catalog
+		$titlesFromCatalog = array();
+		if ($response && isset($response['response'])) {
+			//Get information about each project
+			if ($searchObject->getResultTotal() > 0) {
+				foreach ($response['response']['docs'] as $fields) {
+					$recordDriver = new GroupedWorkDriver($fields);
+					$timer->logTime("Create driver");
+
+					if ($recordDriver->isValid){
+						if (!isset($series)){
+							if (isset($ownedRecord['series'])){
+								$series = $ownedRecord['series'][0];
+							}
+						}
+						//Load data about the record
+						$ratingData = $recordDriver->getRatingData();
+						$timer->logTime("Get Rating data");
+						$fullRecordLink = $recordDriver->getLinkUrl();
+
+						//See if we can get the series title from the record
+						$curTitle = array(
+								'title' => $recordDriver->getTitle(),
+								'title_short' => $recordDriver->getTitle(),
+								'author' => $recordDriver->getPrimaryAuthor(),
+							//'publicationDate' => (string)$item->PublicationDate,
+								'isbn' => $recordDriver->getCleanISBN(),
+								'allIsbns' => $recordDriver->getISBNs(),
+								'isbn10' => $recordDriver->getCleanISBN(),
+								'upc' => $recordDriver->getCleanUPC(),
+								'recordId' => $recordDriver->getPermanentId(),
+								'recordtype' => 'grouped_work',
+								'id' => $recordDriver->getPermanentId(), //This allows the record to be displayed in various locations.
+								'libraryOwned' => true,
+								'shortId' => $recordDriver->getPermanentId(),
+								'format_category' => $recordDriver->getFormatCategory(),
+								'ratingData' => $ratingData,
+								'fullRecordLink' => $fullRecordLink,
+								'recordDriver' => $recordDriver,
+								'smallCover' => $recordDriver->getBookcoverUrl('small'),
+								'mediumCover' => $recordDriver->getBookcoverUrl('medium'),
+						);
+						$timer->logTime("Load title information");
+						$titlesOwned++;
+						$titlesFromCatalog[] = $curTitle;
+					}
+
+				}
+			}
 		}
 
-		//We didn't find a match in the database so we don't own it
-		if ($permanentId == null){
-			$isbn = reset($item->isbns);
-			$isbn13 = strlen($isbn) == 13 ? $isbn : ISBNConverter::convertISBN10to13($isbn);
-			$isbn10 = strlen($isbn) == 10 ? $isbn : ISBNConverter::convertISBN13to10($isbn);
-			$curTitle = array(
-				'title' => $item->full_title,
-				'author' => $item->author,
-				//'publicationDate' => (string)$item->PublicationDate,
-				'isbn' => $isbn13,
-				'isbn10' => $isbn10,
-				'recordId' => -1,
-				'libraryOwned' => false,
-				'isCurrent' => $isCurrent,
-				'series' => $series,
-				'volume' => $volume,
-				'reason' => isset($item->reason) ? $item->reason : '',
-				'smallCover' => $cover = $configArray['Site']['coverUrl'] . "/bookcover.php?size=small&isn=" . $isbn13,
-				'mediumCover' => $cover = $configArray['Site']['coverUrl'] . "/bookcover.php?size=medium&isn=" . $isbn13,
-			);
-		}else{
-			//Get more information from Solr
-			/** @var GroupedWorkDriver $recordDriver */
-			$recordDriver = new GroupedWorkDriver($fields);
-			$timer->logTime("Create driver");
-
-			if ($recordDriver->isValid){
-				if (!isset($series)){
-					if (isset($ownedRecord['series'])){
-						$series = $ownedRecord['series'][0];
+		//Loop through items an match to records we found in the catalog.
+		foreach ($items as $item){
+			$isInCatalog = false;
+			$titleFromCatalog = null;
+			foreach ($titlesFromCatalog as $titleFromCatalog){
+				foreach ($item->isbns as $isbn){
+					if (in_array($isbn, $titleFromCatalog['allIsbns'])){
+						$isInCatalog = true;
+						break;
 					}
 				}
-				//Load data about the record
-				$ratingData = $recordDriver->getRatingData();
-				$timer->logTime("Get Rating data");
-				$fullRecordLink = $recordDriver->getLinkUrl();
-
-				//See if we can get the series title from the record
-				$curTitle = array(
-					'title' => $recordDriver->getTitle(),
-					'title_short' => $recordDriver->getTitle(),
-					'author' => $recordDriver->getPrimaryAuthor(),
-					//'publicationDate' => (string)$item->PublicationDate,
-					'isbn' => $recordDriver->getCleanISBN(),
-					'isbn10' => $recordDriver->getCleanISBN(),
-					'upc' => $recordDriver->getCleanUPC(),
-					'recordId' => $recordDriver->getPermanentId(),
-					'recordtype' => 'grouped_work',
-					'id' => $recordDriver->getPermanentId(), //This allows the record to be displayed in various locations.
-					'libraryOwned' => true,
-					'isCurrent' => $isCurrent,
-					'shortId' => $recordDriver->getPermanentId(),
-					'format_category' => $recordDriver->getFormatCategory(),
-					'series' => $series,
-					'volume' => $volume,
-					'ratingData' => $ratingData,
-					'fullRecordLink' => $fullRecordLink,
-					'reason' => isset($item->reason) ? $item->reason : '',
-					'recordDriver' => $recordDriver,
-					'smallCover' => $recordDriver->getBookcoverUrl('small'),
-					'mediumCover' => $recordDriver->getBookcoverUrl('medium'),
-				);
-				$timer->logTime("Load title information");
-				$titlesOwned++;
+				if ($isInCatalog) break;
+			}
+			if ($isInCatalog){
+				$curTitle = $titleFromCatalog;
 			}else{
 				$isbn = reset($item->isbns);
 				$isbn13 = strlen($isbn) == 13 ? $isbn : ISBNConverter::convertISBN10to13($isbn);
 				$isbn10 = strlen($isbn) == 10 ? $isbn : ISBNConverter::convertISBN13to10($isbn);
 				$curTitle = array(
-					'title' => $item->full_title,
-					'author' => $item->author,
+						'title' => $item->full_title,
+						'author' => $item->author,
 					//'publicationDate' => (string)$item->PublicationDate,
-					'isbn' => $isbn13,
-					'isbn10' => $isbn10,
-					'recordId' => -1,
-					'libraryOwned' => false,
-					'isCurrent' => $isCurrent,
-					'series' => $series,
-					'volume' => $volume,
-					'reason' => isset($item->reason) ? $item->reason : '',
-					'smallCover' => $cover = $configArray['Site']['coverUrl'] . "/bookcover.php?size=small&isn=" . $isbn13,
-					'mediumCover' => $cover = $configArray['Site']['coverUrl'] . "/bookcover.php?size=medium&isn=" . $isbn13,
+						'isbn' => $isbn13,
+						'isbn10' => $isbn10,
+						'recordId' => -1,
+						'libraryOwned' => false,
+						'smallCover' => $cover = $configArray['Site']['coverUrl'] . "/bookcover.php?size=small&isn=" . $isbn13,
+						'mediumCover' => $cover = $configArray['Site']['coverUrl'] . "/bookcover.php?size=medium&isn=" . $isbn13,
 				);
 			}
+			$curTitle['isCurrent'] = $currentId == $curTitle['recordId'];
+			$curTitle['series'] = isset($seriesName) ? $seriesName : '';;
+			$curTitle['volume'] = isset($item->volume) ? $item->volume : '';
+			$curTitle['reason'] = isset($item->reason) ? $item->reason : '';
+
+			$titleList[] = $curTitle;
 		}
 
-		$titleList[] = $curTitle;
-		return $curTitle;
 	}
 
 	private function loadRelatedContent($relatedContent, &$enrichment) {

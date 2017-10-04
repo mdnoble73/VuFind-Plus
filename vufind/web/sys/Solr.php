@@ -362,26 +362,26 @@ class Solr implements IndexEngine {
 		global $memCache;
 		global $configArray;
 		global $solrScope;
-		$record = $memCache->get("solr_record_{$id}_{$solrScope}");
+		if (!$fieldsToReturn){
+			$validFields = $this->_loadValidFields();
+			$fieldsToReturn = implode(',', $validFields);
+		}
+		$record = $memCache->get("solr_record_{$id}_{$solrScope}_{$fieldsToReturn}");
+
 		if ($record == false || isset($_REQUEST['reload'])){
 
 			// Query String Parameters
 			$options = array('ids' => "$id");
-			if ($fieldsToReturn){
-				$options['fl'] = $fieldsToReturn;
-			}else{
-				$validFields = $this->_loadValidFields();
-				$options['fl'] = implode(',', $validFields);
-			}
+			$options['fl'] = $fieldsToReturn;
 			$this->client->setMethod('GET');
 			$this->client->setURL($this->host . "/get");
 			$this->client->addRawQueryString(http_build_query($options));
 
 			global $timer;
-			$timer->logTime("Prepare to send get (ids)  request to solr");
+			$timer->logTime("Prepare to send get (ids) request to solr returning fields $fieldsToReturn");
 			$result = $this->client->sendRequest();
 			//$this->client->clearPostData();
-			$timer->logTime("Send data to solr during getRecord $id");
+			$timer->logTime("Send data to solr during getRecord $id $fieldsToReturn");
 
 			if (PEAR_Singleton::isError($result)) {
 				PEAR_Singleton::raiseError($result);
@@ -442,11 +442,12 @@ class Solr implements IndexEngine {
 	 * Retrieves a document specified by the ID.
 	 *
 	 * @param	 array	$ids				 A list of document to retrieve from Solr
+	 * @param string $fieldsToReturn An optional list of fields to return separated by commas
 	 * @access	public
 	 * @throws	object							PEAR Error
-	 * @return	string							The requested resource
+	 * @return	array							The requested resources
 	 */
-	function getRecords($ids)
+	function getRecords($ids, $fieldsToReturn = null)
 	{
 		if (count($ids) == 0){
 			return array();
@@ -469,17 +470,19 @@ class Solr implements IndexEngine {
 			$tmpIds = array_slice($ids, $startIndex, $batchSize);
 
 			// Query String Parameters
-			$idString = 'ids=';
+			$idString = '';
 			foreach ($tmpIds as $id){
-				if (strlen($idString) > 4){
+				if (strlen($idString) > 0){
 					$idString .= ',';
 				}
 				$idString .= $id;
 			}
+			$options = array('ids' => "$idString");
+			$options['fl'] = $fieldsToReturn;
 
 			$this->client->setMethod('GET');
 			$this->client->setURL($this->host . "/get");
-			$this->client->addRawQueryString($idString);
+			$this->client->addRawQueryString(http_build_query($options));
 
 			// Send Request
 			global $timer;
@@ -567,7 +570,7 @@ class Solr implements IndexEngine {
 	{
 		global $configArray;
 		if ($originalResult == null){
-			$originalResult = $this->getRecord($id);
+			$originalResult = $this->getRecord($id, 'target_audience_full,target_audience_full,literary_form,language,isbn,upc');
 		}
 		// Query String Parameters
 		$options = array('q' => "id:$id", 'qt' => 'morelikethis2', 'mlt.interestingTerms' => 'details', 'rows' => 25, 'fl' => SearchObject_Solr::$fields);
@@ -1418,6 +1421,9 @@ class Solr implements IndexEngine {
 
 		//Check to see if we need to automatically convert to a proper case only (no stemming search)
 		//We will do this whenever all or part of a string is surrounded by quotes.
+		if (is_array($query)){
+			echo("Invalid query " . print_r($query, true));
+		}
 		if (preg_match('/\\".+?\\"/',$query)){
 			if ($handler == 'Keyword'){
 				$handler = 'KeywordProper';

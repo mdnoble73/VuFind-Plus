@@ -83,7 +83,9 @@ class Search_Home extends Action {
 	 * @return BrowseCategory[]
 	 */
 	public function getBrowseCategories($localBrowseCategories=null) {
-		global $interface;
+		global $interface,
+						$user;
+
 		$browseCategories = array();
 		$specifiedCategory = isset($_REQUEST['browseCategory']);
 		$specifiedSubCategory = $specifiedCategory && isset($_REQUEST['subCategory']); // make a specified main browse category required
@@ -92,7 +94,11 @@ class Search_Home extends Action {
 			foreach ($localBrowseCategories as $index => $localBrowseCategory) {
 				$browseCategory         = new BrowseCategory();
 				$browseCategory->textId = $localBrowseCategory->browseCategoryTextId;
-				if ($browseCategory->find(true)) {
+				if (($browseCategory->textId == 'system_recommended_for_you' && $user && $user->hasRatings()) || $browseCategory->find(true)) {
+					// Only Show the Recommended for You browse category if the user is logged in and has rated titles
+					if ($browseCategory->textId == 'system_recommended_for_you') {
+						$browseCategory->label = translate('Recommended for you');
+					}
 					$browseCategories[] = clone($browseCategory);
 					if (
 						($specifiedCategory && $_REQUEST['browseCategory'] == $browseCategory->textId) // A category has been selected through URL parameter

@@ -52,8 +52,8 @@ class Nashville extends Millennium{
 	 */
 	public function patronLogin($barcode, $pin, $validatedViaSSO)
 	{
-		global $configArray;
-		if ($configArray['Catalog']['offline'] == true){
+		global $offlineMode;
+		if ($offlineMode){
 			return parent::patronLogin($barcode, $pin, $validatedViaSSO);
 		}else{
 			// if patron attempts to Create New PIN

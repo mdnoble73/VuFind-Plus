@@ -20,6 +20,14 @@
 					</tr>
 				{/foreach}
 			</tbody>
+			<tfoot>
+				<tr>
+					<td><strong></strong></td>
+					<td><strong>{$totalObjects}</strong></td>
+					<td><strong>{$totalDpla}</strong></td>
+					<td><strong>{$totalDriveSpace} GB</strong></td>
+				</tr>
+			</tfoot>
 		</table>
 	</div>
 {/strip}

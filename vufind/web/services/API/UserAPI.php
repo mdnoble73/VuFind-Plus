@@ -788,8 +788,8 @@ class UserAPI extends Action {
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function getPatronCheckedOutItems(){
-		global $configArray;
-		if ($configArray['Catalog']['offline']) {
+		global $offlineMode;
+		if ($offlineMode) {
 			return array('success'=>false, 'message'=>'Circulation system is offline');
 		} else {
 			if (isset($_REQUEST['username'])){
@@ -1485,8 +1485,8 @@ class UserAPI extends Action {
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function getPatronReadingHistory(){
-		global $configArray;
-		if ($configArray['Catalog']['offline']) {
+		global $offlineMode;
+		if ($offlineMode) {
 			return array('success'=>false, 'message'=>'Circulation system is offline');
 		} else {
 			$username = $_REQUEST['username'];

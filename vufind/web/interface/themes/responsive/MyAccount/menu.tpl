@@ -26,7 +26,10 @@
 				{*  This content is duplicated in MyAccount/mobilePageHeader.tpl; Update any changes there as well *}
 				<div id="myAccountPanel" class="panel-collapse collapse{if  $displaySidebarMenu || $curSection} in{/if}">
 					<div class="panel-body">
-						{assign var="totalFines" value=$user->getTotalFines()}
+						{if !$offline}
+							{* No need to calculate total fines if in offline mode*}
+							{assign var="totalFines" value=$user->getTotalFines()}
+						{/if}
 						{if ($totalFines > 0 && $showFines) || ($showExpirationWarnings && $user->expireClose)}
 							<div id="myAccountFines">
 								{if $totalFines > 0 && $showFines}
@@ -52,9 +55,17 @@
 									<div class="myAccountLink">
 										<a class="alignright" title="Please contact your local library to have your library card renewed." style="color:red; font-weight:bold;" onclick="alert('Please Contact your local library to have your library card renewed.')" href="#">
 											{if $user->expired}
-												Your library card expired on {$user->expires}.
+												{if $expiredMessage}
+													{$expiredMessage}
+												{else}
+													Your library card expired on {$user->expires}.
+												{/if}
 											{else}
-												Your library card will expire on {$user->expires}.
+												{if $expirationNearMessage}
+													{$expirationNearMessage}
+												{else}
+													Your library card will expire on {$user->expires}.
+												{/if}
 											{/if}
 										</a>
 									</div>
@@ -71,9 +82,10 @@
 						<div class="myAccountLink{if $action=="Holds"} active{/if}">
 							<a href="{$path}/MyAccount/Holds" id="holds">
 								Titles On Hold {if !$offline}<span class="badge">{$user->getNumHoldsTotal()}</span>
-								{if $user->getNumHoldsAvailableTotal() && $user->getNumHoldsAvailableTotal() > 0}
+								{if !offline && $user->getNumHoldsAvailableTotal() && $user->getNumHoldsAvailableTotal() > 0}
 									&nbsp;<span class="label label-success">{$user->getNumHoldsAvailableTotal()} ready for pick up</span>
-								{/if}{/if}
+								{/if}
+								{/if}
 							</a>
 						</div>
 
@@ -182,7 +194,7 @@
 
 			{* Admin Functionality if Available *}
 			{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('contentEditor') || $user->hasRole('libraryManager') || $user->hasRole('locationManager'))}
-				{if in_array($action, array('Libraries', 'Locations', 'IPAddresses', 'ListWidgets', 'BrowseCategories', 'UserSuggestions', 'PTypes', 'CirculationStatuses', 'LoanRules', 'LoanRuleDeterminers', 'AccountProfiles', 'NYTLists'))}
+				{if in_array($action, array('Libraries', 'Locations', 'IPAddresses', 'ListWidgets', 'BrowseCategories', 'PTypes', 'CirculationStatuses', 'LoanRules', 'LoanRuleDeterminers', 'AccountProfiles', 'NYTLists'))}
 					{assign var="curSection" value=true}
 				{else}
 					{assign var="curSection" value=false}
@@ -222,7 +234,6 @@
 
 							{* OPAC Admin Actions*}
 							{if $user->hasRole('opacAdmin')}
-								<div class="adminMenuLink{if $action == "UserSuggestions"} active{/if}"><a href="{$path}/Admin/UserSuggestions">User Suggestions</a></div>
 								{* Sierra/Millennium OPAC Admin Actions*}
 								{if ($ils == 'Millennium' || $ils == 'Sierra' || $ils == 'Horizon')}
 								<div class="adminMenuLink{if $action == "PTypes"} active{/if}"><a href="{$path}/Admin/PTypes">P-Types</a></div>

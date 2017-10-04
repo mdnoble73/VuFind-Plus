@@ -1520,7 +1520,8 @@ class GroupedWorkDriver extends RecordInterface{
 				//Figure out what the preferred record is to place a hold on.  Since sorting has been done properly, this should always be the first
 				$bestRecord = reset($manifestation['relatedRecords']);
 
-				if ($manifestation['numRelatedRecords'] > 1 && $bestRecord['groupedStatus'] == 'Checked Out') {
+				if ($manifestation['numRelatedRecords'] > 1 && array_key_exists($bestRecord['groupedStatus'], self::$statusRankings) && self::$statusRankings[ $bestRecord['groupedStatus'] ] <= 5) {
+					// Check to set prompt for Alternate Edition for any grouped status equal to or less than that of "Checked Out"
 					$promptForAlternateEdition = false;
 					foreach ($manifestation['relatedRecords'] as $relatedRecord) {
 						if ($relatedRecord['available'] == true && $relatedRecord['holdable'] == true) {
@@ -2185,7 +2186,7 @@ class GroupedWorkDriver extends RecordInterface{
 		// Get the COinS ID -- it should be in the OpenURL section of config.ini,
 		// but we'll also check the COinS section for compatibility with legacy
 		// configurations (this moved between the RC2 and 1.0 releases).
-		$coinsID = 'vufind+';
+		$coinsID = 'pika';
 
 		// Start an array of OpenURL parameters:
 		$params = array(
@@ -2656,6 +2657,9 @@ class GroupedWorkDriver extends RecordInterface{
 			$status = $curItem[13];
 			$locallyOwned = $scopingDetails[4] == 'true';
 			$available = $scopingDetails[5] == 'true';
+			if ($status == 'Library Use Only' && !$available){
+				$status = 'Checked Out (library use only)';
+			}
 			$holdable = $scopingDetails[6] == 'true';
 			$bookable = $scopingDetails[7] == 'true';
 			$inLibraryUseOnly = $scopingDetails[8] == 'true';

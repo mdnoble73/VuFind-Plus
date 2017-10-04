@@ -6,13 +6,10 @@
 				{if $selfRegistrationSuccessMessage}
 					{$selfRegistrationSuccessMessage}
 				{else}
-					Congratulations, you have successfully registered for a new library card.
-					You will have limited privileges.<br>
-					Please bring a valid ID to the library to receive a physical library card.
+					<p>Congratulations, you have successfully registered for a new library card.</p>
+					<p>Your library card number has been emailed to you.</p>
+					<p>Please bring a valid ID to the library to receive a physical library card.</p>
 				{/if}
-			</div>
-			<div class="alert alert-info">
-				Your library card number has been emailed to you.
 			</div>
 		{else}
 			{img_assign filename='self_reg_banner.png' var=selfRegBanner}
@@ -29,8 +26,7 @@
 			</div>
 			{if (isset($selfRegResult))}
 				<div id="selfRegFail" class="alert alert-warning">
-					Sorry, we were unable to create a library card for you.  You may already have an account or there may be an error with the information you entered.
-					Please try again or visit the library in person (with a valid ID) so we can create a card for you.
+					Sorry, we were unable to create a library card for you.  You may already have an account, you may be too young to reigster online, or there may be an error with the information you entered. Please try again or visit the library in person (with a valid ID) so we can create a card for you.
 				</div>
 			{/if}
 			{if $captchaMessage}

@@ -11,7 +11,13 @@
 				</a>
 				<div id="{$moreDetailsKey}PanelBody" class="panel-collapse collapse{if $moreDetailsOption.openByDefault} in{/if}">
 					<div class="panel-body">
-						{$moreDetailsOption.body}
+						{if is_array($moreDetailsOption.body)}
+							{foreach from=$moreDetailsOption.body item=bodyPart}
+								<p>{$bodyPart}</p>
+							{/foreach}
+						{else}
+							{$moreDetailsOption.body}
+						{/if}
 					</div>
 					{if $moreDetailsOption.onShow}
 						<script type="text/javascript">

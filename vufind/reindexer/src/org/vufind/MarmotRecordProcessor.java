@@ -25,6 +25,10 @@ class MarmotRecordProcessor extends IIIRecordProcessor {
 		super(indexer, vufindConn, indexingProfileRS, logger, fullReindex);
 
 		loadOrderInformationFromExport();
+
+		validCheckedOutStatusCodes.add("d");
+		validCheckedOutStatusCodes.add("o");
+		validCheckedOutStatusCodes.add("u");
 	}
 
 	protected void loadUnsuppressedPrintItems(GroupedWorkSolr groupedWork, RecordInfo recordInfo, String identifier, Record record){
@@ -65,6 +69,7 @@ class MarmotRecordProcessor extends IIIRecordProcessor {
 				available = true;
 			}
 		}
+
 		return available;
 	}
 

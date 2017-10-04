@@ -595,17 +595,17 @@ abstract class IslandoraDriver extends RecordInterface {
 		$description = str_replace("\r\n", '<br>', $description);
 		$description = str_replace("&#xD;", '<br>', $description);
 		if (strlen($description)) {
-			$interface->assign('description', $description);
+			$interface->assignAppendToExisting('description', $description);
 			if ($this instanceof PersonDriver) {
 				$moreDetailsOptions['bio'] = array(
 						'label' => 'Biographical Information',
-						'body' => $description,
+						'body' => $interface->get_template_vars('description'),
 						'hideByDefault' => false,
 				);
 			}else{
 				$moreDetailsOptions['description'] = array(
 						'label' => 'Description',
-						'body' => $description,
+						'body' => $interface->get_template_vars('description'),
 						'hideByDefault' => false,
 				);
 			}
@@ -1662,6 +1662,12 @@ abstract class IslandoraDriver extends RecordInterface {
 					}
 
 					if ($entityDriver instanceof EventDriver) {
+						//Reverse roles as appropriate
+						if ($role == 'child'){
+							$role = 'parent';
+						}elseif ($role == 'parent'){
+							$role = 'child';
+						}
 						$this->addRelatedEntityToArrays($entityDriver->getUniqueID(), $entityDriver->getTitle(), 'event', '', $role);
 					}elseif ($entityDriver instanceof PersonDriver){
 						//Reverse roles as appropriate
@@ -1891,12 +1897,15 @@ abstract class IslandoraDriver extends RecordInterface {
 			foreach ($array2 as $entityInfo){
 				$pid = $entityInfo['pid'];
 				if (array_key_exists($pid, $array1)){
-					$array1[$pid]['role'] .= ', ' . $entityInfo['role'];
+					if (strpos($array1[$pid]['role'], $entityInfo['role']) === false){
+						$array1[$pid]['role'] .= ', ' . $entityInfo['role'];
+					}
 				}else{
 					$array1[$pid] = $entityInfo;
 				}
 			}
 		}
+		return $array1;
 	}
 
 	private $transcriptions = null;
@@ -2348,12 +2357,14 @@ abstract class IslandoraDriver extends RecordInterface {
 				$hasAddressInfo = true;
 			}
 		}
-		$addressOtherRegion = FedoraUtils::cleanValue($this->getModsValue('addressOtherRegion', 'marmot', $entity));
-		if ($addressOtherRegion) {
-			if (strlen($entityTitle) > 0) {
-				$entityTitle .= '<br/>';
+		$addressOtherRegions = FedoraUtils::cleanValues($this->getModsValues('addressOtherRegion', 'marmot', $entity));
+		if ($addressOtherRegions) {
+			foreach ($addressOtherRegions as $addressOtherRegion) {
+				if (strlen($entityTitle) > 0) {
+					$entityTitle .= '<br/>';
+				}
+				$entityTitle .= $addressOtherRegion;
 			}
-			$entityTitle .= $addressOtherRegion;
 			$hasAddressInfo = true;
 		}
 
@@ -2364,7 +2375,10 @@ abstract class IslandoraDriver extends RecordInterface {
 		$latitude = $this->getModsValue('latitude', 'marmot', $entity);
 		$longitude = $this->getModsValue('longitude', 'marmot', $entity);
 		if ($latitude || $longitude) {
-			$entityTitle .= " ($latitude, $longitude)";
+			if (strlen($entityTitle) > 0) {
+				$entityTitle .= '<br/>';
+			}
+			$entityTitle .= "$latitude, $longitude";
 			return $entityTitle;
 		}
 		return $entityTitle;
@@ -2376,13 +2390,13 @@ abstract class IslandoraDriver extends RecordInterface {
 		$hasDemographicInfo = false;
 		$demographicsDetails = $this->getModsValue('demographicInfo', 'marmot');
 		if (strlen($demographicsDetails) > 0) {
-			$raceEthnicity = FedoraUtils::cleanValue($this->getModsValue('raceEthnicity', 'marmot', $demographicsDetails));
+			$raceEthnicity = FedoraUtils::cleanValues($this->getModsValues('raceEthnicity', 'marmot', $demographicsDetails));
 			if ($raceEthnicity) {
 				$interface->assign('raceEthnicity', $raceEthnicity);
 				$hasDemographicInfo = true;
 			}
 
-			$gender = FedoraUtils::cleanValue($this->getModsValue('gender', 'marmot', $demographicsDetails));
+			$gender = FedoraUtils::cleanValues($this->getModsValues('gender', 'marmot', $demographicsDetails));
 			if ($gender) {
 				$interface->assign('gender', $gender);
 				$hasDemographicInfo = true;
@@ -2537,11 +2551,13 @@ abstract class IslandoraDriver extends RecordInterface {
 					$publicationTitle = $this->getModsValue('academicPublicatonTitle', 'marmot', $publicationSection);
 					$publicationPid = $this->getModsValue('entityPid', 'marmot', $publicationSection);
 					$publicationLink = $this->getModsValue('academicPublicationLink', 'marmot', $publicationSection);
-					$validPublicationPid = false;
-					if ($validPublicationPid) {
-						$publicationObj = $fedoraUtils->getObject($validPublicationPid);
+					if ($publicationPid) {
+						$publicationObj = $fedoraUtils->getObject($publicationPid);
 						if ($publicationObj){
 							$publicationDriver = RecordDriverFactory::initRecordDriver($publicationObj);
+							if (!$publicationTitle) {
+								$publicationTitle = $publicationDriver->getTitle();
+							}
 							$publicationLink = $publicationDriver->getRecordUrl();
 						}
 					}
@@ -2865,7 +2881,7 @@ abstract class IslandoraDriver extends RecordInterface {
 					$validRightsHolder = true;
 				}
 			}
-			if ($validRightsHolder){
+			if (!$validRightsHolder){
 				$rightsHolderData[] = array(
 						'label' => $rightsHolderTitle,
 				);

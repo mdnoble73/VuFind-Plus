@@ -41,10 +41,11 @@ class Archive_Page extends Archive_Object{
 		}
 		$mods = $fedoraUtils->getModsData($pageObject);
 		$transcript = $fedoraUtils->getModsValue('transcriptionText', 'marmot', $mods);
+
+		$parentObject = $this->recordDriver->getParentObject();
 		if (strlen($transcript) > 0) {
 			$page['transcript'] = 'mods:' . $page['pid'];
 		}else {
-			$parentObject = $this->recordDriver->getParentObject();
 			$hasTranscript = false;
 			if ($parentObject != null){
 				$modsForParent = $fedoraUtils->getModsData($parentObject);
@@ -64,6 +65,48 @@ class Archive_Page extends Archive_Object{
 		}
 		$page['cover'] = $fedoraUtils->getObjectImageUrl($pageObject, 'thumbnail');
 		$interface->assign('page', $page);
+
+
+		//Check download settings for the parent object
+		if ($parentObject != null){
+
+			/** @var CollectionDriver $collection */
+			$anonymousMasterDownload = true;
+			$verifiedMasterDownload = true;
+			$anonymousLcDownload = true;
+			$verifiedLcDownload = true;
+
+			/** @var BookDriver $parentDriver */
+			$parentDriver = RecordDriverFactory::initRecordDriver($parentObject);
+			foreach ($parentDriver->getRelatedCollections() as $collection) {
+				/** @var CollectionDriver $collectionDriver */
+				$collectionDriver = $collection['driver'];
+				if (!$collectionDriver->canAnonymousDownloadMaster()) {
+					$anonymousMasterDownload = false;
+				}
+				if (!$collectionDriver->canVerifiedDownloadMaster()) {
+					$verifiedMasterDownload = false;
+				}
+				if (!$collectionDriver->canAnonymousDownloadLC()) {
+					$anonymousLcDownload = false;
+				}
+				if (!$collectionDriver->canVerifiedDownloadLC()) {
+					$verifiedLcDownload = false;
+				}
+			}
+			if (!$anonymousMasterDownload){
+				$interface->assign('anonymousMasterDownload', $anonymousMasterDownload);
+			}
+			if (!$verifiedMasterDownload) {
+				$interface->assign('verifiedMasterDownload', $verifiedMasterDownload);
+			}
+			if (!$anonymousLcDownload){
+				$interface->assign('anonymousLcDownload', $anonymousLcDownload);
+			}
+			if (!$verifiedLcDownload) {
+				$interface->assign('verifiedLcDownload', $verifiedLcDownload);
+			}
+		}
 
 		// Display Page
 		$this->display('page.tpl');

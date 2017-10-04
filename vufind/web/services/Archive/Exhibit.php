@@ -194,10 +194,22 @@ class Archive_Exhibit extends Archive_Object{
 						$collectionTemplates[] = $interface->fetch('Archive/collectionScroller.tpl');
 					}
 
-				}else if ($option == 'randomImage' ){
-					$randomImagePid = $this->recordDriver->getRandomObject();
+				}else if (strpos($option, 'randomImage') === 0 ){
+					$filterOptions = explode('|', $option);
+					$randomObjectPids = array();
+					$randomObjectPids[] = $this->pid;
+					if (count($filterOptions) > 1){
+						$randomObjectPids = explode(',', $filterOptions[1]);
+					}
+					//Select a collection to load from at random
+					$rand = rand(0, count($randomObjectPids) -1);
+					$randomCollectionPid = $randomObjectPids[$rand];
+					$interface->assign('randomObjectPids', implode(',', $randomObjectPids));
+					/** @var CollectionDriver $randomObjectCollectionDriver */
+					$randomObjectCollectionDriver = RecordDriverFactory::initIslandoraDriverFromPid(trim($randomCollectionPid));
+					$randomImagePid = $randomObjectCollectionDriver->getRandomObject();
 					if ($randomImagePid != null){
-						$randomObject = RecordDriverFactory::initRecordDriver($fedoraUtils->getObject($randomImagePid));
+						$randomObject = RecordDriverFactory::initRecordDriver($fedoraUtils->getObject(trim($randomImagePid)));
 						$randomObjectInfo = array(
 								'label' => $randomObject->getTitle(),
 								'link' => $randomObject->getRecordUrl(),

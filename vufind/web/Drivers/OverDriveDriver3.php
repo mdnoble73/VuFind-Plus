@@ -350,12 +350,14 @@ class OverDriveDriver3 {
 		global $configArray;
 		$libraryId = $configArray['OverDrive']['accountId'];
 		return $this->_callUrl("http://api.overdrive.com/v1/libraries/$libraryId");
+//		return $this->_callUrl("https://api.overdrive.com/v1/libraries/$libraryId");
 	}
 
 	public function getAdvantageAccountInformation(){
 		global $configArray;
 		$libraryId = $configArray['OverDrive']['accountId'];
 		return $this->_callUrl("http://api.overdrive.com/v1/libraries/$libraryId/advantageAccounts");
+//		return $this->_callUrl("https://api.overdrive.com/v1/libraries/$libraryId/advantageAccounts");
 	}
 
 	public function getProductsInAccount($productsUrl = null, $start = 0, $limit = 25){
@@ -363,6 +365,7 @@ class OverDriveDriver3 {
 		if ($productsUrl == null){
 			$libraryId = $configArray['OverDrive']['accountId'];
 			$productsUrl = "http://api.overdrive.com/v1/collections/$libraryId/products";
+//			$productsUrl = "https://api.overdrive.com/v1/collections/$libraryId/products";
 		}
 		$productsUrl .= "?offset=$start&limit=$limit";
 		return $this->_callUrl($productsUrl);
@@ -375,6 +378,7 @@ class OverDriveDriver3 {
 		}
 		$overDriveId= strtoupper($overDriveId);
 		$metadataUrl = "http://api.overdrive.com/v1/collections/$productsKey/products/$overDriveId/metadata";
+//		$metadataUrl = "https://api.overdrive.com/v1/collections/$productsKey/products/$overDriveId/metadata";
 		//echo($metadataUrl);
 		return $this->_callUrl($metadataUrl);
 	}
@@ -385,6 +389,7 @@ class OverDriveDriver3 {
 			$productsKey = $configArray['OverDrive']['productsKey'];
 		}
 		$availabilityUrl = "http://api.overdrive.com/v1/collections/$productsKey/products/$overDriveId/availability";
+//		$availabilityUrl = "https://api.overdrive.com/v1/collections/$productsKey/products/$overDriveId/availability";
 		//print_r($availabilityUrl);
 		return $this->_callUrl($availabilityUrl);
 	}
@@ -580,9 +585,14 @@ class OverDriveDriver3 {
 				}else{
 					//print_r($curTitle);
 				}
-				$hold['holdQueueLength'] = $curTitle->numberOfHolds;
+				$datePlaced                = strtotime($curTitle->holdPlacedDate);
+				if ($datePlaced) {
+					$hold['create']            = $datePlaced;
+				}
+				$hold['holdQueueLength']   = $curTitle->numberOfHolds;
 				$hold['holdQueuePosition'] = $curTitle->holdListPosition;
-				$hold['available'] = isset($curTitle->actions->checkout);
+				$hold['position']          = $curTitle->holdListPosition;  // this is so that overdrive holds can be sorted by hold position with the IlS holds
+				$hold['available']         = isset($curTitle->actions->checkout);
 				if ($hold['available']){
 					$hold['expire'] = strtotime($curTitle->holdExpires);
 				}
