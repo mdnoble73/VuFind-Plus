@@ -60,8 +60,12 @@ class BookCoverProcessor{
 			if ($this->getColoradoGovDocCover()){
 				return;
 			}
-		} elseif (stripos($this->type, 'ebrary') !== false){
+		} elseif (stripos($this->type, 'proquest') !== false || stripos($this->type, 'ebrary') !== false){
 			if ($this->getEbraryCover($this->id)) {
+				return;
+			}
+		} elseif (stripos($this->type, 'kanopy') !== false){
+			if ($this->getKanopyCover($this->id)) {
 				return;
 			}
 		// Any Sideloaded Collection that has a cover in the 856 tag (and additional conditionals)
@@ -167,6 +171,19 @@ class BookCoverProcessor{
 		}
 		$coverId = str_replace(array('ebr', "PQE"), '', $id);
 		$coverUrl = "http://covers.ebrary.com/cc/$coverId-l.jpg";
+		if ($this->processImageURL($coverUrl, true)){
+			return true;
+		}else{
+			return false;
+		}
+	}
+
+	private function getKanopyCover($id) {
+		if (strpos($id, ':') !== false){
+			list(, $id) = explode(":", $id);
+		}
+		$coverId = str_replace(array('kan'), '', $id);
+		$coverUrl = "https://www.kanopystreaming.com/sites/default/files/imagecache/vp_poster_small/video-assets/{$coverId}_poster.jpg";
 		if ($this->processImageURL($coverUrl, true)){
 			return true;
 		}else{
