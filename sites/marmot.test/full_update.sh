@@ -101,11 +101,18 @@ cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE
 /usr/local/vufind-plus/sites/marmot.test/moveSideloadAdds.sh fortlewis_sideload/EBSCO_Academic ebsco/fortlewis/merge >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/sites/marmot.test/moveSideloadAdds.sh fortlewis_sideload/EBSCO_Academic/deletes ebsco/fortlewis/deletes >> ${OUTPUT_FILE}
 
+# Englewood Axis 360 Marc Updates
+/usr/local/vufind-plus/sites/${PIKASERVER}/moveSideloadAdds.sh englewood/axis360 axis360/englewood/merge >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh axis360/englewood >> ${OUTPUT_FILE}
+
 # Western Oxford Reference Marc Updates
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh western/oxfordReference oxfordReference/western >> ${OUTPUT_FILE}
 
 # Western Springer Marc Updates
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh western/springer springer/western >> ${OUTPUT_FILE}
+
+# CCU Gale Marc Updates
+/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh ccu/gale gale/ccu >> ${OUTPUT_FILE}
 
 # Western Kanopy Marc Updates
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh western/kanopy kanopy/western >> ${OUTPUT_FILE}
@@ -156,10 +163,6 @@ cd /usr/local/vufind-plus/vufind/cron; ./sideload.sh ${PIKASERVER}
 
 #Merge EBSCO records
 /usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh ebsco/fortlewis >> ${OUTPUT_FILE}
-
-# Merge OneClick digital Records
-/usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh oneclickdigital/englewood >> ${OUTPUT_FILE}
-
 
 #Do a full extract from OverDrive just once a week to catch anything that doesn't
 #get caught in the regular extract

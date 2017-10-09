@@ -84,16 +84,18 @@ cd /usr/local/vufind-plus/vufind/cron;./GetHooplaFromMarmot.sh >> ${OUTPUT_FILE}
 
 # Western Kanopy Marc Updates
 /usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh western/kanopy kanopy/western >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/${PIKASERVER}/moveFullExport.sh budwerner/kanopy kanopy/budwerner >> ${OUTPUT_FILE}
+
+# Englewood Axis 360 Marc Updates
+/usr/local/vufind-plus/sites/${PIKASERVER}/moveSideloadAdds.sh englewood/axis360 axis360/englewood/merge >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh axis360/englewood >> ${OUTPUT_FILE}
+
 
 # Learning Express Marc Updates
 /usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh budwerner/learning_express learning_express/steamboatsprings/merge >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh budwerner/learning_express/deletes learning_express/steamboatsprings/deletes >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh garfield/learning_express learning_express/garfield/merge >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh garfield/learning_express/deletes learning_express/garfield/deletes >> ${OUTPUT_FILE}
-
-# OneClick digital Marc Updates
-#/usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh englewood/oneclickdigital oneclickdigital/englewood >> ${OUTPUT_FILE}
-
 
 # Colorado State Gov Docs Marc Updates
 /usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh marmot/coloGovDocs colorado_gov_docs >> ${OUTPUT_FILE}
@@ -122,9 +124,6 @@ cd /usr/local/vufind-plus/vufind/cron; ./sideload.sh ${PIKASERVER}
 /usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh lynda/vail >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh lynda/telluride >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh lynda/grand >> ${OUTPUT_FILE}
-
-# Merge OneClick digital Records
-/usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh oneclickdigital/englewood >> ${OUTPUT_FILE}
 
 #Merge EBSCO records
 /usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh ebsco/fortlewis >> ${OUTPUT_FILE}
