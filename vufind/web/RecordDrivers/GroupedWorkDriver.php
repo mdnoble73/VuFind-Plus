@@ -1091,6 +1091,56 @@ class GroupedWorkDriver extends RecordInterface{
 	}
 
 	static $archiveLinksForWorkIds = array();
+
+	/**
+	 * @param string[] $groupedWorkIds
+	 */
+	static function loadArchiveLinksForWorks($groupedWorkIds){
+		global $library;
+		$archiveLink = null;
+		if ($library->enableArchive && count($groupedWorkIds) > 0){
+			foreach ($groupedWorkIds as $groupedWorkId){
+				GroupedWorkDriver::$archiveLinksForWorkIds[$groupedWorkId] = false;
+			}
+			/** @var SearchObject_Islandora $searchObject */
+			$searchObject = SearchObjectFactory::initSearchObject('Islandora');
+			$searchObject->init();
+			$searchObject->disableLogging();
+			$searchObject->setDebugging(false, false);
+			$query = 'mods_extension_marmotLocal_externalLink_samePika_link_s:*' . implode('* OR mods_extension_marmotLocal_externalLink_samePika_link_s:*' , $groupedWorkIds) . '*';
+			$searchObject->setBasicQuery($query);
+			//Clear existing filters so search filters don't apply to this query
+			$searchObject->clearFilters();
+			$searchObject->clearFacets();
+			$searchObject->addFieldsToReturn(array('mods_extension_marmotLocal_externalLink_samePika_link_s'));
+
+			$searchObject->setLimit(count($groupedWorkIds));
+
+			$response = $searchObject->processSearch(true, false, true);
+
+			if ($response && isset($response['response'])) {
+				//Get information about each project
+				if ($searchObject->getResultTotal() > 0) {
+					foreach ($response['response']['docs'] as $doc){
+						$firstObjectDriver = RecordDriverFactory::initRecordDriver($doc);
+
+						$archiveLink = $firstObjectDriver->getRecordUrl();
+						foreach ($groupedWorkIds as $groupedWorkId){
+							if (strpos($doc['mods_extension_marmotLocal_externalLink_samePika_link_s'], $groupedWorkId) !== false){
+								GroupedWorkDriver::$archiveLinksForWorkIds[$groupedWorkId] = $archiveLink;
+								break;
+							}
+						}
+
+					}
+
+				}
+			}
+
+			$searchObject = null;
+			unset($searchObject);
+		}
+	}
 	static function getArchiveLinkForWork($groupedWorkId){
 		//Check to see if the record is available within the archive
 		global $library;
