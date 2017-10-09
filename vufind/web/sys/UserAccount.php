@@ -44,6 +44,7 @@ class UserAccount {
 		}
 		global $action;
 		global $module;
+		global $logger;
 		$userData = false;
 		if (isset($_SESSION['activeUserId'])) {
 			$activeUserId = $_SESSION['activeUserId'];
@@ -54,13 +55,16 @@ class UserAccount {
 			/** @var User $userData */
 			$userData = $memCache->get("user_{$serverName}_{$activeUserId}");
 			if ($userData === false || isset($_REQUEST['reload'])){
+
 				//Load the user from the database
 				$userData = new User();
 				$userData->id = $activeUserId;
 				if ($userData->find(true)){
+					$logger->log("Loading user {$userData->cat_username}, {$userData->cat_password} because we didn't have data in memcache", PEAR_LOG_DEBUG);
 					$userData = UserAccount::validateAccount($userData->cat_username, $userData->cat_password, $userData->source);
 				}
 			}else{
+				$logger->log("Found cached user, updating runtime data for {$userData->id}", PEAR_LOG_DEBUG);
 				$userData->updateRuntimeInformation();
 				global $timer;
 				$timer->logTime("Updated Runtime Information");
@@ -198,6 +202,7 @@ class UserAccount {
 				global $serverName;
 				global $configArray;
 				$memCache->set("user_{$serverName}_{$tempUser->id}", $tempUser, 0, $configArray['Caching']['user']);
+				$logger->log("Cached user {$tempUser->id}", PEAR_LOG_DEBUG);
 
 				$validUsers[] = $tempUser;
 				if ($primaryUser == null){
@@ -208,7 +213,6 @@ class UserAccount {
 					$primaryUser->addLinkedUser($tempUser);
 				}
 			}else{
-				global $logger;
 				global $user;
 				$username = isset($_REQUEST['username']) ? $_REQUEST['username'] : 'No username provided';
 				$logger->log("Error authenticating patron $username for driver {$driverName}\r\n" . print_r($user, true), PEAR_LOG_ERR);
@@ -249,6 +253,7 @@ class UserAccount {
 		$driversToTest = self::loadAccountProfiles();
 
 		global $library;
+		global $logger;
 		$validatedViaSSO = false;
 		if (strlen($library->casHost) > 0 && $username == null && $password == null){
 			//Check CAS first
@@ -278,6 +283,7 @@ class UserAccount {
 					global $serverName;
 					global $configArray;
 					$memCache->set("user_{$serverName}_{$validatedUser->id}", $validatedUser, 0, $configArray['Caching']['user']);
+					$logger->log("Cached user {$validatedUser->id}", PEAR_LOG_DEBUG);
 					if ($validatedViaSSO){
 						$validatedUser->loggedInViaCAS = true;
 					}
