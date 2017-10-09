@@ -373,8 +373,8 @@ if (!$analytics->isTrackingDisabled()){
 		$analytics->setPatronType('logged out');
 		$analytics->setHomeLocationId(-1);
 	}
+	$timer->logTime('Setup Analytics');
 }
-$timer->logTime('Setup Analytics');
 
 //Find a reasonable default location to go to
 if ($module == null && $action == null){
@@ -446,8 +446,9 @@ if ($action == "AJAX" || $action == "JSON"){
 	//Load basic search types for use in the interface.
 	/** @var SearchObject_Solr|SearchObject_Base $searchObject */
 	$searchObject = SearchObjectFactory::initSearchObject();
-	$searchObject->init();
 	$timer->logTime('Create Search Object');
+	$searchObject->init();
+	$timer->logTime('Init Search Object');
 	$basicSearchTypes = is_object($searchObject) ? $searchObject->getBasicTypes() : array();
 	$interface->assign('basicSearchTypes', $basicSearchTypes);
 
@@ -953,6 +954,9 @@ function loadUserData(){
 	global $user;
 	global $interface;
 	global $timer;
+	/** @var Memcache $memCache */
+	global $memCache;
+	global $configArray;
 
 	//Assign User information to the interface
 	if (!PEAR_Singleton::isError($user)) {
@@ -968,25 +972,34 @@ function loadUserData(){
 	}
 
 	//Load a list of lists
-	$lists = array();
-	require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
-	$tmpList = new UserList();
-	$tmpList->user_id = $user->id;
-	$tmpList->deleted = 0;
-	$tmpList->orderBy("title ASC");
-	$tmpList->find();
-	if ($tmpList->N > 0){
-		while ($tmpList->fetch()){
-			$lists[$tmpList->id] = array(
-					'name' => $tmpList->title,
-					'url' => '/MyAccount/MyList/' .$tmpList->id ,
-					'id' => $tmpList->id,
-					'numTitles' => $tmpList->numValidListItems()
-			);
+	$userListData = $memCache->get('user_list_data_' . $user->id);
+	if ($userListData == null || isset($_REQUEST['reload'])){
+		$lists = array();
+		require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
+		$tmpList = new UserList();
+		$tmpList->user_id = $user->id;
+		$tmpList->deleted = 0;
+		$tmpList->orderBy("title ASC");
+		$tmpList->find();
+		if ($tmpList->N > 0){
+			while ($tmpList->fetch()){
+				$lists[$tmpList->id] = array(
+						'name' => $tmpList->title,
+						'url' => '/MyAccount/MyList/' .$tmpList->id ,
+						'id' => $tmpList->id,
+						'numTitles' => $tmpList->numValidListItems()
+				);
+			}
 		}
+		$memCache->set('user_list_data_' . $user->id, $lists, 0, $configArray['Caching']['user']);
+		$timer->logTime("Load Lists");
+	}else{
+		$lists = $userListData;
+		$timer->logTime("Load Lists from cache");
 	}
+
 	$interface->assign('lists', $lists);
-	$timer->logTime("Load Lists");
+
 
 	// Get My Tags
 	$tagList = $user->getTags();
@@ -1012,4 +1025,5 @@ function loadUserData(){
 	}
 
 	$interface->setFinesRelatedTemplateVariables();
+	$timer->logTime("Set Fines Related Template variables");
 }
