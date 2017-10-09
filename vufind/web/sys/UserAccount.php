@@ -227,6 +227,8 @@ class UserAccount {
 		}
 	}
 
+	private static $validatedAccounts = array();
+
 	/**
 	 * Validate the account information (username and password are correct).
 	 * Returns the account, but does not set the global user variable.
@@ -239,6 +241,9 @@ class UserAccount {
 	 * @return User|false
 	 */
 	public static function validateAccount($username, $password, $accountSource = null, $parentAccount = null){
+		if (array_key_exists($username . $password, UserAccount::$validatedAccounts)){
+			return UserAccount::$validatedAccounts[$username . $password];
+		}
 		// Perform authentication:
 		//Test all valid authentication methods and see which (if any) result in a valid login.
 		$driversToTest = self::loadAccountProfiles();
@@ -252,6 +257,7 @@ class UserAccount {
 			$casUsername = $casAuthentication->validateAccount(null, null, $parentAccount, false);
 			if ($casUsername == false || PEAR_Singleton::isError($casUsername)){
 				//The user could not be authenticated in CAS
+				UserAccount::$validatedAccounts[$username . $password] = false;
 				return false;
 			}else{
 				//Set both username and password since authentication methods could use either.
@@ -275,11 +281,13 @@ class UserAccount {
 					if ($validatedViaSSO){
 						$validatedUser->loggedInViaCAS = true;
 					}
+					UserAccount::$validatedAccounts[$username . $password] = $validatedUser;
 					return $validatedUser;
 				}
 			}
 		}
 
+		UserAccount::$validatedAccounts[$username . $password] = false;
 		return false;
 	}
 
