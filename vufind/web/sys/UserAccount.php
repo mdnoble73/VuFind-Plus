@@ -44,6 +44,7 @@ class UserAccount {
 		}
 		global $action;
 		global $module;
+		global $logger;
 		$userData = false;
 		if (isset($_SESSION['activeUserId'])) {
 			$activeUserId = $_SESSION['activeUserId'];
@@ -54,13 +55,16 @@ class UserAccount {
 			/** @var User $userData */
 			$userData = $memCache->get("user_{$serverName}_{$activeUserId}");
 			if ($userData === false || isset($_REQUEST['reload'])){
+
 				//Load the user from the database
 				$userData = new User();
 				$userData->id = $activeUserId;
 				if ($userData->find(true)){
+					$logger->log("Loading user {$userData->cat_username}, {$userData->cat_password} because we didn't have data in memcache", PEAR_LOG_DEBUG);
 					$userData = UserAccount::validateAccount($userData->cat_username, $userData->cat_password, $userData->source);
 				}
 			}else{
+				$logger->log("Found cached user, updating runtime data for {$userData->id}", PEAR_LOG_DEBUG);
 				$userData->updateRuntimeInformation();
 				global $timer;
 				$timer->logTime("Updated Runtime Information");
@@ -198,6 +202,7 @@ class UserAccount {
 				global $serverName;
 				global $configArray;
 				$memCache->set("user_{$serverName}_{$tempUser->id}", $tempUser, 0, $configArray['Caching']['user']);
+				$logger->log("Cached user {$tempUser->id}", PEAR_LOG_DEBUG);
 
 				$validUsers[] = $tempUser;
 				if ($primaryUser == null){
@@ -208,7 +213,6 @@ class UserAccount {
 					$primaryUser->addLinkedUser($tempUser);
 				}
 			}else{
-				global $logger;
 				global $user;
 				$username = isset($_REQUEST['username']) ? $_REQUEST['username'] : 'No username provided';
 				$logger->log("Error authenticating patron $username for driver {$driverName}\r\n" . print_r($user, true), PEAR_LOG_ERR);
@@ -227,6 +231,8 @@ class UserAccount {
 		}
 	}
 
+	private static $validatedAccounts = array();
+
 	/**
 	 * Validate the account information (username and password are correct).
 	 * Returns the account, but does not set the global user variable.
@@ -239,11 +245,15 @@ class UserAccount {
 	 * @return User|false
 	 */
 	public static function validateAccount($username, $password, $accountSource = null, $parentAccount = null){
+		if (array_key_exists($username . $password, UserAccount::$validatedAccounts)){
+			return UserAccount::$validatedAccounts[$username . $password];
+		}
 		// Perform authentication:
 		//Test all valid authentication methods and see which (if any) result in a valid login.
 		$driversToTest = self::loadAccountProfiles();
 
 		global $library;
+		global $logger;
 		$validatedViaSSO = false;
 		if (strlen($library->casHost) > 0 && $username == null && $password == null){
 			//Check CAS first
@@ -252,6 +262,7 @@ class UserAccount {
 			$casUsername = $casAuthentication->validateAccount(null, null, $parentAccount, false);
 			if ($casUsername == false || PEAR_Singleton::isError($casUsername)){
 				//The user could not be authenticated in CAS
+				UserAccount::$validatedAccounts[$username . $password] = false;
 				return false;
 			}else{
 				//Set both username and password since authentication methods could use either.
@@ -272,14 +283,17 @@ class UserAccount {
 					global $serverName;
 					global $configArray;
 					$memCache->set("user_{$serverName}_{$validatedUser->id}", $validatedUser, 0, $configArray['Caching']['user']);
+					$logger->log("Cached user {$validatedUser->id}", PEAR_LOG_DEBUG);
 					if ($validatedViaSSO){
 						$validatedUser->loggedInViaCAS = true;
 					}
+					UserAccount::$validatedAccounts[$username . $password] = $validatedUser;
 					return $validatedUser;
 				}
 			}
 		}
 
+		UserAccount::$validatedAccounts[$username . $password] = false;
 		return false;
 	}
 

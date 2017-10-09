@@ -330,6 +330,10 @@ class User extends DB_DataObject
 			$this->linkedUsers = array();
 			/* var Library $library */
 			global $library;
+			/** @var Memcache $memCache */
+			global $memCache;
+			global $serverName;
+			global $logger;
 			if ($this->id && $library->allowLinkedAccounts){
 				require_once ROOT_DIR . '/sys/Account/UserLink.php';
 				$userLink = new UserLink();
@@ -340,8 +344,18 @@ class User extends DB_DataObject
 						$linkedUser = new User();
 						$linkedUser->id = $userLink->linkedAccountId;
 						if ($linkedUser->find(true)){
-							//Load full information from the catalog
-							$linkedUser = UserAccount::validateAccount($linkedUser->cat_username, $linkedUser->cat_password, $linkedUser->source, $this);
+							/** @var User $userData */
+							$userData = $memCache->get("user_{$serverName}_{$linkedUser->id}");
+							if ($userData === false || isset($_REQUEST['reload'])){
+								//Load full information from the catalog
+								$linkedUser = UserAccount::validateAccount($linkedUser->cat_username, $linkedUser->cat_password, $linkedUser->source, $this);
+							}else{
+								$logger->log("Found cached linked user, updating runtime data for {$userData->id}", PEAR_LOG_DEBUG);
+								$userData->updateRuntimeInformation();
+								global $timer;
+								$timer->logTime("Updated Runtime Information");
+								$linkedUser = $userData;
+							}
 							if ($linkedUser && !PEAR_Singleton::isError($linkedUser)) {
 								$this->linkedUsers[] = clone($linkedUser);
 							}
