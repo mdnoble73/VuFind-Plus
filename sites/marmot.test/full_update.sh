@@ -97,6 +97,9 @@ cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE
 # CMC Ebsco Academic Marc Updates
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh cmc/ebsco ebsco/cmc >> ${OUTPUT_FILE}
 
+# Adams Ebsco Marc Updates
+/usr/local/vufind-plus/fetch_sideload_data.sh ${PIKASERVER} adams/ebsco ebsco/adams
+
 # Fort Lewis Ebsco Academic Marc Updates
 /usr/local/vufind-plus/sites/marmot.test/moveSideloadAdds.sh fortlewis_sideload/EBSCO_Academic ebsco/fortlewis/merge >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/sites/marmot.test/moveSideloadAdds.sh fortlewis_sideload/EBSCO_Academic/deletes ebsco/fortlewis/deletes >> ${OUTPUT_FILE}
@@ -141,10 +144,10 @@ cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh cmc/filmsondemand filmsondemand/cmc >> ${OUTPUT_FILE}
 
 # Lynda.com Marc Updates (received on marmot ftp server)
-/usr/local/vufind-plus/sites/marmot.test/moveSideloadAdds.sh lynda.com/evld lynda/evld/merge >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/sites/marmot.test/moveSideloadAdds.sh lynda.com/vail lynda/vail/merge >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/sites/marmot.test/moveSideloadAdds.sh lynda.com/telluride lynda/telluride/merge >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/sites/marmot.test/moveSideloadAdds.sh lynda.com/grand lynda/grand/merge >> ${OUTPUT_FILE}
+#/usr/local/vufind-plus/sites/marmot.test/moveSideloadAdds.sh lynda.com/evld lynda/evld/merge >> ${OUTPUT_FILE}
+#/usr/local/vufind-plus/sites/marmot.test/moveSideloadAdds.sh lynda.com/vail lynda/vail/merge >> ${OUTPUT_FILE}
+#/usr/local/vufind-plus/sites/marmot.test/moveSideloadAdds.sh lynda.com/telluride lynda/telluride/merge >> ${OUTPUT_FILE}
+#/usr/local/vufind-plus/sites/marmot.test/moveSideloadAdds.sh lynda.com/grand lynda/grand/merge >> ${OUTPUT_FILE}
 
 #Extracts for sideloaded eContent; settings defined in config.pwd.ini [Sideload]
 cd /usr/local/vufind-plus/vufind/cron; ./sideload.sh ${PIKASERVER}
