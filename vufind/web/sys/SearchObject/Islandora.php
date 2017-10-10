@@ -1890,4 +1890,7 @@ class SearchObject_Islandora extends SearchObject_Base
 		return $okToShow;
 	}
 
+	public function pingServer($failOnError = true){
+		return $this->indexEngine->pingServer($failOnError);
+	}
 }

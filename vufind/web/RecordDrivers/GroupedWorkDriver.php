@@ -1105,35 +1105,35 @@ class GroupedWorkDriver extends RecordInterface{
 			/** @var SearchObject_Islandora $searchObject */
 			$searchObject = SearchObjectFactory::initSearchObject('Islandora');
 			$searchObject->init();
-			$searchObject->disableLogging();
-			$searchObject->setDebugging(false, false);
-			$query = 'mods_extension_marmotLocal_externalLink_samePika_link_s:*' . implode('* OR mods_extension_marmotLocal_externalLink_samePika_link_s:*' , $groupedWorkIds) . '*';
-			$searchObject->setBasicQuery($query);
-			//Clear existing filters so search filters don't apply to this query
-			$searchObject->clearFilters();
-			$searchObject->clearFacets();
-			$searchObject->addFieldsToReturn(array('mods_extension_marmotLocal_externalLink_samePika_link_s'));
+			if ($searchObject->pingServer(false)){
+				$searchObject->disableLogging();
+				$searchObject->setDebugging(false, false);
+				$query = 'mods_extension_marmotLocal_externalLink_samePika_link_s:*' . implode('* OR mods_extension_marmotLocal_externalLink_samePika_link_s:*' , $groupedWorkIds) . '*';
+				$searchObject->setBasicQuery($query);
+				//Clear existing filters so search filters don't apply to this query
+				$searchObject->clearFilters();
+				$searchObject->clearFacets();
+				$searchObject->addFieldsToReturn(array('mods_extension_marmotLocal_externalLink_samePika_link_s'));
 
-			$searchObject->setLimit(count($groupedWorkIds));
+				$searchObject->setLimit(count($groupedWorkIds));
 
-			$response = $searchObject->processSearch(true, false, true);
+				$response = $searchObject->processSearch(true, false, true);
 
-			if ($response && isset($response['response'])) {
-				//Get information about each project
-				if ($searchObject->getResultTotal() > 0) {
-					foreach ($response['response']['docs'] as $doc){
-						$firstObjectDriver = RecordDriverFactory::initRecordDriver($doc);
+				if ($response && isset($response['response'])) {
+					//Get information about each project
+					if ($searchObject->getResultTotal() > 0) {
+						foreach ($response['response']['docs'] as $doc){
+							$firstObjectDriver = RecordDriverFactory::initRecordDriver($doc);
 
-						$archiveLink = $firstObjectDriver->getRecordUrl();
-						foreach ($groupedWorkIds as $groupedWorkId){
-							if (strpos($doc['mods_extension_marmotLocal_externalLink_samePika_link_s'], $groupedWorkId) !== false){
-								GroupedWorkDriver::$archiveLinksForWorkIds[$groupedWorkId] = $archiveLink;
-								break;
+							$archiveLink = $firstObjectDriver->getRecordUrl();
+							foreach ($groupedWorkIds as $groupedWorkId){
+								if (strpos($doc['mods_extension_marmotLocal_externalLink_samePika_link_s'], $groupedWorkId) !== false){
+									GroupedWorkDriver::$archiveLinksForWorkIds[$groupedWorkId] = $archiveLink;
+									break;
+								}
 							}
 						}
-
 					}
-
 				}
 			}
 
@@ -1336,8 +1336,8 @@ class GroupedWorkDriver extends RecordInterface{
 	private $relatedRecords = null;
 	private $relatedItemsByRecordId = null;
 
-	public function getRelatedRecords() {
-		$this->loadRelatedRecords();
+	public function getRelatedRecords($forCovers = false) {
+		$this->loadRelatedRecords($forCovers);
 		return $this->relatedRecords;
 	}
 
@@ -1350,7 +1350,7 @@ class GroupedWorkDriver extends RecordInterface{
 		}
 	}
 
-	private function loadRelatedRecords(){
+	private function loadRelatedRecords($forCovers = false){
 		global $timer;
 		global $memoryWatcher;
 		if ($this->relatedRecords == null || isset($_REQUEST['reload'])){
@@ -1395,7 +1395,7 @@ class GroupedWorkDriver extends RecordInterface{
 			if ($groupedWork->find(true)){
 				//Generate record information based on the information we have in the index
 				foreach ($recordsFromIndex as $recordDetails){
-					$relatedRecord = $this->setupRelatedRecordDetails($recordDetails, $groupedWork, $timer, $scopingInfo, $activePTypes, $searchLocation, $library);
+					$relatedRecord = $this->setupRelatedRecordDetails($recordDetails, $groupedWork, $timer, $scopingInfo, $activePTypes, $searchLocation, $library, $forCovers);
 					$relatedRecords[$relatedRecord['id']] = $relatedRecord;
 					$memoryWatcher->logMemory("Setup related record details for " . $relatedRecord['id']);
 				}
@@ -2596,7 +2596,7 @@ class GroupedWorkDriver extends RecordInterface{
 	 * @param Library $library
 	 * @return array
 	 */
-	protected function setupRelatedRecordDetails($recordDetails, $groupedWork, $timer, $scopingInfo, $activePTypes, $searchLocation, $library) {
+	protected function setupRelatedRecordDetails($recordDetails, $groupedWork, $timer, $scopingInfo, $activePTypes, $searchLocation, $library, $forCovers = false) {
 		//Check to see if we have any volume data for the record
 		require_once ROOT_DIR . '/Drivers/marmot_inc/IlsVolumeInfo.php';
 		global $memoryWatcher;
@@ -2871,7 +2871,10 @@ class GroupedWorkDriver extends RecordInterface{
 					'subLocation' => $subLocation,
 					'itemId' => $itemId
 			);
-			$itemSummaryInfo['actions'] = $recordDriver != null ? $recordDriver->getItemActions($itemSummaryInfo) : array();
+			if (!$forCovers){
+				$itemSummaryInfo['actions'] = $recordDriver != null ? $recordDriver->getItemActions($itemSummaryInfo) : array();
+			}
+
 			//Group the item based on location and call number for display in the summary
 			if (isset($relatedRecord['itemSummary'][$key])) {
 				$relatedRecord['itemSummary'][$key]['totalCopies']++;
@@ -2906,9 +2909,12 @@ class GroupedWorkDriver extends RecordInterface{
 		$timer->logTime("Setup record items");
 		$memoryWatcher->logMemory("Setup record items");
 
-		$relatedRecord['actions'] = $recordDriver != null ? $recordDriver->getRecordActions($relatedRecord['availableLocally'] || $relatedRecord['availableOnline'], $recordHoldable, $recordBookable, $relatedUrls, $volumeData) : array();
-		$timer->logTime("Loaded actions");
-		$memoryWatcher->logMemory("Loaded actions");
+		if (!$forCovers){
+			$relatedRecord['actions'] = $recordDriver != null ? $recordDriver->getRecordActions($relatedRecord['availableLocally'] || $relatedRecord['availableOnline'], $recordHoldable, $recordBookable, $relatedUrls, $volumeData) : array();
+			$timer->logTime("Loaded actions");
+			$memoryWatcher->logMemory("Loaded actions");
+		}
+
 		$recordDriver = null;
 		return $relatedRecord;
 	}

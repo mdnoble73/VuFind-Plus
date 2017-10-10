@@ -212,47 +212,70 @@ class Solr implements IndexEngine {
 	}
 
 	private static $serversPinged = array();
-	public function pingServer(){
+	public function pingServer($failOnError = true){
 		/** @var Memcache $memCache */
 		global $memCache;
 		global $timer;
 		global $configArray;
 		global $logger;
+		$hostEscaped = preg_replace('[\W]', '_', $this->host);
 		if (array_key_exists($this->host, Solr::$serversPinged)){
-			return true;
+			//$logger->log("Pinging solr has already been done this page load", PEAR_LOG_DEBUG);
+			return Solr::$serversPinged[$this->host];
 		}
 		if ($memCache){
-			$pingDone = ($memCache->get('solr_ping_' . $this->host) == 'true');
-			if ($pingDone){
-				$logger->log("Not pinging solr {$this->host} because we have a cached ping", PEAR_LOG_DEBUG);
-				Solr::$serversPinged[$this->host] = true;
+
+			$pingDone = $memCache->get('solr_ping_' . $hostEscaped);
+			if ($pingDone != null){
+				//$logger->log("Not pinging solr {$this->host} because we have a cached ping $pingDone", PEAR_LOG_DEBUG);
+				Solr::$serversPinged[$this->host] = $pingDone;
+				return Solr::$serversPinged[$this->host];
+			}else{
+				$pingDone = false;
 			}
 		}else{
 			$pingDone = false;
-			$logger->log("Pinging solr because memcache has not been initialized", PEAR_LOG_DEBUG);
+			//$logger->log("Pinging solr because memcache has not been initialized", PEAR_LOG_DEBUG);
 		}
 
 		if ($pingDone == false){
-			$logger->log("Pinging solr server " . $this->host, PEAR_LOG_DEBUG);
+
+			//$logger->log("Pinging solr server {$this->host} $hostEscaped", PEAR_LOG_DEBUG);
 			// Test to see solr is online
 			$test_url = $this->host . "/admin/ping";
-			$test_client = new Proxy_Request();
+			$test_client = new Proxy_Request('', array('timeout' => 2, 'read_timeout' => 1));
 			$test_client->setMethod(HTTP_REQUEST_METHOD_GET);
 			$test_client->setURL($test_url);
 			$result = $test_client->sendRequest();
 			if (!PEAR_Singleton::isError($result)) {
 				// Even if we get a response, make sure it's a 'good' one.
 				if ($test_client->getResponseCode() != 200) {
-					PEAR_Singleton::raiseError('Solr index is offline.');
+					$pingResult = 'false';
+					Solr::$serversPinged[$this->host] = false;
+					if ($failOnError){
+						PEAR_Singleton::raiseError('Solr index is offline.');
+					}else{
+						$logger->log("Ping of {$this->host} failed", PEAR_LOG_DEBUG);
+						return false;
+					}
+				}else{
+					$pingResult = 'true';
 				}
 			} else {
-				PEAR_Singleton::raiseError($result);
+				$pingResult = 'false';
+				Solr::$serversPinged[$this->host] = false;
+				if ($failOnError){
+					PEAR_Singleton::raiseError($result);
+				}else{
+					$logger->log("Ping of {$this->host} failed", PEAR_LOG_DEBUG);
+					return false;
+				}
 			}
 			if ($memCache){
-				$memCache->set('solr_ping_' . $this->host, 'true', 0, $configArray['Caching']['solr_ping']);
+				$memCache->set('solr_ping_' . $hostEscaped, $pingResult, 0, $configArray['Caching']['solr_ping']);
 			}
-			Solr::$serversPinged[$this->host] = true;
-			$timer->logTime('Ping Solr instance');
+			Solr::$serversPinged[$this->host] = $pingResult;
+			$timer->logTime('Ping Solr instance ' . $this->host);
 		}else{
 			Solr::$serversPinged[$this->host] = true;
 		}

@@ -2218,4 +2218,8 @@ class SearchObject_Solr extends SearchObject_Base
 			unset($this->indexEngine);
 		}
 	}
+
+	public function pingServer($failOnError = true){
+		return $this->indexEngine->pingServer($failOnError);
+	}
 }

@@ -1065,7 +1065,7 @@ class BookCoverProcessor{
 	private function getGroupedWorkCover() {
 		if ($this->loadGroupedWork()){
 			//Have not found a grouped work based on isbn or upc, check based on related records
-			$relatedRecords = $this->groupedWork->getRelatedRecords(false);
+			$relatedRecords = $this->groupedWork->getRelatedRecords(true);
 			foreach ($relatedRecords as $relatedRecord){
 				if (strcasecmp($relatedRecord['source'], 'OverDrive') == 0){
 					if ($this->getOverDriveCover($relatedRecord['id'])){

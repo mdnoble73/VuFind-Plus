@@ -344,8 +344,17 @@ class ExploreMore {
 		global $library;
 		$exploreMoreOptions = array();
 
+		$islandoraActive = false;
+		$islandoraSearchObject = null;
+		if ($library->enableArchive && $activeSection != 'archive'){
+			/** @var SearchObject_Islandora $islandoraSearchObject */
+			$islandoraSearchObject = SearchObjectFactory::initSearchObject('Islandora');
+			$islandoraSearchObject->init();
+			$islandoraActive = $islandoraSearchObject->pingServer(false);
+		}
+
 		//Check the archive to see if we match an entity.
-		if ($library->enableArchive && $activeSection != 'archive') {
+		if ($islandoraActive) {
 			$exploreMoreOptions = $this->loadExactEntityMatches($exploreMoreOptions, $searchTerm);
 		}
 
@@ -353,29 +362,27 @@ class ExploreMore {
 
 		$exploreMoreOptions = $this->loadEbscoOptions($activeSection, $exploreMoreOptions, $searchTerm);
 
-		if ($library->enableArchive && $activeSection != 'archive'){
+		if ($islandoraActive){
 			if (isset($configArray['Islandora']) && isset($configArray['Islandora']['solrUrl']) && !empty($searchTerm)) {
 				require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
 				$fedoraUtils = FedoraUtils::getInstance();
 
-				/** @var SearchObject_Islandora $searchObject */
-				$searchObject = SearchObjectFactory::initSearchObject('Islandora');
-				$searchObject->init();
-				$searchObject->setDebugging(false, false);
+
+				$islandoraSearchObject->setDebugging(false, false);
 
 				//Get a list of objects in the archive related to this search
-				$searchObject->setSearchTerms(array(
+				$islandoraSearchObject->setSearchTerms(array(
 					'lookfor' => $searchTerm,
 					'index' => 'IslandoraKeyword'
 				));
-				$searchObject->addFacet('mods_genre_s', 'Format');
-				$searchObject->addFacet('RELS_EXT_isMemberOfCollection_uri_ms', 'Collection');
-				$searchObject->addFacet('mods_extension_marmotLocal_relatedEntity_person_entityPid_ms', 'People');
-				$searchObject->addFacet('mods_extension_marmotLocal_relatedEntity_place_entityPid_ms', 'Places');
-				$searchObject->addFacet('mods_extension_marmotLocal_relatedEntity_event_entityPid_ms', 'Events');
-				$searchObject->addHiddenFilter('!mods_extension_marmotLocal_pikaOptions_showInSearchResults_ms', "no");
+				$islandoraSearchObject->addFacet('mods_genre_s', 'Format');
+				$islandoraSearchObject->addFacet('RELS_EXT_isMemberOfCollection_uri_ms', 'Collection');
+				$islandoraSearchObject->addFacet('mods_extension_marmotLocal_relatedEntity_person_entityPid_ms', 'People');
+				$islandoraSearchObject->addFacet('mods_extension_marmotLocal_relatedEntity_place_entityPid_ms', 'Places');
+				$islandoraSearchObject->addFacet('mods_extension_marmotLocal_relatedEntity_event_entityPid_ms', 'Events');
+				$islandoraSearchObject->addHiddenFilter('!mods_extension_marmotLocal_pikaOptions_showInSearchResults_ms', "no");
 
-				$response = $searchObject->processSearch(true, false);
+				$response = $islandoraSearchObject->processSearch(true, false);
 				if ($response && $response['response']['numFound'] > 0) {
 					//Related content
 					foreach ($response['facet_counts']['facet_fields']['mods_genre_s'] as $relatedContentType) {
@@ -440,12 +447,12 @@ class ExploreMore {
 							$numPeople = '100+';
 						}
 						$archiveObject = $fedoraUtils->getObject($personInfo[0]);
-						$searchObject->clearFilters();
-						$searchObject->addFilter('RELS_EXT_hasModel_uri_s:info:fedora/islandora:personCModel');
+						$islandoraSearchObject->clearFilters();
+						$islandoraSearchObject->addFilter('RELS_EXT_hasModel_uri_s:info:fedora/islandora:personCModel');
 						if ($archiveObject != null) {
 							$exploreMoreOptions[] = array(
 								'label' => "People (" . $numPeople . ")",
-								'description' => "People related to {$searchObject->getQuery()}",
+								'description' => "People related to {$islandoraSearchObject->getQuery()}",
 								'image' => $fedoraUtils->getObjectImageUrl($archiveObject, 'medium', 'personCModel'),
 								'link' => '/Archive/RelatedEntities?lookfor=' . urlencode($searchTerm) . '&entityType=person',
 								'usageCount' => $numPeople
@@ -459,12 +466,12 @@ class ExploreMore {
 							$numPlaces = '100+';
 						}
 						$archiveObject = $fedoraUtils->getObject($placeInfo[0]);
-						$searchObject->clearFilters();
-						$searchObject->addFilter('RELS_EXT_hasModel_uri_s:info:fedora/islandora:placeCModel');
+						$islandoraSearchObject->clearFilters();
+						$islandoraSearchObject->addFilter('RELS_EXT_hasModel_uri_s:info:fedora/islandora:placeCModel');
 						if ($archiveObject != null) {
 							$exploreMoreOptions[] = array(
 								'label' => "Places (" . $numPlaces . ")",
-								'description' => "Places related to {$searchObject->getQuery()}",
+								'description' => "Places related to {$islandoraSearchObject->getQuery()}",
 								'image' => $fedoraUtils->getObjectImageUrl($archiveObject, 'medium', 'placeCModel'),
 								'link' => '/Archive/RelatedEntities?lookfor=' . urlencode($searchTerm) . '&entityType=place',
 								'usageCount' => $numPlaces
@@ -478,12 +485,12 @@ class ExploreMore {
 							$numEvents = '100+';
 						}
 						$archiveObject = $fedoraUtils->getObject($eventInfo[0]);
-						$searchObject->clearFilters();
-						$searchObject->addFilter('RELS_EXT_hasModel_uri_s:info:fedora/islandora:eventCModel');
+						$islandoraSearchObject->clearFilters();
+						$islandoraSearchObject->addFilter('RELS_EXT_hasModel_uri_s:info:fedora/islandora:eventCModel');
 						if ($archiveObject != null) {
 							$exploreMoreOptions[] = array(
 								'label' => "Events (" . $numEvents . ")",
-								'description' => "Places related to {$searchObject->getQuery()}",
+								'description' => "Places related to {$islandoraSearchObject->getQuery()}",
 								'image' => $fedoraUtils->getObjectImageUrl($archiveObject, 'medium', 'eventCModel'),
 								'link' => '/Archive/RelatedEntities?lookfor=' . urlencode($searchTerm) . '&entityType=event',
 								'usageCount' => $numEvents
