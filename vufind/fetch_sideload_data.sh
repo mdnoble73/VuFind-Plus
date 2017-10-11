@@ -35,6 +35,9 @@ if [ $# = 3 ];then
   # Merge Data
   /usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh $PIKADATADIR
 
+  # Delete mergeBackup file older than a month
+  find /data/vufind-plus/$PIKADATADIR/mergeBackup -name "*.mrc" -mtime +30 -delete
+
    echo ""
 else
   echo ""

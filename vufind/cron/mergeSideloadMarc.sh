@@ -1,14 +1,12 @@
 #!/usr/bin/env bash
 
 if [[ $# -ne 1 ]]; then
-# TODO: use actual description
 	echo "To use, add the side load collection data directory for the first parameter (omitting /data/vufind-plus)."
 	echo "$0 data_directory"
 	echo "eg: $0 lynda/vail"
 else
 
 	SIDELOADDIR="/data/vufind-plus/$1"
-#	SECONDPARAM=$2
 
 	LOG="logger -t $0"
 	if [ -d "$SIDELOADDIR/" ]; then
