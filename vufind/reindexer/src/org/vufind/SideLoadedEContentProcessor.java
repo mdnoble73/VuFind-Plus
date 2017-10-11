@@ -183,6 +183,10 @@ class SideLoadedEContentProcessor extends IlsRecordProcessor{
 						econtentItem.setFormat("Map");
 						econtentItem.setFormatCategory("Other");
 						econtentRecord.setFormatBoost(2);
+					} else if (format.equalsIgnoreCase("Newspaper")) {
+						econtentItem.setFormat("Newspaper");
+						econtentItem.setFormatCategory("eBook");
+						econtentRecord.setFormatBoost(2);
 					} else {
 						logger.warn("Could not find appropriate eContent format for " + format + " while side loading eContent " + econtentRecord.getFullIdentifier());
 					}
