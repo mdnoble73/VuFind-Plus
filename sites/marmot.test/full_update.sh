@@ -81,7 +81,6 @@ cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE
 # Ebrary Marc Updates
 #TODO: refactor CCU's ebrary destination
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh ccu/ebrary ebrary_ccu >> ${OUTPUT_FILE}
-#/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh adams/ebrary ebrary/adams >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh western/ebrary ebrary/western >> ${OUTPUT_FILE}
 
 #Adams Ebrary DDA files
@@ -97,9 +96,15 @@ cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE
 # CMC Ebsco Academic Marc Updates
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh cmc/ebsco ebsco/cmc >> ${OUTPUT_FILE}
 
+# Adams Ebsco Marc Updates
+/usr/local/vufind-plus/fetch_sideload_data.sh ${PIKASERVER} adams/ebsco ebsco/adams >> ${OUTPUT_FILE}
+
 # Fort Lewis Ebsco Academic Marc Updates
 /usr/local/vufind-plus/sites/marmot.test/moveSideloadAdds.sh fortlewis_sideload/EBSCO_Academic ebsco/fortlewis/merge >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/sites/marmot.test/moveSideloadAdds.sh fortlewis_sideload/EBSCO_Academic/deletes ebsco/fortlewis/deletes >> ${OUTPUT_FILE}
+
+# Englewood Axis 360 Marc Updates
+/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} englewood/axis360 axis360/englewood >> ${OUTPUT_FILE}
 
 # Western Oxford Reference Marc Updates
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh western/oxfordReference oxfordReference/western >> ${OUTPUT_FILE}
@@ -127,7 +132,8 @@ cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE
 /usr/local/vufind-plus/sites/marmot.test/moveSideloadAdds.sh vail/learning_express/deletes learning_express/vail/deletes >> ${OUTPUT_FILE}
 
 # Colorado State Gov Docs Marc Updates
-/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh  marmot/coloGovDocs colorado_gov_docs >> ${OUTPUT_FILE}
+#/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh  marmot/coloGovDocs colorado_gov_docs >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} marmot/coloGovDocs colorado_gov_docs/marmot >> ${OUTPUT_FILE}
 
 #Films On Demand
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh cmc/filmsondemand filmsondemand/cmc >> ${OUTPUT_FILE}
@@ -148,10 +154,10 @@ cd /usr/local/vufind-plus/vufind/cron; ./sideload.sh ${PIKASERVER}
 /usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh learning_express/vail >> ${OUTPUT_FILE}
 
 # Merge Lynda.com Records
-/usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh lynda/evld >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh lynda/vail >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh lynda/telluride >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh lynda/grand >> ${OUTPUT_FILE}
+#/usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh lynda/evld >> ${OUTPUT_FILE}
+#/usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh lynda/vail >> ${OUTPUT_FILE}
+#/usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh lynda/telluride >> ${OUTPUT_FILE}
+#/usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh lynda/grand >> ${OUTPUT_FILE}
 
 #Merge EBSCO records
 /usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh ebsco/fortlewis >> ${OUTPUT_FILE}
