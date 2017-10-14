@@ -871,9 +871,9 @@ class CarlX extends SIP2Driver{
 			$state      = trim(strtoupper($_REQUEST['state']));
 			$zip        = trim($_REQUEST['zip']);
 			$email      = trim(strtoupper($_REQUEST['email']));
-			$pin        = trim($_REQUEST['pin']);
+//			$pin        = trim($_REQUEST['pin']);
 //			$pin1       = trim($_REQUEST['pin1']);
-			$phone      = trim($_REQUEST['phone']);
+			$phone      = preg_replace('/^(\d{3})(\d{3})(\d{4})$/','$1-$2-$3',preg_replace('/\D/','',trim($_REQUEST['phone'])));
 
 //			if (!empty($pin) && !empty($pin1) && $pin == $pin1) {
 
