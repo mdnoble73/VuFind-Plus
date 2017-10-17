@@ -57,7 +57,6 @@
 				</div>
 			</div>
 
-			{* include file="Admin/menu.tpl" File appears to no longer exist. plb 1-8-2015 *}
 		</div>
 
 		<div id="main-content">

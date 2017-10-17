@@ -229,7 +229,6 @@ class CatalogConnection
 				$user->update();
 			}
 			if ($parentAccount) $user->setParentUser($parentAccount); // only set when the parent account is passed.
-			$this->updateUserWithAdditionalRuntimeInformation($user);
 		}
 
 		return $user;
@@ -239,39 +238,31 @@ class CatalogConnection
 	 * @param User $user
 	 */
 	public function updateUserWithAdditionalRuntimeInformation($user){
-		//TODO: Optimize by checking if the patron home library has OverDrive active.
+		global $timer;
 		require_once(ROOT_DIR . '/Drivers/OverDriveDriverFactory.php');
 		$overDriveDriver = OverDriveDriverFactory::getDriver();
 		if ($user->isValidForOverDrive() && $overDriveDriver->isUserValidForOverDrive($user)){
 			$overDriveSummary = $overDriveDriver->getOverDriveSummary($user);
-			$user->numCheckedOutOverDrive = $overDriveSummary['numCheckedOut'];
-			$user->numHoldsAvailableOverDrive = $overDriveSummary['numAvailableHolds'];
-			$user->numHoldsRequestedOverDrive = $overDriveSummary['numUnavailableHolds'];
-			$user->numHoldsOverDrive = $overDriveSummary['numAvailableHolds'] + $overDriveSummary['numUnavailableHolds'];
-			$user->canUseOverDrive = true;
-		}else{
-			$user->numCheckedOutOverDrive = 0;
-			$user->numHoldsAvailableOverDrive = 0;
-			$user->numHoldsRequestedOverDrive = 0;
-			$user->canUseOverDrive = false;
+			$user->setNumCheckedOutOverDrive($overDriveSummary['numCheckedOut']);
+			$user->setNumHoldsAvailableOverDrive($overDriveSummary['numAvailableHolds']);
+			$user->setNumHoldsRequestedOverDrive($overDriveSummary['numUnavailableHolds']);
+			$timer->logTime("Updated runtime information from OverDrive");
 		}
 
 		$materialsRequest = new MaterialsRequest();
 		$materialsRequest->createdBy = $user->id;
 		$homeLibrary = Library::getLibraryForLocation($user->homeLocationId);
-		if ($homeLibrary){
+		if ($homeLibrary && $homeLibrary->enableMaterialsRequest){
 			$statusQuery = new MaterialsRequestStatus();
 			$statusQuery->isOpen = 1;
 			$statusQuery->libraryId = $homeLibrary->libraryId;
 			$materialsRequest->joinAdd($statusQuery);
 			$materialsRequest->find();
-			$user->numMaterialsRequests = $materialsRequest->N;
-		}else{
-			$user->numMaterialsRequests = 0;
+			$user->setNumMaterialsRequests($materialsRequest->N);
+			$timer->logTime("Updated number of active materials requests");
 		}
 
 
-		$user->readingHistorySize = '';
 		if ($user->trackReadingHistory && $user->initialReadingHistoryLoaded){
 			require_once ROOT_DIR . '/sys/ReadingHistoryEntry.php';
 			$readingHistoryDB = new ReadingHistoryEntry();
@@ -279,7 +270,8 @@ class CatalogConnection
 			$readingHistoryDB->deleted = 0;
 			$readingHistoryDB->groupBy('groupedWorkPermanentId');
 			$readingHistoryDB->find();
-			$user->readingHistorySize = $readingHistoryDB->N;
+			$user->setReadingHistorySize($readingHistoryDB->N);
+			$timer->logTime("Updated reading history size");
 		}
 	}
 

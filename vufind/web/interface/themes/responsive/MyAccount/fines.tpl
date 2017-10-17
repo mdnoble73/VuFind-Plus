@@ -8,7 +8,7 @@
 	{* Alternate Mobile MyAccount Menu *}
 	{include file="MyAccount/mobilePageHeader.tpl"}
 
-	{include file="MyAccount/availableHoldsNotice.tpl"}
+	<span class='availableHoldsNoticePlaceHolder'></span>
 
 	<h2>{translate text='Fines'}</h2>
 {if $offline}

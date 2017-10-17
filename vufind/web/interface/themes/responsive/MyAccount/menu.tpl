@@ -76,16 +76,12 @@
 
 						<div class="myAccountLink{if $action=="CheckedOut"} active{/if}">
 							<a href="{$path}/MyAccount/CheckedOut" id="checkedOut">
-								Checked Out Titles {if !$offline}<span class="badge">{$user->getNumCheckedOutTotal()}</span>{/if}
+								Checked Out Titles {if !$offline}<span class="checkouts-placeholder"><img src="{$path}/images/loading.gif" alt="loading"></span>{/if}
 							</a>
 						</div>
 						<div class="myAccountLink{if $action=="Holds"} active{/if}">
 							<a href="{$path}/MyAccount/Holds" id="holds">
-								Titles On Hold {if !$offline}<span class="badge">{$user->getNumHoldsTotal()}</span>
-								{if !$offline && $user->getNumHoldsAvailableTotal() && $user->getNumHoldsAvailableTotal() > 0}
-									&nbsp;<span class="label label-success">{$user->getNumHoldsAvailableTotal()} ready for pick up</span>
-								{/if}
-								{/if}
+								Titles On Hold {if !$offline}<span class="holds-placeholder"><img src="{$path}/images/loading.gif" alt="loading"></span>{/if}
 							</a>
 						</div>
 
@@ -98,7 +94,7 @@
 						{/if}
 						<div class="myAccountLink{if $action=="ReadingHistory"} active{/if}">
 							<a href="{$path}/MyAccount/ReadingHistory">
-								Reading History {if !$offline}{if $user->readingHistorySize}<span class="badge">{$user->readingHistorySize}</span>{/if}{/if}
+								Reading History {if !$offline}<span class="readingHistory-placeholder"><img src="{$path}/images/loading.gif" alt="loading"></span>{/if}
 							</a>
 						</div>
 
@@ -107,7 +103,7 @@
 						{/if}
 						{if $enableMaterialsRequest}
 							<div class="myAccountLink{if $pageTemplate=="myMaterialRequests.tpl"} active{/if}" title="{translate text='Materials_Request_alt'}s">
-								<a href="{$path}/MaterialsRequest/MyRequests">{translate text='Materials_Request_alt'}s <span class="badge">{$user->numMaterialsRequests}</span></a>
+								<a href="{$path}/MaterialsRequest/MyRequests">{translate text='Materials_Request_alt'}s <span class="materialsRequests-placeholder"><img src="{$path}/images/loading.gif" alt="loading"></span></a>
 							</div>
 						{/if}
 						{if $showRatings}
@@ -132,12 +128,11 @@
 			</div>
 
 			{* My Lists*}
-			{*{if $lists || $showConvertListsFromClassic}*}
-				{if $action == 'MyList'}
-					{assign var="curSection" value=true}
-				{else}
-					{assign var="curSection" value=false}
-				{/if}
+			{if $action == 'MyList'}
+				{assign var="curSection" value=true}
+			{else}
+				{assign var="curSection" value=false}
+			{/if}
 			<div class="panel{if $curSection} active{/if}">
 					<a data-toggle="collapse" data-parent="#account-link-accordion" href="#myListsPanel">
 						<div class="panel-heading">
@@ -153,12 +148,7 @@
 								<br>
 							{/if}
 
-							{foreach from=$lists item=list}
-								{if $list.id != -1}
-									<div class="myAccountLink"><a href="{$list.url}">{$list.name}{if $list.numTitles} ({$list.numTitles}){/if}</a></div>
-									{*<div class="myAccountLink"><a href="{$list.url}">{$list.name}{if $list.numTitles} <span class="badge">{$list.numTitles}</span>{/if}</a></div>*}
-								{/if}
-							{/foreach}
+							<div id="lists-placeholder"><img src="{$path}/images/loading.gif" alt="loading"></div>
 
 							<a href="#" onclick="return VuFind.Account.showCreateListForm();" class="btn btn-sm btn-primary">Create a New List</a>
 						</div>
@@ -471,4 +461,7 @@
 		{include file="library-links.tpl" libraryLinks=$libraryAccountLinks linksId='home-library-account-links' section='Account'}
 	</div>
 {/if}
+<script type="text/javascript">
+	VuFind.Account.loadMenuData();
+</script>
 {/strip}

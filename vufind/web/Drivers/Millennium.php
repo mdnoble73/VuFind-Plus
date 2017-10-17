@@ -594,7 +594,7 @@ class Millennium extends ScreenScrapingDriver
 			}
 		}
 
-		$timer->logTime("Got patron information from Patron API");
+		$timer->logTime("Got patron information from Patron API for $barcode");
 		return $patronDump;
 	}
 

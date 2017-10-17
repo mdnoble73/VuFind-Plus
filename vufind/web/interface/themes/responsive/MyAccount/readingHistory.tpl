@@ -10,7 +10,7 @@
 		{* Alternate Mobile MyAccount Menu *}
 		{include file="MyAccount/mobilePageHeader.tpl"}
 
-		{include file="MyAccount/availableHoldsNotice.tpl"}
+	<span class='availableHoldsNoticePlaceHolder'></span>
 
 	<h2>{translate text='My Reading History'} {if $historyActive == true}<small><a id="readingListWhatsThis" href="#" onclick="$('#readingListDisclaimer').toggle();return false;">(What's This?)</a></small>{/if}</h2>
 

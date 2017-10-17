@@ -71,20 +71,15 @@ class User extends DB_DataObject
 	public $numHoldsIls;
 	public $numHoldsAvailableIls;
 	public $numHoldsRequestedIls;
-	public $numCheckedOutEContent;
-	public $numHoldsEContent;
-	public $numHoldsAvailableEContent;
-	public $numHoldsRequestedEContent;
-	public $numCheckedOutOverDrive;
-	public $canUseOverDrive;
-	public $numHoldsOverDrive;
-	public $numHoldsAvailableOverDrive;
-	public $numHoldsRequestedOverDrive;
+	private $numCheckedOutOverDrive = 0;
+	private $numHoldsOverDrive = 0;
+	private $numHoldsAvailableOverDrive = 0;
+	private $numHoldsRequestedOverDrive = 0;
 	public $numBookings;
 	public $notices;
 	public $noticePreferenceLabel;
-	public $numMaterialsRequests;
-	public $readingHistorySize;
+	private $numMaterialsRequests = 0;
+	private $readingHistorySize = 0;
 	public $loggedInViaCAS;
 
 	private $data = array();
@@ -350,10 +345,7 @@ class User extends DB_DataObject
 								//Load full information from the catalog
 								$linkedUser = UserAccount::validateAccount($linkedUser->cat_username, $linkedUser->cat_password, $linkedUser->source, $this);
 							}else{
-								$logger->log("Found cached linked user, updating runtime data for {$userData->id}", PEAR_LOG_DEBUG);
-								$userData->updateRuntimeInformation();
-								global $timer;
-								$timer->logTime("Updated Runtime Information");
+								$logger->log("Found cached linked user {$userData->id}", PEAR_LOG_DEBUG);
 								$linkedUser = $userData;
 							}
 							if ($linkedUser && !PEAR_Singleton::isError($linkedUser)) {
@@ -592,11 +584,15 @@ class User extends DB_DataObject
 		}
 	}
 
+	private $runtimeInfoUpdated = false;
 	function updateRuntimeInformation(){
-		if ($this->getCatalogDriver()){
-			$this->getCatalogDriver()->updateUserWithAdditionalRuntimeInformation($this);
-		}else{
-			echo("Catalog Driver is not configured properly.  Please update indexing profiles and setup Account Profiles");
+		if (!$this->runtimeInfoUpdated) {
+			if ($this->getCatalogDriver()) {
+				$this->getCatalogDriver()->updateUserWithAdditionalRuntimeInformation($this);
+			} else {
+				echo("Catalog Driver is not configured properly.  Please update indexing profiles and setup Account Profiles");
+			}
+			$this->runtimeInfoUpdated = true;
 		}
 	}
 
@@ -719,7 +715,8 @@ class User extends DB_DataObject
 	}
 
 	public function getNumCheckedOutTotal($includeLinkedUsers = true) {
-		$myCheckouts = $this->numCheckedOutIls + $this->numCheckedOutEContent + $this->numCheckedOutOverDrive;
+		$this->updateRuntimeInformation();
+		$myCheckouts = $this->numCheckedOutIls + $this->numCheckedOutOverDrive;
 		if ($includeLinkedUsers) {
 			if ($this->getLinkedUsers() != null) {
 				/** @var User $user */
@@ -732,7 +729,8 @@ class User extends DB_DataObject
 	}
 
 	public function getNumHoldsTotal($includeLinkedUsers = true) {
-		$myHolds = $this->numHoldsIls + $this->numHoldsEContent + $this->numHoldsOverDrive;
+		$this->updateRuntimeInformation();
+		$myHolds = $this->numHoldsIls + $this->numHoldsOverDrive;
 		if ($includeLinkedUsers) {
 			if ($this->getLinkedUsers() != null) {
 				/** @var User $user */
@@ -745,7 +743,8 @@ class User extends DB_DataObject
 	}
 
 	public function getNumHoldsAvailableTotal($includeLinkedUsers = true){
-		$myHolds = $this->numHoldsAvailableIls + $this->numHoldsAvailableEContent + $this->numHoldsAvailableOverDrive;
+		$this->updateRuntimeInformation();
+		$myHolds = $this->numHoldsAvailableIls + $this->numHoldsAvailableOverDrive;
 		if ($includeLinkedUsers){
 			if ($this->getLinkedUsers() != null) {
 				/** @var User $user */
@@ -798,7 +797,6 @@ class User extends DB_DataObject
 	 * Will check:
 	 * 1) The current ILS for the user
 	 * 2) OverDrive
-	 * 3) eContent stored by Pika
 	 *
 	 * @param bool $includeLinkedUsers
 	 * @return array
@@ -1346,6 +1344,38 @@ class User extends DB_DataObject
 	public function setMaterialsRequestEmailSignature($materialsRequestEmailSignature)
 	{
 		$this->materialsRequestEmailSignature = $materialsRequestEmailSignature;
+	}
+
+	function setNumCheckedOutOverDrive($val){
+		$this->numCheckedOutOverDrive = $val;
+	}
+
+	function setNumHoldsAvailableOverDrive($val){
+		$this->numHoldsAvailableOverDrive = $val;
+		$this->numHoldsOverDrive += $val;
+	}
+
+	function setNumHoldsRequestedOverDrive($val){
+		$this->numHoldsRequestedOverDrive = $val;
+		$this->numHoldsOverDrive += $val;
+	}
+
+	function setNumMaterialsRequests($val){
+		$this->numMaterialsRequests = $val;
+	}
+
+	function getNumMaterialsRequests(){
+		$this->updateRuntimeInformation();
+		return $this->numMaterialsRequests;
+	}
+
+	function setReadingHistorySize($val){
+		$this->readingHistorySize = $val;
+	}
+
+	function getReadingHistorySize(){
+		$this->updateRuntimeInformation();
+		return $this->readingHistorySize;
 	}
 }
 

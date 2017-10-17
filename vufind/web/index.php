@@ -509,20 +509,7 @@ if ($action == "AJAX" || $action == "JSON"){
 			$interface->assign('homeLinkText', 'Home');
 		}
 	}
-	//Load user list for book bag
-	if ($user){
-		$lists = $user->getLists();
-		$timer->logTime('Get user lists for book cart');
 
-		$userLists = array();
-		foreach($lists as $current) {
-			$userLists[] = array(
-				'id'    => $current->id,
-        'title' => $current->title
-			);
-		}
-		$interface->assign('userLists', $userLists);
-	}
 }
 
 //Determine if we should include autoLogout Code
@@ -970,36 +957,6 @@ function loadUserData(){
 	if ($interface->getVariable('expirationNearMessage')){
 		$interface->assign('expirationNearMessage', str_replace('%date%', $user->expires, $interface->getVariable('expirationNearMessage')));
 	}
-
-	//Load a list of lists
-	$userListData = $memCache->get('user_list_data_' . $user->id);
-	if ($userListData == null || isset($_REQUEST['reload'])){
-		$lists = array();
-		require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
-		$tmpList = new UserList();
-		$tmpList->user_id = $user->id;
-		$tmpList->deleted = 0;
-		$tmpList->orderBy("title ASC");
-		$tmpList->find();
-		if ($tmpList->N > 0){
-			while ($tmpList->fetch()){
-				$lists[$tmpList->id] = array(
-						'name' => $tmpList->title,
-						'url' => '/MyAccount/MyList/' .$tmpList->id ,
-						'id' => $tmpList->id,
-						'numTitles' => $tmpList->numValidListItems()
-				);
-			}
-		}
-		$memCache->set('user_list_data_' . $user->id, $lists, 0, $configArray['Caching']['user']);
-		$timer->logTime("Load Lists");
-	}else{
-		$lists = $userListData;
-		$timer->logTime("Load Lists from cache");
-	}
-
-	$interface->assign('lists', $lists);
-
 
 	// Get My Tags
 	$tagList = $user->getTags();

@@ -14,7 +14,7 @@
 	{* Alternate Mobile MyAccount Menu *}
 	{include file="MyAccount/mobilePageHeader.tpl"}
 
-	{include file="MyAccount/availableHoldsNotice.tpl"}
+	<span class='availableHoldsNoticePlaceHolder'></span>
 
 	<div class="resulthead">
 		<h3>{translate text='My Ratings'}</h3>

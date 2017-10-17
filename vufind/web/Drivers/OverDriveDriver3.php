@@ -87,9 +87,11 @@ class OverDriveDriver3 {
 	private function _connectToPatronAPI($user, $patronBarcode, $patronPin, $forceNewConnection = false){
 		/** @var Memcache $memCache */
 		global $memCache;
+		global $timer;
 		$patronTokenData = $memCache->get('overdrive_patron_token_' . $patronBarcode);
 		if ($forceNewConnection || $patronTokenData == false){
 			$tokenData = $this->_connectToAPI($forceNewConnection);
+			$timer->logTime("Connected to OverDrive API");
 			if ($tokenData){
 				global $configArray;
 				$ch = curl_init("https://oauth-patron.overdrive.com/patrontoken");
@@ -139,8 +141,10 @@ class OverDriveDriver3 {
 
 				$return = curl_exec($ch);
 				$curlInfo = curl_getinfo($ch);
+				$timer->logTime("Logged $patronBarcode into OverDrive API");
 				curl_close($ch);
 				$patronTokenData = json_decode($return);
+				$timer->logTime("Decoded return for login of $patronBarcode into OverDrive API");
 				if ($patronTokenData){
 					if (isset($patronTokenData->error)){
 						if ($patronTokenData->error == 'unauthorized_client'){ // login failure
@@ -155,7 +159,6 @@ class OverDriveDriver3 {
 						if (property_exists($patronTokenData, 'expires_in')){
 							$memCache->set('overdrive_patron_token_' . $patronBarcode, $patronTokenData, 0, $patronTokenData->expires_in - 10);
 						}
-
 					}
 				}
 			}else{
@@ -900,6 +903,7 @@ class OverDriveDriver3 {
 	 */
 	public function isUserValidForOverDrive($user){
 		global $configArray;
+		global $timer;
 		$barcodeProperty = $configArray['Catalog']['barcodeProperty'];
 		$userBarcode = $user->getBarcode();
 		if ($this->getRequirePin($user)){
@@ -910,6 +914,7 @@ class OverDriveDriver3 {
 		}else{
 			$tokenData = $this->_connectToPatronAPI($user, $userBarcode, null, false);
 		}
+		$timer->logTime("Checked to see if the user $userBarcode is valid for OverDrive");
 		return ($tokenData !== false) && ($tokenData !== null) && !array_key_exists('error', $tokenData);
 	}
 

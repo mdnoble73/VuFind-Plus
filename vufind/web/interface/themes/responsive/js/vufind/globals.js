@@ -11,6 +11,8 @@ var Globals = (function () {
 		automaticTimeoutLength: 0,
 		automaticTimeoutLengthLoggedOut: 0,
 		repositoryUrl: '',
-		encodedRepositoryUrl: ''
+		encodedRepositoryUrl: '',
+		activeAction: '',
+		activeModule: ''
 	}
 })(Globals || {});

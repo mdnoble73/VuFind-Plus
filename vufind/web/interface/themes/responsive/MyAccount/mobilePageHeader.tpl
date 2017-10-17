@@ -10,7 +10,6 @@
 					{assign var="totalFines" value=$user->getTotalFines()}
 				{/if}
 				{if $totalFines > 0 || ($showExpirationWarnings && $user->expireClose)}
-					{* $totalFines is calculated in menu.tpl *}
 					{if $showEcommerceLink && $totalFines > $minimumFineAmount}
 						<div class="myAccountLink" style="color:red; font-weight:bold;">
 							Your account{if count($user->getLinkedUsers())>0}s have{else} has{/if} ${$totalFines|number_format:2} in fines.
@@ -43,15 +42,12 @@
 			{* taken from MyAccount/menu.tpl*}
 			<div class="myAccountLink{if $action=="CheckedOut"} active{/if}">
 				<a href="{$path}/MyAccount/CheckedOut" id="mobileHeader-checkedOut">
-					Checked Out Titles {if !$offline}<span class="badge">{$user->getNumCheckedOutTotal()}</span>{/if}
+					Checked Out Titles {if !$offline}<span class="checkouts-placeholder"><img src="{$path}/images/loading.gif" alt="loading"></span>{/if}
 				</a>
 			</div>
 			<div class="myAccountLink{if $action=="Holds"} active{/if}">
 				<a href="{$path}/MyAccount/Holds" id="mobileHeader-holds">
-					Titles On Hold {if !$offline}<span class="badge">{$user->getNumHoldsTotal()}</span>
-					{if $user->getNumHoldsAvailableTotal() && $user->getNumHoldsAvailableTotal() > 0}
-						&nbsp;<span class="label label-success">{$user->getNumHoldsAvailableTotal()} ready for pick up</span>
-					{/if}{/if}
+					Titles On Hold {if !$offline}<span class="holds-placeholder"><img src="{$path}/images/loading.gif" alt="loading"></span>{/if}
 				</a>
 			</div>
 
@@ -64,7 +60,7 @@
 			{/if}
 			<div class="myAccountLink{if $action=="ReadingHistory"} active{/if}">
 				<a href="{$path}/MyAccount/ReadingHistory">
-					Reading History {if !$offline}{if $user->readingHistorySize}<span class="badge">{$user->readingHistorySize}</span>{/if}{/if}
+					Reading History {if !$offline}<span class="readingHistory-placeholder"><img src="{$path}/images/loading.gif" alt="loading"></span>{/if}
 				</a>
 			</div>
 

@@ -29,7 +29,7 @@ class MyAccount_AJAX
 			'renewItem', 'renewAll', 'renewSelectedItems', 'getPinResetForm',
 			'getAddAccountLinkForm', 'addAccountLink', 'removeAccountLink',
 			'cancelBooking', 'getCitationFormatsForm', 'getAddBrowseCategoryFromListForm'
-		  ,'getMasqueradeAsForm', 'initiateMasquerade', 'endMasquerade'
+		  ,'getMasqueradeAsForm', 'initiateMasquerade', 'endMasquerade', 'getMenuData'
 		);
 		$method = $_GET['method'];
 		if (in_array($method, $valid_json_methods)) {
@@ -1305,5 +1305,69 @@ class MyAccount_AJAX
 			}
 		}
 		return array('success' => $success);
+	}
+
+	function getMenuData(){
+		global $user;
+		global $timer;
+		global $interface;
+		global $configArray;
+		/** @var Memcache $memCache */
+		global $memCache;
+		$result = array();
+		if ($user){
+			//Load a list of lists
+			$userListData = $memCache->get('user_list_data_' . $user->id);
+			if ($userListData == null || isset($_REQUEST['reload'])){
+				$lists = array();
+				require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
+				$tmpList = new UserList();
+				$tmpList->user_id = $user->id;
+				$tmpList->deleted = 0;
+				$tmpList->orderBy("title ASC");
+				$tmpList->find();
+				if ($tmpList->N > 0){
+					while ($tmpList->fetch()){
+						$lists[$tmpList->id] = array(
+								'name' => $tmpList->title,
+								'url' => '/MyAccount/MyList/' .$tmpList->id ,
+								'id' => $tmpList->id,
+								'numTitles' => $tmpList->numValidListItems()
+						);
+					}
+				}
+				$memCache->set('user_list_data_' . $user->id, $lists, 0, $configArray['Caching']['user']);
+				$timer->logTime("Load Lists");
+			}else{
+				$lists = $userListData;
+				$timer->logTime("Load Lists from cache");
+			}
+
+			$interface->assign('lists', $lists);
+			$result['lists'] = $interface->fetch('MyAccount/listsMenu.tpl');
+
+			$result['checkouts'] = '</div><span class="badge">' . $user->getNumCheckedOutTotal() . '</span>';
+
+			$result['holds'] = '<span class="badge">' . $user->getNumHoldsTotal() . '</span>';
+			if ($user->getNumHoldsAvailableTotal() > 0){
+				$result['holds'] .= '&nbsp;<span class="label label-success">' . $user->getNumHoldsAvailableTotal() . ' ready for pick up</span>';
+			}
+
+			$result['readingHistory'] = '';
+			if ($user->getReadingHistorySize() > 0){
+				$result['readingHistory'] = '<span class="badge">' . $user->getReadingHistorySize() . '</span>';
+			}
+
+			$result['materialsRequests'] = '<span class="badge">' . $user->getNumMaterialsRequests() . '</span>';
+
+			if ($_REQUEST['activeModule'] == 'MyAccount' && $_REQUEST['activeAction'] == 'Holds'){
+				$interface->assign('noLink', true);
+			}else{
+				$interface->assign('noLink', false);
+			}
+			$result['availableHoldsNotice'] = $interface->fetch('MyAccount/availableHoldsNotice.tpl');
+		}
+
+		return $result;
 	}
 }

@@ -9,7 +9,7 @@
 		{* Alternate Mobile MyAccount Menu *}
 		{include file="MyAccount/mobilePageHeader.tpl"}
 
-		{include file="MyAccount/availableHoldsNotice.tpl"}
+		<span class='availableHoldsNoticePlaceHolder'></span>
 
 		<div class="bookingSectionBody">
 			{if $libraryHoursMessage}

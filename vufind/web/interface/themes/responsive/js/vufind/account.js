@@ -106,6 +106,19 @@ VuFind.Account = (function(){
 			return false;
 		},
 
+		loadMenuData: function (){
+			var url = Globals.path + "/MyAccount/AJAX?method=getMenuData&activeModule=" + Globals.activeModule + '&activeAction=' + Globals.activeAction;
+			$.getJSON(url, function(data){
+				$("#lists-placeholder").html(data.lists);
+				$(".checkouts-placeholder").html(data.checkouts);
+				$(".holds-placeholder").html(data.holds);
+				$(".readingHistory-placeholder").html(data.readingHistory);
+				$(".materialsRequests-placeholder").html(data.materialsRequests);
+				$("#availableHoldsNotice-placeHolder").html(data.availableHoldsNotice);
+			});
+			return false;
+		},
+
 		preProcessLogin: function (){
 			var username = $("#username").val(),
 				password = $("#password").val(),

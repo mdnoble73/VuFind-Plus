@@ -64,10 +64,7 @@ class UserAccount {
 					$userData = UserAccount::validateAccount($userData->cat_username, $userData->cat_password, $userData->source);
 				}
 			}else{
-				$logger->log("Found cached user, updating runtime data for {$userData->id}", PEAR_LOG_DEBUG);
-				$userData->updateRuntimeInformation();
-				global $timer;
-				$timer->logTime("Updated Runtime Information");
+				$logger->log("Found cached user {$userData->id}", PEAR_LOG_DEBUG);
 			}
 			UserAccount::$isLoggedIn = true;
 

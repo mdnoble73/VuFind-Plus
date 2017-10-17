@@ -9,7 +9,7 @@
 		{* Alternate Mobile MyAccount Menu *}
 		{include file="MyAccount/mobilePageHeader.tpl"}
 
-		{include file="MyAccount/availableHoldsNotice.tpl"}
+		<span class='availableHoldsNoticePlaceHolder'></span>
 
 		{* Internal Grid *}
 		<h2 class="myAccountTitle">{translate text='Recommended for you'}</h2>
