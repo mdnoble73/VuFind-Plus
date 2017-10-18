@@ -52,8 +52,6 @@ class PayOnlineNashville extends Action{
 
 	function launch() {
 		global $interface;
-		global $user;
-		global $configArray;
 
 		$this->cc_number = $_POST['payment']['cc'];
 		$this->cc_month = $_POST['payment']['cc_month'];
@@ -63,8 +61,8 @@ class PayOnlineNashville extends Action{
 		$this->cc_fullname = $_POST['payment']['fullname'];
 
 		//Do the actual processing here
-
-		$this->librarycard = 'b' . $user->cat_username; 
+		$user = UserAccount::getLoggedInUser();
+		$this->librarycard = 'b' . $user->cat_username;
 		$search = $this->search();
 
 		// if $search is empty, the record is busy.
@@ -75,7 +73,7 @@ class PayOnlineNashville extends Action{
 		$process = $this->process($search);
 
 		if($process->ProcessPaymentResult->ResultCode == 'Approved') {
-// receipt 
+// receipt
 $receipt = "Payment method: ";
 $receipt .= $process->ProcessPaymentResult->CardType;
 //$receipt .= " last digits: ";
@@ -127,9 +125,9 @@ $fail = FALSE;
 			exec("$this->nplwrapper '" . $bill['JSON'] . "'" ,$wrap);
 			// If $wrap is empty, the patron record is busy. tell the patron that the transaction will be credited at a later time.
 			if(trim($wrap[0]) == $patron->patronID) {
-				// update sqlite 
+				// update sqlite
 				echo "processing " . $bill['INVOICE_ID'] . "\n";
-				$db->exec("UPDATE payments SET COMPLETE = 1 WHERE invoice = " . $bill['INVOICE_ID']); 
+				$db->exec("UPDATE payments SET COMPLETE = 1 WHERE invoice = " . $bill['INVOICE_ID']);
 			} else {
 				// patron not credited. determine an action - failure.
 				$fail = TRUE;
@@ -166,7 +164,7 @@ $fail = FALSE;
 			}
 			asort($invoices);
 			$UserPartsInvoiceIDs = array_chunk($invoices,$invoiceIdsMaxCountPerField);
-// EPP Bug: If UserPartX is undefined, NULL, or Empty, SOAP response nests the undefined/NULL/Empty UserPartXes 
+// EPP Bug: If UserPartX is undefined, NULL, or Empty, SOAP response nests the undefined/NULL/Empty UserPartXes
 // and most problematically nests resultcode and responsemessage within the last UserPartX.
 // Workaround is to define dummy values
 			$UserPart3 = implode("|", $UserPartsInvoiceIDs[0]);
@@ -218,7 +216,7 @@ $fail = FALSE;
 
 				if(!$this->cc_fakeit) {
 
-$process  = new SoapClient($this->cc_host, array( 
+$process  = new SoapClient($this->cc_host, array(
 	'cache_wsdl' => WSDL_CACHE_NONE,
 	'exceptions' => true,
 	'trace' => true,

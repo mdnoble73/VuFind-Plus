@@ -752,13 +752,15 @@ class GroupedWorkDriver extends RecordInterface{
 	public function getTOC() {
 		$tableOfContents = array();
 		foreach ($this->getRelatedRecords() as $record){
-			$recordTOC = $record['driver']->getTOC();
-			if (count($recordTOC) > 0){
-				$editionDescription = "{$record['format']}";
-				if ($record['edition']){
-					$editionDescription .= " - {$record['edition']}";
+			if ($record['driver']){
+				$recordTOC = $record['driver']->getTOC();
+				if (count($recordTOC) > 0){
+					$editionDescription = "{$record['format']}";
+					if ($record['edition']){
+						$editionDescription .= " - {$record['edition']}";
+					}
+					$tableOfContents = array_merge($tableOfContents, array("<h4>From the $editionDescription</h4>"), $recordTOC);
 				}
-				$tableOfContents = array_merge($tableOfContents, array("<h4>From the $editionDescription</h4>"), $recordTOC);
 			}
 		}
 		return $tableOfContents;
@@ -1360,7 +1362,7 @@ class GroupedWorkDriver extends RecordInterface{
 
 			global $solrScope;
 			global $library;
-			global $user;
+			$user = UserAccount::getActiveUserObj();
 
 			$searchLocation = Location::getSearchLocation();
 			$activePTypes = array();
@@ -2072,7 +2074,6 @@ class GroupedWorkDriver extends RecordInterface{
 	}
 
 	public function getTags(){
-		global $user;
 		/** @var UserTag[] $tags */
 		$tags = array();
 		require_once ROOT_DIR . '/sys/LocalEnrichment/UserTag.php';
@@ -2085,10 +2086,10 @@ class GroupedWorkDriver extends RecordInterface{
 				$tags[$userTags->tag]->userAddedThis = false;
 			}
 			$tags[$userTags->tag]->cnt++;
-			if (!$user){
+			if (UserAccount::isLoggedIn()){
 				return false;
 			}else{
-				if ($user->id == $tags[$userTags->tag]->userId){
+				if (UserAccount::getActiveUserId() == $tags[$userTags->tag]->userId){
 					$tags[$userTags->tag]->userAddedThis = true;
 				}
 			}

@@ -26,7 +26,6 @@ class WorkAPI {
 			$permanentId = $_REQUEST['id'];
 		}
 
-		global $user;
 		//Set default rating data
 		$ratingData = array(
 			'average' => 0,
@@ -53,7 +52,7 @@ class WorkAPI {
 			if ($reviewData->rating > 0){
 				$totalRating += $reviewData->rating;
 				$ratingData['count']++;
-				if ($user && $reviewData->userId == $user->id){
+				if (UserAccount::isLoggedIn() && $reviewData->userId == UserAccount::getActiveUserId()){
 					$ratingData['user'] = $reviewData->rating;
 				}
 				if ($reviewData->rating == 1){

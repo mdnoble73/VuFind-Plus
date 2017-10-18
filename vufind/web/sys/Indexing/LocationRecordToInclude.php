@@ -13,10 +13,10 @@ class LocationRecordToInclude extends RecordToInclude{
 	public $locationId;
 
 	static function getObjectStructure(){
-		global $user;
 		$location = new Location();
 		$location->orderBy('displayName');
-		if ($user->hasRole('libraryAdmin')){
+		$user = UserAccount::getLoggedInUser();
+		if (UserAccount::userHasRole('libraryAdmin')){
 			$homeLibrary = Library::getPatronHomeLibrary();
 			$location->libraryId = $homeLibrary->libraryId;
 		}

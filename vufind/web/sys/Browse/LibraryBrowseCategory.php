@@ -2,7 +2,7 @@
 /**
  * A Browse Category designed specifically for a library
  *
- * @category VuFind-Plus 
+ * @category VuFind-Plus
  * @author Mark Noble <mark@marmot.org>
  * Date: 3/4/14
  * Time: 9:25 PM
@@ -16,13 +16,13 @@ class LibraryBrowseCategory extends DB_DataObject{
 	public $libraryId;
 
 	static function getObjectStructure(){
-		global $user;
 		//Load Libraries for lookup values
 		$library = new Library();
 		$library->orderBy('displayName');
-//		if (!$user->hasRole('opacAdmin') && ($user->hasRole('libraryAdmin') || $user->hasRole('libraryManager'))){
+//		if (!UserAccount::userHasRole('opacAdmin') && (UserAccount::userHasRole('libraryAdmin') || UserAccount::userHasRole('libraryManager'))){
 //		May need above to replace below.
-		if ($user->hasRole('libraryAdmin')){
+		$user = UserAccount::getLoggedInUser();
+		if (UserAccount::userHasRole('libraryAdmin')){
 			$homeLibrary = Library::getPatronHomeLibrary();
 			$library->libraryId = $homeLibrary->libraryId;
 		}
@@ -49,4 +49,4 @@ class LibraryBrowseCategory extends DB_DataObject{
 		);
 		return $structure;
 	}
-} 
+}

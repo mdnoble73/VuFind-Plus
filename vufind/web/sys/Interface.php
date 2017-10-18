@@ -232,10 +232,9 @@ class UInterface extends Smarty
 	 *  Set template variables used in the My Account sidebar section dealing with fines.
 	 */
 	function setFinesRelatedTemplateVariables() {
-		global $user;
 
-		if ($user !== false){
-
+		if (UserAccount::isLoggedIn()){
+			$user = UserAccount::getLoggedInUser();
 			//Figure out if we should show a link to pay fines.
 			$homeLibrary = Library::getLibraryForLocation($user->homeLocationId);
 			$showEcomerceLink     = isset($homeLibrary) && $homeLibrary->showEcommerceLink == 1;

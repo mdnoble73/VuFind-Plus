@@ -2,7 +2,7 @@
 /**
  * Links to show in the header for individual libraries
  *
- * @category VuFind-Plus 
+ * @category VuFind-Plus
  * @author Mark Noble <mark@marmot.org>
  * Date: 2/12/14
  * Time: 8:34 AM
@@ -18,11 +18,11 @@ class LibraryTopLinks extends DB_DataObject{
 	public $weight;
 
 	static function getObjectStructure(){
-		global $user;
 		//Load Libraries for lookup values
 		$library = new Library();
 		$library->orderBy('displayName');
-		if ($user->hasRole('libraryAdmin')){
+		$user = UserAccount::getLoggedInUser();
+		if (UserAccount::userHasRole('libraryAdmin')){
 			$homeLibrary = Library::getPatronHomeLibrary();
 			$library->libraryId = $homeLibrary->libraryId;
 		}
@@ -41,4 +41,4 @@ class LibraryTopLinks extends DB_DataObject{
 		);
 		return $structure;
 	}
-} 
+}

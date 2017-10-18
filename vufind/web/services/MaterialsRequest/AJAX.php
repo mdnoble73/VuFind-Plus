@@ -47,8 +47,7 @@ class MaterialsRequest_AJAX extends Action{
 	}
 
 	function CancelRequest(){
-		global $user;
-		if (!$user){
+		if (!UserAccount::isLoggedIn()){
 			return array('success' => false, 'error' => 'Could not cancel the request, you must be logged in to cancel the request.');
 		}elseif (!isset($_REQUEST['id'])){
 			return array('success' => false, 'error' => 'Could not cancel the request, no id provided.');
@@ -56,7 +55,7 @@ class MaterialsRequest_AJAX extends Action{
 			$id = $_REQUEST['id'];
 			$materialsRequest = new MaterialsRequest();
 			$materialsRequest->id = $id;
-			$materialsRequest->createdBy = $user->id;
+			$materialsRequest->createdBy = UserAccount::getActiveUserId();
 			if ($materialsRequest->find(true)){
 				//get the correct status to set based on the user's home library
 				$homeLibrary = Library::getPatronHomeLibrary();
@@ -93,8 +92,8 @@ class MaterialsRequest_AJAX extends Action{
 		}else {
 			$id = $_REQUEST['id'];
 			if (ctype_digit($id)) {
-				global $user;
-				if ($user) {
+				if (UserAccount::isLoggedIn()) {
+					$user = UserAccount::getLoggedInUser();
 					$staffLibrary = $user->getHomeLibrary(); // staff member's home library
 
 					if (!empty($staffLibrary)) {
@@ -139,12 +138,12 @@ class MaterialsRequest_AJAX extends Action{
 								$requestFormFields = $materialsRequest->getRequestFormFields($staffLibrary->libraryId, true);
 								$interface->assign('requestFormFields', $requestFormFields);
 
-								if ($user->hasRole('cataloging')) {
+								if (UserAccount::userHasRole('cataloging')) {
 									$canUpdate   = true; // TODO: Cataloging supersedes library_materials_requests??
 									$isAdminUser = true;
 								} elseif ($user->id == $materialsRequest->createdBy) {
 									$canUpdate = true;
-								} elseif ($user->hasRole('library_material_requests')) {
+								} elseif (UserAccount::userHasRole('library_material_requests')) {
 									//User can update if the home library of the requester is their library
 
 									$requestUserLibrary = $requestUser->getHomeLibrary();
@@ -255,7 +254,7 @@ class MaterialsRequest_AJAX extends Action{
 
 	function MaterialsRequestDetails(){
 		global $interface;
-		global $user;
+		$user = UserAccount::getLoggedInUser();
 		if (!isset($_REQUEST['id'])) {
 			$interface->assign('error', 'Please provide an id of the '. translate('materials request') .' to view.');
 		}elseif (empty($user)) {
@@ -311,7 +310,7 @@ class MaterialsRequest_AJAX extends Action{
 
 						$interface->assign('materialsRequest', $materialsRequest);
 
-						if ($user && $user->hasRole('cataloging') || $user->hasRole('library_material_requests') || $user->hasRole('opacAdmin')) {
+						if ($user && UserAccount::userHasRole('cataloging') || UserAccount::userHasRole('library_material_requests') || UserAccount::userHasRole('opacAdmin')) {
 							$interface->assign('showUserInformation', true);
 							//Load user information
 							$requestUser     = new User();

@@ -36,20 +36,17 @@
 {if strcasecmp($source, 'OverDrive') == 0}
 	<a href="#" onclick="return addOverDriveRecordToWishList('{$id}')" class="button">Add&nbsp;to&nbsp;Wish&nbsp;List</a>
 {/if}
-{if strcasecmp($source, 'OverDrive') != 0 && $user && $user->hasRole('epubAdmin')}
-	<a href="#" onclick="return addItem('{$id}');" class="button">Add Item</a>
-{/if}
 
 {if strcasecmp($source, 'OverDrive') == 0}
 	<div id='overdriveMediaConsoleInfo'>
 		<img src="{$path}/images/overdrive.png" width="125" height="42" alt="Powered by Overdrive" class="alignleft"/>
-		<p>This title requires the <a href="http://www.overdrive.com/software/omc/">OverDrive&reg; Media Console&trade;</a> to use the title.  
+		<p>This title requires the <a href="http://www.overdrive.com/software/omc/">OverDrive&reg; Media Console&trade;</a> to use the title.
 		If you do not already have the OverDrive Media Console, you may download it <a href="http://www.overdrive.com/software/omc/">here</a>.</p>
-		<div class="clearer">&nbsp;</div> 
+		<div class="clearer">&nbsp;</div>
 		<p>Need help transferring a title to your device or want to know whether or not your device is compatible with a particular format?
-		Click <a href="http://help.overdrive.com">here</a> for more information. 
+		Click <a href="http://help.overdrive.com">here</a> for more information.
 		</p>
-		 
+
 	</div>
 {/if}
 

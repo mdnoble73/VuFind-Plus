@@ -35,7 +35,6 @@ class MaterialsRequest_SummaryReport extends Admin_Admin {
 	function launch()
 	{
 		global $interface;
-		global $user;
 
 		$period = isset($_REQUEST['period']) ? $_REQUEST['period'] : 'week';
 		if ($period == 'week'){
@@ -101,7 +100,8 @@ class MaterialsRequest_SummaryReport extends Admin_Admin {
 		$periodData = array();
 
 		$locationsToRestrictTo = '';
-		if ($user->hasRole('library_material_requests')){
+		$user = UserAccount::getLoggedInUser();
+		if (UserAccount::userHasRole('library_material_requests')){
 			//Need to limit to only requests submitted for the user's home location
 			$userHomeLibrary = Library::getPatronHomeLibrary();
 			$locations = new Location();
@@ -144,7 +144,7 @@ class MaterialsRequest_SummaryReport extends Admin_Admin {
 			$materialsRequest->selectAdd();
 			$materialsRequest->selectAdd('COUNT(materials_request.id) as numRequests,description');
 			$materialsRequest->whereAdd('dateUpdated >= ' . $periodStart->getTimestamp() . ' AND dateUpdated < ' . $periodEnd->getTimestamp());
-			if ($user->hasRole('library_material_requests')){
+			if (UserAccount::userHasRole('library_material_requests')){
 				//Need to limit to only requests submitted for the user's home location
 				$userHomeLibrary = Library::getPatronHomeLibrary();
 				$locations = new Location();

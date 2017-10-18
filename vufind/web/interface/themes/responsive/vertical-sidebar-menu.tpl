@@ -8,7 +8,7 @@
 						<div class="menu-bar-label rotated-text"><span class="rotated-text-inner">Search</span></div>
 					</a>
 				</div>
-				{if $user}{* Logged In *}
+				{if $loggedIn}{* Logged In *}
 					<div class="menu-bar-option">
 						<a href="#" onclick="VuFind.Menu.SideBar.showAccount(this)" class="menu-icon" title="Account">
 							<img src="{img filename='/interface/themes/responsive/images/Account.png'}" alt="Account">
@@ -50,23 +50,23 @@
 					$(function(){ldelim}
 						{* .filter(':visible') clauses below ensures that a menu option is triggered if the side bar option is visible is visible :  *}
 
-						{if $module == "Search" || $module == "Series" || $module == "Author" || $module == "Genealogy" || $module == "Library"
-					|| ($module == 'MyAccount' && $action == 'MyList' && !$listEditAllowed)
-					|| ($module == 'EBSCO' && $action == 'Results')
-					|| ($module == 'Archive' && $action == 'Results')|| ($module == 'Archive' && $action == 'RelatedEntities')}
-						{* Treat Public Lists not owned by user as a Search Page rather than an MyAccount Page *}
-						{* Click Search Menu Bar Button *}
-						$('.menu-bar-option:nth-child(1)>a', '#vertical-menu-bar').filter(':visible').click();
-						{elseif (!$isLoginPage && !in_array($action, array('EmailResetPin', 'ResetPin', 'RequestPinReset', 'EmailPin', 'SelfReg', 'OfflineCirculation'))) && ($module == "MyAccount" || $module == "Admin" || $module == "Circa" || $module == "EditorialReview" || $module == "Report")}
-						{* Prevent this action on the Pin Reset Page && Login Page && Offline Circulation Page*}
-						{* Click Account Menu Bar Button *}
-						$('.menu-bar-option:nth-child(2)>a', '#vertical-menu-bar').filter(':visible').click();
+						{if ($module == "Search" && $action != 'History') || $module == "Series" || $module == "Author" || $module == "Genealogy" || $module == "Library"
+							|| ($module == 'MyAccount' && $action == 'MyList' && !$listEditAllowed)
+							|| ($module == 'EBSCO' && $action == 'Results')
+							|| ($module == 'Archive' && $action == 'Results')|| ($module == 'Archive' && $action == 'RelatedEntities')}
+								{* Treat Public Lists not owned by user as a Search Page rather than an MyAccount Page *}
+								{* Click Search Menu Bar Button *}
+							$('.menu-bar-option:nth-child(1)>a', '#vertical-menu-bar').filter(':visible').click();
+						{elseif (!$isLoginPage && !in_array($action, array('EmailResetPin', 'ResetPin', 'RequestPinReset', 'EmailPin', 'SelfReg'))) && ($module == "MyAccount" || $module == "Admin" || $module == "Circa" || $module == "EditorialReview" || $module == "Report" || ($module == 'Search' && $action == 'History'))}
+							{* Prevent this action on the Pin Reset Page && Login Page && Offline Circulation Page*}
+							{* Click Account Menu Bar Button *}
+							$('.menu-bar-option:nth-child(2)>a', '#vertical-menu-bar').filter(':visible').click();
 						{elseif $showExploreMore}
-						{* Click Explore More Menu Bar Button *}
-						$('.menu-bar-option:nth-child(4)>a', '#vertical-menu-bar').filter(':visible').click();
+							{* Click Explore More Menu Bar Button *}
+							$('.menu-bar-option:nth-child(4)>a', '#vertical-menu-bar').filter(':visible').click();
 						{else}
-						{* Click Menu - Sidebar Menu Bar Button *}
-						$('.menu-bar-option:nth-child(3)>a', '#vertical-menu-bar').filter(':visible').click();
+							{* Click Menu - Sidebar Menu Bar Button *}
+							$('.menu-bar-option:nth-child(3)>a', '#vertical-menu-bar').filter(':visible').click();
 						{/if}
 						{rdelim})
 				</script>

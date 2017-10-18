@@ -2,7 +2,7 @@
 /**
  * Displays Student Reports Created by cron
  *
- * @category VuFind-Plus-2014 
+ * @category VuFind-Plus-2014
  * @author Mark Noble <mark@marmot.org>
  * Date: 5/19/14
  * Time: 2:28 PM
@@ -13,18 +13,18 @@ class Report_StudentReport extends Admin_Admin {
 	function launch(){
 		global $interface;
 		global $configArray;
-		global $user;
+		$user = UserAccount::getLoggedInUser();
 
 		//Get a list of all reports the user has access to
 		$reportDir = $configArray['Site']['reportPath'];
 
 		$allowableLocationCodes = "";
-		if ($user->hasRole('opacAdmin')){
+		if (UserAccount::userHasRole('opacAdmin')){
 			$allowableLocationCodes = '.*';
-		}elseif ($user->hasRole('libraryAdmin')){
+		}elseif (UserAccount::userHasRole('libraryAdmin')){
 			$homeLibrary = Library::getPatronHomeLibrary();
 			$allowableLocationCodes = trim($homeLibrary->ilsCode) . '.*';
-		}elseif ($user->hasRole('locationReports')){
+		}elseif (UserAccount::userHasRole('locationReports')){
 			$homeLocation = Location::getUserHomeLocation();
 			$allowableLocationCodes = trim($homeLocation->code) . '.*';
 		}
@@ -99,4 +99,4 @@ class Report_StudentReport extends Admin_Admin {
 	function getAllowableRoles(){
 		return array('opacAdmin', 'libraryAdmin', 'locationReports');
 	}
-} 
+}

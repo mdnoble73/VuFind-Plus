@@ -1,5 +1,5 @@
 <div class="col-xs-12">
-{if $user->cat_username}
+{if $loggedIn}
 
 	{if $profile->web_note}
 		<div class="row">

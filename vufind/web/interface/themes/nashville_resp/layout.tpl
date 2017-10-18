@@ -94,19 +94,6 @@
             {include file="footer_responsive.tpl"}
         </div>
 
-{*			<div id="navigation-controls" class="navbar navbar-fixed-bottom row visible-xs hidden-sm hidden-md hidden-lg">
-				<a href="#top"><div class="col-xs-6 text-center">Back To Top</div></a>
-				{if $showLoginButton == 1}
-					{if $user}
-						<a href="#account-menu"><div class="col-xs-6 text-center">Account Menu</div></a>
-					{else}
-						<a href="{$path}/MyAccount/Home" title='Login' onClick="return VuFind.Account.followLinkIfLoggedIn(this);">
-							<div class="col-xs-6 text-center">{translate text="Login"}</div>
-						</a>
-					{/if}
-				{/if}
-			</div>*}
-
 		{include file="modal_dialog.tpl"}
 
 		{include file="tracking.tpl"}

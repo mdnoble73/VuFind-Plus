@@ -2,11 +2,11 @@
 	{php}
 	// determine if user has any pending payments
 	require_once ROOT_DIR . '/services/MyAccount/PayOnlineNashville.php';
-        global $user;
+  $user = UserAccount::getLoggedInUser();
 
 	// users have to log out and log back in in order for the $user->finesVal to reflect patrons actual balance.
 	// to prevent them from seeing the payment form again, I check that the patron API agrees with $user->finesVal
-	
+
 	$payonline = new PayOnlineNashville();
 	$payonline->librarycard = 'b' . $user->cat_username;
 	$search = $payonline->search(); // returns patron information, including bills.
@@ -70,7 +70,7 @@
 						<label for="cc-exp">Expires Month / Year</label><br />
 <!--						<input id="cc-exp" name="payment[cc_month]" type="text" placeholder="MM" {literal}pattern="[0-9]{2}"{/literal} size="2" required="required">
 						<input id="cc-exp" name="payment[cc_year]" type="text" placeholder="YY" {literal}pattern="[0-9]{2}"{/literal} size="2" required="required">
--->						<input id="cc-exp" name="payment[cc_month]" type="text" placeholder="MM" {literal}pattern="[0-9]{2}"{/literal} size="2" required="required" value="12"> / 
+-->						<input id="cc-exp" name="payment[cc_month]" type="text" placeholder="MM" {literal}pattern="[0-9]{2}"{/literal} size="2" required="required" value="12"> /
 						<input id="cc-exp" name="payment[cc_year]" type="text" placeholder="YY" {literal}pattern="[0-9]{2}"{/literal} size="2" required="required" value="16">
 					</div>
 					<div>

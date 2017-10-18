@@ -91,12 +91,6 @@ class Home extends Action {
 	}
 
 	function isLoggedIn(){
-		global $user;
-		if ($user != false){
-			return true;
-		}else{
-			return false;
-		}
+		return UserAccount::isLoggedIn();
 	}
 }
-?>

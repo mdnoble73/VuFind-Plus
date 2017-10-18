@@ -80,7 +80,7 @@
 
 			</div>-->
 		</div>
-		{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('cataloging') || $user->hasRole('libraryManager') || $user->hasRole('locationManager'))}
+		{if $lastFullReindexFinish && $lastPartialReindexFinish}
 			<div class="row">
 				<div class="col-sm-12 text-left" id="indexing-info">
 					<small>Last Full Index {$lastFullReindexFinish}, Last Partial Index {$lastPartialReindexFinish}</small>

@@ -22,11 +22,11 @@ class LibraryLink extends DB_DataObject{
 	public $showExpanded;
 
 	static function getObjectStructure(){
-		global $user;
 		//Load Libraries for lookup values
 		$library = new Library();
 		$library->orderBy('displayName');
-		if ($user->hasRole('libraryAdmin')){
+		$user = UserAccount::getLoggedInUser();
+		if (UserAccount::userHasRole('libraryAdmin')){
 			$homeLibrary = Library::getPatronHomeLibrary();
 			$library->libraryId = $homeLibrary->libraryId;
 		}

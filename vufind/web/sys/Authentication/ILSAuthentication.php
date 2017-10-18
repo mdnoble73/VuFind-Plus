@@ -27,9 +27,8 @@ class ILSAuthentication implements Authentication {
 		if (!array_key_exists('username', $_REQUEST) && !array_key_exists('password', $_REQUEST)){
 			$logger->log("Username and password not provided, returning user if it exists", PEAR_LOG_INFO);
 			//If not, check to see if we have a valid user already authenticated
-			global $user;
-			if ($user){ //TODO: prevent in case of masquerade??
-				return $user;
+			if (UserAccount::isLoggedIn()){ //TODO: prevent in case of masquerade??
+				return UserAccount::getLoggedInUser();
 			}
 		}
 		$this->username = isset($_REQUEST['username']) ? $_REQUEST['username'] : '';

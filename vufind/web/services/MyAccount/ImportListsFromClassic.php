@@ -2,7 +2,7 @@
 /**
  * Imports Lists for a user from prior catalog (Millennium WebPAC, Encore, Etc).
  *
- * @category VuFind-Plus 
+ * @category VuFind-Plus
  * @author Mark Noble <mark@marmot.org>
  * Date: 2/26/14
  * Time: 10:35 PM
@@ -20,7 +20,7 @@ class ImportListsFromClassic extends MyAccount{
 	public function launch()
 	{
 		global $interface;
-		global $user;
+		$user = UserAccount::getLoggedInUser();
 
 		//Import Lists from the ILS
 		$results = $user->importListsFromIls();

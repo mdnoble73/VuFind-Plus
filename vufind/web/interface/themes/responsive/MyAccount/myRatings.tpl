@@ -3,7 +3,7 @@
 		{*alert("{$title}");*}
 	{*</script>*}
 {*{/if}*}
-{if $user->cat_username}
+{if $loggedIn}
 
 	{if $profile->web_note}
 		<div class="row">

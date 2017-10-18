@@ -24,8 +24,11 @@ require_once 'XML/Serializer.php';
 require_once ROOT_DIR . '/sys/Authentication/AuthenticationFactory.php';
 
 class UserAccount {
-	static $isLoggedIn = null;
-	static $primaryUserData = null;
+	private static $isLoggedIn = null;
+	private static $primaryUserData = null;
+	/** @var User|false  */
+	private static $primaryUserObjectFromDB = null;
+	private static $userRoles = null;
 	/**
 	 * Checks whether the user is logged in.
 	 *
@@ -35,9 +38,162 @@ class UserAccount {
 	 * @return bool|User
 	 */
 	public static function isLoggedIn() {
+		if (UserAccount::$isLoggedIn == null) {
+			if (isset($_SESSION['activeUserId'])) {
+				UserAccount::$isLoggedIn = true;
+			} else {
+				UserAccount::$isLoggedIn = false;
+				//Need to check cas just in case the user logged in from another site
+				//if ($action != 'AJAX' && $action != 'DjatokaResolver' && $action != 'Logout' && $module != 'MyAccount' && $module != 'API' && !isset($_REQUEST['username'])){
+				//If the library uses CAS/SSO we may already be logged in even though they never logged in within Pika
+				global $library;
+				if (strlen($library->casHost) > 0) {
+					//Check CAS first
+					require_once ROOT_DIR . '/sys/Authentication/CASAuthentication.php';
+					$casAuthentication = new CASAuthentication(null);
+					$casUsername = $casAuthentication->validateAccount(null, null, null, false);
+					if ($casUsername == false || PEAR_Singleton::isError($casUsername)) {
+						//The user could not be authenticated in CAS
+						UserAccount::$isLoggedIn = false;
+					} else {
+						//We have a valid user via CAS, need to do a login to Pika
+						$_REQUEST['casLogin'] = true;
+						UserAccount::$isLoggedIn = true;
+					}
+				}
+			}
+		}
+		return UserAccount::$isLoggedIn;
+	}
+
+	public static function getActiveUserId() {
+		if (isset($_SESSION['activeUserId'])) {
+			return $_SESSION['activeUserId'];
+		}else{
+			return false;
+		}
+	}
+
+	public static function userHasRole($roleName) {
+		$userRoles = UserAccount::getActiveRoles();
+		return array_key_exists($roleName, UserAccount::$userRoles);
+	}
+
+	public static function getActiveRoles(){
+		if (UserAccount::$userRoles == null){
+			if (UserAccount::isLoggedIn()){
+				UserAccount::$userRoles = array();
+
+				//Roles for the user
+				require_once ROOT_DIR . '/sys/Administration/Role.php';
+				$role = new Role();
+				$canUseTestRoles = false;
+				$role->query("SELECT roles.name FROM roles INNER JOIN user_roles ON roles.roleId = user_roles.roleId WHERE userId = " . UserAccount::getActiveUserId() . " ORDER BY name");
+				while ($role->fetch()){
+					UserAccount::$userRoles[$role->name] = $role->name;
+					if ($role->name == 'userAdmin'){
+						$canUseTestRoles = true;
+					}
+				}
+
+				//Test roles if we are doing overrides
+				$testRole = '';
+				if (isset($_REQUEST['test_role'])){
+					$testRole = $_REQUEST['test_role'];
+				}elseif (isset($_COOKIE['test_role'])){
+					$testRole = $_COOKIE['test_role'];
+				}
+				if ($canUseTestRoles && $testRole != ''){
+					if (is_array($testRole)){
+						$testRoles = $testRole;
+					}else{
+						$testRoles = array($testRole);
+					}
+					//Ignore the standard roles for the user
+					UserAccount::$userRoles = array();
+					foreach ($testRoles as $tmpRole){
+						$role = new Role();
+						if (is_numeric($tmpRole)){
+							$role->roleId = $tmpRole;
+						}else{
+							$role->name = $tmpRole;
+						}
+						$found = $role->find(true);
+						if ($found == true){
+							UserAccount::$userRoles[$role->name] = $role->name;
+						}
+					}
+				}
+
+				//TODO: Figure out roles for masquerade mode see User.php line 251
+
+			}else{
+				UserAccount::$userRoles = array();
+			}
+		}
+		return UserAccount::$userRoles;
+	}
+
+	private static function loadUserObjectFromDatabase(){
+		if (UserAccount::$primaryUserObjectFromDB == null){
+			$activeUserId = UserAccount::getActiveUserId();
+			if ($activeUserId){
+				$user = new User();
+				$user->id = $activeUserId;
+				if ($user->find(true)){
+					UserAccount::$primaryUserObjectFromDB = $user;
+				}else{
+					UserAccount::$primaryUserObjectFromDB = false;
+				}
+			}else{
+				UserAccount::$primaryUserObjectFromDB = false;
+			}
+		}
+	}
+
+	public static function getActiveUserObj(){
+		UserAccount::loadUserObjectFromDatabase();
+		return UserAccount::$primaryUserObjectFromDB;
+	}
+
+	public static function getUserDisplayName(){
+		UserAccount::loadUserObjectFromDatabase();
+		if (UserAccount::$primaryUserObjectFromDB != false){
+			if (strlen(UserAccount::$primaryUserObjectFromDB->displayName)){
+				return UserAccount::$primaryUserObjectFromDB->displayName;
+			}else{
+				return UserAccount::$primaryUserObjectFromDB->firstname . ' ' . UserAccount::$primaryUserObjectFromDB->lastname;;
+			}
+
+		}
+		return '';
+	}
+
+	public static function getUserPType(){
+		UserAccount::loadUserObjectFromDatabase();
+		if (UserAccount::$primaryUserObjectFromDB != false){
+			return UserAccount::$primaryUserObjectFromDB->patronType;
+		}
+		return 'logged out';
+	}
+
+	public static function getUserHomeLocationId(){
+		UserAccount::loadUserObjectFromDatabase();
+		if (UserAccount::$primaryUserObjectFromDB != false){
+			return UserAccount::$primaryUserObjectFromDB->homeLocationId;
+		}
+		return -1;
+	}
+
+	/**
+	 * @return bool|null|User
+	 */
+	public static function getLoggedInUser(){
 		if (UserAccount::$isLoggedIn != null){
 			if (UserAccount::$isLoggedIn){
-				return UserAccount::$primaryUserData;
+				if (!is_null(UserAccount::$primaryUserData)) {
+					return UserAccount::$primaryUserData;
+				}
 			}else{
 				return false;
 			}
@@ -45,6 +201,7 @@ class UserAccount {
 		global $action;
 		global $module;
 		global $logger;
+
 		$userData = false;
 		if (isset($_SESSION['activeUserId'])) {
 			$activeUserId = $_SESSION['activeUserId'];
@@ -58,10 +215,12 @@ class UserAccount {
 
 				//Load the user from the database
 				$userData = new User();
+
 				$userData->id = $activeUserId;
 				if ($userData->find(true)){
 					$logger->log("Loading user {$userData->cat_username}, {$userData->cat_password} because we didn't have data in memcache", PEAR_LOG_DEBUG);
 					$userData = UserAccount::validateAccount($userData->cat_username, $userData->cat_password, $userData->source);
+					self::updateSession($userData);
 				}
 			}else{
 				$logger->log("Found cached user {$userData->id}", PEAR_LOG_DEBUG);
@@ -109,8 +268,12 @@ class UserAccount {
 		}
 		if (UserAccount::$isLoggedIn){
 			UserAccount::$primaryUserData = $userData;
+			global $interface;
+			if ($interface){
+				$interface->assign('user', $userData);
+			}
 		}
-		return $userData;
+		return UserAccount::$primaryUserData;
 	}
 
 	/**
@@ -210,9 +373,8 @@ class UserAccount {
 					$primaryUser->addLinkedUser($tempUser);
 				}
 			}else{
-				global $user;
 				$username = isset($_REQUEST['username']) ? $_REQUEST['username'] : 'No username provided';
-				$logger->log("Error authenticating patron $username for driver {$driverName}\r\n" . print_r($user, true), PEAR_LOG_ERR);
+				$logger->log("Error authenticating patron $username for driver {$driverName}\r\n", PEAR_LOG_ERR);
 				$lastError = $tempUser;
 				$logger->log($lastError->toString(), PEAR_LOG_ERR);
 			}
@@ -299,8 +461,7 @@ class UserAccount {
 	 */
 	public static function logout()
 	{
-		global $user;
-		global $logger;
+		$user = UserAccount::getLoggedInUser();
 		if ($user && $user->loggedInViaCAS){
 			require_once ROOT_DIR . '/sys/Authentication/CASAuthentication.php';
 			$casAuthentication = new CASAuthentication(null);
@@ -324,7 +485,7 @@ class UserAccount {
 				unset($_SESSION['guidingUserId']);
 			}
 			unset($_SESSION['activeUserId']);
-			global $user;
+			$user = UserAccount::getLoggedInUser();
 			if ($user && $user->loggedInViaCAS){
 				require_once ROOT_DIR . '/sys/Authentication/CASAuthentication.php';
 				$casAuthentication = new CASAuthentication(null);

@@ -27,8 +27,8 @@ class Admin_ArchiveRequests extends ObjectEditor {
 
 		$object = new ArchiveRequest();
 		$object->orderBy('dateRequested desc');
-		global $user;
-		if (!$user->hasRole('opacAdmin')){
+		$user = UserAccount::getLoggedInUser();
+		if (!UserAccount::userHasRole('opacAdmin')){
 			$homeLibrary = $user->getHomeLibrary();
 			$archiveNamespace = $homeLibrary->archiveNamespace;
 			$object->whereAdd("pid LIKE '{$archiveNamespace}:%'");
@@ -57,8 +57,8 @@ class Admin_ArchiveRequests extends ObjectEditor {
 		return false;
 	}
 	function canDelete(){
-		global $user;
-		return $user->hasRole('opacAdmin');
+		$user = UserAccount::getLoggedInUser();
+		return UserAccount::userHasRole('opacAdmin');
 	}
 
 }

@@ -35,7 +35,7 @@ class CreateListWidget extends Action {
 	function launch() 	{
 //		global $configArray;
 //		global $interface;
-		global $user;
+		$user = UserAccount::getLoggedInUser();
 
 		$source = $_REQUEST['source'];
 		$sourceId = $_REQUEST['id'];
@@ -46,7 +46,7 @@ class CreateListWidget extends Action {
 			if ($existingWidget == -1) {
 				$widget       = new ListWidget();
 				$widget->name = $widgetName;
-				if ($user->hasRole('libraryAdmin') || $user->hasRole('contentEditor') || $user->hasRole('libraryManager') || $user->hasRole('locationManager')) {
+				if (UserAccount::userHasRole('libraryAdmin') || UserAccount::userHasRole('contentEditor') || UserAccount::userHasRole('libraryManager') || UserAccount::userHasRole('locationManager')) {
 					//Get all widgets for the library
 					$userLibrary       = Library::getPatronHomeLibrary();
 					$widget->libraryId = $userLibrary->libraryId;

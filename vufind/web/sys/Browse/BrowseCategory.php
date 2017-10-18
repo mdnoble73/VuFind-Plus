@@ -3,7 +3,7 @@
 /**
  * A Customizable section of the catalog that can be browsed within
  *
- * @category VuFind-Plus 
+ * @category VuFind-Plus
  * @author Mark Noble <mark@marmot.org>
  * Date: 1/25/14
  * Time: 10:04 AM
@@ -167,8 +167,6 @@ class BrowseCategory extends DB_DataObject{
 	}
 
 	static function getObjectStructure(){
-		global $user;
-
 		// Get All User Lists
 		require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
 		$userLists = new UserList();
@@ -194,7 +192,7 @@ class BrowseCategory extends DB_DataObject{
 			'id' => array('property'=>'id', 'type'=>'label', 'label'=>'Id', 'description'=>'The unique id of this association'),
 			'label' => array('property'=>'label', 'type'=>'text', 'label'=>'Label', 'description'=>'The label to show to the user', 'maxLength'=>50, 'required' => true),
 			'textId' => array('property'=>'textId', 'type'=>'text', 'label'=>'textId', 'description'=>'A textual id to identify the category', 'serverValidation'=>'validateTextId', 'maxLength'=>50),
-			'userId' => array('property'=>'userId', 'type'=>'label', 'label'=>'userId', 'description'=>'The User Id who created this category', 'default'=> $user->id),
+			'userId' => array('property'=>'userId', 'type'=>'label', 'label'=>'userId', 'description'=>'The User Id who created this category', 'default'=> UserAccount::getActiveUserId()),
 			'sharing' => array('property'=>'sharing', 'type'=>'enum', 'values' => array('private' => 'Just Me', 'location' => 'My Home Branch', 'library' => 'My Home Library', 'everyone' => 'Everyone'), 'label'=>'Share With', 'description'=>'Who the category should be shared with', 'default' =>'everyone'),
 			'description' => array('property'=>'description', 'type'=>'html', 'label'=>'Description', 'description'=>'A description of the category.', 'hideInLists' => true),
 
@@ -335,4 +333,4 @@ class BrowseCategory extends DB_DataObject{
 		return true;
 
 	}
-} 
+}

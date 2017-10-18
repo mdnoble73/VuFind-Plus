@@ -77,12 +77,12 @@ class Admin_IndexingProfiles extends ObjectEditor {
 		return 'id';
 	}
 	function canAddNew(){
-		global $user;
-		return $user->hasRole('opacAdmin');
+		$user = UserAccount::getLoggedInUser();
+		return UserAccount::userHasRole('opacAdmin');
 	}
 	function canDelete(){
-		global $user;
-		return $user->hasRole('opacAdmin');
+		$user = UserAccount::getLoggedInUser();
+		return UserAccount::userHasRole('opacAdmin');
 	}
 
 	function getInstructions(){

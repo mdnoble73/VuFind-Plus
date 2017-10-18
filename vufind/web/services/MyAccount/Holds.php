@@ -14,9 +14,9 @@ class MyAccount_Holds extends MyAccount{
 	{
 		global $configArray,
 		       $interface,
-		       $library,
-		       $user;
+		       $library;
 
+		$user = UserAccount::getLoggedInUser();
 		//Check to see if any user accounts are allowed to freeze holds
 		$interface->assign('allowFreezeHolds', true);
 

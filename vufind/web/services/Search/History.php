@@ -31,7 +31,6 @@ class History extends Action {
 	function launch()
 	{
 		global $interface;
-		global $user;
 
 		// In some contexts, we want to require a login before showing search
 		// history:
@@ -43,7 +42,7 @@ class History extends Action {
 
 		// Retrieve search history
 		$s = new SearchEntry();
-		$searchHistory = $s->getSearches(session_id(), is_object($user) ? $user->id : null);
+		$searchHistory = $s->getSearches(session_id(), UserAccount::isLoggedIn() ? UserAccount::getActiveUserId() : null);
 
 		if (count($searchHistory) > 0) {
 			// Build an array of history entries

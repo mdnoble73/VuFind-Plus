@@ -35,13 +35,13 @@ class MaterialsRequest_ManageRequests extends Admin_Admin {
 	{
 		global $configArray;
 		global $interface;
-		global $user;
 
 		//Load status information
 		$materialsRequestStatus = new MaterialsRequestStatus();
 		$materialsRequestStatus->orderBy('isDefault DESC, isOpen DESC, description ASC');
 		$homeLibrary = Library::getPatronHomeLibrary();
-		if ($user->hasRole('library_material_requests')){
+		$user = UserAccount::getLoggedInUser();
+		if (UserAccount::userHasRole('library_material_requests')){
 			$materialsRequestStatus->libraryId = $homeLibrary->libraryId;
 		}else{
 			$libraryList[-1] = 'Default';
@@ -188,7 +188,7 @@ class MaterialsRequest_ManageRequests extends Admin_Admin {
 			$materialsRequests->joinAdd(new User(), 'LEFT', 'assignee', 'assignedTo');
 			$materialsRequests->selectAdd();
 			$materialsRequests->selectAdd('materials_request.*, description as statusLabel, location.displayName as location, user.firstname, user.lastname, user.' . $configArray['Catalog']['barcodeProperty'] . ' as barcode, assignee.displayName as assignedTo');
-			if ($user->hasRole('library_material_requests')){
+			if (UserAccount::userHasRole('library_material_requests')){
 				//Need to limit to only requests submitted for the user's home location
 				$userHomeLibrary = Library::getPatronHomeLibrary();
 				$locations = new Location();
@@ -271,7 +271,7 @@ class MaterialsRequest_ManageRequests extends Admin_Admin {
 			// $assignees used for both set assignee dropdown and filter by assigned To checkboxes
 			// TODO: determine if There is a case where an non-materials request manager can filter.
 			// opac_admins w/o materials_request role would expect to filter by assignee
-			if ($user->hasRole('library_material_requests')) {
+			if (UserAccount::userHasRole('library_material_requests')) {
 				$role = new Role();
 				if ($role->get('name', 'library_material_requests')) {
 					// Get Available Assignees

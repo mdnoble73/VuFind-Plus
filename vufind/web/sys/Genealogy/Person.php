@@ -344,10 +344,9 @@ class Person extends SolrDataObject
 
 	function insert(){
 		//Set the dateAdded and who added the record
-		global $user;
 		$this->dateAdded = time();
-		$this->addedBy = $user->id;
-		$this->modifiedBy = $user->id;
+		$this->addedBy = UserAccount::getActiveUserId();
+		$this->modifiedBy = UserAccount::getActiveUserId();
 		$this->lastModified = time();
 		$ret = parent::insert();
 		if ($ret){
@@ -359,8 +358,7 @@ class Person extends SolrDataObject
 	}
 
 	function update(){
-        global $user;
-		$this->modifiedBy = $user->id;
+		$this->modifiedBy = UserAccount::getActiveUserId();
 		$this->lastModified = time();
 		$ret = parent::update();
 		if ($ret){

@@ -49,7 +49,7 @@ abstract class Horizon extends ScreenScrapingDriver{
 						$this->db = mssql_connect($configArray['Catalog']['host'] . ':' . $configArray['Catalog']['port'],
 							$configArray['Catalog']['username'],
 							$configArray['Catalog']['password']);
-	
+
 						// Select the database
 						mssql_select_db($configArray['Catalog']['database']);
 					}
@@ -71,7 +71,7 @@ abstract class Horizon extends ScreenScrapingDriver{
 	}
 
 	public function getMyFinesViaHIP($patron, $includeMessages){
-		global $user;
+		$user = UserAccount::getLoggedInUser();
 		global $configArray;
 		global $logger;
 

@@ -45,9 +45,9 @@ class Admin_ListWidgets extends ObjectEditor {
 	function getAllObjects(){
 		$list = array();
 
-		global $user;
+		$user = UserAccount::getLoggedInUser();
 		$widget = new ListWidget();
-		if ($user->hasRole('libraryAdmin') || $user->hasRole('contentEditor') || $user->hasRole('libraryManager') || $user->hasRole('locationManager')){
+		if (UserAccount::userHasRole('libraryAdmin') || UserAccount::userHasRole('contentEditor') || UserAccount::userHasRole('libraryManager') || UserAccount::userHasRole('locationManager')){
 			$patronLibrary = Library::getPatronHomeLibrary();
 			$widget->libraryId = $patronLibrary->libraryId;
 		}
@@ -72,16 +72,16 @@ class Admin_ListWidgets extends ObjectEditor {
 		return 'id';
 	}
 	function canAddNew(){
-		global $user;
-		return $user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('contentEditor') || $user->hasRole('libraryManager') || $user->hasRole('locationManager');
+		$user = UserAccount::getLoggedInUser();
+		return UserAccount::userHasRole('opacAdmin') || UserAccount::userHasRole('libraryAdmin') || UserAccount::userHasRole('contentEditor') || UserAccount::userHasRole('libraryManager') || UserAccount::userHasRole('locationManager');
 	}
 	function canDelete(){
-		global $user;
-		return $user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin');
+		$user = UserAccount::getLoggedInUser();
+		return UserAccount::userHasRole('opacAdmin') || UserAccount::userHasRole('libraryAdmin');
 	}
 	function launch() {
 		global $interface;
-		global $user;
+		$user = UserAccount::getLoggedInUser();
 
 		$interface->assign('canAddNew', $this->canAddNew());
 		$interface->assign('canDelete', $this->canDelete());
@@ -102,7 +102,7 @@ class Admin_ListWidgets extends ObjectEditor {
 		//Get all available widgets
 		$availableWidgets = array();
 		$listWidget = new ListWidget();
-		if ($user->hasRole('libraryAdmin') || $user->hasRole('contentEditor') || $user->hasRole('libraryManager') || $user->hasRole('locationManager')){
+		if (UserAccount::userHasRole('libraryAdmin') || UserAccount::userHasRole('contentEditor') || UserAccount::userHasRole('libraryManager') || UserAccount::userHasRole('locationManager')){
 			$homeLibrary = Library::getPatronHomeLibrary();
 			$listWidget->libraryId = $homeLibrary->libraryId;
 		}

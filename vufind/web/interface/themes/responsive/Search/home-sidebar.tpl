@@ -6,7 +6,7 @@
 
 	{include file="login-sidebar.tpl"}
 
-	{if $user}
+	{if $loggedIn}
 		{* Account Menu *}
 		{include file="MyAccount/menu.tpl"}
 	{/if}

@@ -280,7 +280,7 @@ class OverDriveDriver2 {
 	public function updateLendingOptions(){
 		/** @var Memcache $memCache */
 		global $memCache;
-		global $user;
+		$user = UserAccount::getLoggedInUser();
 		global $logger;
 		global $analytics;
 		$ch = curl_init();

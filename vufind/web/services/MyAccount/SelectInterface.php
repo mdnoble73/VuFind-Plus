@@ -2,7 +2,7 @@
 /**
  * Allow the user to select an interface to use to access the site.
  *
- * @category VuFind-Plus 
+ * @category VuFind-Plus
  * @author Mark Noble <mark@marmot.org>
  * Date: 5/8/13
  * Time: 2:32 PM
@@ -11,7 +11,6 @@
 class MyAccount_SelectInterface extends Action{
 	function launch(){
 		global $interface;
-		global $user;
 		global $logger;
 
 		$libraries = array();
@@ -40,6 +39,7 @@ class MyAccount_SelectInterface extends Action{
 		}
 
 		$redirectLibrary = null;
+		$user = UserAccount::getLoggedInUser();
 		if (isset($_REQUEST['library'])){
 			$redirectLibrary = $_REQUEST['library'];
 		}elseif (!is_null($physicalLocation)){

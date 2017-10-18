@@ -29,7 +29,6 @@ class Search_Home extends Action {
 		global $library;
 		global $locationSingleton;
 		global $timer;
-		global $user;
 
 		// Include Search Engine Class
 		require_once ROOT_DIR . '/sys/' . $configArray['Index']['engine'] . '.php';

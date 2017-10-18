@@ -33,16 +33,15 @@ class GroupedWork_AJAX {
 	}
 
 	function deleteUserReview(){
-		global $user;
 		$id = $_REQUEST['id'];
 		$result = array('result' => false);
-		if (!$user){
+		if (!UserAccount::isLoggedIn()){
 			$result['message'] = 'You must be logged in to delete ratings.';
 		}else{
 			require_once ROOT_DIR . '/sys/LocalEnrichment/UserWorkReview.php';
 			$userWorkReview = new UserWorkReview();
 			$userWorkReview->groupedRecordPermanentId = $id;
-			$userWorkReview->userId = $user->id;
+			$userWorkReview->userId = UserAccount::getActiveUserId();
 			if ($userWorkReview->find(true)){
 				$userWorkReview->delete();
 				$result = array('result' => true, 'message' => 'We successfully deleted the rating for you.');
@@ -337,8 +336,7 @@ class GroupedWork_AJAX {
 
 	function RateTitle(){
 		require_once(ROOT_DIR . '/sys/LocalEnrichment/UserWorkReview.php');
-		global $user;
-		if (!isset($user) || $user == false){
+		if (!UserAccount::isLoggedIn()){
 			return json_encode(array('error'=>'Please login to rate this title.'));
 		}
 		if (empty($_REQUEST['id'])) {
@@ -351,7 +349,7 @@ class GroupedWork_AJAX {
 		//Save the rating
 		$workReview = new UserWorkReview();
 		$workReview->groupedRecordPermanentId = $_REQUEST['id'];
-		$workReview->userId = $user->id;
+		$workReview->userId = UserAccount::getActiveUserId();
 		if ($workReview->find(true)) {
 			if ($rating != $workReview->rating){ // update gives an error if the rating value is the same as stored.
 				$workReview->rating = $rating;
@@ -435,7 +433,7 @@ class GroupedWork_AJAX {
 	}
 
 	function getPromptforReviewForm() {
-		global $user;
+		$user = UserAccount::getLoggedInUser();
 		if ($user) {
 			if (!$user->noPromptForUserReviews) {
 				global $interface;
@@ -470,7 +468,7 @@ class GroupedWork_AJAX {
 
 	function setNoMoreReviews(){
 		/* var User $user */
-		global $user;
+		$user = UserAccount::getLoggedInUser();
 		if ($user) {
 			$user->noPromptForUserReviews = 1;
 			$success = $user->update();
@@ -513,8 +511,7 @@ class GroupedWork_AJAX {
 	function saveReview() {
 		$result = array();
 
-		global $user;
-		if ($user === false) {
+		if (UserAccount::isLoggedIn() == false) {
 			$result['success'] = false;
 			$result['message'] = 'Please login before adding a review.';
 		}elseif (empty($_REQUEST['id'])) {
@@ -528,7 +525,7 @@ class GroupedWork_AJAX {
 			$comment   = $HadReview ? trim($_REQUEST['comment']) : ''; //avoids undefined index notice when doing only ratings.
 
 			$groupedWorkReview                           = new UserWorkReview();
-			$groupedWorkReview->userId                   = $user->id;
+			$groupedWorkReview->userId                   = UserAccount::getActiveUserId();
 			$groupedWorkReview->groupedRecordPermanentId = $id;
 			$newReview                                   = true;
 			if ($groupedWorkReview->find(true)) { // check for existing rating by user
@@ -684,8 +681,7 @@ class GroupedWork_AJAX {
 	function saveToList(){
 		$result = array();
 
-		global $user;
-		if ($user === false) {
+		if (UserAccount::isLoggedIn()) {
 			$result['success'] = false;
 			$result['message'] = 'Please login before adding a title to list.';
 		}else{
@@ -701,7 +697,7 @@ class GroupedWork_AJAX {
 			$listOk = true;
 			if (empty($listId)){
 				$userList->title = "My Favorites";
-				$userList->user_id = $user->id;
+				$userList->user_id = UserAccount::getActiveUserId();
 				$userList->public = 0;
 				$userList->description = '';
 				$userList->insert();
@@ -741,7 +737,6 @@ class GroupedWork_AJAX {
 
 	function getSaveToListForm(){
 		global $interface;
-		global $user;
 
 		$id = $_REQUEST['id'];
 		$interface->assign('id', $id);
@@ -753,7 +748,7 @@ class GroupedWork_AJAX {
 		$nonContainingLists = array();
 
 		$userLists = new UserList();
-		$userLists->user_id = $user->id;
+		$userLists->user_id = UserAccount::getActiveUserId();
 		$userLists->deleted = 0;
 		$userLists->orderBy('title');
 		$userLists->find();
@@ -847,12 +842,11 @@ class GroupedWork_AJAX {
 	}
 
 	function markNotInterested(){
-		global $user;
-		if ($user){
+		if (UserAccount::isLoggedIn()){
 			$id = $_REQUEST['id'];
 			require_once ROOT_DIR . '/sys/LocalEnrichment/NotInterested.php';
 			$notInterested = new NotInterested();
-			$notInterested->userId = $user->id;
+			$notInterested->userId = UserAccount::getActiveUserId();
 			$notInterested->groupedRecordPermanentId = $id;
 
 			if (!$notInterested->find(true)){
@@ -883,11 +877,10 @@ class GroupedWork_AJAX {
 	}
 
 	function clearNotInterested(){
-		global $user;
 		$idToClear = $_REQUEST['id'];
 		require_once ROOT_DIR . '/sys/LocalEnrichment/NotInterested.php';
 		$notInterested = new NotInterested();
-		$notInterested->userId = $user->id;
+		$notInterested->userId = UserAccount::getActiveUserId();
 		$notInterested->id = $idToClear;
 		$result = array('result' => false);
 		if ($notInterested->find(true)){
@@ -912,8 +905,7 @@ class GroupedWork_AJAX {
 
 	function saveTag()
 	{
-		global $user;
-		if ($user === false) {
+		if (!UserAccount::isLoggedIn()) {
 			return json_encode(array('success' => false, 'message' => 'Sorry, you must be logged in to add tags.'));
 		}
 
@@ -927,7 +919,7 @@ class GroupedWork_AJAX {
 
 			$userTag = new UserTag();
 			$userTag->tag = $tag;
-			$userTag->userId = $user->id;
+			$userTag->userId = UserAccount::getActiveUserId();
 			$userTag->groupedRecordPermanentId = $id;
 			if (!$userTag->find(true)){
 				//This is a new tag
@@ -942,8 +934,7 @@ class GroupedWork_AJAX {
 	}
 
 	function removeTag(){
-		global $user;
-		if ($user === false) {
+		if (!UserAccount::isLoggedIn()) {
 			return json_encode(array('success' => false, 'message' => 'Sorry, you must be logged in to remove tags.'));
 		}
 
@@ -953,7 +944,7 @@ class GroupedWork_AJAX {
 		$tag = $_REQUEST['tag'];
 		$userTag = new UserTag();
 		$userTag->tag = $tag;
-		$userTag->userId = $user->id;
+		$userTag->userId = UserAccount::getActiveUserId();
 		$userTag->groupedRecordPermanentId = $id;
 		if ($userTag->find(true)){
 			//This is a new tag

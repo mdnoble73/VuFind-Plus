@@ -27,11 +27,10 @@ class MyAccount_ListEdit extends Action
 
 	function __construct()
 	{
-		$this->user = UserAccount::isLoggedIn();
+		$this->user = UserAccount::getLoggedInUser();
 	}
 
-	function launch()
-	{
+	function launch() {
 		global $interface;
 
 		// Depending on context, we may get the record ID that initiated the "add
@@ -83,8 +82,7 @@ class MyAccount_ListEdit extends Action
 		}
 	}
 
-	function addList()
-	{
+	function addList() {
 		if ($this->user) {
 			if (strlen(trim($_REQUEST['title'])) == 0) {
 				return new PEAR_Error('list_edit_name_required');

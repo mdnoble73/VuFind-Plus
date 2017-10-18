@@ -44,10 +44,12 @@ class MyAccount_Edit extends Action
 		global $interface;
 		global $configArray;
 
-		if (!($user = UserAccount::isLoggedIn())) {
+		if (!UserAccount::isLoggedIn()) {
 			require_once ROOT_DIR . '/services/MyAccount/Login.php';
 			MyAccount_Login::launch();
 			exit();
+		}else{
+			$user = UserAccount::getLoggedInUser();
 		}
 
 		// Save Data

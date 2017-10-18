@@ -29,7 +29,6 @@ class HoldItems extends Action
 	function launch()
 	{
 		global $configArray;
-		global $user;
 
 		try {
 			$this->catalog = CatalogFactory::getCatalogConnectionInstance();
@@ -55,7 +54,7 @@ class HoldItems extends Action
 		$selectedTitles = $_REQUEST['title'];
 		global $interface;
 		global $configArray;
-		global $user;
+		$user = UserAccount::getLoggedInUser();
 		global $logger;
 
 		$ids = array();

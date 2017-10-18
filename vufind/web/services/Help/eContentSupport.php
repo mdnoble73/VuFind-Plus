@@ -27,7 +27,6 @@ class eContentSupport extends Action
 	{
 		global $interface;
 		global $configArray;
-		global $user;
 		global $analytics;
 		$interface->setPageTitle('eContent Support');
 
@@ -45,6 +44,7 @@ class eContentSupport extends Action
 					'title' => "Support Request Not Sent",
 					'message' => "<p>We're sorry, but your request could not be submitted because we do not have a support email address on file.</p><p>Please contact your local library.</p>"
 				)));
+				return;
 			}
 			$multipleEmailAddresses = preg_split('/[;,]/', $to, null, PREG_SPLIT_NO_EMPTY);
 			if (!empty($multipleEmailAddresses)) {
@@ -90,6 +90,7 @@ class eContentSupport extends Action
 		}else{
 			if (isset($_REQUEST['lightbox'])){
 				$interface->assign('lightbox', true);
+				$user = UserAccount::getLoggedInUser();
 				if ($user){
 					$name = $user->firstname .' '. $user->lastname;
 					$interface->assign('name', $name);

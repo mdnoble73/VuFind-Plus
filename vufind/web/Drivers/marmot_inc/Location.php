@@ -90,11 +90,11 @@ class Location extends DB_DataObject
 	}
 
 	function getObjectStructure(){
-		global $user;
+		$user = UserAccount::getLoggedInUser();
 		//Load Libraries for lookup values
 		$library = new Library();
 		$library->orderBy('displayName');
-		if ($user->hasRole('libraryAdmin') && !$user->hasRole('opacAdmin') || $user->hasRole('libraryManager') || $user->hasRole('locationManager')){
+		if (UserAccount::userHasRole('libraryAdmin') && !UserAccount::userHasRole('opacAdmin') || UserAccount::userHasRole('libraryManager') || UserAccount::userHasRole('locationManager')){
 			$homeLibrary = Library::getPatronHomeLibrary();
 			$library->libraryId = $homeLibrary->libraryId;
 		}
@@ -341,7 +341,7 @@ class Location extends DB_DataObject
 			'includeLibraryRecordsToInclude' => array('property'=>'includeLibraryRecordsToInclude', 'type'=>'checkbox', 'label'=>'Include Library Records To Include', 'description'=>'Whether or not the records to include from the parent library should be included for this location', 'hideInLists' => true, 'default' => true),
 		);
 
-		if ($user->hasRole('locationManager') || $user->hasRole('libraryManager')){
+		if (UserAccount::userHasRole('locationManager') || UserAccount::userHasRole('libraryManager')){
 			unset($structure['code']);
 			unset($structure['subLocation']);
 			$structure['displayName']['type'] = 'label';
@@ -358,7 +358,7 @@ class Location extends DB_DataObject
 
 		}
 
-		if ($user->hasRole('locationManager')){
+		if (UserAccount::userHasRole('locationManager')){
 			unset($structure['nearbyLocation1']);
 			unset($structure['nearbyLocation2']);
 			unset($structure['showInLocationsAndHoursList']);
@@ -367,7 +367,7 @@ class Location extends DB_DataObject
 			unset($structure['automaticTimeoutLength']);
 			unset($structure['automaticTimeoutLengthLoggedOut']);
 		}
-		if (!$user->hasRole('opacAdmin') && !$user->hasRole('libraryAdmin')){
+		if (!UserAccount::userHasRole('opacAdmin') && !UserAccount::userHasRole('libraryAdmin')){
 			unset($structure['isMainBranch']);
 		}
 		return $structure;
@@ -603,20 +603,15 @@ class Location extends DB_DataObject
 	 *
 	 * @return Location
 	 */
-	static function getUserHomeLocation($userToLoad = null){
+	static function getUserHomeLocation(){
 		if (isset(Location::$userHomeLocation) && Location::$userHomeLocation != 'unset') return Location::$userHomeLocation;
 
 		// default value
 		Location::$userHomeLocation = null;
 
-		if ($userToLoad == null){
-			global $user;
-			$userToLoad = $user;
-		}
-
-		if (isset($userToLoad) && $userToLoad != false){
+		if (UserAccount::isLoggedIn()){
 			$homeLocation = new Location();
-			$homeLocation->locationId = $userToLoad->homeLocationId;
+			$homeLocation->locationId = UserAccount::getUserHomeLocationId();
 			if ($homeLocation->find(true)){
 				Location::$userHomeLocation = clone($homeLocation);
 			}

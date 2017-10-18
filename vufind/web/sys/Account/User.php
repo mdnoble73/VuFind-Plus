@@ -322,7 +322,7 @@ class User extends DB_DataObject
 	 */
 	function getLinkedUsers(){
 		if (is_null($this->linkedUsers)){
-			$this->linkedUsers = array();
+ 			$this->linkedUsers = array();
 			/* var Library $library */
 			global $library;
 			/** @var Memcache $memCache */
@@ -351,6 +351,35 @@ class User extends DB_DataObject
 							if ($linkedUser && !PEAR_Singleton::isError($linkedUser)) {
 								$this->linkedUsers[] = clone($linkedUser);
 							}
+						}
+					}
+				}
+			}
+		}
+		return $this->linkedUsers;
+	}
+
+	function getLinkedUserObjects(){
+		if (is_null($this->linkedUsers)){
+			$this->linkedUsers = array();
+			/* var Library $library */
+			global $library;
+			/** @var Memcache $memCache */
+			global $memCache;
+			global $serverName;
+			global $logger;
+			if ($this->id && $library->allowLinkedAccounts){
+				require_once ROOT_DIR . '/sys/Account/UserLink.php';
+				$userLink = new UserLink();
+				$userLink->primaryAccountId = $this->id;
+				$userLink->find();
+				while ($userLink->fetch()){
+					if (!$this->isBlockedAccount($userLink->linkedAccountId)) {
+						$linkedUser = new User();
+						$linkedUser->id = $userLink->linkedAccountId;
+						if ($linkedUser->find(true)){
+							/** @var User $userData */
+							$this->linkedUsers[] = clone($linkedUser);
 						}
 					}
 				}
@@ -1285,9 +1314,9 @@ class User extends DB_DataObject
 		$relatedPTypes = array();
 		$relatedPTypes[$this->patronType] = $this->patronType;
 		if ($includeLinkedUsers){
-			if ($this->getLinkedUsers() != null) {
+			if ($this->getLinkedUserObjects() != null) {
 				/** @var User $user */
-				foreach ($this->getLinkedUsers() as $user) {
+				foreach ($this->getLinkedUserObjects() as $user) {
 					$relatedPTypes = array_merge($relatedPTypes, $user->getRelatedPTypes(false));
 				}
 			}

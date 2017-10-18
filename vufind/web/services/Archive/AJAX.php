@@ -854,7 +854,6 @@ class Archive_AJAX extends Action {
 
 	function getSaveToListForm(){
 		global $interface;
-		global $user;
 
 		$id = $_REQUEST['id'];
 		$interface->assign('id', $id);
@@ -866,7 +865,7 @@ class Archive_AJAX extends Action {
 		$nonContainingLists = array();
 
 		$userLists = new UserList();
-		$userLists->user_id = $user->id;
+		$userLists->user_id = UserAccount::getActiveUserId();
 		$userLists->deleted = 0;
 		$userLists->orderBy('title');
 		$userLists->find();
@@ -902,8 +901,7 @@ class Archive_AJAX extends Action {
 	function saveToList(){
 		$result = array();
 
-		global $user;
-		if ($user === false) {
+		if (!UserAccount::isLoggedIn()) {
 			$result['success'] = false;
 			$result['message'] = 'Please login before adding a title to list.';
 		}else{
@@ -919,7 +917,7 @@ class Archive_AJAX extends Action {
 			$listOk = true;
 			if (empty($listId)){
 				$userList->title = "My Favorites";
-				$userList->user_id = $user->id;
+				$userList->user_id = UserAccount::getActiveUserId();
 				$userList->public = 0;
 				$userList->description = '';
 				$userList->insert();

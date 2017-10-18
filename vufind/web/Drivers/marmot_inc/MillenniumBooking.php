@@ -393,7 +393,7 @@ class MillenniumBooking {
 
 		// Create Hourly Calendar URL
 		$scope = $driver->getLibraryScope();
-		global $user;
+		$user = UserAccount::getLoggedInUser();
 		$driver->_curl_login($user);
 		$timestamp = time(); // the webpac hourly calendar give 30 (maybe 31) days worth from the given timestamp.
 				// Since today is the soonest a user could book, let's get from today

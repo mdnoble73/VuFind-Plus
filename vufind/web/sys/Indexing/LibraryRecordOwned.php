@@ -14,10 +14,10 @@ class LibraryRecordOwned extends RecordOwned{
 	public $libraryId;
 
 	static function getObjectStructure(){
-		global $user;
 		$library = new Library();
 		$library->orderBy('displayName');
-		if ($user->hasRole('libraryAdmin')){
+		$user = UserAccount::getLoggedInUser();
+		if (UserAccount::userHasRole('libraryAdmin')){
 			$homeLibrary = Library::getPatronHomeLibrary();
 			$library->libraryId = $homeLibrary->libraryId;
 		}

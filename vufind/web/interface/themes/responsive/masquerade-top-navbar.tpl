@@ -10,7 +10,7 @@
 					</h4>
 				</div>
 				<div id="masquerade-header-name-section" class="hidden-tn hidden-xs col-sm-5 col-lg-6">
-					<h5>Masquerading As {$user->displayName|capitalize}</h5>
+					<h5>Masquerading As {$userDisplayName|capitalize}</h5>
 				</div>
 
 				<div id="masquerade-header-end" class="col-tn-5 col-xs-4 col-sm-3 col-lg-2 pull-right">

@@ -332,10 +332,10 @@ class Library extends DB_DataObject
 		unset($materialsRequestFormFieldsStructure['libraryId']); //needed?
 		unset($materialsRequestFormFieldsStructure['weight']);
 
-		global $user;
+		$user = UserAccount::getLoggedInUser();
 		require_once ROOT_DIR . '/sys/ListWidget.php';
 		$widget = new ListWidget();
-		if (($user->hasRole('libraryAdmin') || $user->hasRole('contentEditor')) && !$user->hasRole('opacAdmin') || $user->hasRole('libraryManager') || $user->hasRole('locationManager')){
+		if ((UserAccount::userHasRole('libraryAdmin') || UserAccount::userHasRole('contentEditor')) && !UserAccount::userHasRole('opacAdmin') || UserAccount::userHasRole('libraryManager') || UserAccount::userHasRole('locationManager')){
 			$patronLibrary = Library::getPatronHomeLibrary();
 			if ($patronLibrary){
 				$widget->libraryId = $patronLibrary->libraryId;
@@ -950,7 +950,7 @@ class Library extends DB_DataObject
 			),
 		);
 
-		if ($user->hasRole('libraryManager')){
+		if (UserAccount::userHasRole('libraryManager')){
 			$structure['subdomain']['type'] = 'label';
 			$structure['displayName']['type'] = 'label';
 			unset($structure['showDisplayNameInHeader']);
@@ -1045,14 +1045,10 @@ class Library extends DB_DataObject
 	}
 
 	static function getPatronHomeLibrary($tmpUser = null){
-		if ($tmpUser == null){
-			global $user;
-			$tmpUser = $user;
-		}
 		//Finally check to see if the user has logged in and if so, use that library
-		if (isset($tmpUser) && $tmpUser != false){
+		if (UserAccount::isLoggedIn()){
 			//Load the library based on the home branch for the user
-			return self::getLibraryForLocation($tmpUser->homeLocationId);
+			return self::getLibraryForLocation(UserAccount::getUserHomeLocationId());
 		}else{
 			return null;
 		}

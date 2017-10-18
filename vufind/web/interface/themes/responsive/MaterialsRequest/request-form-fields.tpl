@@ -1,6 +1,6 @@
 {strip}
 
-<div class="materialsRequestLoggedInFields" {if !$user}style="display:none"{/if}>
+<div class="materialsRequestLoggedInFields" {if !$loggedIn}style="display:none"{/if}>
 {foreach from=$requestFormFields key=category item=formFields}
 	<fieldset>
 		<legend>{$category}</legend>

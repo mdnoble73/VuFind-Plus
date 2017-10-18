@@ -2,7 +2,7 @@
 /**
  * Display a list of internal variables that have been defined in the system.
  *
- * @category VuFind-Plus-2014 
+ * @category VuFind-Plus-2014
  * @author Mark Noble <mark@marmot.org>
  * Date: 4/27/14
  * Time: 2:21 PM
@@ -48,8 +48,8 @@ class Admin_Variables extends ObjectEditor{
 		return false;
 	}
 	function canDelete(){
-		global $user;
-		return $user->hasRole('opacAdmin');
+		$user = UserAccount::getLoggedInUser();
+		return UserAccount::userHasRole('opacAdmin');
 	}
 
 

@@ -429,7 +429,6 @@ class IndexRecord extends RecordInterface
 	public function getSearchResult($view = 'list', $useUnscopedHoldingsSummary = false) {
 		global $configArray;
 		global $interface;
-//		global $user; // not referenced in function. plb 5-4-2015
 
 		$interface->assign('useUnscopedHoldingsSummary', $useUnscopedHoldingsSummary);
 

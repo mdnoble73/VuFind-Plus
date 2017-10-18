@@ -14,7 +14,7 @@
 			{if $staffClientUrl}
 				<a href="{$staffClientUrl}" class="btn btn-sm btn-info">View in Staff Client</a>
 			{/if}
-			{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('cataloging'))}
+			{if $user && (array_key_exists('opacAdmin', $userRoles) || array_key_exists('cataloging', $userRoles))}
 				{if $classicUrl}
 					<a href="{$classicUrl}" class="btn btn-sm btn-info">View in Classic</a>
 				{/if}

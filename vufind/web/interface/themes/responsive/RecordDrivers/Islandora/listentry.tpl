@@ -104,24 +104,6 @@
 						<a href="{$path}/MyAccount/Edit?id={$summId|escape:"url"}{if !is_null($listSelected)}&amp;list_id={$listSelected|escape:"url"}{/if}" class="btn btn-default">{translate text='Edit'}</a>
 						{* Use a different delete URL if we're removing from a specific list or the overall favorites: *}
 						<a href="{$path}/MyAccount/MyList/{$listSelected|escape:"url"}?delete={$summId|escape:"url"}" onclick="return confirm('Are you sure you want to delete this?');" class="btn btn-default">{translate text='Delete'}</a>
-
-						{* manual ordering of user lists. plb 5-27-2015
-										{if $userSort}
-											<div class="btn-group" role="group">
-												<button class="btn btn-default dropdown-toggle" type="button" id="sortOrder{$resultIndex}" data-toggle="dropdown" aria-expanded="true">
-													Order &nbsp;
-													<span class="caret"></span>
-												</button>
-												<ul class="dropdown-menu dropdown-menu-right" role="menu" aria-labelledby="sortOrder{$resultIndex}">
-													<li>
-														<a>
-														<input class="form-control" type="number" size="4" name="weight[{$summId|escape:"url"}]" id="weight_{$summId|escape:"url"}"{if 1} value="{$resultIndex}"{/if}>
-														</a>
-													</li>
-												</ul>
-											</div>
-										{/if} *}
-
 					</div>
 				{/if}
 			</div>

@@ -11,7 +11,6 @@ require_once ROOT_DIR . '/services/MyAccount/MyAccount.php';
 class MyRatings extends MyAccount{
 	public function launch(){
 		global $interface;
-		global $user;
 		global $timer;
 
 		//Load user ratings
@@ -19,7 +18,7 @@ class MyRatings extends MyAccount{
 		require_once ROOT_DIR . '/sys/Grouping/GroupedWork.php';
 		require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
 		$rating = new UserWorkReview();
-		$rating->userId = $user->id;
+		$rating->userId = UserAccount::getActiveUserId();
 		$rating->orderBy('dateRated DESC');
 		$rating->find();
 		$ratings = array();
@@ -56,7 +55,7 @@ class MyRatings extends MyAccount{
 
 		require_once ROOT_DIR . '/sys/LocalEnrichment/NotInterested.php';
 		$notInterestedObj = new NotInterested();
-		$notInterestedObj->userId = $user->id;
+		$notInterestedObj->userId = UserAccount::getActiveUserId();
 		$notInterestedObj->orderBy('dateMarked DESC');
 		$notInterestedObj->find();
 		$notInterestedIds = array();

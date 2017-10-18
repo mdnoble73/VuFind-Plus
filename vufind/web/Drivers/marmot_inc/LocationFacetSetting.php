@@ -6,10 +6,10 @@ class LocationFacetSetting extends FacetSetting {
 	public $locationId;
 
 	static function getObjectStructure(){
-		global $user;
+		$user = UserAccount::getLoggedInUser();
 		$location = new Location();
 		$location->orderBy('displayName');
-		if ($user->hasRole('libraryAdmin') || $user->hasRole('libraryManager')){
+		if (UserAccount::userHasRole('libraryAdmin') || UserAccount::userHasRole('libraryManager')){
 			$homeLibrary = Library::getPatronHomeLibrary();
 			$location->libraryId = $homeLibrary->libraryId;
 		}

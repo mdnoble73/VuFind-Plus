@@ -1,6 +1,6 @@
 {strip}
 	<div id="main-content" class="col-md-12">
-		{if $user}
+		{if $loggedIn}
 			<div class="myAccountTitle">
 				<h2>Reports - External Link Tracking</h2>
 			</div>

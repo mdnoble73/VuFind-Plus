@@ -35,7 +35,6 @@ class SuggestedTitles extends MyAccount
 	function launch()
 	{
 		global $interface;
-		global $user;
 		global $configArray;
 		global $timer;
 
@@ -68,6 +67,7 @@ class SuggestedTitles extends MyAccount
 		$interface->assign('resourceList', $resourceList);
 
 		//Check to see if the user has rated any titles
+		$user = UserAccount::getLoggedInUser();
 		$interface->assign('hasRatings', $user->hasRatings());
 
 		$this->display('suggestedTitles.tpl', 'Recommended for You');

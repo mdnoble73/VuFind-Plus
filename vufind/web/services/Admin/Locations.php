@@ -36,13 +36,13 @@ class Locations extends ObjectEditor
 	}
 	function getAllObjects(){
 		//Look lookup information for display in the user interface
-		global $user;
+		$user = UserAccount::getLoggedInUser();
 
 		$location = new Location();
 		$location->orderBy('displayName');
-		if ($user->hasRole('locationManager')){
+		if (UserAccount::userHasRole('locationManager')){
 			$location->locationId = $user->homeLocationId;
-		} else if (!$user->hasRole('opacAdmin')){
+		} else if (!UserAccount::userHasRole('opacAdmin')){
 			//Scope to just locations for the user based on home library
 			$patronLibrary = Library::getLibraryForLocation($user->homeLocationId);
 			$location->libraryId = $patronLibrary->libraryId;
@@ -70,15 +70,15 @@ class Locations extends ObjectEditor
 		return array('opacAdmin', 'libraryAdmin', 'libraryManager', 'locationManager');
 	}
 	function canAddNew(){
-		global $user;
-		return $user->hasRole('opacAdmin');
+		$user = UserAccount::getLoggedInUser();
+		return UserAccount::userHasRole('opacAdmin');
 	}
 	function canDelete(){
-		global $user;
-		return $user->hasRole('opacAdmin');
+		$user = UserAccount::getLoggedInUser();
+		return UserAccount::userHasRole('opacAdmin');
 	}
 	function getAdditionalObjectActions($existingObject){
-		global $user;
+		$user = UserAccount::getLoggedInUser();
  		$objectActions = array();
 		if ($existingObject != null){
 			$objectActions[] = array(
@@ -89,7 +89,7 @@ class Locations extends ObjectEditor
 				'text' => 'Reset More Details To Default',
 				'url' => '/Admin/Locations?id=' . $existingObject->locationId . '&amp;objectAction=resetMoreDetailsToDefault',
 			);
-			if (!$user->hasRole('libraryManager') && !$user->hasRole('locationManager')){
+			if (!UserAccount::userHasRole('libraryManager') && !UserAccount::userHasRole('locationManager')){
 				$objectActions[] = array(
 						'text' => 'Copy Location Data',
 						'url' => '/Admin/Locations?id=' . $existingObject->locationId . '&amp;objectAction=copyDataFromLocation',

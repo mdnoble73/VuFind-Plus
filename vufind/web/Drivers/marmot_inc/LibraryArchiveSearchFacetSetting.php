@@ -26,10 +26,10 @@ class LibraryArchiveSearchFacetSetting extends FacetSetting {
 	);
 
 	static function getObjectStructure(){
-		global $user;
+		$user = UserAccount::getLoggedInUser();
 		$library = new Library();
 		$library->orderBy('displayName');
-		if ($user->hasRole('libraryAdmin') || $user->hasRole('libraryManager')){
+		if (UserAccount::userHasRole('libraryAdmin') || UserAccount::userHasRole('libraryManager')){
 			$homeLibrary = Library::getPatronHomeLibrary();
 			$library->libraryId = $homeLibrary->libraryId;
 		}

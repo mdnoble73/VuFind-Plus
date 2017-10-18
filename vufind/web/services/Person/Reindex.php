@@ -23,9 +23,6 @@ require_once ROOT_DIR . '/Action.php';
 
 class Reindex extends Action{
 	function launch(){
-		global $interface;
-		global $configArray;
-		global $user;
 		global $timer;
 
 		$timer->logTime("Starting to reindex person");
@@ -43,7 +40,7 @@ class Reindex extends Action{
 		}else{
 			echo(json_encode(array("success" => false, "error" => "Could not find a record with that id")));
 		}
-		
+
 	}
 
 }

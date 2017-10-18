@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * 
+ *
  * @author Mark Noble <mnoble@turningleaftech.com>
  * @copyright Copyright (C) Anythink Libraries 2012.
  *
@@ -32,7 +32,6 @@ class MaterialsRequest_Update extends Action {
 	function launch() {
 		global $configArray;
 		global $interface;
-		global $user;
 
 		//Load the materials request to determine if it can be edited
 		$materialsRequest = new MaterialsRequest();
@@ -52,16 +51,17 @@ class MaterialsRequest_Update extends Action {
 
 		//Make sure that the user is valid
 		$processForm = true;
+		$user = UserAccount::getLoggedInUser();
 		if ($materialsRequest == null){
 			$interface->assign('success', false);
 			$interface->assign('error', 'Sorry, we could not find a request with that id.');
 			$processForm = false;
-		}elseif (!$user){
+		}elseif (!UserAccount::isLoggedIn()){
 			$interface->assign('error', 'Sorry, you must be logged in to update a materials request.');
 			$processForm = false;
-		}elseif ($user->hasRole('cataloging')){
+		}elseif (UserAccount::userHasRole('cataloging')){
 			//Ok to process the form even if it wasn't created by the current user
-		}elseif ($user->hasRole('library_material_requests') && $requestUser && $requestUser->getHomeLibrary()->libraryId == $user->getHomeLibrary()->libraryId){
+		}elseif (UserAccount::userHasRole('library_material_requests') && $requestUser && $requestUser->getHomeLibrary()->libraryId == $user->getHomeLibrary()->libraryId){
 			//Ok to process because they are an admin for the user's home library
 		}elseif ($user->id != $materialsRequest->createdBy){
 			$interface->assign('error', 'Sorry, you do not have permission to update this materials request.');
@@ -138,7 +138,7 @@ class MaterialsRequest_Update extends Action {
 			$interface->assign('error', 'Sorry, we could not find a request with that id.');
 		}
 
-		//Get a list of formats to show 
+		//Get a list of formats to show
 		$availableFormats = MaterialsRequest::getFormats();
 		$interface->assign('availableFormats', $availableFormats);
 		$interface->assign('showEbookFormatField', $configArray['MaterialsRequest']['showEbookFormatField']);

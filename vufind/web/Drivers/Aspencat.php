@@ -22,7 +22,7 @@ class Aspencat implements DriverInterface{
 	private static $holdingSortingData = null;
 	protected static function getSortingDataForHoldings() {
 		if (self::$holdingSortingData == null){
-			global $user;
+			$user = UserAccount::getLoggedInUser();
 			global $library;
 			global $locationSingleton; /** @var $locationSingleton Location */
 
@@ -47,20 +47,6 @@ class Aspencat implements DriverInterface{
 				$homeBranchId = $user->homeLocationId;
 				$nearbyBranch1Id = $user->myLocation1Id;
 				$nearbyBranch2Id = $user->myLocation2Id;
-			} else {
-				//Check to see if the cookie for home location is set.
-				if (isset($_COOKIE['home_location']) && is_numeric($_COOKIE['home_location'])) {
-					$cookieLocation = new Location();
-					$locationId = $_COOKIE['home_location'];
-					$cookieLocation->whereAdd("locationId = '$locationId'");
-					$cookieLocation->find();
-					if ($cookieLocation->N == 1) {
-						$cookieLocation->fetch();
-						$homeBranchId = $cookieLocation->locationId;
-						$nearbyBranch1Id = $cookieLocation->nearbyLocation1;
-						$nearbyBranch2Id = $cookieLocation->nearbyLocation2;
-					}
-				}
 			}
 			//Load the holding label for the user's home location.
 			$userLocation = new Location();

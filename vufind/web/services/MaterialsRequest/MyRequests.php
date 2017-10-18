@@ -36,7 +36,6 @@ class MaterialsRequest_MyRequests extends MyAccount
 	{
 		global $configArray;
 		global $interface;
-		global $user;
 
 		$showOpen = true;
 		if (isset($_REQUEST['requestsToShow']) && $_REQUEST['requestsToShow'] == 'allRequests'){
@@ -60,9 +59,9 @@ class MaterialsRequest_MyRequests extends MyAccount
 
 		//Get a list of all materials requests for the user
 		$allRequests = array();
-		if ($user){
+		if (UserAccount::isLoggedIn()){
 			$materialsRequests = new MaterialsRequest();
-			$materialsRequests->createdBy = $user->id;
+			$materialsRequests->createdBy = UserAccount::getActiveUserId();
 			$materialsRequests->whereAdd('dateCreated >= unix_timestamp(now() - interval 1 year)');
 
 			$statusQueryNotCancelled = new MaterialsRequestStatus();
@@ -78,7 +77,7 @@ class MaterialsRequest_MyRequests extends MyAccount
 			$statusQuery->isOpen = 1;
 
 			$materialsRequests = new MaterialsRequest();
-			$materialsRequests->createdBy = $user->id;
+			$materialsRequests->createdBy = UserAccount::getActiveUserId();
 			$materialsRequests->joinAdd($statusQuery);
 			$openRequests = $materialsRequests->count();
 			$interface->assign('openRequests', $openRequests);
@@ -86,7 +85,7 @@ class MaterialsRequest_MyRequests extends MyAccount
 			$formats = MaterialsRequest::getFormats();
 
 			$materialsRequests = new MaterialsRequest();
-			$materialsRequests->createdBy = $user->id;
+			$materialsRequests->createdBy = UserAccount::getActiveUserId();
 			$materialsRequests->orderBy('title, dateCreated');
 
 			$statusQuery = new MaterialsRequestStatus();

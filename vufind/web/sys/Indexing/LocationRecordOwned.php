@@ -2,7 +2,7 @@
 /**
  * Information about what records a location owns
  *
- * @category VuFind-Plus-2014 
+ * @category VuFind-Plus-2014
  * @author Mark Noble <mark@marmot.org>
  * Date: 7/18/2015
  * Time: 10:30 AM
@@ -13,10 +13,10 @@ class LocationRecordOwned extends RecordOwned{
 	public $locationId;
 
 	static function getObjectStructure(){
-		global $user;
 		$location = new Location();
 		$location->orderBy('displayName');
-		if ($user->hasRole('libraryAdmin')){
+		$user = UserAccount::getLoggedInUser();
+		if (UserAccount::userHasRole('libraryAdmin')){
 			$homeLibrary = Library::getPatronHomeLibrary();
 			$location->libraryId = $homeLibrary->libraryId;
 		}

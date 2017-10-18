@@ -130,8 +130,8 @@ class Record_AJAX extends Action {
 
 	function getPlaceHoldForm(){
 		global $interface;
-		global $user;
-		if ($user) {
+		$user = UserAccount::getLoggedInUser();
+		if (UserAccount::isLoggedIn()) {
 			$id = $_REQUEST['id'];
 			$recordSource = $_REQUEST['recordSource'];
 			$interface->assign('recordSource', $recordSource);
@@ -144,7 +144,7 @@ class Record_AJAX extends Action {
 			$maxHolds = -1;
 			//Determine if we should show a warning
 			$ptype = new PType();
-			$ptype->pType = $user->patronType;
+			$ptype->pType = UserAccount::getUserPType();
 			if ($ptype->find(true)){
 				$maxHolds = $ptype->maxHolds;
 			}
@@ -223,8 +223,8 @@ class Record_AJAX extends Action {
 
 	function getPlaceHoldEditionsForm() {
 		global $interface;
-		global $user;
-		if ($user) {
+		if (UserAccount::isLoggedIn()) {
+
 			$id           = $_REQUEST['id'];
 			$recordSource = $_REQUEST['recordSource'];
 			$interface->assign('recordSource', $recordSource);
@@ -256,8 +256,7 @@ class Record_AJAX extends Action {
 
 	function getBookMaterialForm($errorMessage = null){
 		global $interface;
-		global $user;
-		if ($user){
+		if (UserAccount::isLoggedIn()){
 			$id = $_REQUEST['id'];
 
 			require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
@@ -285,7 +284,7 @@ class Record_AJAX extends Action {
 		$recordId = $_REQUEST['id'];
 		if (strpos($recordId, ':') !== false) list(,$recordId) = explode(':', $recordId, 2); // remove any prefix from the recordId
 		if (!empty($recordId)) {
-			global $user;
+			$user = UserAccount::getLoggedInUser();
 			$catalog = $user->getCatalogDriver();
 //			$catalog = CatalogFactory::getCatalogConnectionInstance();
 			return $catalog->getBookingCalendar($recordId);
@@ -310,19 +309,9 @@ class Record_AJAX extends Action {
 		$endDate   = empty($_REQUEST['endDate'])   ? null : $_REQUEST['endDate'];
 		$endTime   = empty($_REQUEST['endTime'])   ? null : $_REQUEST['endTime'];
 
-		global $user;
+		$user = UserAccount::getLoggedInUser();
 		if ($user) { // The user is already logged in
-//			$catalog = CatalogFactory::getCatalogConnectionInstance();
 			return $user->bookMaterial($recordId, $startDate, $startTime, $endDate, $endTime);
-			if (!empty($return['retry'])) {
-				return $this->getBookMaterialForm($return['message']); // send back error message with form to try again
-			} else { // otherwise return output to user's browser
-				if ($return['success'] == true) {
-					$return['message'] = '<div class="alert alert-success">' . $return['message'] . '</div>';
-				}
-					// wrap a success message in a success alert
-				return $return;
-			}
 
 		} else {
 			return array('success' => false, 'message' => 'User not logged in.');
@@ -366,7 +355,7 @@ class Record_AJAX extends Action {
 			$shortId = $recordId;
 		}
 
-		global $user;
+		$user = UserAccount::getLoggedInUser();
 		if ($user){
 			//The user is already logged in
 

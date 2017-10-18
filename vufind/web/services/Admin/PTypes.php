@@ -38,8 +38,8 @@ class PTypes extends ObjectEditor
 	function getAllObjects(){
 		$libraryList = array();
 
-		global $user;
-		if ($user->hasRole('opacAdmin')){
+		$user = UserAccount::getLoggedInUser();
+		if (UserAccount::userHasRole('opacAdmin')){
 			$library = new PType();
 			$library->orderBy('pType');
 			$library->find();
@@ -63,12 +63,12 @@ class PTypes extends ObjectEditor
 		return array('opacAdmin');
 	}
 	function canAddNew(){
-		global $user;
-		return $user->hasRole('opacAdmin');
+		$user = UserAccount::getLoggedInUser();
+		return UserAccount::userHasRole('opacAdmin');
 	}
 	function canDelete(){
-		global $user;
-		return $user->hasRole('opacAdmin');
+		$user = UserAccount::getLoggedInUser();
+		return UserAccount::userHasRole('opacAdmin');
 	}
 
 }

@@ -30,11 +30,11 @@ class Genealogy_Results extends Action {
 		global $interface;
 		global $configArray;
 		global $timer;
-		global $user;
+		$user = UserAccount::getLoggedInUser();
 		global $analytics;
 
 		//Check to see if a user is logged in with admin permissions
-		if ($user && $user->hasRole('genealogyContributor')){
+		if (UserAccount::isLoggedIn() && UserAccount::userHasRole('genealogyContributor')){
 			$interface->assign('userIsAdmin', true);
 		}else{
 			$interface->assign('userIsAdmin', false);

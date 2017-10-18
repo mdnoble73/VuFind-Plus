@@ -74,7 +74,6 @@ class Browse_AJAX extends Action {
 	function createBrowseCategory(){
 		global $library;
 		global $locationSingleton;
-		global $user;
 		$searchLocation = $locationSingleton->getSearchLocation();
 		$categoryName = isset($_REQUEST['categoryName']) ? $_REQUEST['categoryName'] : '';
 		$addAsSubCategoryOf = isset($_REQUEST['addAsSubCategoryOf']) && !empty($_REQUEST['addAsSubCategoryOf']) ? $_REQUEST['addAsSubCategoryOf'] : null;
@@ -126,7 +125,7 @@ class Browse_AJAX extends Action {
 			}
 
 			$browseCategory->label = $categoryName;
-			$browseCategory->userId = $user->id;
+			$browseCategory->userId = UserAccount::getActiveUserId();
 			$browseCategory->sharing = 'everyone';
 			$browseCategory->catalogScoping = 'unscoped';
 			$browseCategory->description = '';

@@ -36,10 +36,10 @@ class ManageStatuses extends ObjectEditor
 		return 'Materials Request Statuses';
 	}
 	function getAllObjects(){
-		global $user;
+		$user = UserAccount::getLoggedInUser();
 
 		$status = new MaterialsRequestStatus();
-		if ($user->hasRole('library_material_requests')){
+		if (UserAccount::userHasRole('library_material_requests')){
 			$homeLibrary = Library::getPatronHomeLibrary();
 			$status->libraryId = $homeLibrary->libraryId;
 		}
@@ -68,8 +68,8 @@ class ManageStatuses extends ObjectEditor
 	}
 	function customListActions(){
 		$objectActions = array();
-		global $user;
-		if ($user->hasRole('library_material_requests')){
+		$user = UserAccount::getLoggedInUser();
+		if (UserAccount::userHasRole('library_material_requests')){
 			$objectActions[] = array(
 				'label' => 'Reset to Default',
 				'action' => 'resetToDefault',
@@ -80,8 +80,8 @@ class ManageStatuses extends ObjectEditor
 	}
 
 	function resetToDefault(){
-		global $user;
-		if ($user->hasRole('library_material_requests')){
+		$user = UserAccount::getLoggedInUser();
+		if (UserAccount::userHasRole('library_material_requests')){
 			$homeLibrary = Library::getPatronHomeLibrary();
 			$materialRequestStatus = new MaterialsRequestStatus();
 			$materialRequestStatus->libraryId = $homeLibrary->libraryId;
