@@ -246,12 +246,6 @@ abstract class Record_Record extends Action
 
 			$timer->logTime('Got detailed data from Marc Record');
 
-			if (isset($library) && strlen($library->notesTabName) > 0){
-				$interface->assign('notesTabName', $library->notesTabName);
-			}else{
-				$interface->assign('notesTabName', 'Notes');
-			}
-
 			$notes = $this->recordDriver->getNotes();
 			if (count($notes) > 0){
 				$interface->assign('notes', $notes);

@@ -50,7 +50,6 @@ class Library extends DB_DataObject
 	public $showRatings; // User Ratings
 	public $showFavorites;
 	public $showTableOfContentsTab;
-	public $notesTabName;
 	public $inSystemPickupsOnly;
 	public $validPickupSystems;
 	public $pTypes;
@@ -233,7 +232,6 @@ class Library extends DB_DataObject
 		'showFormats'              => 'Formats',
 		'showEditions'             => 'Editions',
 		'showPhysicalDescriptions' => 'Physical Descriptions',
-		'showLocations'            => 'Locations',
 		'showISBNs'                => 'ISBNs',
 		'showArInfo'               => 'Show Accelerated Reader Information',
 		'showLexileInfo'           => 'Show Lexile Information',
@@ -570,7 +568,6 @@ class Library extends DB_DataObject
 				'showShareOnExternalSites' => array('property'=>'showShareOnExternalSites', 'type'=>'checkbox', 'label'=>'Show Sharing To External Sites',    'description'=>'Whether or not sharing on external sites (Twitter, Facebook, Pinterest, etc. is shown)', 'hideInLists' => true, 'default' => 1),
 				'showQRCode'               => array('property'=>'showQRCode',               'type'=>'checkbox', 'label'=>'Show QR Code',                      'description'=>'Whether or not the catalog should show a QR Code in full record view', 'hideInLists' => true, 'default' => 1),
 				'showTagging'              => array('property'=>'showTagging',              'type'=>'checkbox', 'label'=>'Show Tagging',                      'description'=>'Whether or not tags are shown (also disables adding tags)', 'hideInLists' => true, 'default' => 1),
-				'notesTabName'             => array('property'=>'notesTabName',             'type'=>'text',     'label'=>'Notes Tab Name',                    'description'=>'Text to display for the the notes tab.', 'size'=>'40', 'maxLength' => '50', 'hideInLists' => true, 'default' => 'Notes'),
 //				'exportOptions'            => array('property'=>'exportOptions',            'type'=>'text',     'label'=>'Export Options',                    'description'=>'A list of export options that should be enabled separated by pipes.  Valid values are currently RefWorks and EndNote.', 'size'=>'40', 'hideInLists' => true,),
 				'show856LinksAsTab'        => array('property'=>'show856LinksAsTab',        'type'=>'checkbox', 'label'=>'Show 856 Links as Tab',             'description'=>'Whether or not 856 links will be shown in their own tab or on the same tab as holdings.', 'hideInLists' => true, 'default' => 1),
 				'showCheckInGrid'          => array('property'=>'showCheckInGrid',          'type'=>'checkbox', 'label'=>'Show Check-in Grid',                'description'=>'Whether or not the check-in grid is shown for periodicals.', 'default' => 1, 'hideInLists' => true,),
