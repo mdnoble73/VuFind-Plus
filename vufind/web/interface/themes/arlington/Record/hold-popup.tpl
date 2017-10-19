@@ -77,7 +77,7 @@
 							var userNames = {
 							{/literal}
 							{$activeUserId}: "{$userDisplayName} - {$user->getHomeLibrarySystemName()}",
-							{assign var="linkedUsers" value=$user->getLinkedUsers()}
+							{assign var="linkedUsers" value=$user->getLinkedUserObjects()}
 							{foreach from="$linkedUsers" item="tron"}
 								{$tron->id}: "{$tron->displayName} - {$tron->getHomeLibrarySystemName()}",
 							{/foreach}

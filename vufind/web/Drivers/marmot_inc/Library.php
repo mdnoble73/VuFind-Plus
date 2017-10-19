@@ -332,7 +332,6 @@ class Library extends DB_DataObject
 		unset($materialsRequestFormFieldsStructure['libraryId']); //needed?
 		unset($materialsRequestFormFieldsStructure['weight']);
 
-		$user = UserAccount::getLoggedInUser();
 		require_once ROOT_DIR . '/sys/ListWidget.php';
 		$widget = new ListWidget();
 		if ((UserAccount::userHasRole('libraryAdmin') || UserAccount::userHasRole('contentEditor')) && !UserAccount::userHasRole('opacAdmin') || UserAccount::userHasRole('libraryManager') || UserAccount::userHasRole('locationManager')){

@@ -6,7 +6,6 @@ class LibraryFacetSetting extends FacetSetting {
 	public $libraryId;
 
 	static function getObjectStructure(){
-		$user = UserAccount::getLoggedInUser();
 		$library = new Library();
 		$library->orderBy('displayName');
 		if (UserAccount::userHasRole('libraryAdmin') || UserAccount::userHasRole('libraryManager')){

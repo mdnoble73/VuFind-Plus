@@ -4,7 +4,7 @@
 
 	<div class="col-xs-12 col-sm-3 col-md-3 col-lg-2 text-center">
 		{*TODO: show covers *}
-		{if $user->disableCoverArt != 1}
+		{if $disableCoverArt != 1}
 			{*<div class='descriptionContent{$summShortId|escape}' style='display:none'>{$summDescription}</div>*}
 			<a href="{$summUrl}">
 				<img src="{$bookCoverUrlMedium}" class="listResultImage img-thumbnail img-responsive" alt="{translate text='Cover Image'}">

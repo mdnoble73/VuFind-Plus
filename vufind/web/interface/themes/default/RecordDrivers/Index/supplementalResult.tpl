@@ -1,6 +1,6 @@
 <div id="supplementalRecord{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" class="resultsList">
 	<div class="imageColumn">
-		{if $user->disableCoverArt != 1}
+		{if $disableCoverArt != 1}
 		<a href="{$summUrl}">
 		<img src="{$bookCoverUrl}" class="listResultImage" alt="{translate text='Cover Image'}"/>
 		</a>

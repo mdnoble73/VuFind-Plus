@@ -10,7 +10,7 @@
 			</div>
 			{/strip}
 			<div class="col-md-7 text-center">
-				{if $user->disableCoverArt != 1}
+				{if $disableCoverArt != 1}
 					{*<div class='descriptionContent{$summShortId|escape}' style='display:none'>{$summDescription}</div>*}
 					<a href="{$summUrl}">
 						<img src="{$bookCoverUrlMedium}"

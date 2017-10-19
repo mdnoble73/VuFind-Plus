@@ -76,7 +76,7 @@ class UserAccount {
 
 	public static function userHasRole($roleName) {
 		$userRoles = UserAccount::getActiveRoles();
-		return array_key_exists($roleName, UserAccount::$userRoles);
+		return array_key_exists($roleName, $userRoles);
 	}
 
 	public static function getActiveRoles(){
@@ -175,6 +175,22 @@ class UserAccount {
 			return UserAccount::$primaryUserObjectFromDB->patronType;
 		}
 		return 'logged out';
+	}
+
+	public static function getDisableCoverArt(){
+		UserAccount::loadUserObjectFromDatabase();
+		if (UserAccount::$primaryUserObjectFromDB != false){
+			return UserAccount::$primaryUserObjectFromDB->disableCoverArt;
+		}
+		return 'logged out';
+	}
+
+	public static function hasLinkedUsers(){
+		UserAccount::loadUserObjectFromDatabase();
+		if (UserAccount::$primaryUserObjectFromDB != false){
+			return count(UserAccount::$primaryUserObjectFromDB->getLinkedUserObjects()) > 0;
+		}
+		return 'false';
 	}
 
 	public static function getUserHomeLocationId(){

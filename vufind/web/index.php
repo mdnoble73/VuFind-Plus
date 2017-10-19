@@ -272,6 +272,10 @@ if ($isLoggedIn) {
 	$interface->assign('userDisplayName', $userDisplayName);
 	$userRoles = UserAccount::getActiveRoles();
 	$interface->assign('userRoles', $userRoles);
+	$disableCoverArt = UserAccount::getDisableCoverArt();
+	$interface->assign('disableCoverArt', $disableCoverArt);
+	$hasLinkedUsers = UserAccount::hasLinkedUsers();
+	$interface->assign('hasLinkedUsers', $hasLinkedUsers);
 	$interface->assign('masqueradeMode', $masqueradeMode);
 	if ($masqueradeMode) {
 		$interface->assign('guidingUser', $guidingUser);
@@ -353,7 +357,6 @@ if (UserAccount::isLoggedIn() && (!isset($_REQUEST['action']) || $_REQUEST['acti
 	loadUserData();
 	$timer->logTime('Load user data');
 
-	//$user = UserAccount::getLoggedInUser();
 	$interface->assign('pType', UserAccount::getUserPType());
 	$homeLibrary = Library::getLibraryForLocation(UserAccount::getUserHomeLocationId());
 	if (isset($homeLibrary)){
@@ -376,9 +379,9 @@ if (!$analytics->isTrackingDisabled()){
 	$analytics->setMobile($interface->isMobile() ? 1 : 0);
 	$analytics->setDevice(get_device_name());
 	$analytics->setPhysicalLocation($physicalLocation);
-	if ($user){
-		$analytics->setPatronType($user->patronType);
-		$analytics->setHomeLocationId($user->homeLocationId);
+	if (UserAccount::isLoggedIn()){
+		$analytics->setPatronType(UserAccount::getUserPType());
+		$analytics->setHomeLocationId(UserAccount::getUserHomeLocationId());
 	}else{
 		$analytics->setPatronType('logged out');
 		$analytics->setHomeLocationId(-1);
@@ -560,7 +563,11 @@ if (($isOpac || $masqueradeMode || (!empty($ipLocation) && $ipLocation->getOpacS
 			$includeAutoLogoutCode = false;
 		}
 
-		if ($user) {
+		if (UserAccount::isLoggedIn()) {
+			if (!$user){
+				$user = UserAccount::getActiveUserObj();
+			}
+
 			// User has bypass AutoLog out setting turned on
 			if ($user->bypassAutoLogout == 1) {
 				// The account setting profile template only presents this option to users that are staff

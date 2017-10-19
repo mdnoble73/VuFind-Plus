@@ -73,7 +73,7 @@
 		{* Load title scrollers *}
 
 		{foreach from=$widget->lists item=list}
-			{if $list->displayFor == 'all' || ($list->displayFor == 'loggedIn' && $loggedIn) || ($list->displayFor == 'notLoggedIn' && !$user)}
+			{if $list->displayFor == 'all' || ($list->displayFor == 'loggedIn' && $loggedIn) || ($list->displayFor == 'notLoggedIn' && !$loggedIn)}
 				var listScroller{$list->name|regex_replace:'/\W/':''|escape:url};
 			{/if}
 		{/foreach}

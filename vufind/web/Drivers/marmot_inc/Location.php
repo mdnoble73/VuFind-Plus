@@ -90,7 +90,6 @@ class Location extends DB_DataObject
 	}
 
 	function getObjectStructure(){
-		$user = UserAccount::getLoggedInUser();
 		//Load Libraries for lookup values
 		$library = new Library();
 		$library->orderBy('displayName');

@@ -381,9 +381,9 @@ class GroupedWork_AJAX {
 	private function clearMySuggestionsBrowseCategoryCache(){
 		// Reset any cached suggestion browse category for the user
 		/** @var Memcache $memCache */
-		global $memCache, $solrScope, $user;
+		global $memCache, $solrScope;
 		foreach (array('covers', 'grid') as $browseMode) { // (Browse modes are set in class Browse_AJAX)
-			$key = 'browse_category_system_recommended_for_you_' . $user->id . '_' . $solrScope . '_' . $browseMode;
+			$key = 'browse_category_system_recommended_for_you_' . UserAccount::getActiveUserId() . '_' . $solrScope . '_' . $browseMode;
 			$memCache->delete($key);
 		}
 
@@ -433,7 +433,7 @@ class GroupedWork_AJAX {
 	}
 
 	function getPromptforReviewForm() {
-		$user = UserAccount::getLoggedInUser();
+		$user = UserAccount::getActiveUserObj();
 		if ($user) {
 			if (!$user->noPromptForUserReviews) {
 				global $interface;
@@ -467,8 +467,7 @@ class GroupedWork_AJAX {
 	}
 
 	function setNoMoreReviews(){
-		/* var User $user */
-		$user = UserAccount::getLoggedInUser();
+		$user = UserAccount::getActiveUserObj();
 		if ($user) {
 			$user->noPromptForUserReviews = 1;
 			$success = $user->update();
@@ -477,7 +476,7 @@ class GroupedWork_AJAX {
 	}
 
 	function getReviewForm(){
-		global $interface, $library, $user;
+		global $interface;
 		$id = $_REQUEST['id'];
 		if (!empty($id)) {
 			$interface->assign('id', $id);
@@ -485,7 +484,7 @@ class GroupedWork_AJAX {
 			// check if rating/review exists for user and work
 			require_once ROOT_DIR . '/sys/LocalEnrichment/UserWorkReview.php';
 			$groupedWorkReview                           = new UserWorkReview();
-			$groupedWorkReview->userId                   = $user->id;
+			$groupedWorkReview->userId                   = UserAccount::getActiveUserId();
 			$groupedWorkReview->groupedRecordPermanentId = $id;
 			if ($groupedWorkReview->find(true)) {
 				$interface->assign('userRating', $groupedWorkReview->rating);
