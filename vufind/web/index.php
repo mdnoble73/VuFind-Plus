@@ -276,6 +276,7 @@ if ($isLoggedIn) {
 	$interface->assign('disableCoverArt', $disableCoverArt);
 	$hasLinkedUsers = UserAccount::hasLinkedUsers();
 	$interface->assign('hasLinkedUsers', $hasLinkedUsers);
+	$interface->assign('canMasquerade', UserAccount::getActiveUserObj()->canMasquerade());
 	$interface->assign('masqueradeMode', $masqueradeMode);
 	if ($masqueradeMode) {
 		$interface->assign('guidingUser', $guidingUser);
