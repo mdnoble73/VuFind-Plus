@@ -564,7 +564,7 @@ if (($isOpac || $masqueradeMode || (!empty($ipLocation) && $ipLocation->getOpacS
 		}
 
 		if (UserAccount::isLoggedIn()) {
-			if (!$user){
+			if (!isset($user)){
 				$user = UserAccount::getActiveUserObj();
 			}
 
