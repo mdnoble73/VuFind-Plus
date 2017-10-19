@@ -359,15 +359,12 @@ class User extends DB_DataObject
 		return $this->linkedUsers;
 	}
 
+	private $linkedUserObjects;
 	function getLinkedUserObjects(){
-		if (is_null($this->linkedUsers)){
-			$this->linkedUsers = array();
+		if (is_null($this->linkedUserObjects)){
+			$this->linkedUserObjects = array();
 			/* var Library $library */
 			global $library;
-			/** @var Memcache $memCache */
-			global $memCache;
-			global $serverName;
-			global $logger;
 			if ($this->id && $library->allowLinkedAccounts){
 				require_once ROOT_DIR . '/sys/Account/UserLink.php';
 				$userLink = new UserLink();
@@ -379,7 +376,7 @@ class User extends DB_DataObject
 						$linkedUser->id = $userLink->linkedAccountId;
 						if ($linkedUser->find(true)){
 							/** @var User $userData */
-							$this->linkedUsers[] = clone($linkedUser);
+							$this->linkedUserObjects[] = clone($linkedUser);
 						}
 					}
 				}
