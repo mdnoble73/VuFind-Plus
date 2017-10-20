@@ -382,7 +382,7 @@ class User extends DB_DataObject
 				}
 			}
 		}
-		return $this->linkedUsers;
+		return $this->linkedUserObjects;
 	}
 
 	public function setParentUser($user){
