@@ -189,9 +189,9 @@ VuFind.Archive = (function(){
 			});
 		},
 
-		getMoreMapResults: function(exhibitPid, placePid){
+		getMoreMapResults: function(exhibitPid, placePid, showTimeline){
 			this.curPage = this.curPage +1;
-			var url = Globals.path + "/Archive/AJAX?method=getRelatedObjectsForMappedCollection&collectionId=" + exhibitPid + "&placeId=" + placePid + "&page=" + this.curPage + "&sort=" + this.sort;
+			var url = Globals.path + "/Archive/AJAX?method=getRelatedObjectsForMappedCollection&collectionId=" + exhibitPid + "&placeId=" + placePid + "&page=" + this.curPage + "&sort=" + this.sort + "&showTimeline=" + showTimeline;
 			$("input[name=dateFilter]:checked").each(function(){
 				url = url + "&dateFilter="+$(this).val();
 			});
@@ -230,7 +230,7 @@ VuFind.Archive = (function(){
 			});
 		},
 
-		handleMapClick: function(markerIndex, exhibitPid, placePid, label, redirect){
+		handleMapClick: function(markerIndex, exhibitPid, placePid, label, redirect, showTimeline){
 			$("#exhibit-results-loading").show();
 			this.archive_info_window.setContent(label);
 			if (markerIndex >= 0){
@@ -242,7 +242,10 @@ VuFind.Archive = (function(){
 				newUrl = VuFind.buildUrl(newUrl, 'style', 'map');
 				document.location.href = newUrl;
 			}
-			$.getJSON(Globals.path + "/Archive/AJAX?method=getRelatedObjectsForMappedCollection&collectionId=" + exhibitPid + "&placeId=" + placePid, function(data){
+			if (showTimeline == "undefined"){
+				showTimeline = true;
+			}
+			$.getJSON(Globals.path + "/Archive/AJAX?method=getRelatedObjectsForMappedCollection&collectionId=" + exhibitPid + "&placeId=" + placePid + "&showTimeline=" + showTimeline, function(data){
 				if (data.success){
 					$("#related-objects-for-exhibit").html(data.relatedObjects);
 					$("#exhibit-results-loading").hide();
@@ -253,6 +256,7 @@ VuFind.Archive = (function(){
 				exhibitPid: exhibitPid,
 				placePid: placePid,
 				label: label,
+				showTimeline: showTimeline,
 				page: "MapExhibit"
 			};
 			var newUrl = VuFind.buildUrl(document.location.origin + document.location.pathname, 'placePid', placePid);
@@ -316,10 +320,10 @@ VuFind.Archive = (function(){
 
 		},
 
-		reloadMapResults: function(exhibitPid, placePid, reloadHeader){
+		reloadMapResults: function(exhibitPid, placePid, reloadHeader,showTimeline){
 			$("#exhibit-results-loading").show();
 			this.curPage = 1;
-			var url = Globals.path + "/Archive/AJAX?method=getRelatedObjectsForMappedCollection&collectionId=" + exhibitPid + "&placeId=" + placePid + "&page=" + this.curPage + "&sort=" + this.sort + '&archiveCollectionView=' + this.displayMode + '&showCovers=' + VuFind.Account.showCovers;
+			var url = Globals.path + "/Archive/AJAX?method=getRelatedObjectsForMappedCollection&collectionId=" + exhibitPid + "&placeId=" + placePid + "&page=" + this.curPage + "&sort=" + this.sort + '&archiveCollectionView=' + this.displayMode + '&showCovers=' + VuFind.Account.showCovers + '&showTimeline=' + showTimeline;
 			$("input[name=dateFilter]:checked").each(function(){
 				url = url + "&dateFilter="+$(this).val();
 			});

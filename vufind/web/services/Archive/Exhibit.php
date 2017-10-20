@@ -43,6 +43,12 @@ class Archive_Exhibit extends Archive_Object{
 			$displayType = 'map';
 			$mapZoom = $this->recordDriver->getModsValue('mapZoomLevel', 'marmot');
 			$interface->assign('mapZoom', $mapZoom);
+			$interface->assign('showTimeline', 'true');
+		}elseif ($pikaCollectionDisplay == 'mapNoTimeline'){
+			$displayType = 'mapNoTimeline';
+			$mapZoom = $this->recordDriver->getModsValue('mapZoomLevel', 'marmot');
+			$interface->assign('mapZoom', $mapZoom);
+			$interface->assign('showTimeline', 'false');
 		}elseif ($pikaCollectionDisplay == 'custom'){
 			$displayType = 'custom';
 			//Load the options to show
@@ -95,13 +101,18 @@ class Archive_Exhibit extends Archive_Object{
 			// Set Exhibit Navigation
 			$this->startExhibitContext();
 			$this->display('timelineExhibit.tpl');
-		} else if ($displayType == 'map'){
+		} else if ($displayType == 'map' || $displayType == 'mapNoTimeline'){
 			//Get a list of related places for the object by searching solr to find all objects
 			// Set Exhibit Navigation
 			$this->startExhibitContext();
 			$this->recordDriver->getRelatedPlaces();
-
+			if ($displayType == 'map'){
+				$interface->assign('timeline', true);
+			}else{
+				$interface->assign('timeline', false);
+			}
 			$this->display('mapExhibit.tpl');
+
 		} else if ($displayType == 'custom'){
 //			$this->endExhibitContext();
 			$this->startExhibitContext();
@@ -261,7 +272,7 @@ class Archive_Exhibit extends Archive_Object{
 		$searchObject->clearFilters();
 		$searchObject->addFilter("RELS_EXT_isMemberOfCollection_uri_ms:\"info:fedora/{$this->pid}\"");
 		$searchObject->clearFacets();
-		if ($displayType == 'map' || $displayType == 'custom'){
+		if ($displayType == 'map' || $displayType == 'mapNoTimeline' || $displayType == 'custom'){
 			$searchObject->addFacet('mods_extension_marmotLocal_relatedEntity_place_entityPid_ms');
 			$searchObject->addFacet('mods_extension_marmotLocal_relatedPlace_entityPlace_entityPid_ms');
 			$searchObject->addFacet('mods_extension_marmotLocal_militaryService_militaryRecord_relatedPlace_entityPlace_entityPid_ms');
@@ -291,7 +302,7 @@ class Archive_Exhibit extends Archive_Object{
 //		$interface->assign('collectionSearchId', $lastExhibitObjectsSearch);
 		$timer->logTime('Did initial search for related objects');
 		if ($response && $response['response']['numFound'] > 0) {
-			if ($displayType == 'map' || $displayType == 'custom') {
+			if ($displayType == 'map' || $displayType == 'mapNoTimeline' || $displayType == 'custom') {
 				$minLat = null;
 				$minLong = null;
 				$maxLat = null;
