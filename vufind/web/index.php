@@ -254,11 +254,6 @@ if (isset($_REQUEST['lookfor'])) {
 	}
 }
 
-//Check to see if the user is already logged in
-/** @var User $user */
-global $guidingUser,
-       $masqueradeMode;
-
 $isLoggedIn = UserAccount::isLoggedIn();
 $timer->logTime('Check if user is logged in');
 
@@ -268,19 +263,6 @@ $interface->assign('loggedIn', $isLoggedIn);
 if ($isLoggedIn) {
 	$activeUserId = UserAccount::getActiveUserId();
 	$interface->assign('activeUserId', $activeUserId);
-	$userDisplayName = UserAccount::getUserDisplayName();
-	$interface->assign('userDisplayName', $userDisplayName);
-	$userRoles = UserAccount::getActiveRoles();
-	$interface->assign('userRoles', $userRoles);
-	$disableCoverArt = UserAccount::getDisableCoverArt();
-	$interface->assign('disableCoverArt', $disableCoverArt);
-	$hasLinkedUsers = UserAccount::hasLinkedUsers();
-	$interface->assign('hasLinkedUsers', $hasLinkedUsers);
-	$interface->assign('canMasquerade', UserAccount::getActiveUserObj()->canMasquerade());
-	$interface->assign('masqueradeMode', $masqueradeMode);
-	if ($masqueradeMode) {
-		$interface->assign('guidingUser', $guidingUser);
-	}
 } else if ( (isset($_POST['username']) && isset($_POST['password']) && ($action != 'Account' && $module != 'AJAX')) || isset($_REQUEST['casLogin']) ) {
 	//The user is trying to log in
 	$user = UserAccount::login();
@@ -300,10 +282,7 @@ if ($isLoggedIn) {
 	$interface->assign('loggedIn', $user == false ? 'false' : 'true');
 	if ($user){
 		$interface->assign('activeUserId', $user->id);
-		$userDisplayName = UserAccount::getUserDisplayName();
-		$interface->assign('userDisplayName', $userDisplayName);
-		$userRoles = UserAccount::getActiveRoles();
-		$interface->assign('userRoles', $userRoles);
+
 	}
 
 	//Check to see if there is a followup module and if so, use that module and action for the next page load
@@ -358,7 +337,24 @@ if (UserAccount::isLoggedIn() && (!isset($_REQUEST['action']) || $_REQUEST['acti
 	loadUserData();
 	$timer->logTime('Load user data');
 
+	$userDisplayName = UserAccount::getUserDisplayName();
+	$interface->assign('userDisplayName', $userDisplayName);
+	$userRoles = UserAccount::getActiveRoles();
+	$interface->assign('userRoles', $userRoles);
+	$disableCoverArt = UserAccount::getDisableCoverArt();
+	$interface->assign('disableCoverArt', $disableCoverArt);
+	$hasLinkedUsers = UserAccount::hasLinkedUsers();
+	$interface->assign('hasLinkedUsers', $hasLinkedUsers);
 	$interface->assign('pType', UserAccount::getUserPType());
+	$interface->assign('canMasquerade', UserAccount::getActiveUserObj()->canMasquerade());
+	$masqueradeMode = UserAccount::isUserMasquerading();
+	$interface->assign('masqueradeMode', $masqueradeMode);
+	if ($masqueradeMode){
+		$guidingUser = UserAccount::getGuidingUserObject();
+		$interface->assign('guidingUser', $guidingUser);
+	}
+
+
 	$homeLibrary = Library::getLibraryForLocation(UserAccount::getUserHomeLocationId());
 	if (isset($homeLibrary)){
 		$interface->assign('homeLibrary', $homeLibrary->displayName);
@@ -367,6 +363,7 @@ if (UserAccount::isLoggedIn() && (!isset($_REQUEST['action']) || $_REQUEST['acti
 }else{
 	$interface->assign('pType', 'logged out');
 	$interface->assign('homeLibrary', 'n/a');
+	$masqueradeMode = false;
 }
 
 //Setup analytics

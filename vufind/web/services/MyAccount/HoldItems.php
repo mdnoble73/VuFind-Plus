@@ -99,7 +99,7 @@ class HoldItems extends Action
 			unset($_SESSION['hold_referrer']);
 			if (isset($_SESSION['autologout'])){
 				unset($_SESSION['autologout']);
-				global $masqueradeMode;
+				$masqueradeMode = UserAccount::isUserMasquerading();
 				if ($masqueradeMode) {
 					require_once ROOT_DIR . '/services/MyAccount/Masquerade.php';
 					MyAccount_Masquerade::endMasquerade();

@@ -156,8 +156,6 @@ class MyAccount_Masquerade extends MyAccount
 								@session_start(); // (suppress notice if the session is already started)
 								$_SESSION['guidingUserId'] = $guidingUser->id;
 								$_SESSION['activeUserId'] = $user->id;
-								global $masqueradeMode;
-								$masqueradeMode = true;
 								return array('success' => true);
 							} else {
 								unset($_SESSION['guidingUserId']);

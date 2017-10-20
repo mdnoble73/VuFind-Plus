@@ -214,7 +214,7 @@ class AJAX_JSON extends Action {
 
 	function getAutoLogoutPrompt(){
 		global $interface;
-		global $masqueradeMode;
+		$masqueradeMode = UserAccount::isUserMasquerading();
 		$result = array(
 			'title'        => 'Still There?',
 			'modalBody'    => $interface->fetch('AJAX/autoLogoutPrompt.tpl'),

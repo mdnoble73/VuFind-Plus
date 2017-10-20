@@ -28,6 +28,8 @@ class UserAccount {
 	private static $primaryUserData = null;
 	/** @var User|false  */
 	private static $primaryUserObjectFromDB = null;
+	/** @var User|false $guidingUserObjectFromDB */
+	private static $guidingUserObjectFromDB = null;
 	private static $userRoles = null;
 	/**
 	 * Checks whether the user is logged in.
@@ -201,6 +203,32 @@ class UserAccount {
 		return -1;
 	}
 
+	public static function isUserMasquerading(){
+		return !empty($_SESSION['guidingUserId']);
+	}
+
+	public static function getGuidingUserObject(){
+		if (UserAccount::$guidingUserObjectFromDB == null){
+			if (UserAccount::isUserMasquerading()){
+				$activeUserId = $_SESSION['guidingUserId'];
+				if ($activeUserId){
+					$user = new User();
+					$user->id = $activeUserId;
+					if ($user->find(true)){
+						UserAccount::$guidingUserObjectFromDB = $user;
+					}else{
+						UserAccount::$guidingUserObjectFromDB = false;
+					}
+				}else{
+					UserAccount::$guidingUserObjectFromDB = false;
+				}
+			}else{
+				UserAccount::$guidingUserObjectFromDB = false;
+			}
+		}
+		return UserAccount::$guidingUserObjectFromDB;
+	}
+
 	/**
 	 * @return bool|null|User
 	 */
@@ -243,10 +271,8 @@ class UserAccount {
 			}
 			UserAccount::$isLoggedIn = true;
 
-			global $masqueradeMode;
-			$masqueradeMode = false;
-			if (!empty($_SESSION['guidingUserId'])) {
-				$masqueradeMode = true;
+			$masqueradeMode = UserAccount::isUserMasquerading();
+			if ($masqueradeMode) {
 				global $guidingUser;
 				$guidingUser = $memCache->get("user_{$serverName}_{$_SESSION['guidingUserId']}"); //TODO: check if this ever works
 				if ($guidingUser === false || isset($_REQUEST['reload'])){

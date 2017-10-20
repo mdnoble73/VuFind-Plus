@@ -500,7 +500,7 @@ class Record_AJAX extends Action {
 							'title'   => isset($return['title']) ? $return['title'] : '',
 						);
 						if (isset($_REQUEST['autologout'])) {
-							global $masqueradeMode;
+							$masqueradeMode = UserAccount::isUserMasquerading();
 							if ($masqueradeMode) {
 								require_once ROOT_DIR . '/services/MyAccount/Masquerade.php';
 								MyAccount_Masquerade::endMasquerade();
@@ -521,7 +521,7 @@ class Record_AJAX extends Action {
 
 			if (isset($_REQUEST['autologout']) && !(isset($results['needsItemLevelHold']) && $results['needsItemLevelHold'])) {
 				// Only go through the auto-logout when the holds process is completed. Item level holds require another round of interaction with the user.
-				global $masqueradeMode;
+				$masqueradeMode = UserAccount::isUserMasquerading();
 				if ($masqueradeMode) {
 					require_once ROOT_DIR . '/services/MyAccount/Masquerade.php';
 					MyAccount_Masquerade::endMasquerade();

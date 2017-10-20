@@ -248,7 +248,7 @@ class User extends DB_DataObject
 		}
 
 
-		global $masqueradeMode;
+		$masqueradeMode = UserAccount::isUserMasquerading();
 		if ($masqueradeMode && !$isGuidingUser) {
 			if (is_null($this->masqueradingRoles)) {
 				global /** @var User $guidingUser */
