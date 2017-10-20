@@ -1,5 +1,5 @@
 {strip}
-	{if ($displayType == 'map' || $displayType == 'timeline' || $displayType == 'scroller' || $displayType == 'basic') && $page == 1 && $reloadHeader == 1}
+	{if ($displayType == 'map' || $displayType == 'mapNoTimeline' || $displayType == 'timeline' || $displayType == 'scroller' || $displayType == 'basic') && $page == 1 && $reloadHeader == 1}
 		<div id="exhibit-results-loading" class="row" style="display: none">
 			<div class="alert alert-info">
 				Updating results, please wait.
@@ -8,7 +8,7 @@
 
 		<div class="row">
 			<div class="col-sm-6">
-				{if ($displayType == 'map' || $displayType == 'timeline')}
+				{if ($displayType == 'map' || $displayType == 'mapNoTimeline' || $displayType == 'timeline')}
 					<form action="/Archive/Results">
 						<div class="input-group">
 							<input type="text" name="lookfor" size="30" title="Enter one or more terms to search for.	Surrounding a term with quotes will limit result to only those that exactly match the term." autocomplete="off" class="form-control" placeholder="Search this collection">
@@ -37,6 +37,8 @@
 				<select id="results-sort" name="sort" onchange="VuFind.Archive.sort = this.options[this.selectedIndex].value;
 								{if $displayType == 'map'}
 									VuFind.Archive.reloadMapResults('{$exhibitPid|urlencode}', '{$placePid|urlencode}', 1);
+								{elseif $displayType == 'mapNoTimeline'}
+									VuFind.Archive.reloadMapResults('{$exhibitPid|urlencode}', '{$placePid|urlencode}', 1);
 								{elseif $displayType == 'timeline'}
 									VuFind.Archive.reloadTimelineResults('{$exhibitPid|urlencode}', 1);
 								{elseif $displayType == 'scroller'}
@@ -62,7 +64,7 @@
 			</div>
 		</div>
 
-		{if $displayType != 'basic' && $displayType != 'scroller' && ($recordEnd < $recordCount || $updateTimeLine)}
+		{if $displayType != 'basic' && $displayType != 'mapNoTimeline' && $displayType != 'scroller' && ($recordEnd < $recordCount || $updateTimeLine)}
 			{* Display selection of date ranges *}
 			<div class="row">
 				<div class="col-xs-12">
@@ -132,10 +134,10 @@
 	{/if}
 
 	<div id="nextInsertPoint">
-	{if $displayType == 'map'}
+	{if $displayType == 'map' || $displayType == 'mapNoTimeline'}
 		{* {$recordCount-$recordEnd} more records to load *}
 		{if $recordEnd < $recordCount}
-			<a onclick="return VuFind.Archive.getMoreMapResults('{$exhibitPid|urlencode}', '{$placePid|urlencode}')">
+			<a onclick="return VuFind.Archive.getMoreMapResults('{$exhibitPid|urlencode}', '{$placePid|urlencode}', '{if $displayType == 'map'}true{else}false{/if}')">
 				<div class="row" id="more-browse-results">
 					<img src="{img filename="browse_more_arrow.png"}" alt="Load More Search Results" title="Load More Search Results">
 				</div>

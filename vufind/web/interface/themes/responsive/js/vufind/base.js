@@ -23,7 +23,7 @@ var VuFind = (function(){
 		$(window).on("popstate", function () {
 			// if the state is the page you expect, pull the name and load it.
 			if (history.state && history.state.page === "MapExhibit") {
-				VuFind.Archive.handleMapClick(history.state.marker, history.state.exhibitPid, history.state.placePid, history.state.label);
+				VuFind.Archive.handleMapClick(history.state.marker, history.state.exhibitPid, history.state.placePid, history.state.label, false, history.state.showTimeline);
 			}
 			else if (history.state && history.state.page === "Book") {
 				VuFind.Archive.handleBookClick(history.state.bookPid, history.state.pagePid, history.state.viewer);

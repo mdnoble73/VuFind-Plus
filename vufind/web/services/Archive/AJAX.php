@@ -391,6 +391,14 @@ class Archive_AJAX extends Action {
 				$interface->assign('reloadHeader', '1');
 			}
 
+			if (isset($_REQUEST['showTimeline'])){
+				$interface->assign('showTimeline', $_REQUEST['showTimeline']);
+				$showTimeline = $_REQUEST['showTimeline'] == 'true';
+			}else{
+				$interface->assign('showTimeline', true);
+				$showTimeline = true;
+			}
+
 			$placeId = urldecode($_REQUEST['placeId']);
 			$logger->log("Setting place information for context $placeId", PEAR_LOG_DEBUG);
 			@session_start();
@@ -402,7 +410,11 @@ class Archive_AJAX extends Action {
 			$_SESSION['placeLabel'] = $placeObject->label;
 			$logger->log("Setting place label for context $placeObject->label", PEAR_LOG_DEBUG);
 
-			$interface->assign('displayType', 'map');
+			if ($showTimeline){
+				$interface->assign('displayType', 'map');
+			}else{
+				$interface->assign('displayType', 'mapNoTimeline');
+			}
 
 			$interface->assign('label', $placeObject->label);
 
@@ -432,7 +444,9 @@ class Archive_AJAX extends Action {
 			);
 
 			$searchObject->clearFacets();
-			$this->setupTimelineFacetsAndFilters($searchObject);
+			if ($showTimeline) {
+				$this->setupTimelineFacetsAndFilters($searchObject);
+			}
 			$this->setupTimelineSorts($sort, $searchObject);
 			$interface->assign('showThumbnailsSorted', true);
 
@@ -484,7 +498,9 @@ class Archive_AJAX extends Action {
 						$timer->logTime('Loaded related object');
 					}
 				}
-				$this->processTimelineData($response, $interface);
+				if ($showTimeline){
+					$this->processTimelineData($response, $interface);
+				}
 			}
 
 			$interface->assign('relatedObjects', $relatedObjects);

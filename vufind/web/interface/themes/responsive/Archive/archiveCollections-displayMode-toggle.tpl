@@ -35,7 +35,9 @@
 
 			VuFind.Archive.ajaxReloadCallback = function(){ldelim}
 				{if $displayType == 'map'}
-				VuFind.Archive.reloadMapResults('{$exhibitPid|urlencode}', '{$placePid|urlencode}', 0);
+				VuFind.Archive.reloadMapResults('{$exhibitPid|urlencode}', '{$placePid|urlencode}', 0, 'true');
+				{elseif $displayType == 'mapNoTimeline'}
+				VuFind.Archive.reloadMapResults('{$exhibitPid|urlencode}', '{$placePid|urlencode}', 0, 'false');
 				{elseif $displayType == 'timeline'}
 				VuFind.Archive.reloadTimelineResults('{$exhibitPid|urlencode}', 0);
 				{elseif $displayType == 'scroller'}
