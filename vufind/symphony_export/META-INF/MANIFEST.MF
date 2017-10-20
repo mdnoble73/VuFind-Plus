@@ -1,6 +1,9 @@
 Manifest-Version: 1.0
-Class-Path: lib/codec-1.6.jar lib/commons-logging.1.1.1.jar lib/ini4j-
- 0.5.2.jar lib/log4j-1.2.15.jar lib/marc4j-2.6.3.jar lib/mysql-5.1.15-
- bin.jar lib/opencsv-2.2.jar
+Class-Path: lib/codec-1.6.jar lib/commons-logging.1.2.jar lib/ini4j-
+ 0.5.2.jar lib/log4j-1.2.17.jar lib/marc4j-2.6.3.jar lib/mysql-5.1.15-
+ bin.jar lib/opencsv-2.2.jar lib/poi-ooxml-3.17.jar lib/xmlbeans-
+ 2.6.0.jar lib/curvesapi-1.04.jar lib/commons-codec-1.10.jar lib/poi-
+ ooxml-schemas-3.17.jar lib/poi-3.17.jar lib/commons-collections4-
+ 4.1.jar
 Main-Class: org.marmot.pika.SymphonyExportMain
 
