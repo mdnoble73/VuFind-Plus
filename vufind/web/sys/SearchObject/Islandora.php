@@ -903,7 +903,7 @@ class SearchObject_Islandora extends SearchObject_Base
 		// The first record to retrieve:
 		//  (page - 1) * limit = start
 		$recordStart = ($this->page - 1) * $this->limit;
-		if (!$this->indexEngine->pingServer(false)){
+		if ($this->indexEngine->pingServer(false) == "false"){
 			PEAR_Singleton::raiseError('The archive server is currently unavailable.  Please try your search again in a few minutes.');
 		}
 		$this->indexResult = $this->indexEngine->search(
