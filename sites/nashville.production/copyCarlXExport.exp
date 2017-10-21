@@ -53,19 +53,22 @@ if {[file exists "$localPath/fullExport.mrc"] == 1} {
 }
 
 set prompt {sftp> $}
-spawn sftp $FTPUser@$FTPHost:/carl.output/utilities/marcout/pika/
-expect "$FTPUser@$FTPHost\'s password:*"
-send "$FTPPassword\r"
-expect $prompt
-set size1 0
-set size2 1
-# If it is 9PM or later, grab today's full export; else grab yesterdays
-if {[clock format [clock seconds] -format "%H"] > 20} {
-	set today [clock format [clock seconds] -format "%Y%m%d"]
-} else {
-	set today [clock format [clock scan yesterday] -format "%Y%m%d"]
-}
-while {$size1 != $size2} {
+set size 0
+
+while {$size == 0} {
+	sleep 60
+	spawn sftp $FTPUser@$FTPHost:/carl.output/utilities/marcout/pika/
+	expect "$FTPUser@$FTPHost\'s password:*"
+	send "$FTPPassword\r"
+	expect $prompt
+
+	# If it is 9PM or later, grab today's full export; else grab yesterdays
+	if {[clock format [clock seconds] -format "%H"] > 20} {
+		set today [clock format [clock seconds] -format "%Y%m%d"]
+	} else {
+		set today [clock format [clock scan yesterday] -format "%Y%m%d"]
+	}
+
 	send "ls -l fullExport.$today.gz\r"
 	#result should look like
 	#ls: cannot access fullExport.20170804.gz: No such file or directory
@@ -74,21 +77,15 @@ while {$size1 != $size2} {
 
 	expect {
 		"not found" {
-			sleep 10
+			close
 			continue
 		}
 		-re "\[^ ]+ +\[^ ]+ +\[^ ]+ +\[^ ]+ +(\[^ ]+) +(\[^ ]+) (\[0-9]+) .+fullExport\.$today\.gz" {
-			# Deterimine whether file is growing
-			set size2 $expect_out(1,string)
-			#puts "\n\nSIZE1: $size1\n\n"
-			#puts "\n\nSIZE2: $size2\n\n"
-			if {$size1 == $size2} {break}
-			set size1 $size2
-			set size2 0
-			sleep 10
+			set size $expect_out(1,string)
 		}
 	}
 }
+
 expect $prompt
 send "get fullExport.$today.gz $localPath\r"
 set timeout 120

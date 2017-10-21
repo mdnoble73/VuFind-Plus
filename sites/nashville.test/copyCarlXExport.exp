@@ -3,10 +3,12 @@
 # copyCarlXExport.exp
 #
 
-#https://marmot.myjetbrains.com/youtrack/issue/IN-384
+# https://marmot.myjetbrains.com/youtrack/issue/IN-384
+# TLC describes fullExport creation at
+# https://ww2.tlcdelivers.com/helpdesk/default.asp?TicketID=428769
 
 exp_internal 0 ; # 1 = verbose debugging to stdout
-log_user 1 ; # 1 = send screens to stdout
+log_user 0 ; # 1 = send screens to stdout
 
 set site [lindex $argv 0]
 set confpwd "/usr/local/VuFind-Plus/sites/$site/conf/config.pwd.ini"
@@ -51,73 +53,47 @@ if {[file exists "$localPath/fullExport.mrc"] == 1} {
 }
 
 set prompt {sftp> $}
-spawn sftp $FTPUser@$FTPHost:/carl.output/
-expect "$FTPUser@$FTPHost\'s password:*"
-send "$FTPPassword\r"
-expect $prompt
-send "cd /carl.output/\r"
-set size1 0
-set size2 1
-while {$size1 != $size2} {
-	send "ls -l fullExport\r"
-	#result should look like
-	#ls: cannot access fullExport: No such file or directory
-	# OR
-	#-rw-r--r--    1 appmgr      dba     1004939812 Jun 22 22:10 fullExport\r\nsftp>
+set size 0
 
-	expect {
-		"not found" {
-			sleep 10
-			break
-		}
-		-re "\[^ ]+ +\[^ ]+ +\[^ ]+ +\[^ ]+ +(\[^ ]+) +(\[^ ]+) (\[0-9]+) .+fullExport\.gz" {
-			# Deterimine whether file is growing
-			set size2 $expect_out(1,string)
-			#puts "\n\nSIZE1: $size1\n\n"
-			#puts "\n\nSIZE2: $size2\n\n"
-			if {$size1 == $size2} {break}
-			set size1 $size2
-			set size2 0
-			sleep 10
-		}
+while {$size == 0} {
+	sleep 60
+	spawn sftp $FTPUser@$FTPHost:/carl.output/utilities/marcout/pika/
+	expect "$FTPUser@$FTPHost\'s password:*"
+	send "$FTPPassword\r"
+	expect $prompt
+
+	# If it is 9PM or later, grab today's full export; else grab yesterdays
+	if {[clock format [clock seconds] -format "%H"] > 20} {
+		set today [clock format [clock seconds] -format "%Y%m%d"]
+	} else {
+		set today [clock format [clock scan yesterday] -format "%Y%m%d"]
 	}
-}
-expect $prompt
-send "cd /carl.output/utilities/marcout/pika\r"
-set size1 0
-set size2 1
-while {$size1 != $size2} {
-	send "ls -l fullExport.gz\r"
+
+	send "ls -l fullExport.$today.gz\r"
 	#result should look like
-	#ls: cannot access fullExport.gz: No such file or directory
+	#ls: cannot access fullExport.20170804.gz: No such file or directory
 	# OR
-	#-rw-r--r--    1 appmgr      dba      304939812 Jun 22 22:10 fullExport.gz\r\nsftp>
+	#-rw-r--r--    1 appmgr      dba      304939812 Aug 4 22:10 fullExport.20170804.gz\r\nsftp>
 
 	expect {
 		"not found" {
-			sleep 10
+			close
 			continue
 		}
-		-re "\[^ ]+ +\[^ ]+ +\[^ ]+ +\[^ ]+ +(\[^ ]+) +(\[^ ]+) (\[0-9]+) .+fullExport\.gz" {
-			# Deterimine whether file is growing
-			set size2 $expect_out(1,string)
-			#puts "\n\nSIZE1: $size1\n\n"
-			#puts "\n\nSIZE2: $size2\n\n"
-			if {$size1 == $size2} {break}
-			set size1 $size2
-			set size2 0
-			sleep 10
+		-re "\[^ ]+ +\[^ ]+ +\[^ ]+ +\[^ ]+ +(\[^ ]+) +(\[^ ]+) (\[0-9]+) .+fullExport\.$today\.gz" {
+			set size $expect_out(1,string)
 		}
 	}
 }
+
 expect $prompt
-send "get fullExport.gz $localPath\r"
-set timeout 5000
+send "get fullExport.$today.gz $localPath\r"
+set timeout 120
 expect "100%*"
 expect $prompt
 close
 
-spawn gunzip -fN $localPath/fullExport.gz
+spawn gunzip -fN $localPath/fullExport.$today.gz
 expect eof
 
 spawn mv -f $localPath/fullExport $localPath/fullExport.mrc
