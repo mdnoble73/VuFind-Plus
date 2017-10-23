@@ -279,6 +279,7 @@ class Solr implements IndexEngine {
 		}else{
 			Solr::$serversPinged[$this->host] = true;
 		}
+		return Solr::$serversPinged[$this->host];
 	}
 
 	public function setDebugging($enableDebug, $enableSolrQueryDebugging) {
