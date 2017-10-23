@@ -1847,7 +1847,7 @@ abstract class IslandoraDriver extends RecordInterface {
 		if ($dateCreated == ''){
 			$dateCreated = $this->getModsValue('dateIssued', 'mods');
 			if ($dateCreated == ''){
-				return 'Unknown';
+				return 'Date Unknown';
 			}
 		}
 		$formattedDate = DateTime::createFromFormat('Y-m-d', $dateCreated);
