@@ -106,6 +106,9 @@ cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE
 # Englewood Axis 360 Marc Updates
 /usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} englewood/axis360 axis360/englewood >> ${OUTPUT_FILE}
 
+## Marmot RBDigital (magazine) Marc Updates
+#/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} marmot/rbdigital zinio/marmot >> ${OUTPUT_FILE}
+
 # Western Oxford Reference Marc Updates
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh western/oxfordReference oxfordReference/western >> ${OUTPUT_FILE}
 
@@ -113,9 +116,9 @@ cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh western/springer springer/western >> ${OUTPUT_FILE}
 
 # CCU Gale Marc Updates
-/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh ccu/gale gale/ccu >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} ccu/gale gale/ccu >> ${OUTPUT_FILE}
 
-# Western Kanopy Marc Updates
+# Kanopy Marc Updates
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh western/kanopy kanopy/western >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/sites/${PIKASERVER}/moveFullExport.sh budwerner/kanopy kanopy/budwerner >> ${OUTPUT_FILE}
 
