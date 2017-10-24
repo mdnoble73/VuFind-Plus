@@ -55,8 +55,10 @@ class UserAccount {
 					if ($action != 'AJAX' && $action != 'DjatokaResolver' && $action != 'Logout' && $module != 'MyAccount' && $module != 'API' && !isset($_REQUEST['username'])) {
 						//Check CAS first
 						require_once ROOT_DIR . '/sys/Authentication/CASAuthentication.php';
+						global $logger;
 						$casAuthentication = new CASAuthentication(null);
 						$casUsername = $casAuthentication->validateAccount(null, null, null, false);
+						$logger->log("Checking CAS Authentication from UserAccount::isLoggedIn", PEAR_LOG_DEBUG);
 						if ($casUsername == false || PEAR_Singleton::isError($casUsername)) {
 							//The user could not be authenticated in CAS
 							UserAccount::$isLoggedIn = false;
@@ -299,6 +301,8 @@ class UserAccount {
 				//Check CAS first
 				require_once ROOT_DIR . '/sys/Authentication/CASAuthentication.php';
 				$casAuthentication = new CASAuthentication(null);
+				global $logger;
+				$logger->log("Checking CAS Authentication from UserAccount::getLoggedInUser", PEAR_LOG_DEBUG);
 				$casUsername = $casAuthentication->validateAccount(null, null, null, false);
 				if ($casUsername == false || PEAR_Singleton::isError($casUsername)){
 					//The user could not be authenticated in CAS
@@ -464,6 +468,7 @@ class UserAccount {
 			//Check CAS first
 			require_once ROOT_DIR . '/sys/Authentication/CASAuthentication.php';
 			$casAuthentication = new CASAuthentication(null);
+			$logger->log("Checking CAS Authentication from UserAccount::validateAccount", PEAR_LOG_DEBUG);
 			$casUsername = $casAuthentication->validateAccount(null, null, $parentAccount, false);
 			if ($casUsername == false || PEAR_Singleton::isError($casUsername)){
 				//The user could not be authenticated in CAS
