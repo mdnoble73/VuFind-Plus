@@ -32,8 +32,8 @@ spl_autoload_register('vufind_autoloader');
 initializeSession();
 $timer->logTime("Initialized session");
 
-global $logger;
-$logger->log("Opening URL " . $_SESSION['REQUEST_URI'], PEAR_LOG_DEBUG);
+//global $logger;
+//$logger->log("Opening URL " . $_SESSION['REQUEST_URI'], PEAR_LOG_DEBUG);
 
 if (isset($_REQUEST['test_role'])){
 	if ($_REQUEST['test_role'] == ''){
