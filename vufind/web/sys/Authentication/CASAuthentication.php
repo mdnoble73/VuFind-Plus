@@ -50,7 +50,7 @@ class CASAuthentication implements Authentication {
 				global $logger;
 				$logger->log("Checking CAS Authentication", PEAR_LOG_DEBUG);
 				$isValidated = phpCAS::checkAuthentication();
-				$logger->log("isValidated = $isValidated", PEAR_LOG_DEBUG);
+				$logger->log("isValidated = ". ($isValidated ? 'true' : 'false'), PEAR_LOG_DEBUG);
 			}catch (CAS_AuthenticationException $e){
 				global $logger;
 				$logger->log("Error validating account in CAS $e", PEAR_LOG_ERR);
