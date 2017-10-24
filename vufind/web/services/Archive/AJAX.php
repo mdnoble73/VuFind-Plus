@@ -384,6 +384,8 @@ class Archive_AJAX extends Action {
 			require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
 			$fedoraUtils = FedoraUtils::getInstance();
 			$pid = urldecode($_REQUEST['collectionId']);
+			/** @var IslandoraDriver $collectionDriver */
+			$collectionDriver = RecordDriverFactory::initIslandoraDriverFromPid($pid);
 			$interface->assign('exhibitPid', $pid);
 			if (isset($_REQUEST['reloadHeader'])){
 				$interface->assign('reloadHeader', $_REQUEST['reloadHeader']);
@@ -391,7 +393,26 @@ class Archive_AJAX extends Action {
 				$interface->assign('reloadHeader', '1');
 			}
 
-			if (isset($_REQUEST['showTimeline'])){
+			$additionalCollections = array();
+			if ($collectionDriver->getModsValue('pikaCollectionDisplay', 'marmot') == 'custom'){
+				//Load the options to show
+				$collectionOptionsOriginalRaw = $collectionDriver->getModsValue('collectionOptions', 'marmot');
+				$collectionOptionsOriginal = explode("\r\n", html_entity_decode($collectionOptionsOriginalRaw));
+				$additionalCollections = array();
+				if (isset($collectionOptionsOriginal)){
+					foreach ($collectionOptionsOriginal as $collectionOption){
+						if (strpos($collectionOption, 'googleMap') === 0){
+							$filterOptions = explode('|', $collectionOption);
+							if (count($filterOptions) > 1){
+								$additionalCollections = explode(',', $filterOptions[1]);
+								break;
+							}
+						}
+					}
+				}
+			}
+
+			if (isset($_REQUEST['showTimeline']) && $_REQUEST['showTimeline'] != 'undefined'){
 				$interface->assign('showTimeline', $_REQUEST['showTimeline']);
 				$showTimeline = $_REQUEST['showTimeline'] == 'true';
 			}else{
@@ -435,7 +456,15 @@ class Archive_AJAX extends Action {
 			$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
 			$searchObject->addHiddenFilter('!RELS_EXT_isConstituentOf_uri_ms', "*");
 			$searchObject->clearFilters();
-			$searchObject->addFilter("RELS_EXT_isMemberOfCollection_uri_ms:\"info:fedora/{$pid}\"");
+			if (isset($additionalCollections) && count($additionalCollections > 0)){
+				$filter = "RELS_EXT_isMemberOfCollection_uri_ms:\"info:fedora/{$pid}\"";
+				foreach ($additionalCollections as $collection){
+					$filter .= " OR RELS_EXT_isMemberOfCollection_uri_ms:\"info:fedora/" . trim($collection) . "\"";
+				}
+				$searchObject->addFilter($filter);
+			}else{
+				$searchObject->addFilter("RELS_EXT_isMemberOfCollection_uri_ms:\"info:fedora/{$pid}\"");
+			}
 			$searchObject->setBasicQuery("mods_extension_marmotLocal_relatedEntity_place_entityPid_ms:\"{$placeId}\" OR " .
 					"mods_extension_marmotLocal_relatedPlace_entityPlace_entityPid_ms:\"{$placeId}\" OR " .
 					"mods_extension_marmotLocal_militaryService_militaryRecord_relatedPlace_entityPlace_entityPid_ms:\"{$placeId}\" OR " .

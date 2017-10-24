@@ -42,6 +42,9 @@ class Archive_Exhibit extends Archive_Object{
 		if ($pikaCollectionDisplay == 'map'){
 			$displayType = 'map';
 			$mapZoom = $this->recordDriver->getModsValue('mapZoomLevel', 'marmot');
+			if ($mapZoom == null){
+				$mapZoom = 9;
+			}
 			$interface->assign('mapZoom', $mapZoom);
 			$interface->assign('showTimeline', 'true');
 		}elseif ($pikaCollectionDisplay == 'mapNoTimeline'){
@@ -57,8 +60,26 @@ class Archive_Exhibit extends Archive_Object{
 		}elseif ($pikaCollectionDisplay == 'timeline'){
 			$displayType = 'timeline';
 		}
+		$additionalCollections = array();
+		if ($this->recordDriver->getModsValue('pikaCollectionDisplay', 'marmot') == 'custom' && ($displayType == 'map' || $displayType == 'mapNoTimeline')){
+			//Load the options to show
+			$collectionOptionsOriginalRaw = $this->recordDriver->getModsValue('collectionOptions', 'marmot');
+			$collectionOptionsOriginal = explode("\r\n", html_entity_decode($collectionOptionsOriginalRaw));
+			$additionalCollections = array();
+			if (isset($collectionOptionsOriginal)){
+				foreach ($collectionOptionsOriginal as $collectionOption){
+					if (strpos($collectionOption, 'googleMap') === 0){
+						$filterOptions = explode('|', $collectionOption);
+						if (count($filterOptions) > 1){
+							$additionalCollections = explode(',', $filterOptions[1]);
+							break;
+						}
+					}
+				}
+			}
+		}
 		$interface->assign('displayType', $displayType);
-		$this->loadRelatedObjects($displayType);
+		$this->loadRelatedObjects($displayType, $additionalCollections);
 		$timer->logTime('Loaded Related Objects');
 
 		if ($this->archiveObject->getDatastream('BANNER') != null) {
@@ -104,13 +125,15 @@ class Archive_Exhibit extends Archive_Object{
 		} else if ($displayType == 'map' || $displayType == 'mapNoTimeline'){
 			//Get a list of related places for the object by searching solr to find all objects
 			// Set Exhibit Navigation
+
 			$this->startExhibitContext();
-			$this->recordDriver->getRelatedPlaces();
 			if ($displayType == 'map'){
 				$interface->assign('timeline', true);
 			}else{
 				$interface->assign('timeline', false);
 			}
+
+			$this->recordDriver->getRelatedPlaces();
 			$this->display('mapExhibit.tpl');
 
 		} else if ($displayType == 'custom'){
@@ -123,9 +146,16 @@ class Archive_Exhibit extends Archive_Object{
 					$browseFilterImage = isset($filterOptions[1]) ? $filterOptions[1] : "/interface/themes/responsive/images/search_component.png";
 					$interface->assign('searchComponentImage', $browseFilterImage);
 					$collectionTemplates[] = $interface->fetch('Archive/searchComponent.tpl');
-				}else if ($option == 'googleMap'){
+				}else if (strpos($option, 'googleMap') === 0){
+					$filterOptions = explode('|', $option);
+					if (count($filterOptions) > 1){
+						$interface->assign('additionalMapCollections', $filterOptions[1]);
+					}else{
+						$interface->assign('additionalMapCollections', '');
+					}
 					$mapZoom = $this->recordDriver->getModsValue('mapZoomLevel', 'marmot');
 					$interface->assign('mapZoom', $mapZoom);
+
 					$this->recordDriver->getRelatedPlaces();
 					$collectionTemplates[] = $interface->fetch('Archive/browseByMapComponent.tpl');
 				}else if (strpos($option, 'browseCollectionByTitle') === 0 || strpos($option, 'scroller') === 0 ){
@@ -256,7 +286,7 @@ class Archive_Exhibit extends Archive_Object{
 		}
 	}
 
-	function loadRelatedObjects($displayType){
+	function loadRelatedObjects($displayType, $additionalCollections){
 		global $interface;
 		global $timer;
 		global $logger;
@@ -270,7 +300,16 @@ class Archive_Exhibit extends Archive_Object{
 		//Don't show pages of books or parts of an album
 		$searchObject->addHiddenFilter('!RELS_EXT_isConstituentOf_uri_ms', "*");
 		$searchObject->clearFilters();
-		$searchObject->addFilter("RELS_EXT_isMemberOfCollection_uri_ms:\"info:fedora/{$this->pid}\"");
+		if (isset($additionalCollections) && count($additionalCollections > 0)){
+			$filter = "RELS_EXT_isMemberOfCollection_uri_ms:\"info:fedora/{$this->pid}\"";
+			foreach ($additionalCollections as $collection){
+				$filter .= " OR RELS_EXT_isMemberOfCollection_uri_ms:\"info:fedora/" . trim($collection) . "\"";
+			}
+			$searchObject->addFilter($filter);
+		}else{
+			$searchObject->addFilter("RELS_EXT_isMemberOfCollection_uri_ms:\"info:fedora/{$this->pid}\"");
+		}
+
 		$searchObject->clearFacets();
 		if ($displayType == 'map' || $displayType == 'mapNoTimeline' || $displayType == 'custom'){
 			$searchObject->addFacet('mods_extension_marmotLocal_relatedEntity_place_entityPid_ms');
