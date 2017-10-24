@@ -1079,7 +1079,7 @@ class BookCoverProcessor{
 					if ($this->getColoradoGovDocCover()){
 						return true;
 					}
-				}elseif (stripos($relatedRecord['source'], 'ebrary') !== false){
+				}elseif (stripos($relatedRecord['source'], 'proquest') !== false || stripos($relatedRecord['source'], 'ebrary') !== false){
 					if ($this->getEbraryCover($relatedRecord['id'])){
 						return true;
 					}
