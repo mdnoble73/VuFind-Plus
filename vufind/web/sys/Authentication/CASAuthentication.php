@@ -57,13 +57,17 @@ class CASAuthentication implements Authentication {
 				$isValidated = false;
 			}
 
-			if ($isValidated){
+			if ($isValidated) {
 				//We have a valid user within CAS.  Return the user id
 				$userAttributes = phpCAS::getAttributes();
 				//TODO: If we use other CAS systems we will need a configuration option to store which
 				//attribute the id is in
-				$userId = $userAttributes['flcid'];
-				return $userId;
+				if (isset($userAttributes['flcid'])) {
+					$userId = $userAttributes['flcid'];
+					return $userId;
+				}else{
+					$logger->log("Did not find flcid in user attributes " . print_r($userAttributes, true), PEAR_LOG_WARNING);
+				}
 			}else{
 				return false;
 			}
