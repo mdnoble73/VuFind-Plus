@@ -2185,6 +2185,7 @@ public function getNextPrevLinks(){
 			if ($s->N > 0){
 				$s->fetch();
 				$minSO = unserialize($s->search_object);
+				/** @var SearchObject_Solr $searchObject */
 				$searchObject = SearchObjectFactory::deminify($minSO);
 				$searchObject->setPage($currentPage);
 				//Run the search
@@ -2236,7 +2237,9 @@ public function getNextPrevLinks(){
 								if ($previousRecord['recordtype'] == 'grouped_work'){
 									require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
 									$groupedWork = New GroupedWorkDriver($previousRecord);
-									$relatedRecords = $groupedWork->getRelatedRecords();
+									$relatedRecords = $groupedWork->getRelatedRecords(true);
+									global $timer;
+									$timer->logTime('Loaded related records for previous result');
 									if (count($relatedRecords) == 1) {
 										$previousRecord = reset($relatedRecords);
 										list($previousType, $previousId) = explode('/', trim($previousRecord['url'], '/'));
@@ -2272,7 +2275,9 @@ public function getNextPrevLinks(){
 								if ($nextRecord['recordtype'] == 'grouped_work'){
 									require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
 									$groupedWork = New GroupedWorkDriver($nextRecord);
-									$relatedRecords = $groupedWork->getRelatedRecords();
+									$relatedRecords = $groupedWork->getRelatedRecords(true);
+									global $timer;
+									$timer->logTime('Loaded related records for next result');
 									if (count($relatedRecords) == 1) {
 										$nextRecord = reset($relatedRecords);
 										list($nextType, $nextId) = explode('/', trim($nextRecord['url'], '/'));
