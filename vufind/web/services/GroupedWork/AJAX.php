@@ -1032,4 +1032,29 @@ class GroupedWork_AJAX {
 
 		return json_encode(array('success' => true, 'message' => 'Covers have been reloaded.  You may need to refresh the page to clear your local cache.'));
 	}
+
+	function reloadIslandora(){
+		$id = $_REQUEST['id'];
+		$samePikaCleared = false;
+		$cacheMessage = '';
+		require_once ROOT_DIR . '/sys/Islandora/IslandoraSamePikaCache.php';
+		//Check for cached links
+		$samePikaCache = new IslandoraSamePikaCache();
+		$samePikaCache->groupedWorkId = $id;
+		if ($samePikaCache->find(true)){
+			if ($samePikaCache->delete()){
+				$samePikaCleared = true;
+			}else{
+				$cacheMessage = 'Could not delete same pika cache';
+			}
+
+		}else{
+			$cacheMessage = 'Data not cached for same pika link';
+		}
+
+		return json_encode(array(
+				'success' => $samePikaCleared,
+				'message' => $cacheMessage
+		));
+	}
 }

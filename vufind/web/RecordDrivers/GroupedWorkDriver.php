@@ -1099,10 +1099,27 @@ class GroupedWorkDriver extends RecordInterface{
 	 */
 	static function loadArchiveLinksForWorks($groupedWorkIds){
 		global $library;
+		global $timer;
 		$archiveLink = null;
 		if ($library->enableArchive && count($groupedWorkIds) > 0){
+			require_once ROOT_DIR . '/sys/Islandora/IslandoraSamePikaCache.php';
+			$groupedWorkIdsToSearch = array();
 			foreach ($groupedWorkIds as $groupedWorkId){
-				GroupedWorkDriver::$archiveLinksForWorkIds[$groupedWorkId] = false;
+				//Check for cached links
+				$samePikaCache = new IslandoraSamePikaCache();
+				$samePikaCache->groupedWorkId = $groupedWorkId;
+				if ($samePikaCache->find(true)){
+					GroupedWorkDriver::$archiveLinksForWorkIds[$groupedWorkId] = $samePikaCache->archiveLink;
+				}else{
+					GroupedWorkDriver::$archiveLinksForWorkIds[$groupedWorkId] = false;
+					$samePikaCache->archiveLink = '';
+					$samePikaCache->insert();
+					$groupedWorkIdsToSearch[] = $groupedWorkId;
+				}
+			}
+
+			if (isset($_REQUEST['reload'])){
+				$groupedWorkIdsToSearch = $groupedWorkIds;
 			}
 			/** @var SearchObject_Islandora $searchObject */
 			$searchObject = SearchObjectFactory::initSearchObject('Islandora');
@@ -1110,14 +1127,14 @@ class GroupedWorkDriver extends RecordInterface{
 			if ($searchObject->pingServer(false)){
 				$searchObject->disableLogging();
 				$searchObject->setDebugging(false, false);
-				$query = 'mods_extension_marmotLocal_externalLink_samePika_link_s:*' . implode('* OR mods_extension_marmotLocal_externalLink_samePika_link_s:*' , $groupedWorkIds) . '*';
+				$query = 'mods_extension_marmotLocal_externalLink_samePika_link_s:*' . implode('* OR mods_extension_marmotLocal_externalLink_samePika_link_s:*' , $groupedWorkIdsToSearch ) . '*';
 				$searchObject->setBasicQuery($query);
 				//Clear existing filters so search filters don't apply to this query
 				$searchObject->clearFilters();
 				$searchObject->clearFacets();
 				$searchObject->addFieldsToReturn(array('mods_extension_marmotLocal_externalLink_samePika_link_s'));
 
-				$searchObject->setLimit(count($groupedWorkIds));
+				$searchObject->setLimit(count($groupedWorkIdsToSearch));
 
 				$response = $searchObject->processSearch(true, false, true);
 
@@ -1128,8 +1145,19 @@ class GroupedWorkDriver extends RecordInterface{
 							$firstObjectDriver = RecordDriverFactory::initRecordDriver($doc);
 
 							$archiveLink = $firstObjectDriver->getRecordUrl();
-							foreach ($groupedWorkIds as $groupedWorkId){
+							foreach ($groupedWorkIdsToSearch as $groupedWorkId){
 								if (strpos($doc['mods_extension_marmotLocal_externalLink_samePika_link_s'], $groupedWorkId) !== false){
+									$samePikaCache = new IslandoraSamePikaCache();
+									$samePikaCache->groupedWorkId = $groupedWorkId;
+									if ($samePikaCache->find(true) && $samePikaCache->archiveLink != $archiveLink){
+										$samePikaCache->archiveLink = $archiveLink;
+										$samePikaCache->pid = $firstObjectDriver->getUniqueID();
+										$numUpdates = $samePikaCache->update();
+										if ($numUpdates == 0){
+											global $logger;
+											$logger->log("Did not update same pika cache " . print_r($samePikaCache->_lastError, true), PEAR_LOG_ERR);
+										}
+									}
 									GroupedWorkDriver::$archiveLinksForWorkIds[$groupedWorkId] = $archiveLink;
 									break;
 								}
@@ -1138,6 +1166,7 @@ class GroupedWorkDriver extends RecordInterface{
 					}
 				}
 			}
+			$timer->logTime("Loaded archive links for work " . count($groupedWorkIds) . " works");
 
 			$searchObject = null;
 			unset($searchObject);
@@ -1146,36 +1175,68 @@ class GroupedWorkDriver extends RecordInterface{
 	static function getArchiveLinkForWork($groupedWorkId){
 		//Check to see if the record is available within the archive
 		global $library;
-		$archiveLink = null;
+		global $timer;
+		$archiveLink = '';
 		if ($library->enableArchive){
 			if (array_key_exists($groupedWorkId, GroupedWorkDriver::$archiveLinksForWorkIds)){
 				$archiveLink = GroupedWorkDriver::$archiveLinksForWorkIds[$groupedWorkId];
 			}else{
-				/** @var SearchObject_Islandora $searchObject */
-				$searchObject = SearchObjectFactory::initSearchObject('Islandora');
-				$searchObject->init();
-				$searchObject->disableLogging();
-				$searchObject->setDebugging(false, false);
-				$searchObject->setBasicQuery("mods_extension_marmotLocal_externalLink_samePika_link_s:*" . $groupedWorkId);
-				//Clear existing filters so search filters don't apply to this query
-				$searchObject->clearFilters();
-				$searchObject->clearFacets();
-
-				$searchObject->setLimit(1);
-
-				$response = $searchObject->processSearch(true, false, true);
-
-				if ($response && isset($response['response'])) {
-					//Get information about each project
-					if ($searchObject->getResultTotal() > 0) {
-						$firstObjectDriver = RecordDriverFactory::initRecordDriver($response['response']['docs'][0]);
-
-						$archiveLink = $firstObjectDriver->getRecordUrl();
-					}
+				require_once ROOT_DIR . '/sys/Islandora/IslandoraSamePikaCache.php';
+				//Check for cached links
+				$samePikaCache = new IslandoraSamePikaCache();
+				$samePikaCache->groupedWorkId = $groupedWorkId;
+				$foundLink = false;
+				if ($samePikaCache->find(true)){
+					GroupedWorkDriver::$archiveLinksForWorkIds[$groupedWorkId] = $samePikaCache->archiveLink;
+					$archiveLink = $samePikaCache->archiveLink;
+					$foundLink = true;
+				}else{
+					GroupedWorkDriver::$archiveLinksForWorkIds[$groupedWorkId] = false;
+					$samePikaCache->archiveLink = '';
+					$samePikaCache->insert();
 				}
-				GroupedWorkDriver::$archiveLinksForWorkIds[$groupedWorkId] = $archiveLink;
-				$searchObject = null;
-				unset($searchObject);
+
+				if (!$foundLink || isset($_REQUEST['reload'])){
+					/** @var SearchObject_Islandora $searchObject */
+					$searchObject = SearchObjectFactory::initSearchObject('Islandora');
+					$searchObject->init();
+					$searchObject->disableLogging();
+					$searchObject->setDebugging(false, false);
+					$searchObject->setBasicQuery("mods_extension_marmotLocal_externalLink_samePika_link_s:*" . $groupedWorkId);
+					//Clear existing filters so search filters don't apply to this query
+					$searchObject->clearFilters();
+					$searchObject->clearFacets();
+
+					$searchObject->setLimit(1);
+
+					$response = $searchObject->processSearch(true, false, true);
+
+					if ($response && isset($response['response'])) {
+						//Get information about each project
+						if ($searchObject->getResultTotal() > 0) {
+							$firstObjectDriver = RecordDriverFactory::initRecordDriver($response['response']['docs'][0]);
+
+							$archiveLink = $firstObjectDriver->getRecordUrl();
+
+							$samePikaCache = new IslandoraSamePikaCache();
+							$samePikaCache->groupedWorkId = $groupedWorkId;
+							if ($samePikaCache->find(true) && $samePikaCache->archiveLink != $archiveLink){
+								$samePikaCache->archiveLink = $archiveLink;
+								$samePikaCache->pid = $firstObjectDriver->getUniqueID();
+								$numUpdates = $samePikaCache->update();
+								if ($numUpdates == 0){
+									global $logger;
+									$logger->log("Did not update same pika cache " . print_r($samePikaCache->_lastError, true), PEAR_LOG_ERR);
+								}
+							}
+							GroupedWorkDriver::$archiveLinksForWorkIds[$groupedWorkId] = $archiveLink;
+							$timer->logTime("Loaded archive link for work $groupedWorkId");
+						}
+					}
+
+					$searchObject = null;
+					unset($searchObject);
+				}
 			}
 		}
 		return $archiveLink;

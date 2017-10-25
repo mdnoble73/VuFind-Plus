@@ -235,6 +235,16 @@ VuFind.GroupedWork = (function(){
 			VuFind.GroupedWork.loadEnrichmentInfo(id, true);
 		},
 
+		reloadIslandora: function(id){
+			var url = Globals.path + '/GroupedWork/' + id + '/AJAX?method=reloadIslandora';
+			$.getJSON(url, function (data){
+					VuFind.showMessage("Success", data.message, true, true);
+					//setTimeout("VuFind.closeLightbox();", 3000);
+				}
+			);
+			return false;
+		},
+
 		removeTag:function(id, tag){
 			if (confirm("Are you sure you want to remove the tag \"" + tag + "\" from this title?")){
 				var url = Globals.path + '/GroupedWork/' + id + '/AJAX?method=removeTag';

@@ -1132,6 +1132,8 @@ class Archive_AJAX extends Action {
 		}
 		$id = $_REQUEST['id'];
 
+		$mainCacheCleared = false;
+		$cacheMessage = '';
 		require_once ROOT_DIR . '/sys/Islandora/IslandoraObjectCache.php';
 		$objectCache = new IslandoraObjectCache();
 		$objectCache->pid = $id;
@@ -1140,22 +1142,35 @@ class Archive_AJAX extends Action {
 				/** @var Memcache $memCache */
 				global $memCache;
 				$memCache->delete('islandora_object_valid_in_pika_' . $id);
+				$mainCacheCleared = true;
 
-				return array(
-						'success' => false,
-						'message' => 'Cached data was removed for this object.'
-				);
 			}else{
-				return array(
-						'success' => false,
-						'message' => 'Could not delete cached data.'
-				);
+				$cacheMessage = 'Could not delete cached data.<br/>';
 			}
 		}else{
-			return array(
-					'success' => false,
-					'message' => 'Cached data does not exist for that id.'
-			);
+			$mainCacheCleared = true;
+			$cacheMessage = 'Cached data does not exist for that id.<br/>';
 		}
+
+		$samePikaCleared = false;
+		require_once ROOT_DIR . '/sys/Islandora/IslandoraSamePikaCache.php';
+		//Check for cached links
+		$samePikaCache = new IslandoraSamePikaCache();
+		$samePikaCache->pid = $id;
+		if ($samePikaCache->find(true)){
+			if ($samePikaCache->delete()){
+				$samePikaCleared = true;
+			}else{
+				$cacheMessage .= 'Could not delete same pika cache';
+			}
+
+		}else{
+			$cacheMessage .= 'Data not cached for same pika link';
+		}
+
+		return array(
+				'success' => $mainCacheCleared || $samePikaCleared,
+				'message' => $cacheMessage
+		);
 	}
 }
