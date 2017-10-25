@@ -962,23 +962,16 @@ class GroupedWork_AJAX {
 		$id = $_REQUEST['id'];
 		$interface->assign('id', $id);
 
+		/** @var SearchObject_Solr $searchObject */
 		$searchObject = SearchObjectFactory::initSearchObject();
 		$searchObject->init();
-		// Setup Search Engine Connection
-		$class = $configArray['Index']['engine'];
-		$url = $configArray['Index']['url'];
-		/** @var SearchObject_Solr $db */
-		$db = new $class($url);
 
 		// Retrieve Full record from Solr
-		if (!($record = $db->getRecord($id))) {
+		if (!($record = $searchObject->getRecord($id))) {
 			PEAR_Singleton::raiseError(new PEAR_Error('Record Does Not Exist'));
 		}
 
 		$prospector = new Prospector();
-		//Check to see if the record exists within Prospector so we can get the prospector Id
-		$prospectorDetails = $prospector->getProspectorDetailsForLocalRecord($record);
-		$interface->assign('prospectorDetails', $prospectorDetails);
 
 		$searchTerms = array(
 				array(
@@ -992,7 +985,8 @@ class GroupedWork_AJAX {
 					'index' => 'Author'
 			);
 		}
-		$prospectorResults = $prospector->getTopSearchResults($searchTerms, 10, $prospectorDetails);
+
+		$prospectorResults = $prospector->getTopSearchResults($searchTerms, 10);
 		$interface->assign('prospectorResults', $prospectorResults);
 
 		$result = array(

@@ -214,17 +214,25 @@ class GoDeeperData{
 				}
 				if (!empty($summaryData['summary'])) {
 					$memCache->set($memCacheKey, $summaryData, 0, $configArray['Caching']['contentcafe_sumary']);
+				}else{
+					$memCache->set($memCacheKey, 'no_summary', 0, $configArray['Caching']['contentcafe_sumary']);
 				}
 			}
 		}
-		return $summaryData;
+		if ($summaryData == 'no_summary'){
+			return array();
+		}else{
+			return $summaryData;
+		}
+
 	}
 
 	private function getSyndeticsSummary($isbn, $upc){
 		global $configArray;
 		/** @var Memcache $memCache */
 		global $memCache;
-		$summaryData = $memCache->get("syndetics_summary_{$isbn}_{$upc}");
+		$key = "syndetics_summary_{$isbn}_{$upc}";
+		$summaryData = $memCache->get($key);
 
 		if (!$summaryData || isset($_REQUEST['reload'])){
 			try{
@@ -265,9 +273,17 @@ class GoDeeperData{
 				$logger->log("Request URL was $requestUrl", PEAR_LOG_ERR);
 				$summaryData = array();
 			}
-			$memCache->set("syndetics_summary_{$isbn}_{$upc}", $summaryData, 0, $configArray['Caching']['syndetics_summary']);
+			if ($summaryData == false){
+				$memCache->set($key, 'no_summary', 0, $configArray['Caching']['syndetics_summary']);
+			}else{
+				$memCache->set($key, $summaryData, 0, $configArray['Caching']['syndetics_summary']);
+			}
 		}
-		return $summaryData;
+		if ($summaryData == 'no_summary'){
+			return array();
+		}else{
+			return $summaryData;
+		}
 	}
 
 	function getTableOfContents($isbn, $upc){

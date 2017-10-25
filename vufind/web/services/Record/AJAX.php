@@ -107,9 +107,6 @@ class Record_AJAX extends Action {
 		}
 
 		$prospector = new Prospector();
-		//Check to see if the record exists within Prospector so we can get the prospector Id
-		$prospectorDetails = $prospector->getProspectorDetailsForLocalRecord($record);
-		$interface->assign('prospectorDetails', $prospectorDetails);
 
 		$searchTerms = array(
 			array(
@@ -123,7 +120,7 @@ class Record_AJAX extends Action {
 				'index' => 'Author'
 			);
 		}
-		$prospectorResults = $prospector->getTopSearchResults($searchTerms, 10, $prospectorDetails);
+		$prospectorResults = $prospector->getTopSearchResults($searchTerms, 10);
 		$interface->assign('prospectorResults', $prospectorResults);
 		return $interface->fetch('Record/ajax-prospector.tpl');
 	}
