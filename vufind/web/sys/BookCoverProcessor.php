@@ -60,6 +60,10 @@ class BookCoverProcessor{
 			if ($this->getColoradoGovDocCover()){
 				return;
 			}
+		}elseif ($this->type == 'Classroom Video on Demand'){
+			if ($this->getClassroomVideoOnDemandCover($this->id)){
+				return;
+			}
 		} elseif (stripos($this->type, 'proquest') !== false || stripos($this->type, 'ebrary') !== false){
 			if ($this->getEbraryCover($this->id)) {
 				return;
@@ -171,6 +175,19 @@ class BookCoverProcessor{
 		}
 		$coverId = str_replace(array('ebr', "PQE"), '', $id);
 		$coverUrl = "http://covers.ebrary.com/cc/$coverId-l.jpg";
+		if ($this->processImageURL($coverUrl, true)){
+			return true;
+		}else{
+			return false;
+		}
+	}
+
+	private function getClassroomVideoOnDemandCover($id) {
+		if (strpos($id, ':') !== false){
+			list(, $id) = explode(":", $id);
+		}
+		$coverId = preg_replace('/^10+/', '', $id);
+		$coverUrl = "http://cvod.infobase.com/image/$coverId";
 		if ($this->processImageURL($coverUrl, true)){
 			return true;
 		}else{
@@ -1079,8 +1096,16 @@ class BookCoverProcessor{
 					if ($this->getColoradoGovDocCover()){
 						return true;
 					}
+				}elseif (strcasecmp($relatedRecord['source'], 'Classroom Video on Demand') == 0){
+					if ($this->getClassroomVideoOnDemandCover($relatedRecord['id'])){
+						return true;
+					}
 				}elseif (stripos($relatedRecord['source'], 'proquest') !== false || stripos($relatedRecord['source'], 'ebrary') !== false){
 					if ($this->getEbraryCover($relatedRecord['id'])){
+						return true;
+					}
+				}elseif (stripos($relatedRecord['source'], 'kanopy') !== false){
+					if ($this->getKanopyCover($relatedRecord['id'])){
 						return true;
 					}
 				} elseif (stripos($relatedRecord['source'], 'bookflix') !== false){
