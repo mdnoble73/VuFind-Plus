@@ -77,11 +77,6 @@ abstract class Record_Record extends Action
 		}
 		$interface->assign('id', $this->id);
 
-		if (preg_match('/^[\da-fA-F-]{36}$/', $this->id)){
-			header('Location:' . $configArray['Site']['path'] . '/GroupedWork/'. $this->id);
-			die();
-		}
-
 		//Check to see if the record exists within the resources table
 		$this->recordDriver = RecordDriverFactory::initRecordDriverById($this->source . ':' . $this->id);
 		if (is_null($this->recordDriver) || !$this->recordDriver->isValid()){  // initRecordDriverById itself does a validity check and returns null if not.
