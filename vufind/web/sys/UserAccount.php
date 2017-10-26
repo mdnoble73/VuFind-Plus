@@ -480,9 +480,11 @@ class UserAccount {
 			$casUsername = $casAuthentication->validateAccount(null, null, $parentAccount, false);
 			if ($casUsername == false || PEAR_Singleton::isError($casUsername)){
 				//The user could not be authenticated in CAS
+				$logger->log("User could not be authenticated in CAS", PEAR_LOG_DEBUG);
 				UserAccount::$validatedAccounts[$username . $password] = false;
 				return false;
 			}else{
+				$logger->log("User was authenticated in CAS", PEAR_LOG_DEBUG);
 				//Set both username and password since authentication methods could use either.
 				//Each authentication method will need to deal with the possibility that it gets a barcode for both user and password
 				$username = $casUsername;
