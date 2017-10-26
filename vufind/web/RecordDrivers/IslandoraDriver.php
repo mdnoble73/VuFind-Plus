@@ -446,8 +446,8 @@ abstract class IslandoraDriver extends RecordInterface {
 	public function getFullTitle() {
 		if (empty($this->fullTitle)){
 			$titleInfo = $this->getModsValue('titleInfo','mods');
-			$title = $this->getModsValue('title','mods', $titleInfo);
-			$subTitle = $this->getModsValue('subTitle','mods', $titleInfo);
+			$title = trim($this->getModsValue('title','mods', $titleInfo));
+			$subTitle = trim($this->getModsValue('subTitle','mods', $titleInfo));
 			$this->fullTitle = $title;
 			if ($subTitle && $subTitle != $title){
 				$this->fullTitle .= ": " . $subTitle;
@@ -460,8 +460,8 @@ abstract class IslandoraDriver extends RecordInterface {
 	public function getSubTitle() {
 		$titleInfo = $this->getModsValue('titleInfo','mods');
 		$title = $this->getTitle();
-		$subTitle = $this->getModsValue('subTitle','mods', $titleInfo);
-		if ($title != $subTitle){
+		$subTitle = trim($this->getModsValue('subTitle','mods', $titleInfo));
+		if ($subTitle && $title != $subTitle){
 			return $subTitle;
 		}else{
 			return '';
