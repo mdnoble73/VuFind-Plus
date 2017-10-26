@@ -114,6 +114,7 @@ VuFind.Account = (function(){
 				$(".holds-placeholder").html(data.holds);
 				$(".readingHistory-placeholder").html(data.readingHistory);
 				$(".materialsRequests-placeholder").html(data.materialsRequests);
+				$(".bookings-placeholder").html(data.bookings);
 				$("#availableHoldsNotice-placeHolder").html(data.availableHoldsNotice);
 				$(".expirationFinesNotice-placeholder").html(data.expirationFinesNotice);
 				$("#tagsMenu-placeholder").html(data.tagsMenu);

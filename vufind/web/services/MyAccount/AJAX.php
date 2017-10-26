@@ -1356,6 +1356,14 @@ class MyAccount_AJAX
 				$result['holds'] .= '&nbsp;<span class="label label-success">' . $user->getNumHoldsAvailableTotal() . ' ready for pick up</span>';
 			}
 
+			//Count of bookings
+			global $library;
+			if ($library->enableMaterialsBooking){
+				$result['bookings'] = '</div><span class="badge">' . $user->getNumBookingsTotal() . '</span>';
+			}else{
+				$result['bookings'] = '';
+			}
+
 			//Count of Reading History
 			$result['readingHistory'] = '';
 			if ($user->getReadingHistorySize() > 0){

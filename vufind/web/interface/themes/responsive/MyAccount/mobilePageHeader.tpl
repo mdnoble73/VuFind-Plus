@@ -23,7 +23,7 @@
 			{if $enableMaterialsBooking}
 				<div class="myAccountLink{if $action=="Bookings"} active{/if}">
 					<a href="{$path}/MyAccount/Bookings" id="mobileHeader-bookings">
-						Scheduled Items  {if !$offline}<span class="badge">{$user->getNumBookingsTotal()}</span>{/if}
+						Scheduled Items  {if !$offline}<span class="bookings-placeholder"><img src="{$path}/images/loading.gif" alt="loading"></span>{/if}
 					</a>
 				</div>
 			{/if}
