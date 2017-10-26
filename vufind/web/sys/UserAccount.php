@@ -407,6 +407,7 @@ class UserAccount {
 			if (!PEAR_Singleton::isError($tempUser)) {
 				if ($validatedViaSSO){
 					$tempUser->loggedInViaCAS = true;
+					$tempUser->update();
 				}
 				global $library;
 				if (isset($library) && $library->preventExpiredCardLogin && $tempUser->expired) {
@@ -504,6 +505,7 @@ class UserAccount {
 					$logger->log("Cached user {$validatedUser->id}", PEAR_LOG_DEBUG);
 					if ($validatedViaSSO){
 						$validatedUser->loggedInViaCAS = true;
+						$validatedUser->update();
 					}
 					UserAccount::$validatedAccounts[$username . $password] = $validatedUser;
 					return $validatedUser;
@@ -522,6 +524,8 @@ class UserAccount {
 	{
 		$user = UserAccount::getLoggedInUser();
 		if ($user && $user->loggedInViaCAS){
+			global $logger;
+			$logger->log("Logging user out of CAS", PEAR_LOG_DEBUG);
 			require_once ROOT_DIR . '/sys/Authentication/CASAuthentication.php';
 			$casAuthentication = new CASAuthentication(null);
 			$casAuthentication->logout();
