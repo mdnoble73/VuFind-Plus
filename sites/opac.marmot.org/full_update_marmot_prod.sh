@@ -69,6 +69,9 @@ cd /usr/local/vufind-plus/vufind/cron;./GetHooplaFromMarmot.sh >> ${OUTPUT_FILE}
 # CCU Alexander Street Press Marc Updates
 /usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh ccu/alexanderStreetPress alexanderstreetpress/ccu >> ${OUTPUT_FILE}
 
+# CCU Biblioboard Marc Updates
+/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} ccu/biblioboard biblioboard/ccu >> ${OUTPUT_FILE}
+
 # CMC Ebsco Academic Marc Updates
 /usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh cmc/ebsco ebsco/cmc >> ${OUTPUT_FILE}
 
@@ -108,12 +111,6 @@ cd /usr/local/vufind-plus/vufind/cron;./GetHooplaFromMarmot.sh >> ${OUTPUT_FILE}
 # Colorado State Gov Docs Marc Updates
 /usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh marmot/coloGovDocs colorado_gov_docs >> ${OUTPUT_FILE}
 
-# Lynda.com Marc Updates (recieved on marmot ftp server)
-/usr/local/vufind-plus/sites/opac.marmot.org/moveSideloadAdds.sh lynda.com/evld lynda/evld/merge >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/sites/opac.marmot.org/moveSideloadAdds.sh lynda.com/vail lynda/vail/merge >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/sites/opac.marmot.org/moveSideloadAdds.sh lynda.com/telluride lynda/telluride/merge >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/sites/opac.marmot.org/moveSideloadAdds.sh lynda.com/grand lynda/grand/merge >> ${OUTPUT_FILE}
-
 #Extracts for sideloaded eContent; settings defined in config.pwd.ini [Sideload]
 cd /usr/local/vufind-plus/vufind/cron; ./sideload.sh ${PIKASERVER}
 
@@ -126,12 +123,6 @@ cd /usr/local/vufind-plus/vufind/cron; ./sideload.sh ${PIKASERVER}
 /usr/local/vufind-plus/sites/opac.marmot.org/moveSideloadAdds.sh mesa/learning_express/deletes learning_express/mesa/deletes -n >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/sites/opac.marmot.org/moveSideloadAdds.sh vail/learning_express learning_express/vail/merge >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/sites/opac.marmot.org/moveSideloadAdds.sh vail/learning_express/deletes learning_express/vail/deletes >> ${OUTPUT_FILE}
-
-# Merge Lynda.com Records
-/usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh lynda/evld >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh lynda/vail >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh lynda/telluride >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh lynda/grand >> ${OUTPUT_FILE}
 
 #Merge EBSCO records
 /usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh ebsco/fortlewis >> ${OUTPUT_FILE}

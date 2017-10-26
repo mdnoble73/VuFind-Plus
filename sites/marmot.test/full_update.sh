@@ -93,6 +93,9 @@ cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE
 # CCU Ebsco Marc Updates
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh ccu/ebsco ebsco/ccu >> ${OUTPUT_FILE}
 
+# CCU Biblioboard Marc Updates
+/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} ccu/biblioboard biblioboard/ccu >> ${OUTPUT_FILE}
+
 # CMC Ebsco Academic Marc Updates
 /usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh cmc/ebsco ebsco/cmc >> ${OUTPUT_FILE}
 
