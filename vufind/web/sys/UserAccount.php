@@ -406,8 +406,7 @@ class UserAccount {
 			// If we authenticated, store the user in the session:
 			if (!PEAR_Singleton::isError($tempUser)) {
 				if ($validatedViaSSO){
-					$tempUser->loggedInViaCAS = true;
-					$tempUser->update();
+					$_SESSION['loggedInViaCAS'] = true;
 				}
 				global $library;
 				if (isset($library) && $library->preventExpiredCardLogin && $tempUser->expired) {
@@ -504,8 +503,7 @@ class UserAccount {
 					$memCache->set("user_{$serverName}_{$validatedUser->id}", $validatedUser, 0, $configArray['Caching']['user']);
 					$logger->log("Cached user {$validatedUser->id}", PEAR_LOG_DEBUG);
 					if ($validatedViaSSO){
-						$validatedUser->loggedInViaCAS = true;
-						$validatedUser->update();
+						$_SESSION['loggedInViaCAS'] = true;
 					}
 					UserAccount::$validatedAccounts[$username . $password] = $validatedUser;
 					return $validatedUser;
@@ -523,7 +521,7 @@ class UserAccount {
 	public static function logout()
 	{
 		$user = UserAccount::getLoggedInUser();
-		if ($user && $user->loggedInViaCAS){
+		if ($user && isset($_SESSION['loggedInViaCAS']) && $_SESSION['loggedInViaCAS']){
 			global $logger;
 			$logger->log("Logging user out of CAS", PEAR_LOG_DEBUG);
 			require_once ROOT_DIR . '/sys/Authentication/CASAuthentication.php';
@@ -549,7 +547,7 @@ class UserAccount {
 			}
 			unset($_SESSION['activeUserId']);
 			$user = UserAccount::getLoggedInUser();
-			if ($user && $user->loggedInViaCAS){
+			if ($user && isset($_SESSION['loggedInViaCAS']) && $_SESSION['loggedInViaCAS']){
 				require_once ROOT_DIR . '/sys/Authentication/CASAuthentication.php';
 				$casAuthentication = new CASAuthentication(null);
 				$casAuthentication->logout();

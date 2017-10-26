@@ -80,7 +80,6 @@ class User extends DB_DataObject
 	public $noticePreferenceLabel;
 	private $numMaterialsRequests = 0;
 	private $readingHistorySize = 0;
-	public $loggedInViaCAS;
 
 	private $data = array();
 
