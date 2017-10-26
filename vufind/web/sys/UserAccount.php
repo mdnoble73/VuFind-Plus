@@ -50,19 +50,29 @@ class UserAccount {
 				//If the library uses CAS/SSO we may already be logged in even though they never logged in within Pika
 				global $library;
 				if (strlen($library->casHost) > 0) {
+					$checkCAS = false;
+					$curTime = time();
+					if (!isset($_SESSION['lastCASCheck'])){
+						$checkCAS = true;
+					}elseif ($curTime - $_SESSION['lastCASCheck'] > 10){
+						$checkCAS = true;
+					}
 					global $action;
 					global $module;
-					if ($action != 'AJAX' && $action != 'DjatokaResolver' && $action != 'Logout' && $module != 'MyAccount' && $module != 'API' && !isset($_REQUEST['username'])) {
+					if ($checkCAS && $action != 'AJAX' && $action != 'DjatokaResolver' && $action != 'Logout' && $module != 'MyAccount' && $module != 'API' && !isset($_REQUEST['username'])) {
 						//Check CAS first
 						require_once ROOT_DIR . '/sys/Authentication/CASAuthentication.php';
 						global $logger;
 						$casAuthentication = new CASAuthentication(null);
 						$casUsername = $casAuthentication->validateAccount(null, null, null, false);
-						$logger->log("Checking CAS Authentication from UserAccount::isLoggedIn", PEAR_LOG_DEBUG);
+						$_SESSION['lastCASCheck'] = time();
+						$logger->log("Checked CAS Authentication from UserAccount::isLoggedIn result was $casUsername", PEAR_LOG_DEBUG);
 						if ($casUsername == false || PEAR_Singleton::isError($casUsername)) {
 							//The user could not be authenticated in CAS
 							UserAccount::$isLoggedIn = false;
+
 						} else {
+							$logger->log("We got a valid user from CAS, getting the user from the database", PEAR_LOG_DEBUG);
 							//We have a valid user via CAS, need to do a login to Pika
 							$_REQUEST['casLogin'] = true;
 							UserAccount::$isLoggedIn = true;
