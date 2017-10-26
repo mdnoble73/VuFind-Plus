@@ -66,6 +66,14 @@ class UserAccount {
 							//We have a valid user via CAS, need to do a login to Pika
 							$_REQUEST['casLogin'] = true;
 							UserAccount::$isLoggedIn = true;
+							//Set the active user id for the user
+							$user = new User();
+							//TODO this may need to change if anyone but Fort Lewis ever does CAS authentication
+							$user->cat_password = $casUsername;
+							if ($user->find(true)){
+								$_SESSION['activeUserId'] = $user->id;
+								UserAccount::$primaryUserObjectFromDB = $user;
+							}
 						}
 					}
 				}
