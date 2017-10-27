@@ -64,6 +64,10 @@ class BookCoverProcessor{
 			if ($this->getClassroomVideoOnDemandCover($this->id)){
 				return;
 			}
+		} elseif (stripos($this->type, 'films on demand') !== false){
+			if ($this->getFilmsOnDemandCover($this->id)) {
+				return;
+			}
 		} elseif (stripos($this->type, 'proquest') !== false || stripos($this->type, 'ebrary') !== false){
 			if ($this->getEbraryCover($this->id)) {
 				return;
@@ -192,6 +196,19 @@ class BookCoverProcessor{
 		}
 		$coverId = preg_replace('/^10+/', '', $id);
 		$coverUrl = "http://cvod.infobase.com/image/$coverId";
+		if ($this->processImageURL($coverUrl, true)){
+			return true;
+		}else{
+			return false;
+		}
+	}
+
+	private function getFilmsOnDemandCover($id) {
+		if (strpos($id, ':') !== false){
+			list(, $id) = explode(":", $id);
+		}
+		$coverId = preg_replace('/^10+/', '', $id);
+		$coverUrl = "http://fod.infobase.com/image/$coverId";
 		if ($this->processImageURL($coverUrl, true)){
 			return true;
 		}else{
@@ -1106,6 +1123,10 @@ class BookCoverProcessor{
 					}
 				}elseif (stripos($relatedRecord['source'], 'proquest') !== false || stripos($relatedRecord['source'], 'ebrary') !== false){
 					if ($this->getEbraryCover($relatedRecord['id'])){
+						return true;
+					}
+				}elseif (stripos($relatedRecord['source'], 'films on demand') !== false){
+					if ($this->getFilmsOnDemandCover($relatedRecord['id'])){
 						return true;
 					}
 				}elseif (stripos($relatedRecord['source'], 'kanopy') !== false){
