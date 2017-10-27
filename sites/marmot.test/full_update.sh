@@ -136,22 +136,22 @@ cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE
 /usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} mesa/learning_express learning_express/mesa >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} vail/learning_express learning_express/vail >> ${OUTPUT_FILE}
 
+#Films On Demand
+/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} cmc/filmsondemand filmsondemand/cmc >> ${OUTPUT_FILE}
 
 # Colorado State Gov Docs Marc Updates
 #/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh  marmot/coloGovDocs colorado_gov_docs >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} marmot/coloGovDocs colorado_gov_docs/marmot >> ${OUTPUT_FILE}
 
-#Films On Demand
-
-# Lynda.com Marc Updates (received on marmot ftp server)
-#/usr/local/vufind-plus/sites/marmot.test/moveSideloadAdds.sh lynda.com/evld lynda/evld/merge >> ${OUTPUT_FILE}
-#/usr/local/vufind-plus/sites/marmot.test/moveSideloadAdds.sh lynda.com/vail lynda/vail/merge >> ${OUTPUT_FILE}
-#/usr/local/vufind-plus/sites/marmot.test/moveSideloadAdds.sh lynda.com/telluride lynda/telluride/merge >> ${OUTPUT_FILE}
-#/usr/local/vufind-plus/sites/marmot.test/moveSideloadAdds.sh lynda.com/grand lynda/grand/merge >> ${OUTPUT_FILE}
-
 #Extracts for sideloaded eContent; settings defined in config.pwd.ini [Sideload]
 cd /usr/local/vufind-plus/vufind/cron; ./sideload.sh ${PIKASERVER}
 
+# Not needed on marmot test site
+##Extract Lexile Data
+#cd /data/vufind-plus/; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/lexileTitles.txt https://cassini.marmot.org/lexileTitles.txt
+#
+##Extract AR Data
+#cd /data/vufind-plus/accelerated_reader; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/accelerated_reader/RLI-ARDataTAB.txt https://cassini.marmot.org/RLI-ARDataTAB.txt
 
 
 #Do a full extract from OverDrive just once a week to catch anything that doesn't
