@@ -72,14 +72,6 @@
 11 7 * * 0 /usr/local/vufind-plus/vufind/cron/updateNYTLists.sh marmot.test
 # update on Sundays at 7:11
 
-###############################
-# Data Extract TO ftp server  #
-###############################
-# sd51 export copy 3.01am on Friday
-01 3 * * 5 /home/cassini/cron/copySD51Export.sh
-#TODO: script only works as root due to mounting of ftp server.
-#TODO: also doesn't have passwords so could be moved into pika code repository
-
 ##########
 # Cron   #
 ##########
