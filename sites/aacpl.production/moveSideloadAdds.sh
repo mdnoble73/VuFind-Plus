@@ -2,8 +2,8 @@
 
 # This script is for moving marc files that are adds or deletes from on the ftp server to data directory on the pika server
 
-if [[ $# -ne 2 && $# -ne 3 ]]; then
-	echo "To use, add the ftp source directory for the first parameter, the data directory destination as the second parameter, optional third parameter -n to use new ftp server."
+if [[ $# -ne 2 ]]; then
+	echo "To use, add the ftp source directory for the first parameter, and the data directory destination as the second parameter."
 	echo "$0 source destination"
 	echo "eg: $0 hoopla hoopla"
 else

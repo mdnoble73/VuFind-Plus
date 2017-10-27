@@ -15,7 +15,7 @@ else
 	LOG="logger -t $0"
 	# tag logging with script name and command line options
 
-REMOTE="10.1.2.7:/ftp"
+	REMOTE="10.1.2.7:/ftp"
 	LOCAL="/mnt/ftp"
 
 	$LOG "~~ mount $REMOTE $LOCAL"
