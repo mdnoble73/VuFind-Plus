@@ -81,6 +81,10 @@ class BookCoverProcessor{
 			if ($this->getSideLoadedCover($this->type.':'.$this->id)) {
 				return;
 			}
+		} elseif (stripos($this->type, 'biblioboard') !== false){
+			if ($this->getSideLoadedCover($this->type.':'.$this->id)) {
+				return;
+			}
 		} elseif (stripos($this->type, 'lynda') !== false){
 			if ($this->getSideLoadedCover($this->type.':'.$this->id)) {
 				return;
@@ -1113,6 +1117,10 @@ class BookCoverProcessor{
 						return true;
 					}
 				} elseif (stripos($relatedRecord['source'], 'boombox') !== false){
+					if ($this->getSideLoadedCover($relatedRecord['id'])) {
+						return true;
+					}
+				} elseif (stripos($relatedRecord['source'], 'biblioboard') !== false){
 					if ($this->getSideLoadedCover($relatedRecord['id'])) {
 						return true;
 					}
