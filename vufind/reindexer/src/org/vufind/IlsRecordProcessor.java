@@ -745,6 +745,7 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		if (itemSublocation == null){
 			itemSublocation = "";
 		}
+		itemInfo.setSubLocationCode(itemSublocation);
 		if (itemSublocation.length() > 0){
 			itemInfo.setSubLocation(translateValue("sub_location", itemSublocation, recordInfo.getRecordIdentifier()));
 		}else{
@@ -885,7 +886,7 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		}
 
 		String itemLocation = itemInfo.getLocationCode();
-		String itemSublocation = itemInfo.getSubLocation();
+		String itemSublocation = itemInfo.getSubLocationCode();
 
 		HoldabilityInformation isHoldableUnscoped = isItemHoldableUnscoped(itemInfo);
 		BookabilityInformation isBookableUnscoped = isItemBookableUnscoped();

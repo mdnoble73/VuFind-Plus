@@ -15,6 +15,7 @@ public class ItemInfo {
 	private String itemIdentifier;
 	private String locationCode;
 	private String subLocation;
+	private String subLocationCode;
 	private String format;
 	private String subFormat;
 	private String formatCategory;
@@ -333,6 +334,14 @@ public class ItemInfo {
 
 	void setSubLocation(String subLocation) {
 		this.subLocation = subLocation;
+	}
+
+	String getSubLocationCode() {
+		return subLocationCode;
+	}
+
+	void setSubLocationCode(String subLocationCode) {
+		this.subLocationCode = subLocationCode;
 	}
 
 	Date getLastCheckinDate() {
