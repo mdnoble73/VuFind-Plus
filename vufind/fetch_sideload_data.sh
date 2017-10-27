@@ -28,7 +28,7 @@ if [ $# = 3 ];then
   if [ $(ls -lA /data/vufind-plus/$PIKADATADIR/merge/marc/*.mrc|wc -l) -gt 0  ];then
   # ... and there is a marc file in the merge directory; move largest one and set it as the main full export file
     FILE=$(ls -rS /data/vufind-plus/$PIKADATADIR/merge/marc/*.mrc|tail -1)
-    mv $FILE /data/vufind-plus/$PIKADATADIR/marc/fullexport.mrc
+    mv "$FILE" /data/vufind-plus/$PIKADATADIR/marc/fullexport.mrc
   fi
   fi
 
