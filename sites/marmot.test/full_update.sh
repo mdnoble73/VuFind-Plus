@@ -140,6 +140,9 @@ cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE
 #Films On Demand
 /usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} cmc/filmsondemand filmsondemand/cmc >> ${OUTPUT_FILE}
 
+#Federal Government Documents Marc Updates (Western)
+/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} western/federalGovDocs federal_gov_docs/western >> ${OUTPUT_FILE}
+
 # Colorado State Gov Docs Marc Updates
 #/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh  marmot/coloGovDocs colorado_gov_docs >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} marmot/coloGovDocs colorado_gov_docs/marmot >> ${OUTPUT_FILE}
