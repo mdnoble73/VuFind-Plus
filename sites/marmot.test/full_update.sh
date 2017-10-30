@@ -79,8 +79,7 @@ cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE}
 
 # Ebrary Marc Updates
-#TODO: refactor CCU's ebrary destination
-/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh ccu/ebrary ebrary_ccu >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh ccu/ebrary ebrary/ccu >> ${OUTPUT_FILE}
 
 /usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} western/ebrary ebrary/western >> ${OUTPUT_FILE}
 
