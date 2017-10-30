@@ -68,7 +68,7 @@
 
 	{if $showLexileInfo && $recordDriver->getLexileDisplayString()}
 		<div class="row">
-			<div class="result-label col-sm-4">Lexile Score: </div>
+			<div class="result-label col-sm-4">Lexile measure: </div>
 			<div class="result-value col-sm-8">
 				{$recordDriver->getLexileDisplayString()}
 			</div>

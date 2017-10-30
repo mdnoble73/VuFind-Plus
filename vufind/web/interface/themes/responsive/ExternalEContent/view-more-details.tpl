@@ -67,7 +67,7 @@
 
 	{if $recordDriver->getLexileCode()}
 		<div class="row">
-			<div class="result-label col-sm-3">{translate text='Lexile Code'}:</div>
+			<div class="result-label col-sm-3">{translate text='Lexile code'}:</div>
 			<div class="col-sm-9 result-value">
 				{$recordDriver->getLexileCode()|escape}L
 			</div>
@@ -76,7 +76,7 @@
 
 	{if $recordDriver->getLexileScore()}
 		<div class="row">
-			<div class="result-label col-sm-3">{translate text='Lexile Score'}:</div>
+			<div class="result-label col-sm-3">{translate text='Lexile measure'}:</div>
 			<div class="col-sm-9 result-value">
 				{$recordDriver->getLexileScore()|escape}
 			</div>

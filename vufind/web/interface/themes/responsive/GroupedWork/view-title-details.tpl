@@ -81,7 +81,7 @@
 
 	{if $recordDriver->getLexileDisplayString()}
 		<div class="row">
-			<div class="result-label col-sm-3">{translate text='Lexile Score'}:</div>
+			<div class="result-label col-sm-3">{translate text='Lexile measure'}:</div>
 			<div class="col-sm-9 result-value">
 				{$recordDriver->getLexileDisplayString()|escape}
 			</div>

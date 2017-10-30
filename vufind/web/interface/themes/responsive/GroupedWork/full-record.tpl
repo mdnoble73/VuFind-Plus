@@ -126,7 +126,7 @@
 
 				{if $showLexileInfo && $summLexileInfo}
 					<div class="row">
-						<div class="result-label col-tn-3">Lexile Score: </div>
+						<div class="result-label col-tn-3">{translate text='Lexile measure'}: </div>
 						<div class="result-value col-tn-9">
 							{$summLexileInfo}
 						</div>
