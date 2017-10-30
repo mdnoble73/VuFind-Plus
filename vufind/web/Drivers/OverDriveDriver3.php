@@ -391,7 +391,7 @@ class OverDriveDriver3 {
 		if ($productsKey == null){
 			$productsKey = $configArray['OverDrive']['productsKey'];
 		}
-		$availabilityUrl = "http://api.overdrive.com/v1/collections/$productsKey/products/$overDriveId/availability";
+		$availabilityUrl = "http://api.overdrive.com/v2/collections/$productsKey/products/$overDriveId/availability";
 //		$availabilityUrl = "https://api.overdrive.com/v1/collections/$productsKey/products/$overDriveId/availability";
 		//print_r($availabilityUrl);
 		return $this->_callUrl($availabilityUrl);

@@ -97,50 +97,59 @@ easy_printr($productInfo);
 
 echo("<h3>Availability - MDL</h3>");
 //echo("{$firstProduct->links->availability->href}<br/>");
-$availability = $driver->getProductAvailability("A747D620-96F9-42BC-B4E1-4830EC9D3C9E", "L1BMAEAAA2k");
+$availability = $driver->getProductAvailability("e21c7ba3-7340-4140-b483-c58aab6316f6", "L1BMAEAAA2k");
 echo("Copies Owned {$availability->copiesOwned }<br/>");
 echo("Available Copies {$availability->copiesAvailable }<br/>");
 echo("Num Holds {$availability->numberOfHolds }<br/>");
-
+easy_printr($availability);
 
 echo("<h3>Availability - Wilkinson</h3>");
 //echo("{$firstProduct->links->availability->href}<br/>");
-$availability = $driver->getProductAvailability("A747D620-96F9-42BC-B4E1-4830EC9D3C9E", "L2BMAEAALoBAAA1X");
+$availability = $driver->getProductAvailability("e21c7ba3-7340-4140-b483-c58aab6316f6", "L2BMAEAALoBAAA1X");
 echo("Copies Owned {$availability->copiesOwned }<br/>");
 echo("Available Copies {$availability->copiesAvailable }<br/>");
 echo("Num Holds {$availability->numberOfHolds }<br/>");
-//print_r($availability);
+easy_printr($availability);
 
 echo("<h3>Availability - Pitkin</h3>");
 //echo("{$firstProduct->links->availability->href}<br/>");
-$availability = $driver->getProductAvailability("A747D620-96F9-42BC-B4E1-4830EC9D3C9E", "L2BMAEAALoBAAA1X");
+$availability = $driver->getProductAvailability("e21c7ba3-7340-4140-b483-c58aab6316f6", "L2BMAEAALoBAAA1X");
 echo("Copies Owned {$availability->copiesOwned }<br/>");
 echo("Available Copies {$availability->copiesAvailable }<br/>");
 echo("Num Holds {$availability->numberOfHolds }<br/>");
-//print_r($availability);
+easy_printr($availability);
 
 echo("<h3>Availability - Eagle</h3>");
 //echo("{$firstProduct->links->availability->href}<br/>");
-$availability = $driver->getProductAvailability("A747D620-96F9-42BC-B4E1-4830EC9D3C9E", "L2BMAEAANIBAAA1R");
+$availability = $driver->getProductAvailability("e21c7ba3-7340-4140-b483-c58aab6316f6", "L2BMAEAANIBAAA1R");
 echo("Copies Owned {$availability->copiesOwned }<br/>");
 echo("Available Copies {$availability->copiesAvailable }<br/>");
 echo("Num Holds {$availability->numberOfHolds }<br/>");
-//print_r($availability);
+easy_printr($availability);
 
 echo("<h3>Availability - Grand County</h3>");
 //echo("{$firstProduct->links->availability->href}<br/>");
-$availability = $driver->getProductAvailability("A747D620-96F9-42BC-B4E1-4830EC9D3C9E", "L2BMAEAABUGAAA1w");
+$availability = $driver->getProductAvailability("e21c7ba3-7340-4140-b483-c58aab6316f6", "L2BMAEAABUGAAA1w");
 echo("Copies Owned {$availability->copiesOwned }<br/>");
 echo("Available Copies {$availability->copiesAvailable }<br/>");
 echo("Num Holds {$availability->numberOfHolds }<br/>");
+easy_printr($availability);
+
+echo("<h3>Availability - Garfield</h3>");
+//echo("{$firstProduct->links->availability->href}<br/>");
+$availability = $driver->getProductAvailability("e21c7ba3-7340-4140-b483-c58aab6316f6", "v1L1BBggAAA2G");
+echo("Copies Owned {$availability->copiesOwned }<br/>");
+echo("Available Copies {$availability->copiesAvailable }<br/>");
+echo("Num Holds {$availability->numberOfHolds }<br/>");
+easy_printr($availability);
 
 echo("<h3>Availability - Bud Werner</h3>");
 //echo("{$firstProduct->links->availability->href}<br/>");
-$availability = $driver->getProductAvailability("A747D620-96F9-42BC-B4E1-4830EC9D3C9E", "L1BUwYAAA2r");
+$availability = $driver->getProductAvailability("e21c7ba3-7340-4140-b483-c58aab6316f6", "L1BUwYAAA2r");
 echo("Copies Owned {$availability->copiesOwned }<br/>");
 echo("Available Copies {$availability->copiesAvailable }<br/>");
 echo("Num Holds {$availability->numberOfHolds }<br/>");
-
+easy_printr($availability);
 
 $advantageInfo = ($driver->getAdvantageAccountInformation());
 echo("<h2>Advantage Accounts</h2>");

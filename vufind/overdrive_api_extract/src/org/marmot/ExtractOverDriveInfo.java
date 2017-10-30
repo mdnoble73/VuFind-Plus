@@ -958,7 +958,7 @@ public class ExtractOverDriveInfo {
 					results.incErrors();
 					continue;
 				}
-				String url = "http://api.overdrive.com/v1/collections/" + apiKey + "/products/" + overDriveInfo.getId() + "/availability";
+				String url = "http://api.overdrive.com/v2/collections/" + apiKey + "/products/" + overDriveInfo.getId() + "/availability";
 				WebServiceResponse availabilityResponse = callOverDriveURL(url);
 				//404 is a message that availability has been deleted.
 				if (availabilityResponse.getResponseCode() != 200 && availabilityResponse.getResponseCode() != 404){
@@ -978,44 +978,77 @@ public class ExtractOverDriveInfo {
 					//If availability is null, it isn't available for this collection
 					try {
 						boolean available = availability.has("available") && availability.getString("available").equals("true");
-						int copiesOwned = availability.getInt("copiesOwned");
-						int copiesAvailable;
-						if (availability.has("copiesAvailable")){
-							copiesAvailable = availability.getInt("copiesAvailable");
-						}else{
-							logger.info("copiesAvailable was not provided for collection " + apiKey + " title " + overDriveInfo.getId());
-							copiesAvailable = 0;
+						JSONArray allAccounts = availability.getJSONArray("accounts");
+						JSONObject accountData = null;
+						for (int i = 0; i < allAccounts.length(); i++){
+							accountData = allAccounts.getJSONObject(i);
+							long accountId = accountData.getLong("id");
+							if (curCollection == -1L && accountId == -1L){
+								break;
+							}else if (curCollection != -1L && accountId != -1L){
+								break;
+							}else{
+								accountData = null;
+							}
 						}
-						int numberOfHolds = availability.getInt("numberOfHolds");
-						String availabilityType = availability.getString("availabilityType");
-						if (hasExistingAvailability){
-							//Check to see if the availability has changed
-							if (available != existingAvailabilityRS.getBoolean("available") || 
-									copiesOwned != existingAvailabilityRS.getInt("copiesOwned") || 
-									copiesAvailable != existingAvailabilityRS.getInt("copiesAvailable") || 
-									numberOfHolds != existingAvailabilityRS.getInt("numberOfHolds") ||
-									!availabilityType.equals(existingAvailabilityRS.getString("availabilityType"))
-									){
-								updateAvailabilityStmt.setBoolean(1, available);
-								updateAvailabilityStmt.setInt(2, copiesOwned);
-								updateAvailabilityStmt.setInt(3, copiesAvailable);
-								updateAvailabilityStmt.setInt(4, numberOfHolds);
-								updateAvailabilityStmt.setString(5, availabilityType);
-								updateAvailabilityStmt.setLong(6, existingAvailabilityRS.getLong("id"));
-								updateAvailabilityStmt.executeUpdate();
+
+						if (accountData != null){
+							int copiesOwned = accountData.getInt("copiesOwned");
+							int copiesAvailable;
+							if (accountData.has("copiesAvailable")) {
+								copiesAvailable = accountData.getInt("copiesAvailable");
+							} else {
+								logger.info("copiesAvailable was not provided for collection " + apiKey + " title " + overDriveInfo.getId());
+								copiesAvailable = 0;
+							}
+							boolean shared = false;
+							if (accountData.has("shared")){
+								shared = accountData.getBoolean("shared");
+							}
+							int numberOfHolds;
+							if (curCollection == -1) {
+								numberOfHolds = availability.getInt("numberOfHolds");
+							}else{
+								numberOfHolds = 0;
+							}
+							String availabilityType = availability.getString("availabilityType");
+							if (hasExistingAvailability) {
+								//Check to see if the availability has changed
+								if (available != existingAvailabilityRS.getBoolean("available") ||
+												copiesOwned != existingAvailabilityRS.getInt("copiesOwned") ||
+												copiesAvailable != existingAvailabilityRS.getInt("copiesAvailable") ||
+												numberOfHolds != existingAvailabilityRS.getInt("numberOfHolds") ||
+												!availabilityType.equals(existingAvailabilityRS.getString("availabilityType"))
+												) {
+									updateAvailabilityStmt.setBoolean(1, available);
+									updateAvailabilityStmt.setInt(2, copiesOwned);
+									updateAvailabilityStmt.setInt(3, copiesAvailable);
+									updateAvailabilityStmt.setInt(4, numberOfHolds);
+									updateAvailabilityStmt.setString(5, availabilityType);
+									long existingId = existingAvailabilityRS.getLong("id");
+									updateAvailabilityStmt.setLong(6, existingId);
+									updateAvailabilityStmt.executeUpdate();
+									availabilityChanged = true;
+								}
+							} else {
+								addAvailabilityStmt.setLong(1, databaseId);
+								addAvailabilityStmt.setLong(2, curCollection);
+								addAvailabilityStmt.setBoolean(3, available);
+								addAvailabilityStmt.setInt(4, copiesOwned);
+								addAvailabilityStmt.setInt(5, copiesAvailable);
+								addAvailabilityStmt.setInt(6, numberOfHolds);
+								addAvailabilityStmt.setString(7, availabilityType);
+								addAvailabilityStmt.executeUpdate();
 								availabilityChanged = true;
 							}
 						}else{
-							addAvailabilityStmt.setLong(1, databaseId);
-							addAvailabilityStmt.setLong(2, curCollection);
-							addAvailabilityStmt.setBoolean(3, available);
-							addAvailabilityStmt.setInt(4, copiesOwned);
-							addAvailabilityStmt.setInt(5, copiesAvailable);
-							addAvailabilityStmt.setInt(6, numberOfHolds);
-							addAvailabilityStmt.setString(7, availabilityType);
-							addAvailabilityStmt.executeUpdate();
+							//Delete availability from the database if it used to exist since there is none now
+							long existingId = existingAvailabilityRS.getLong("id");
+							deleteAvailabilityStmt.setLong(1, existingId);
+							deleteAvailabilityStmt.executeUpdate();
 							availabilityChanged = true;
 						}
+
 					} catch (JSONException e) {
 						logger.info("Error loading availability for title ", e);
 						results.addNote("Error loading availability for title " + overDriveInfo.getId() + " " + e.toString());
