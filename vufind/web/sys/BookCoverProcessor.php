@@ -72,10 +72,10 @@ class BookCoverProcessor{
 			if ($this->getEbraryCover($this->id)) {
 				return;
 			}
-		} elseif (stripos($this->type, 'kanopy') !== false){
-			if ($this->getKanopyCover($this->id)) {
-				return;
-			}
+//		} elseif (stripos($this->type, 'kanopy') !== false){
+//			if ($this->getKanopyCover($this->id)) {
+//				return;
+//			}
 		// Any Sideloaded Collection that has a cover in the 856 tag (and additional conditionals)
 		} elseif (stripos($this->type, 'bookflix') !== false){
 			if ($this->getSideLoadedCover($this->type.':'.$this->id)) {
@@ -216,19 +216,19 @@ class BookCoverProcessor{
 		}
 	}
 
-	private function getKanopyCover($id) {
-		if (strpos($id, ':') !== false){
-			list(, $id) = explode(":", $id);
-		}
-		$coverId = str_replace(array('kan'), '', $id);
-		$coverUrl = "https://www.kanopystreaming.com/sites/default/files/imagecache/vp_poster_small/video-assets/{$coverId}_poster.jpg";
-		if ($this->processImageURL($coverUrl, true)){
-			return true;
-		}else{
-			return false;
-		}
-	}
-
+//	private function getKanopyCover($id) {
+//		if (strpos($id, ':') !== false){
+//			list(, $id) = explode(":", $id);
+//		}
+//		$coverId = str_replace(array('kan'), '', $id);
+//		$coverUrl = "https://www.kanopystreaming.com/sites/default/files/imagecache/vp_poster_small/video-assets/{$coverId}_poster.jpg";
+//		if ($this->processImageURL($coverUrl, true)){
+//			return true;
+//		}else{
+//			return false;
+//		}
+//	}
+//
 	private function getOverDriveCover($id = null){
 		require_once ROOT_DIR . '/sys/OverDrive/OverDriveAPIProduct.php';
 		require_once ROOT_DIR . '/sys/OverDrive/OverDriveAPIProductMetaData.php';
@@ -1129,10 +1129,10 @@ class BookCoverProcessor{
 					if ($this->getFilmsOnDemandCover($relatedRecord['id'])){
 						return true;
 					}
-				}elseif (stripos($relatedRecord['source'], 'kanopy') !== false){
-					if ($this->getKanopyCover($relatedRecord['id'])){
-						return true;
-					}
+//				}elseif (stripos($relatedRecord['source'], 'kanopy') !== false){
+//					if ($this->getKanopyCover($relatedRecord['id'])){
+//						return true;
+//					}
 				} elseif (stripos($relatedRecord['source'], 'bookflix') !== false){
 					if ($this->getSideLoadedCover($relatedRecord['id'])) {
 						return true;
