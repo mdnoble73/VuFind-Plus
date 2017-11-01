@@ -1348,13 +1348,13 @@ class Location extends DB_DataObject
 		$defaultFacets[] = $facet;
 
 		$facet = new LocationFacetSetting();
-		$facet->setupAdvancedFacet('lexile_code', 'Lexile Code', true);
+		$facet->setupAdvancedFacet('lexile_code', 'Lexile code', true);
 		$facet->locationId = $locationId;
 		$facet->weight = count($defaultFacets) + 1;
 		$defaultFacets[] = $facet;
 
 		$facet = new LocationFacetSetting();
-		$facet->setupAdvancedFacet('lexile_score', 'Lexile Score', true);
+		$facet->setupAdvancedFacet('lexile_score', 'Lexile measure', true);
 		$facet->locationId = $locationId;
 		$facet->weight = count($defaultFacets) + 1;
 		$defaultFacets[] = $facet;

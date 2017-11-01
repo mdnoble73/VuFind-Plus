@@ -1715,13 +1715,13 @@ class Library extends DB_DataObject
 		$defaultFacets[] = $facet;
 
 		$facet = new LibraryFacetSetting();
-		$facet->setupAdvancedFacet('lexile_code', 'Lexile Code', true);
+		$facet->setupAdvancedFacet('lexile_code', 'Lexile code', true);
 		$facet->libraryId = $libraryId;
 		$facet->weight = count($defaultFacets) + 1;
 		$defaultFacets[] = $facet;
 
 		$facet = new LibraryFacetSetting();
-		$facet->setupAdvancedFacet('lexile_score', 'Lexile Score', true);
+		$facet->setupAdvancedFacet('lexile_score', 'Lexile measure', true);
 		$facet->libraryId = $libraryId;
 		$facet->weight = count($defaultFacets) + 1;
 		$defaultFacets[] = $facet;

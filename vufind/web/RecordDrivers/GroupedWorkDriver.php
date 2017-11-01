@@ -3065,11 +3065,12 @@ class GroupedWorkDriver extends RecordInterface{
 	public function getLexileDisplayString() {
 		$lexileScore = $this->getLexileScore();
 		if ($lexileScore != null){
-			$lexileInfo = $lexileScore;
+			$lexileInfo = '';
 			$lexileCode = $this->getLexileCode();
 			if ($lexileCode != null){
-				$lexileInfo .= ' ' . $lexileCode;
+				$lexileInfo .=  $lexileCode . ' ';
 			}
+			$lexileInfo .= $lexileScore. 'L';
 			return $lexileInfo;
 		}
 		return null;
