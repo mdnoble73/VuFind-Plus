@@ -2,6 +2,7 @@ package org.marmot;
 
 public class OverDriveDBInfo {
 	private long dbId;
+	private long crossRefId;
 	private String mediaType;
 	private String title;
 	private String subtitle;
@@ -105,5 +106,13 @@ public class OverDriveDBInfo {
 
 	public void setSubtitle(String subtitle) {
 		this.subtitle = subtitle;
+	}
+
+	public long getCrossRefId() {
+		return crossRefId;
+	}
+
+	public void setCrossRefId(long crossRefId) {
+		this.crossRefId = crossRefId;
 	}
 }

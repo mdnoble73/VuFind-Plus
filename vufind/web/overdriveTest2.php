@@ -56,8 +56,6 @@ easy_printr($firstProduct);
 //$productInfo = $driver->_callUrl("http://api.overdrive.com/v1/collections/L1BUwYAAA2r/products");
 //print_r($productInfo);
 
-echo "<h3>Metadata</h3>",
-'<p>Add url paramater id={OverdriveProductID}to this page to see a specific Product</p>';
 //	$firstProduct->links->metadata->href;
 
 //$metadata = $driver->getProductMetadata($firstProduct->links->metadata->href);
@@ -66,10 +64,17 @@ echo "<h3>Metadata</h3>",
 if (!empty($_REQUEST['id'])) {
 	$overDriveId = $_REQUEST['id'];
 } else {
-	$overDriveId = "A747D620-96F9-42BC-B4E1-4830EC9D3C9E";
+	$overDriveId = "24f6c1d4-64c1-4d79-bd9a-610bc22c4d59";
 }
-$metadata    = $driver->getProductMetadata($overDriveId, $productKey);
 
+echo "<h3>Lookup by ID</h3>",
+'<p>Add url paramater id={OverdriveProductID}to this page to see a specific Product</p>';
+$productInfoSingle = $driver->getProductById('1403332', $productKey);
+easy_printr($productInfoSingle);
+
+echo "<h3>Metadata</h3>",
+'<p>Add url paramater id={OverdriveProductID}to this page to see a specific Product</p>';
+$metadata    = $driver->getProductMetadata($overDriveId, $productKey);
 easy_printr($metadata);
 
 
@@ -97,7 +102,7 @@ easy_printr($productInfo);
 
 echo("<h3>Availability - MDL</h3>");
 //echo("{$firstProduct->links->availability->href}<br/>");
-$availability = $driver->getProductAvailability("e21c7ba3-7340-4140-b483-c58aab6316f6", "L1BMAEAAA2k");
+$availability = $driver->getProductAvailability("24f6c1d4-64c1-4d79-bd9a-610bc22c4d59", "L1BMAEAAA2k");
 echo("Copies Owned {$availability->copiesOwned }<br/>");
 echo("Available Copies {$availability->copiesAvailable }<br/>");
 echo("Num Holds {$availability->numberOfHolds }<br/>");
@@ -105,7 +110,7 @@ easy_printr($availability);
 
 echo("<h3>Availability - Wilkinson</h3>");
 //echo("{$firstProduct->links->availability->href}<br/>");
-$availability = $driver->getProductAvailability("e21c7ba3-7340-4140-b483-c58aab6316f6", "L2BMAEAALoBAAA1X");
+$availability = $driver->getProductAvailability("24f6c1d4-64c1-4d79-bd9a-610bc22c4d59", "L2BMAEAALoBAAA1X");
 echo("Copies Owned {$availability->copiesOwned }<br/>");
 echo("Available Copies {$availability->copiesAvailable }<br/>");
 echo("Num Holds {$availability->numberOfHolds }<br/>");
@@ -113,7 +118,7 @@ easy_printr($availability);
 
 echo("<h3>Availability - Pitkin</h3>");
 //echo("{$firstProduct->links->availability->href}<br/>");
-$availability = $driver->getProductAvailability("e21c7ba3-7340-4140-b483-c58aab6316f6", "L2BMAEAALoBAAA1X");
+$availability = $driver->getProductAvailability("24f6c1d4-64c1-4d79-bd9a-610bc22c4d59", "L2BMAEAALoBAAA1X");
 echo("Copies Owned {$availability->copiesOwned }<br/>");
 echo("Available Copies {$availability->copiesAvailable }<br/>");
 echo("Num Holds {$availability->numberOfHolds }<br/>");
@@ -121,7 +126,7 @@ easy_printr($availability);
 
 echo("<h3>Availability - Eagle</h3>");
 //echo("{$firstProduct->links->availability->href}<br/>");
-$availability = $driver->getProductAvailability("e21c7ba3-7340-4140-b483-c58aab6316f6", "L2BMAEAANIBAAA1R");
+$availability = $driver->getProductAvailability("24f6c1d4-64c1-4d79-bd9a-610bc22c4d59", "L2BMAEAANIBAAA1R");
 echo("Copies Owned {$availability->copiesOwned }<br/>");
 echo("Available Copies {$availability->copiesAvailable }<br/>");
 echo("Num Holds {$availability->numberOfHolds }<br/>");
@@ -129,7 +134,7 @@ easy_printr($availability);
 
 echo("<h3>Availability - Grand County</h3>");
 //echo("{$firstProduct->links->availability->href}<br/>");
-$availability = $driver->getProductAvailability("e21c7ba3-7340-4140-b483-c58aab6316f6", "L2BMAEAABUGAAA1w");
+$availability = $driver->getProductAvailability("24f6c1d4-64c1-4d79-bd9a-610bc22c4d59", "L2BMAEAABUGAAA1w");
 echo("Copies Owned {$availability->copiesOwned }<br/>");
 echo("Available Copies {$availability->copiesAvailable }<br/>");
 echo("Num Holds {$availability->numberOfHolds }<br/>");
@@ -137,7 +142,7 @@ easy_printr($availability);
 
 echo("<h3>Availability - Garfield</h3>");
 //echo("{$firstProduct->links->availability->href}<br/>");
-$availability = $driver->getProductAvailability("e21c7ba3-7340-4140-b483-c58aab6316f6", "v1L1BBggAAA2G");
+$availability = $driver->getProductAvailability("24f6c1d4-64c1-4d79-bd9a-610bc22c4d59", "v1L1BBggAAA2G");
 echo("Copies Owned {$availability->copiesOwned }<br/>");
 echo("Available Copies {$availability->copiesAvailable }<br/>");
 echo("Num Holds {$availability->numberOfHolds }<br/>");
@@ -145,7 +150,7 @@ easy_printr($availability);
 
 echo("<h3>Availability - Bud Werner</h3>");
 //echo("{$firstProduct->links->availability->href}<br/>");
-$availability = $driver->getProductAvailability("e21c7ba3-7340-4140-b483-c58aab6316f6", "L1BUwYAAA2r");
+$availability = $driver->getProductAvailability("24f6c1d4-64c1-4d79-bd9a-610bc22c4d59", "L1BUwYAAA2r");
 echo("Copies Owned {$availability->copiesOwned }<br/>");
 echo("Available Copies {$availability->copiesAvailable }<br/>");
 echo("Num Holds {$availability->numberOfHolds }<br/>");
