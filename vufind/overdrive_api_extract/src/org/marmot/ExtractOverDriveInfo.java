@@ -1489,6 +1489,9 @@ class ExtractOverDriveInfo {
 		if (availabilityResponse == null || availabilityResponse.getResponseCode() != 200){
 			//Doesn't exist in this collection, skip to the next.
 			logger.error("Did not get availability for batch " + url);
+			for (MetaAvailUpdateData curProduct : productsToUpdateClone){
+				curProduct.hadAvailabilityErrors = true;
+			}
 		}else{
 			JSONObject bulkResponse = availabilityResponse.getResponse();
 			if (bulkResponse.has("availability")){
