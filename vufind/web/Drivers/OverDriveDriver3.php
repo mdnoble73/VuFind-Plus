@@ -352,25 +352,28 @@ class OverDriveDriver3 {
 	public function getLibraryAccountInformation(){
 		global $configArray;
 		$libraryId = $configArray['OverDrive']['accountId'];
-		return $this->_callUrl("http://api.overdrive.com/v1/libraries/$libraryId");
-//		return $this->_callUrl("https://api.overdrive.com/v1/libraries/$libraryId");
+		return $this->_callUrl("https://api.overdrive.com/v1/libraries/$libraryId");
 	}
 
 	public function getAdvantageAccountInformation(){
 		global $configArray;
 		$libraryId = $configArray['OverDrive']['accountId'];
-		return $this->_callUrl("http://api.overdrive.com/v1/libraries/$libraryId/advantageAccounts");
-//		return $this->_callUrl("https://api.overdrive.com/v1/libraries/$libraryId/advantageAccounts");
+		return $this->_callUrl("https://api.overdrive.com/v1/libraries/$libraryId/advantageAccounts");
 	}
 
 	public function getProductsInAccount($productsUrl = null, $start = 0, $limit = 25){
 		global $configArray;
 		if ($productsUrl == null){
 			$libraryId = $configArray['OverDrive']['accountId'];
-			$productsUrl = "http://api.overdrive.com/v1/collections/$libraryId/products";
-//			$productsUrl = "https://api.overdrive.com/v1/collections/$libraryId/products";
+			$productsUrl = "https://api.overdrive.com/v1/collections/$libraryId/products";
 		}
 		$productsUrl .= "?offset=$start&limit=$limit";
+		return $this->_callUrl($productsUrl);
+	}
+
+	public function getProductById($overDriveId, $productsKey = null){
+		$productsUrl = "https://api.overdrive.com/v1/collections/$productsKey/products";
+		$productsUrl .= "?crossRefId=$overDriveId";
 		return $this->_callUrl($productsUrl);
 	}
 
@@ -380,8 +383,7 @@ class OverDriveDriver3 {
 			$productsKey = $configArray['OverDrive']['productsKey'];
 		}
 		$overDriveId= strtoupper($overDriveId);
-		$metadataUrl = "http://api.overdrive.com/v1/collections/$productsKey/products/$overDriveId/metadata";
-//		$metadataUrl = "https://api.overdrive.com/v1/collections/$productsKey/products/$overDriveId/metadata";
+		$metadataUrl = "https://api.overdrive.com/v1/collections/$productsKey/products/$overDriveId/metadata";
 		//echo($metadataUrl);
 		return $this->_callUrl($metadataUrl);
 	}
@@ -391,8 +393,7 @@ class OverDriveDriver3 {
 		if ($productsKey == null){
 			$productsKey = $configArray['OverDrive']['productsKey'];
 		}
-		$availabilityUrl = "http://api.overdrive.com/v2/collections/$productsKey/products/$overDriveId/availability";
-//		$availabilityUrl = "https://api.overdrive.com/v1/collections/$productsKey/products/$overDriveId/availability";
+		$availabilityUrl = "https://api.overdrive.com/v2/collections/$productsKey/products/$overDriveId/availability";
 		//print_r($availabilityUrl);
 		return $this->_callUrl($availabilityUrl);
 	}
