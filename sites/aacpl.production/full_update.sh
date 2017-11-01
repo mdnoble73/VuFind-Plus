@@ -134,6 +134,9 @@ cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 # Gale
 /usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} aacpl/gale gale/aacpl >> ${OUTPUT_FILE}
 
+# Kanopy
+/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} aacpl/kanopy kanopy/aacpl >> ${OUTPUT_FILE}
+
 #Extract from Hoopla
 #cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE}
 cd /usr/local/vufind-plus/vufind/cron;./GetHooplaFromMarmot.sh >> ${OUTPUT_FILE}
