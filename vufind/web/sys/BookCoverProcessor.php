@@ -72,11 +72,11 @@ class BookCoverProcessor{
 			if ($this->getEbraryCover($this->id)) {
 				return;
 			}
-//		} elseif (stripos($this->type, 'kanopy') !== false){
-//			if ($this->getKanopyCover($this->id)) {
-//				return;
-//			}
-		// Any Sideloaded Collection that has a cover in the 856 tag (and additional conditionals)
+			// Any Sideloaded Collection that has a cover in the 856 tag (and additional conditionals)
+		} elseif (stripos($this->type, 'kanopy') !== false){
+			if ($this->getSideLoadedCover($this->type.':'.$this->id)) {
+				return;
+			}
 		} elseif (stripos($this->type, 'bookflix') !== false){
 			if ($this->getSideLoadedCover($this->type.':'.$this->id)) {
 				return;
@@ -1129,10 +1129,10 @@ class BookCoverProcessor{
 					if ($this->getFilmsOnDemandCover($relatedRecord['id'])){
 						return true;
 					}
-//				}elseif (stripos($relatedRecord['source'], 'kanopy') !== false){
-//					if ($this->getKanopyCover($relatedRecord['id'])){
-//						return true;
-//					}
+				}elseif (stripos($relatedRecord['source'], 'kanopy') !== false){
+					if ($this->getSideLoadedCover($relatedRecord['id'])){
+						return true;
+					}
 				} elseif (stripos($relatedRecord['source'], 'bookflix') !== false){
 					if ($this->getSideLoadedCover($relatedRecord['id'])) {
 						return true;
