@@ -1612,5 +1612,17 @@ function getLibraryLocationUpdates(){
 							"ALTER TABLE `library` ADD COLUMN `expiredMessage` MEDIUMTEXT;",
 					),
 			),
+
+			'lexile_branding' => array(
+					'title' => 'Lexile Branding',
+					'description' => 'Update library and location lexile facets to use "Lexile measure" and "Lexile code" as display names.',
+					'continueOnError' => true,
+					'sql' => array(
+							"UPDATE `library_facet_setting`  SET `displayName` = 'Lexile measure' WHERE `facetName` = 'lexile_score' AND `displayName` = 'Lexile Score';",
+							"UPDATE `location_facet_setting` SET `displayName` = 'Lexile measure' WHERE `facetName` = 'lexile_score' AND `displayName` = 'Lexile Score';",
+							"UPDATE `library_facet_setting`  SET `displayName` = 'Lexile code'    WHERE `facetName` = 'lexile_code'  AND `displayName` = 'Lexile Code';",
+							"UPDATE `location_facet_setting` SET `displayName` = 'Lexile code'    WHERE `facetName` = 'lexile_code'  AND `displayName` = 'Lexile Code';"
+					),
+			),
 	);
 }
