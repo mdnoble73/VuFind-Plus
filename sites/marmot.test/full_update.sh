@@ -99,6 +99,9 @@ cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE
 # CMC Ebsco Academic Marc Updates
 /usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} cmc/ebsco ebsco/cmc >> ${OUTPUT_FILE}
 
+#CMC Overdrive sideload
+/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} cmc/overdrive overdrive/cmc >> ${OUTPUT_FILE}
+
 # Adams Ebsco Marc Updates
 /usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} adams/ebsco ebsco/adams >> ${OUTPUT_FILE}
 
