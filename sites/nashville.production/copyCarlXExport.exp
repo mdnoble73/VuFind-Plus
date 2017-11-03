@@ -80,7 +80,7 @@ while {$size == 0} {
 			close
 			continue
 		}
-		-re "\[^ ]+ +\[^ ]+ +\[^ ]+ +\[^ ]+ +(\[^ ]+) +(\[^ ]+) (\[0-9]+) .+fullExport\.$today\.gz" {
+		-re "(\[0-9]+) +(\[^ ]+) +(\[0-9]+) +(\[:0-9]+) +fullExport\.$today\.gz" {
 			set size $expect_out(1,string)
 		}
 	}

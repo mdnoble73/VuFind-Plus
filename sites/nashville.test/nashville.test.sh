@@ -5,14 +5,14 @@ if [ -z "$1" ]
     echo "To use, run with start, stop or restart for the first parameter."
 fi
 
-if [[ $(hostname -s) == "HOBVMPLAP03" ]]
+if [[ $(hostname -s) == "HOBVMPLAP23" ]]
   then
-    SOLRMEM="24g"
-elif [[ $(hostname -s) == "HOBVMPLAPT3" ]]
+    SOLRMEM="20g"
+elif [[ $(hostname -s) == "HOBVMPLAPT23" ]]
     then
-      SOLRMEM="16g"
+      SOLRMEM="20g"
 else
-    SOLRMEM="16g"
+    SOLRMEM="20g"
 fi
 
 if [[ ( "$1" == "stop" ) || ( "$1" == "restart") ]]
