@@ -35,10 +35,12 @@ PIKADBNAME=vufind
 OUTPUT_FILE="/var/log/pika/${PIKASERVER}/full_update_output.log"
 DAYOFWEEK=$(date +"%u")
 
+# Actual CarlX extract size 2017 07 03 - 1021325895  - pascal
+MINFILE1SIZE=$((1020000000))
+# below values from millennium
 # JAMES set MIN 2016 11 03 actual extract size 825177201
 # JAMES set MIN 2017 01 31 actual extract size 823662098
 # JAMES set MIN 2017 02 01 actual extract size 817883489
-MINFILE1SIZE=$((817800000))
 
 # determine whether this server is production or test
 CONFIG=/usr/local/VuFind-Plus/sites/${PIKASERVER}/conf/config.pwd.ini
@@ -121,27 +123,44 @@ then
 	nice -n -10 java -jar overdrive_extract.jar ${PIKASERVER} fullReload >> ${OUTPUT_FILE}
 fi
 
-#TODO Min file size check
-#Validate the export
-cd /usr/local/vufind-plus/vufind/cron; java -server -XX:+UseG1GC -jar cron.jar ${PIKASERVER} ValidateMarcExport >> ${OUTPUT_FILE}
-#Full Regroup
-cd /usr/local/vufind-plus/vufind/record_grouping;
-java -server -XX:+UseG1GC -Xmx6G -jar record_grouping.jar ${PIKASERVER} fullRegroupingNoClear >> ${OUTPUT_FILE}
-#Full Reindex
-#cd /usr/local/vufind-plus/vufind/reindexer; nice -n -3 java -jar reindexer.jar ${PIKASERVER} fullReindex >> ${OUTPUT_FILE}
-cd /usr/local/vufind-plus/vufind/reindexer;
-java -server -XX:+UseG1GC -Xmx6G -jar reindexer.jar ${PIKASERVER} fullReindex >> ${OUTPUT_FILE}
+FILE1=$(find /data/pika/${PIKASERVER}/marc -name fullExport.mrc -mtime -1 | sort -n | tail -1)
+if [ -n "$FILE1" ]
+then
+	FILE1SIZE=$(wc -c <"$FILE1")
+	if [ $FILE1SIZE -ge $MINFILE1SIZE ]; then
+		echo "Latest file is " $FILE1 >> ${OUTPUT_FILE}
+		DIFF=$(($FILE1SIZE - $MINFILE1SIZE))
+		PERCENTABOVE=$((100 * $DIFF / $MINFILE1SIZE))
+		echo "The export file is $PERCENTABOVE (%) larger than the minimum size check." >> ${OUTPUT_FILE}
 
-# Clean-up Solr Logs
-# (/usr/local/vufind-plus/sites/default/solr/jetty/logs is a symbolic link to /var/log/pika/solr)
-find /var/log/pika/solr -name "solr_log_*" -mtime +7 -delete
-find /var/log/pika/solr -name "solr_gc_log_*" -mtime +7 -delete
+		#Validate the export
+		cd /usr/local/vufind-plus/vufind/cron; java -server -XX:+UseG1GC -jar cron.jar ${PIKASERVER} ValidateMarcExport >> ${OUTPUT_FILE}
+		#Full Regroup
+		cd /usr/local/vufind-plus/vufind/record_grouping;
+		java -server -XX:+UseG1GC -Xmx6G -jar record_grouping.jar ${PIKASERVER} fullRegroupingNoClear >> ${OUTPUT_FILE}
+		#Full Reindex
+		#cd /usr/local/vufind-plus/vufind/reindexer; nice -n -3 java -jar reindexer.jar ${PIKASERVER} fullReindex >> ${OUTPUT_FILE}
+		cd /usr/local/vufind-plus/vufind/reindexer;
+		java -server -XX:+UseG1GC -Xmx6G -jar reindexer.jar ${PIKASERVER} fullReindex >> ${OUTPUT_FILE}
 
-#Restart Solr
-cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
+		# Clean-up Solr Logs
+		# (/usr/local/vufind-plus/sites/default/solr/jetty/logs is a symbolic link to /var/log/pika/solr)
+		find /var/log/pika/solr -name "solr_log_*" -mtime +7 -delete
+		find /var/log/pika/solr -name "solr_gc_log_*" -mtime +7 -delete
 
-#Delete Zinio Covers
-cd /usr/local/vufind-plus/vufind/cron; ./zinioDeleteCovers.sh ${PIKASERVER}
+		#Restart Solr
+		cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
+
+		#Delete Zinio Covers
+		cd /usr/local/vufind-plus/vufind/cron; ./zinioDeleteCovers.sh ${PIKASERVER}
+
+	else
+		echo $FILE1 " size " $FILE1SIZE "is less than minimum size :" $MINFILE1SIZE "." >> ${OUTPUT_FILE}
+	fi
+
+else
+	echo "Did not find a CarlX export file from the last 24 hours." >> ${OUTPUT_FILE}
+fi
 
 #Email results
 FILESIZE=$(stat -c%s ${OUTPUT_FILE})
