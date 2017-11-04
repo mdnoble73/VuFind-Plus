@@ -3,39 +3,12 @@
 # Should be called once per day.  Will interrupt partial reindexing.
 #
 # At the end of the index will email users with the results.
-EMAIL=root@titan
-PIKASERVER=marmot.test
-PIKADBNAME=pika
+EMAIL=root@mercury
+PIKASERVER=opac.marmot.org
+PIKADBNAME=vufind
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
 
-# Check if full_update is already running
-#TODO: Verify that the PID file doesn't get log-rotated
-PIDFILE="/var/log/vufind-plus/${PIKASERVER}/full_update.pid"
-if [ -f $PIDFILE ]
-then
-	PID=$(cat $PIDFILE)
-	ps -p $PID > /dev/null 2>&1
-	if [ $? -eq 0 ]
-	then
-		mail -s "Full Extract and Reindexing - ${PIKASERVER}" $EMAIL <<< "$0 is already running"
-		exit 1
-	else
-		## Process not found assume not running
-		echo $$ > $PIDFILE
-		if [ $? -ne 0 ]
-		then
-			mail -s "Full Extract and Reindexing - ${PIKASERVER}" $EMAIL <<< "Could not create PID file for $0"
-			exit 1
-		fi
-	fi
-else
-	echo $$ > $PIDFILE
-	if [ $? -ne 0 ]
-	then
-		mail -s "Full Extract and Reindexing - ${PIKASERVER}" $EMAIL <<< "Could not create PID file for $0"
-		exit 1
-	fi
-fi
+MINFILE1SIZE=$((3910000000))
 
 # Check for conflicting processes currently running
 function checkConflictingProcesses() {
@@ -55,37 +28,39 @@ function checkConflictingProcesses() {
 	echo ${numInitialConflicts};
 }
 
+#truncate the output file so you don't spend a week debugging an error from a week ago!
+: > $OUTPUT_FILE;
+
 #Check for any conflicting processes that we shouldn't do a full index during.
 checkConflictingProcesses "sierra_export.jar ${PIKASERVER}" >> ${OUTPUT_FILE}
 checkConflictingProcesses "overdrive_extract.jar ${PIKASERVER}" >> ${OUTPUT_FILE}
 checkConflictingProcesses "reindexer.jar ${PIKASERVER}" >> ${OUTPUT_FILE}
 
-#truncate the output file so you don't spend a week debugging an error from a week ago!
-: > $OUTPUT_FILE;
-
 # Back-up Solr Master Index
 mysqldump ${PIKADBNAME} grouped_work_primary_identifiers > /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
-sleep 2m
-tar -czf /data/vufind-plus/${PIKASERVER}/solr_master_backup.tar.gz /data/vufind-plus/${PIKASERVER}/solr_master/grouped/index/ /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql >> ${OUTPUT_FILE}
+sleep 8m
+tar -czf /data2/pika/${PIKASERVER}/solr_master_backup.tar.gz /data/vufind-plus/${PIKASERVER}/solr_master/grouped/index/  /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql >> ${OUTPUT_FILE}
 rm /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
 
 #Restart Solr
 cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 
 #Extract from ILS
-/usr/local/vufind-plus/sites/${PIKASERVER}/copySierraExport.sh >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/opac.marmot.org/copySierraExport.sh >> ${OUTPUT_FILE}
 
 #Extract from Hoopla
-cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE}
+#cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE}
+cd /usr/local/vufind-plus/vufind/cron;./GetHooplaFromMarmot.sh >> ${OUTPUT_FILE}
+# Grab cleaned, updated marc files from venus after they have been retrieved from Nashville
 
 # Ebrary Marc Updates
-/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh ccu/ebrary ebrary/ccu >> ${OUTPUT_FILE}
+#TODO: refactor CCU's ebrary destination
+/usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh ccu/ebrary ebrary_ccu >> ${OUTPUT_FILE}
 
 /usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} western/ebrary ebrary/western >> ${OUTPUT_FILE}
 
 #Adams Ebrary DDA files
-/usr/local/vufind-plus/sites/${PIKASERVER}/moveFullExport.sh adams/ebrary/DDA ebrary/adams/dda/merge >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh ebrary/adams/dda >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} adams/ebrary/DDA ebrary/adams/dda >> ${OUTPUT_FILE}
 
 # CCU Alexander Street Press Marc Updates
 /usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} ccu/alexanderStreetPress alexanderstreetpress/ccu >> ${OUTPUT_FILE}
@@ -99,9 +74,6 @@ cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE
 # CMC Ebsco Academic Marc Updates
 /usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} cmc/ebsco ebsco/cmc >> ${OUTPUT_FILE}
 
-#CMC Overdrive sideload
-/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} cmc/overdrive overdrive/cmc >> ${OUTPUT_FILE}
-
 # Adams Ebsco Marc Updates
 /usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} adams/ebsco ebsco/adams >> ${OUTPUT_FILE}
 
@@ -111,27 +83,18 @@ cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE
 # Englewood Axis 360 Marc Updates
 /usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} englewood/axis360 axis360/englewood >> ${OUTPUT_FILE}
 
-## Marmot RBDigital (magazine) Marc Updates
-#/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} marmot/rbdigital zinio/marmot >> ${OUTPUT_FILE}
-
 # Western Oxford Reference Marc Updates
 /usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} western/oxfordReference oxfordReference/western >> ${OUTPUT_FILE}
 
 # Western Springer Marc Updates
 /usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} western/springer springer/western >> ${OUTPUT_FILE}
 
-# CCU Gale Marc Updates
-/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} ccu/gale gale/ccu >> ${OUTPUT_FILE}
-
-# Kanopy Marc Updates
-/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} western/kanopy kanopy/western >> ${OUTPUT_FILE}
+# Western Kanopy Marc Updates
+/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} kanopy/western >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} budwerner/kanopy kanopy/budwerner >> ${OUTPUT_FILE}
 
-# SD51 Mackin VIA Marc Updates
-#/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh sd51/mackinvia/mvcp mackinvia/mvcp >> ${OUTPUT_FILE}
-#/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh sd51/mackinvia/mvem mackinvia/mvem >> ${OUTPUT_FILE}
-#/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh sd51/mackinvia/mvrr mackinvia/mvrr >> ${OUTPUT_FILE}
-#/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh sd51/mackinvia/mvtm mackinvia/mvtm >> ${OUTPUT_FILE}
+# CCU Gale Marc Updates
+/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} ccu/gale gale/ccu >> ${OUTPUT_FILE}
 
 # Learning Express Marc Updates
 /usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} budwerner/learning_express learning_express/steamboatsprings >> ${OUTPUT_FILE}
@@ -142,48 +105,62 @@ cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE
 #Films On Demand
 /usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} cmc/filmsondemand filmsondemand/cmc >> ${OUTPUT_FILE}
 
-#Federal Government Documents Marc Updates (Western)
-/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} western/federalGovDocs federal_gov_docs/western >> ${OUTPUT_FILE}
-
+#Colorado State Goverment Documents Updates
+curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/colorado_gov_docs/marc/fullexport.mrc https://cassini.marmot.org/colorado_state_docs.mrc
 # Colorado State Gov Docs Marc Updates
-#/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh  marmot/coloGovDocs colorado_gov_docs >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} marmot/coloGovDocs colorado_gov_docs/marmot >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh marmot/coloGovDocs colorado_gov_docs >> ${OUTPUT_FILE}
 
 #Extracts for sideloaded eContent; settings defined in config.pwd.ini [Sideload]
 cd /usr/local/vufind-plus/vufind/cron; ./sideload.sh ${PIKASERVER}
 
-# Not needed on marmot test site
-##Extract Lexile Data
-#cd /data/vufind-plus/; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/lexileTitles.txt https://cassini.marmot.org/lexileTitles.txt
-#
-##Extract AR Data
-#cd /data/vufind-plus/accelerated_reader; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/accelerated_reader/RLI-ARDataTAB.txt https://cassini.marmot.org/RLI-ARDataTAB.txt
+#Extract Lexile Data
+cd /data/vufind-plus/; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/lexileTitles.txt https://cassini.marmot.org/lexileTitles.txt
 
+#Extract AR Data
+cd /data/vufind-plus/accelerated_reader; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/accelerated_reader/RLI-ARDataTAB.txt https://cassini.marmot.org/RLI-ARDataTAB.txt
 
 #Do a full extract from OverDrive just once a week to catch anything that doesn't
 #get caught in the regular extract
 DAYOFWEEK=$(date +"%u")
-if [ "${DAYOFWEEK}" -eq 5 ];
+if [ "${DAYOFWEEK}" -eq 6 ];
 then
 	cd /usr/local/vufind-plus/vufind/overdrive_api_extract/
-	nice -n -10 java -jar overdrive_extract.jar ${PIKASERVER} fullReload >> ${OUTPUT_FILE}
+	nice -n -10 java -server -XX:+UseG1GC -jar overdrive_extract.jar ${PIKASERVER} fullReload >> ${OUTPUT_FILE}
 fi
 
-#Note, no need to extract from Lexile for this server since it is the master
+FILE=$(find /data/vufind-plus/opac.marmot.org/marc/ -name fullexport.mrc -mtime -1 | sort -n | tail -1)
 
-#Validate the export
-cd /usr/local/vufind-plus/vufind/cron; java -server -XX:+UseG1GC -jar cron.jar ${PIKASERVER} ValidateMarcExport >> ${OUTPUT_FILE}
+if [ -n "$FILE" ]
+then
+  #check file size
+	FILE1SIZE=$(wc -c <"$FILE")
+	if [ $FILE1SIZE -ge $MINFILE1SIZE ]; then
 
-#Full Regroup
-cd /usr/local/vufind-plus/vufind/record_grouping; java -server -XX:+UseG1GC -jar record_grouping.jar ${PIKASERVER} fullRegroupingNoClear >> ${OUTPUT_FILE}
+		echo "Latest export file is " $FILE >> ${OUTPUT_FILE}
+		DIFF=$(($FILE1SIZE - $MINFILE1SIZE))
+		PERCENTABOVE=$((100 * $DIFF / $MINFILE1SIZE))
+		echo "The export file is $PERCENTABOVE (%) larger than the minimum size check." >> ${OUTPUT_FILE}
 
-#TODO: Determine if we should do a partial update from the ILS and OverDrive before running the reindex to grab last minute changes
+		#Validate the export
+		cd /usr/local/vufind-plus/vufind/cron; java -server -XX:+UseG1GC -jar cron.jar ${PIKASERVER} ValidateMarcExport >> ${OUTPUT_FILE}
 
-#Full Reindex
-cd /usr/local/vufind-plus/vufind/reindexer; nice -n -3 java -server -XX:+UseG1GC -jar reindexer.jar ${PIKASERVER} fullReindex >> ${OUTPUT_FILE}
+		#Full Regroup
+		cd /usr/local/vufind-plus/vufind/record_grouping; java -server -XX:+UseG1GC -Xmx6G -jar record_grouping.jar ${PIKASERVER} fullRegroupingNoClear >> ${OUTPUT_FILE}
 
-# Truncate Continuous Reindexing list of changed items
-cat /dev/null >| /data/vufind-plus/${PIKASERVER}/marc/changed_items_to_process.csv
+		#TODO: Determine if we should do a partial update from the ILS and OverDrive before running the reindex to grab last minute changes
+
+		#Full Reindex
+		cd /usr/local/vufind-plus/vufind/reindexer; nice -n -3 java -server -XX:+UseG1GC -jar reindexer.jar ${PIKASERVER} fullReindex >> ${OUTPUT_FILE}
+
+		# Truncate Continuous Reindexing list of changed items
+		cat /dev/null >| /data/vufind-plus/${PIKASERVER}/marc/changed_items_to_process.csv
+
+	else
+		echo $FILE " size " $FILE1SIZE "is less than minimum size :" $MINFILE1SIZE "; Export was not moved to data directory, Full Regrouping & Full Reindexing skipped." >> ${OUTPUT_FILE}
+	fi
+else
+	echo "Did not find a export file from the last 24 hours, Full Regrouping & Full Reindexing skipped." >> ${OUTPUT_FILE}
+fi
 
 # Clean-up Solr Logs
 find /usr/local/vufind-plus/sites/default/solr/jetty/logs -name "solr_log_*" -mtime +7 -delete
@@ -199,7 +176,4 @@ then
 	# send mail
 	mail -s "Full Extract and Reindexing - ${PIKASERVER}" $EMAIL < ${OUTPUT_FILE}
 fi
-
-# Now that script is completed, remove the PID file
-rm $PIDFILE
 

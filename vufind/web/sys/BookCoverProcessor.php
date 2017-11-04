@@ -216,19 +216,6 @@ class BookCoverProcessor{
 		}
 	}
 
-//	private function getKanopyCover($id) {
-//		if (strpos($id, ':') !== false){
-//			list(, $id) = explode(":", $id);
-//		}
-//		$coverId = str_replace(array('kan'), '', $id);
-//		$coverUrl = "https://www.kanopystreaming.com/sites/default/files/imagecache/vp_poster_small/video-assets/{$coverId}_poster.jpg";
-//		if ($this->processImageURL($coverUrl, true)){
-//			return true;
-//		}else{
-//			return false;
-//		}
-//	}
-//
 	private function getOverDriveCover($id = null){
 		require_once ROOT_DIR . '/sys/OverDrive/OverDriveAPIProduct.php';
 		require_once ROOT_DIR . '/sys/OverDrive/OverDriveAPIProductMetaData.php';
