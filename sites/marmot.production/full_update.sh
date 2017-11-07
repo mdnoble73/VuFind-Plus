@@ -4,7 +4,7 @@
 #
 # At the end of the index will email users with the results.
 EMAIL=root@mercury
-PIKASERVER=opac.marmot.org
+PIKASERVER=marmot.production
 PIKADBNAME=vufind
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
 
@@ -46,21 +46,20 @@ rm /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
 cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 
 #Extract from ILS
-/usr/local/vufind-plus/sites/opac.marmot.org/copySierraExport.sh >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/marmot.production/copySierraExport.sh >> ${OUTPUT_FILE}
 
 #Extract from Hoopla
 #cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE}
 cd /usr/local/vufind-plus/vufind/cron;./GetHooplaFromMarmot.sh >> ${OUTPUT_FILE}
-# Grab cleaned, updated marc files from venus after they have been retrieved from Nashville
 
 # Ebrary Marc Updates
-#TODO: refactor CCU's ebrary destination
-/usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh ccu/ebrary ebrary_ccu >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} ccu/ebrary ebrary/ccu >> ${OUTPUT_FILE}
 
 /usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} western/ebrary ebrary/western >> ${OUTPUT_FILE}
 
 #Adams Ebrary DDA files
-/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} adams/ebrary/DDA ebrary/adams/dda >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/${PIKASERVER}/moveFullExport.sh adams/ebrary/DDA ebrary/adams/dda/merge >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh ebrary/adams/dda >> ${OUTPUT_FILE}
 
 # CCU Alexander Street Press Marc Updates
 /usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} ccu/alexanderStreetPress alexanderstreetpress/ccu >> ${OUTPUT_FILE}
@@ -90,7 +89,7 @@ cd /usr/local/vufind-plus/vufind/cron;./GetHooplaFromMarmot.sh >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} western/springer springer/western >> ${OUTPUT_FILE}
 
 # Western Kanopy Marc Updates
-/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} kanopy/western >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} western/kanopy kanopy/western >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} budwerner/kanopy kanopy/budwerner >> ${OUTPUT_FILE}
 
 # CCU Gale Marc Updates
@@ -108,7 +107,7 @@ cd /usr/local/vufind-plus/vufind/cron;./GetHooplaFromMarmot.sh >> ${OUTPUT_FILE}
 #Colorado State Goverment Documents Updates
 curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/colorado_gov_docs/marc/fullexport.mrc https://cassini.marmot.org/colorado_state_docs.mrc
 # Colorado State Gov Docs Marc Updates
-/usr/local/vufind-plus/sites/opac.marmot.org/moveFullExport.sh marmot/coloGovDocs colorado_gov_docs >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/marmot.production/moveFullExport.sh marmot/coloGovDocs colorado_gov_docs >> ${OUTPUT_FILE}
 
 #Extracts for sideloaded eContent; settings defined in config.pwd.ini [Sideload]
 cd /usr/local/vufind-plus/vufind/cron; ./sideload.sh ${PIKASERVER}
@@ -128,7 +127,7 @@ then
 	nice -n -10 java -server -XX:+UseG1GC -jar overdrive_extract.jar ${PIKASERVER} fullReload >> ${OUTPUT_FILE}
 fi
 
-FILE=$(find /data/vufind-plus/opac.marmot.org/marc/ -name fullexport.mrc -mtime -1 | sort -n | tail -1)
+FILE=$(find /data/vufind-plus/marmot.production/marc/ -name fullexport.mrc -mtime -1 | sort -n | tail -1)
 
 if [ -n "$FILE" ]
 then

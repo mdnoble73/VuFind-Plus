@@ -11,7 +11,7 @@
 #
 # ie :
 # git pull origin {current branch}
-# crontab < /usr/local/vufind-plus/sites/opac.marmot.org/conf/crontab_settings.txt
+# crontab < /usr/local/vufind-plus/sites/marmot.production/conf/crontab_settings.txt
 
 ###################
 # * * * * *  command to execute
@@ -25,29 +25,23 @@
 ## taken from https://en.wikipedia.org/wiki/Cron
 ##############
 
-# backup important bits at 2:15am daily
-15 2 * * * /root/cron/backup 2>&1 >/dev/null
-#TODO: When these servers are virtualized, modify mysql backup to be uniform with other sites
+######################
+# MySQL Nightly Dump #
+######################
+# backup important bits at 12:10am daily
+15 2 * * * /usr/local/vufind-plus/vufind/cron/nightly_mysql_dump.sh marmot.production 2>&1 >/dev/null
 
 #############
 # On Reboot #
 #############
 # Continuous Re-Indexing
-@reboot /usr/local/vufind-plus/sites/opac.marmot.org/continuous_partial_reindex.sh
-@reboot /usr/local/vufind-plus/sites/aspencat.production/continuous_partial_reindex.sh
+@reboot /usr/local/vufind-plus/sites/marmot.production/continuous_partial_reindex.sh
 
 #####################
 # Daily full update #
 #####################
 # Export lands on ftp server at 00:10am.  Set the start for right after that.
-20 0 * * * cd /usr/local/vufind-plus/sites/opac.marmot.org; ./full_update_marmot_prod.sh
-
-#Aspencat
-# avoid 6pm - 11pm for AspenCat PLB  (PK-288)
-10 00 * * 0-5 cd /usr/local/vufind-plus/sites/aspencat.production; ./full_update_aspencat_production.sh
-# start full update early, expecting to use the same full export file as previous days
-30 03 * * 6 cd /usr/local/vufind-plus/sites/aspencat.production; ./full_update_aspencat_production.sh
-# start full update saturday morning after the new full export has arrived
+20 0 * * * cd /usr/local/vufind-plus/sites/marmot.production; ./full_update.sh
 
 ################
 # Pika Cleanup #
@@ -61,43 +55,27 @@
 ############################################
 # New York Times Bestseller Lists Updating #
 ############################################
-13 7 * * 0 /usr/local/vufind-plus/vufind/cron/updateNYTLists.sh opac.marmot.org
-# update on Sundays at 7:23
-23 7 * * 0 /usr/local/vufind-plus/vufind/cron/updateNYTLists.sh aspencat.production
-# update on Sundays at 7:23
+13 7 * * 0 /usr/local/vufind-plus/vufind/cron/updateNYTLists.sh marmot.production
+# update on Sundays at 7:13
 
 ##########
 # Cron   #
 ##########
 # Do cron process which is just Updating Reading History.  Takes about 3.5 hours, start at 7pm
-5 19 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar opac.marmot.org
-20 0 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar opac.marmot.org DatabaseCleanup
+5 19 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar marmot.production
+20 0 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar marmot.production DatabaseCleanup
 # Write reports for schools
-00 6,11,13 * * * cd /usr/local/vufind-plus/vufind/cron; java -jar cron.jar opac.marmot.org SierraReports
+00 6,11,13 * * * cd /usr/local/vufind-plus/vufind/cron; java -jar cron.jar marmot.production SierraReports
 # Process Offline Circs
-29 21 * * * cd /usr/local/vufind-plus/vufind/cron; java -jar cron.jar opac.marmot.org OfflineCirculation
-
-# AspenCat
-# All the default cron run does is Reading History update, do that once a day early in the morning after the index completes
-14 5 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar aspencat.production
-15 6 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar aspencat.production DatabaseCleanup
-# DB clean-up at end of the day, 11:44pm
+29 21 * * * cd /usr/local/vufind-plus/vufind/cron; java -jar cron.jar marmot.production OfflineCirculation
 
 ###################################
 # Data Extract from other systems #
 ###################################
 # Library supplied covers
-*/10 * * * * /usr/local/vufind-plus/sites/opac.marmot.org/copyCovers.sh
-1-51/10 * * * * /usr/local/vufind-plus/sites/aspencat.production/copyCovers.sh
-# 10 minute gap was missed for 51-01. plb 6-9-2015
+*/10 * * * * /usr/local/vufind-plus/sites/marmot.production/copyCovers.sh
 
 # Check Apache Solr process and website that it has not stalled.
 */10 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./solrTest.sh
-
-#################
-# Let's Encrypt #
-#################
-#update catalog.aspencat.info certificate twice daily
-43 3,10 * * * /root/cron/certbot-auto renew
 
 #final end of line character needed for crontab to be read

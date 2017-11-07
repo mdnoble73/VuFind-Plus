@@ -23,7 +23,7 @@
 REMOTE="10.1.2.7:/ftp"
 LOCAL="/mnt/ftp_covers"
 SRC="/mnt/ftp_covers/vufind_covers"
-#DEST="/data/vufind-plus/opac.marmot.org/covers/original"
+#DEST="/data/vufind-plus/marmot.production/covers/original"
 DEST="/data2/pika/covers/original"
 LOG="logger -t copyCovers "
 
