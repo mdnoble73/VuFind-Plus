@@ -3,9 +3,9 @@
 # Should be called once per day.  Will interrupt partial reindexing.
 #
 # At the end of the index will email users with the results.
-EMAIL=root@mercury
+EMAIL=root@mercuryvm
 PIKASERVER=marmot.production
-PIKADBNAME=vufind
+PIKADBNAME=pika
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
 
 MINFILE1SIZE=$((3910000000))

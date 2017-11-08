@@ -2,7 +2,7 @@
 # Script executes continuous re-indexing.
 #
 # this version emails script output as a round finishes
-EMAIL=root@mercury
+EMAIL=root@mercuryvm
 PIKASERVER=marmot.production
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/extract_and_reindex_output.log"
 
