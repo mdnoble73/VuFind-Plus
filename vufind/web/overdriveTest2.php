@@ -67,10 +67,10 @@ if (!empty($_REQUEST['id'])) {
 	$overDriveId = "24f6c1d4-64c1-4d79-bd9a-610bc22c4d59";
 }
 
-echo "<h3>Lookup by ID</h3>",
+/*echo "<h3>Lookup by ID</h3>",
 '<p>Add url paramater id={OverdriveProductID}to this page to see a specific Product</p>';
 $productInfoSingle = $driver->getProductById('1403332', $productKey);
-easy_printr($productInfoSingle);
+easy_printr($productInfoSingle);*/
 
 echo "<h3>Metadata</h3>",
 '<p>Add url paramater id={OverdriveProductID}to this page to see a specific Product</p>';
@@ -102,7 +102,7 @@ easy_printr($productInfo);
 
 echo("<h3>Availability - MDL</h3>");
 //echo("{$firstProduct->links->availability->href}<br/>");
-$availability = $driver->getProductAvailability("24f6c1d4-64c1-4d79-bd9a-610bc22c4d59", "L1BMAEAAA2k");
+$availability = $driver->getProductAvailability($overDriveId, "L1BMAEAAA2k");
 echo("Copies Owned {$availability->copiesOwned }<br/>");
 echo("Available Copies {$availability->copiesAvailable }<br/>");
 echo("Num Holds {$availability->numberOfHolds }<br/>");
@@ -110,7 +110,7 @@ easy_printr($availability);
 
 echo("<h3>Availability - Wilkinson</h3>");
 //echo("{$firstProduct->links->availability->href}<br/>");
-$availability = $driver->getProductAvailability("24f6c1d4-64c1-4d79-bd9a-610bc22c4d59", "L2BMAEAALoBAAA1X");
+$availability = $driver->getProductAvailability($overDriveId, "L2BMAEAALoBAAA1X");
 echo("Copies Owned {$availability->copiesOwned }<br/>");
 echo("Available Copies {$availability->copiesAvailable }<br/>");
 echo("Num Holds {$availability->numberOfHolds }<br/>");
@@ -118,7 +118,7 @@ easy_printr($availability);
 
 echo("<h3>Availability - Pitkin</h3>");
 //echo("{$firstProduct->links->availability->href}<br/>");
-$availability = $driver->getProductAvailability("24f6c1d4-64c1-4d79-bd9a-610bc22c4d59", "L2BMAEAALoBAAA1X");
+$availability = $driver->getProductAvailability($overDriveId, "L2BMAEAALoBAAA1X");
 echo("Copies Owned {$availability->copiesOwned }<br/>");
 echo("Available Copies {$availability->copiesAvailable }<br/>");
 echo("Num Holds {$availability->numberOfHolds }<br/>");
@@ -126,7 +126,7 @@ easy_printr($availability);
 
 echo("<h3>Availability - Eagle</h3>");
 //echo("{$firstProduct->links->availability->href}<br/>");
-$availability = $driver->getProductAvailability("24f6c1d4-64c1-4d79-bd9a-610bc22c4d59", "L2BMAEAANIBAAA1R");
+$availability = $driver->getProductAvailability($overDriveId, "L2BMAEAANIBAAA1R");
 echo("Copies Owned {$availability->copiesOwned }<br/>");
 echo("Available Copies {$availability->copiesAvailable }<br/>");
 echo("Num Holds {$availability->numberOfHolds }<br/>");
@@ -134,7 +134,7 @@ easy_printr($availability);
 
 echo("<h3>Availability - Grand County</h3>");
 //echo("{$firstProduct->links->availability->href}<br/>");
-$availability = $driver->getProductAvailability("24f6c1d4-64c1-4d79-bd9a-610bc22c4d59", "L2BMAEAABUGAAA1w");
+$availability = $driver->getProductAvailability($overDriveId, "L2BMAEAABUGAAA1w");
 echo("Copies Owned {$availability->copiesOwned }<br/>");
 echo("Available Copies {$availability->copiesAvailable }<br/>");
 echo("Num Holds {$availability->numberOfHolds }<br/>");
@@ -142,7 +142,7 @@ easy_printr($availability);
 
 echo("<h3>Availability - Garfield</h3>");
 //echo("{$firstProduct->links->availability->href}<br/>");
-$availability = $driver->getProductAvailability("24f6c1d4-64c1-4d79-bd9a-610bc22c4d59", "v1L1BBggAAA2G");
+$availability = $driver->getProductAvailability($overDriveId, "v1L1BBggAAA2G");
 echo("Copies Owned {$availability->copiesOwned }<br/>");
 echo("Available Copies {$availability->copiesAvailable }<br/>");
 echo("Num Holds {$availability->numberOfHolds }<br/>");
@@ -150,7 +150,7 @@ easy_printr($availability);
 
 echo("<h3>Availability - Bud Werner</h3>");
 //echo("{$firstProduct->links->availability->href}<br/>");
-$availability = $driver->getProductAvailability("24f6c1d4-64c1-4d79-bd9a-610bc22c4d59", "L1BUwYAAA2r");
+$availability = $driver->getProductAvailability($overDriveId, "L1BUwYAAA2r");
 echo("Copies Owned {$availability->copiesOwned }<br/>");
 echo("Available Copies {$availability->copiesAvailable }<br/>");
 echo("Num Holds {$availability->numberOfHolds }<br/>");
