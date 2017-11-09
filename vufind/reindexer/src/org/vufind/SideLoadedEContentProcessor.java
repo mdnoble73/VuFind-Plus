@@ -147,7 +147,7 @@ class SideLoadedEContentProcessor extends IlsRecordProcessor{
 			} else {
 				//Convert formats from print to eContent version
 				for (String format : printFormats) {
-					if (format.equalsIgnoreCase("eBook") || format.equalsIgnoreCase("Book") || format.equalsIgnoreCase("LargePrint") || format.equalsIgnoreCase("GraphicNovel") || format.equalsIgnoreCase("Manuscript") || format.equalsIgnoreCase("Thesis")) {
+					if (format.equalsIgnoreCase("eBook") || format.equalsIgnoreCase("Book") || format.equalsIgnoreCase("LargePrint") || format.equalsIgnoreCase("GraphicNovel") || format.equalsIgnoreCase("Manuscript") || format.equalsIgnoreCase("Thesis") || format.equalsIgnoreCase("Print") || format.equalsIgnoreCase("Microfilm") || format.equalsIgnoreCase("Kit")) {
 						econtentItem.setFormat("eBook");
 						econtentItem.setFormatCategory("eBook");
 						econtentRecord.setFormatBoost(10);
@@ -167,7 +167,7 @@ class SideLoadedEContentProcessor extends IlsRecordProcessor{
 						econtentItem.setFormat("MusicalScore");
 						econtentItem.setFormatCategory("eBook");
 						econtentRecord.setFormatBoost(5);
-					} else if (format.equalsIgnoreCase("Movies") || format.equalsIgnoreCase("Video") || format.equalsIgnoreCase("DVD")) {
+					} else if (format.equalsIgnoreCase("Movies") || format.equalsIgnoreCase("Video") || format.equalsIgnoreCase("DVD") || format.equalsIgnoreCase("VideoDisc")) {
 						econtentItem.setFormat("eVideo");
 						econtentItem.setFormatCategory("Movies");
 						econtentRecord.setFormatBoost(10);
