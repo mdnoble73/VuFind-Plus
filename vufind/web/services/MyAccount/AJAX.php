@@ -1198,7 +1198,8 @@ class MyAccount_AJAX
 					$failure_messages = array();
 					$renewResults     = array();
 					foreach ($_REQUEST['selected'] as $selected => $ignore) {
-						list($patronId, $recordId, $itemId, $itemIndex) = explode('|', $selected);
+						//Suppress errors because sometimes we don't get an item index
+						@list($patronId, $recordId, $itemId, $itemIndex) = explode('|', $selected);
 						$patron = $user->getUserReferredTo($patronId);
 						if ($patron){
 							$tmpResult = $patron->renewItem($recordId, $itemId, $itemIndex);
