@@ -104,6 +104,9 @@ cd /usr/local/vufind-plus/vufind/cron;./GetHooplaFromMarmot.sh >> ${OUTPUT_FILE}
 #Films On Demand
 /usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} cmc/filmsondemand filmsondemand/cmc >> ${OUTPUT_FILE}
 
+#Federal Government Documents Marc Updates (Western)
+/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} western/federalGovDocs federal_gov_docs/western >> ${OUTPUT_FILE}
+
 #Colorado State Goverment Documents Updates
 curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/colorado_gov_docs/marc/fullexport.mrc https://cassini.marmot.org/colorado_state_docs.mrc
 # Colorado State Gov Docs Marc Updates
