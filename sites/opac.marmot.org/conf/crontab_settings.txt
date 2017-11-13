@@ -98,6 +98,7 @@
 # Let's Encrypt #
 #################
 #update catalog.aspencat.info certificate twice daily
-43 3,10 * * * /root/cron/certbot-auto renew
+#43 3,10 * * * /root/cron/certbot-auto renew
+# Disable till migration to virtual server
 
 #final end of line character needed for crontab to be read
