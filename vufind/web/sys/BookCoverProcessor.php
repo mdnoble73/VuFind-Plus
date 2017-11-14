@@ -181,8 +181,8 @@ class BookCoverProcessor{
 		if (strpos($id, ':') !== false){
 			list(, $id) = explode(":", $id);
 		}
-		$coverId = str_replace(array('ebr', "PQE"), '', $id);
-		$coverUrl = "http://covers.ebrary.com/cc/$coverId-l.jpg";
+		$coverId = preg_replace('/^[a-zA-Z]+/', '', $id);
+		$coverUrl = "http://ebookcentral.proquest.com/covers/$coverId-l.jpg";
 		if ($this->processImageURL($coverUrl, true)){
 			return true;
 		}else{
