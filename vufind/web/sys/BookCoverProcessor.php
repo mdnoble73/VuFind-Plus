@@ -181,8 +181,8 @@ class BookCoverProcessor{
 		if (strpos($id, ':') !== false){
 			list(, $id) = explode(":", $id);
 		}
-		$coverId = str_replace(array('ebr', "PQE"), '', $id);
-		$coverUrl = "http://covers.ebrary.com/cc/$coverId-l.jpg";
+		$coverId = preg_replace('/^[a-zA-Z]+/', '', $id);
+		$coverUrl = "http://ebookcentral.proquest.com/covers/$coverId-l.jpg";
 		if ($this->processImageURL($coverUrl, true)){
 			return true;
 		}else{
@@ -426,7 +426,7 @@ class BookCoverProcessor{
 					$this->log("Checking provider ".$provider[0], PEAR_LOG_INFO);
 					$func = $provider[0];
 					$key = isset($provider[1]) ? $provider[1] : '';
-					if ($this->$func($key)) {
+					if (method_exists($this, $func) && $this->$func($key)) {
 						$this->log("Found image from $provider[0]", PEAR_LOG_INFO);
 						$this->logTime("Checked $func");
 						return true;
@@ -874,30 +874,31 @@ class BookCoverProcessor{
 		return $this->processImageURL($url);
 	}
 
-	function openlibrary($id = null)
-	{
-		if (is_null($this->isn)){
-			return false;
-		}
-		// Convert internal size value to openlibrary equivalent:
-		switch($this->size) {
-			case 'large':
-				$size = 'L';
-				break;
-			case 'medium':
-				$size = 'M';
-				break;
-			case 'small':
-			default:
-				$size = 'S';
-				break;
-		}
-
-		// Retrieve the image; the default=false parameter indicates that we want a 404
-		// if the ISBN is not supported.
-		$url = "http://covers.openlibrary.org/b/isbn/{$this->isn}-{$size}.jpg?default=false";
-		return $this->processImageURL($url);
-	}
+	// Removed as cover provider due to unwanted cover image. 11-14-2017 see  https://marmot.myjetbrains.com/youtrack/issue/D-1608
+//	function openlibrary($id = null)
+//	{
+//		if (is_null($this->isn)){
+//			return false;
+//		}
+//		// Convert internal size value to openlibrary equivalent:
+//		switch($this->size) {
+//			case 'large':
+//				$size = 'L';
+//				break;
+//			case 'medium':
+//				$size = 'M';
+//				break;
+//			case 'small':
+//			default:
+//				$size = 'S';
+//				break;
+//		}
+//
+//		// Retrieve the image; the default=false parameter indicates that we want a 404
+//		// if the ISBN is not supported.
+//		$url = "http://covers.openlibrary.org/b/isbn/{$this->isn}-{$size}.jpg?default=false";
+//		return $this->processImageURL($url);
+//	}
 
 	/**
 	 * Retrieve a Content Cafe cover.
