@@ -39,7 +39,7 @@ checkConflictingProcesses "reindexer.jar ${PIKASERVER}"
 # Back-up Solr Master Index
 mysqldump ${PIKADBNAME} grouped_work_primary_identifiers > /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
 sleep 5m
-tar -czf /data2/pika/${PIKASERVER}/solr_master_backup.tar.gz /data/vufind-plus/${PIKASERVER}/solr_master/grouped/index/ >> ${OUTPUT_FILE}
+tar -czf /data/vufind-plus/${PIKASERVER}/solr_master_backup.tar.gz /data/vufind-plus/${PIKASERVER}/solr_master/grouped/index/ >> ${OUTPUT_FILE}
 rm /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
 
 #Restart Solr
