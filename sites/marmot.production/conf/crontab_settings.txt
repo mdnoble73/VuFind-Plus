@@ -34,6 +34,7 @@
 #############
 # On Reboot #
 #############
+@reboot cd /usr/local/vufind-plus/sites/marmot.production/; ./marmot.production.sh start
 # Continuous Re-Indexing
 @reboot /usr/local/vufind-plus/sites/marmot.production/continuous_partial_reindex.sh
 
