@@ -71,10 +71,12 @@ class EditList extends Action
 		global $interface;
 		global $configArray;
 
-		if (!($user = UserAccount::isLoggedIn())) {
+		if (!UserAccount::isLoggedIn()) {
 			include_once 'Login.php';
 			MyAccount_Login::launch();
 			exit();
+		}else{
+			$user = UserAccount::getLoggedInUser();
 		}
 
 		// Fetch List object

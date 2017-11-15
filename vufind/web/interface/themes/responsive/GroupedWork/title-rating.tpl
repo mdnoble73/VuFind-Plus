@@ -5,7 +5,7 @@
 						{* AJAX rater data fields *}
          data-user_rating="{$ratingData.user}" data-average_rating="{$ratingData.average}"
          data-id="{$id}"
-         data-show_review="{if $showComments  && (!$user || !$user->noPromptForUserReviews)}1{else}0{/if}"
+         data-show_review="{if $showComments  && (!$loggedIn || !$user->noPromptForUserReviews)}1{else}0{/if}"
 
 						>
 			<span class="ui-rater-starsOff" style="width:90px">

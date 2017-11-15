@@ -752,13 +752,15 @@ class GroupedWorkDriver extends RecordInterface{
 	public function getTOC() {
 		$tableOfContents = array();
 		foreach ($this->getRelatedRecords() as $record){
-			$recordTOC = $record['driver']->getTOC();
-			if (count($recordTOC) > 0){
-				$editionDescription = "{$record['format']}";
-				if ($record['edition']){
-					$editionDescription .= " - {$record['edition']}";
+			if ($record['driver']){
+				$recordTOC = $record['driver']->getTOC();
+				if (count($recordTOC) > 0){
+					$editionDescription = "{$record['format']}";
+					if ($record['edition']){
+						$editionDescription .= " - {$record['edition']}";
+					}
+					$tableOfContents = array_merge($tableOfContents, array("<h4>From the $editionDescription</h4>"), $recordTOC);
 				}
-				$tableOfContents = array_merge($tableOfContents, array("<h4>From the $editionDescription</h4>"), $recordTOC);
 			}
 		}
 		return $tableOfContents;
@@ -1091,39 +1093,150 @@ class GroupedWorkDriver extends RecordInterface{
 	}
 
 	static $archiveLinksForWorkIds = array();
-	static function getArchiveLinkForWork($groupedWorkId){
-		//Check to see if the record is available within the archive
+
+	/**
+	 * @param string[] $groupedWorkIds
+	 */
+	static function loadArchiveLinksForWorks($groupedWorkIds){
 		global $library;
+		global $timer;
 		$archiveLink = null;
-		if ($library->enableArchive){
-			if (array_key_exists($groupedWorkId, GroupedWorkDriver::$archiveLinksForWorkIds)){
-				$archiveLink = GroupedWorkDriver::$archiveLinksForWorkIds[$groupedWorkId];
-			}else{
-				/** @var SearchObject_Islandora $searchObject */
-				$searchObject = SearchObjectFactory::initSearchObject('Islandora');
-				$searchObject->init();
+		if ($library->enableArchive && count($groupedWorkIds) > 0){
+			require_once ROOT_DIR . '/sys/Islandora/IslandoraSamePikaCache.php';
+			$groupedWorkIdsToSearch = array();
+			foreach ($groupedWorkIds as $groupedWorkId){
+				//Check for cached links
+				$samePikaCache = new IslandoraSamePikaCache();
+				$samePikaCache->groupedWorkId = $groupedWorkId;
+				if ($samePikaCache->find(true)){
+					GroupedWorkDriver::$archiveLinksForWorkIds[$groupedWorkId] = $samePikaCache->archiveLink;
+				}else{
+					GroupedWorkDriver::$archiveLinksForWorkIds[$groupedWorkId] = false;
+					$samePikaCache->archiveLink = '';
+					$samePikaCache->insert();
+					$groupedWorkIdsToSearch[] = $groupedWorkId;
+				}
+			}
+
+			if (isset($_REQUEST['reload'])){
+				$groupedWorkIdsToSearch = $groupedWorkIds;
+			}
+			/** @var SearchObject_Islandora $searchObject */
+			$searchObject = SearchObjectFactory::initSearchObject('Islandora');
+			$searchObject->init();
+			if ($searchObject->pingServer(false)){
 				$searchObject->disableLogging();
 				$searchObject->setDebugging(false, false);
-				$searchObject->setBasicQuery("mods_extension_marmotLocal_externalLink_samePika_link_s:*" . $groupedWorkId);
+				$query = 'mods_extension_marmotLocal_externalLink_samePika_link_s:*' . implode('* OR mods_extension_marmotLocal_externalLink_samePika_link_s:*' , $groupedWorkIdsToSearch ) . '*';
+				$searchObject->setBasicQuery($query);
 				//Clear existing filters so search filters don't apply to this query
 				$searchObject->clearFilters();
 				$searchObject->clearFacets();
+				$searchObject->addFieldsToReturn(array('mods_extension_marmotLocal_externalLink_samePika_link_s'));
 
-				$searchObject->setLimit(1);
+				$searchObject->setLimit(count($groupedWorkIdsToSearch));
 
 				$response = $searchObject->processSearch(true, false, true);
 
 				if ($response && isset($response['response'])) {
 					//Get information about each project
 					if ($searchObject->getResultTotal() > 0) {
-						$firstObjectDriver = RecordDriverFactory::initRecordDriver($response['response']['docs'][0]);
+						foreach ($response['response']['docs'] as $doc){
+							$firstObjectDriver = RecordDriverFactory::initRecordDriver($doc);
 
-						$archiveLink = $firstObjectDriver->getRecordUrl();
+							$archiveLink = $firstObjectDriver->getRecordUrl();
+							foreach ($groupedWorkIdsToSearch as $groupedWorkId){
+								if (strpos($doc['mods_extension_marmotLocal_externalLink_samePika_link_s'], $groupedWorkId) !== false){
+									$samePikaCache = new IslandoraSamePikaCache();
+									$samePikaCache->groupedWorkId = $groupedWorkId;
+									if ($samePikaCache->find(true) && $samePikaCache->archiveLink != $archiveLink){
+										$samePikaCache->archiveLink = $archiveLink;
+										$samePikaCache->pid = $firstObjectDriver->getUniqueID();
+										$numUpdates = $samePikaCache->update();
+										if ($numUpdates == 0){
+											global $logger;
+											$logger->log("Did not update same pika cache " . print_r($samePikaCache->_lastError, true), PEAR_LOG_ERR);
+										}
+									}
+									GroupedWorkDriver::$archiveLinksForWorkIds[$groupedWorkId] = $archiveLink;
+									break;
+								}
+							}
+						}
 					}
 				}
-				GroupedWorkDriver::$archiveLinksForWorkIds[$groupedWorkId] = $archiveLink;
-				$searchObject = null;
-				unset($searchObject);
+			}
+			$timer->logTime("Loaded archive links for work " . count($groupedWorkIds) . " works");
+
+			$searchObject = null;
+			unset($searchObject);
+		}
+	}
+	static function getArchiveLinkForWork($groupedWorkId){
+		//Check to see if the record is available within the archive
+		global $library;
+		global $timer;
+		$archiveLink = '';
+		if ($library->enableArchive){
+			if (array_key_exists($groupedWorkId, GroupedWorkDriver::$archiveLinksForWorkIds)){
+				$archiveLink = GroupedWorkDriver::$archiveLinksForWorkIds[$groupedWorkId];
+			}else{
+				require_once ROOT_DIR . '/sys/Islandora/IslandoraSamePikaCache.php';
+				//Check for cached links
+				$samePikaCache = new IslandoraSamePikaCache();
+				$samePikaCache->groupedWorkId = $groupedWorkId;
+				$foundLink = false;
+				if ($samePikaCache->find(true)){
+					GroupedWorkDriver::$archiveLinksForWorkIds[$groupedWorkId] = $samePikaCache->archiveLink;
+					$archiveLink = $samePikaCache->archiveLink;
+					$foundLink = true;
+				}else{
+					GroupedWorkDriver::$archiveLinksForWorkIds[$groupedWorkId] = false;
+					$samePikaCache->archiveLink = '';
+					$samePikaCache->insert();
+				}
+
+				if (!$foundLink || isset($_REQUEST['reload'])){
+					/** @var SearchObject_Islandora $searchObject */
+					$searchObject = SearchObjectFactory::initSearchObject('Islandora');
+					$searchObject->init();
+					$searchObject->disableLogging();
+					$searchObject->setDebugging(false, false);
+					$searchObject->setBasicQuery("mods_extension_marmotLocal_externalLink_samePika_link_s:*" . $groupedWorkId);
+					//Clear existing filters so search filters don't apply to this query
+					$searchObject->clearFilters();
+					$searchObject->clearFacets();
+
+					$searchObject->setLimit(1);
+
+					$response = $searchObject->processSearch(true, false, true);
+
+					if ($response && isset($response['response'])) {
+						//Get information about each project
+						if ($searchObject->getResultTotal() > 0) {
+							$firstObjectDriver = RecordDriverFactory::initRecordDriver($response['response']['docs'][0]);
+
+							$archiveLink = $firstObjectDriver->getRecordUrl();
+
+							$samePikaCache = new IslandoraSamePikaCache();
+							$samePikaCache->groupedWorkId = $groupedWorkId;
+							if ($samePikaCache->find(true) && $samePikaCache->archiveLink != $archiveLink){
+								$samePikaCache->archiveLink = $archiveLink;
+								$samePikaCache->pid = $firstObjectDriver->getUniqueID();
+								$numUpdates = $samePikaCache->update();
+								if ($numUpdates == 0){
+									global $logger;
+									$logger->log("Did not update same pika cache " . print_r($samePikaCache->_lastError, true), PEAR_LOG_ERR);
+								}
+							}
+							GroupedWorkDriver::$archiveLinksForWorkIds[$groupedWorkId] = $archiveLink;
+							$timer->logTime("Loaded archive link for work $groupedWorkId");
+						}
+					}
+
+					$searchObject = null;
+					unset($searchObject);
+				}
 			}
 		}
 		return $archiveLink;
@@ -1286,8 +1399,8 @@ class GroupedWorkDriver extends RecordInterface{
 	private $relatedRecords = null;
 	private $relatedItemsByRecordId = null;
 
-	public function getRelatedRecords() {
-		$this->loadRelatedRecords();
+	public function getRelatedRecords($forCovers = false) {
+		$this->loadRelatedRecords($forCovers);
 		return $this->relatedRecords;
 	}
 
@@ -1300,7 +1413,7 @@ class GroupedWorkDriver extends RecordInterface{
 		}
 	}
 
-	private function loadRelatedRecords(){
+	private function loadRelatedRecords($forCovers = false){
 		global $timer;
 		global $memoryWatcher;
 		if ($this->relatedRecords == null || isset($_REQUEST['reload'])){
@@ -1310,7 +1423,7 @@ class GroupedWorkDriver extends RecordInterface{
 
 			global $solrScope;
 			global $library;
-			global $user;
+			$user = UserAccount::getActiveUserObj();
 
 			$searchLocation = Location::getSearchLocation();
 			$activePTypes = array();
@@ -1345,7 +1458,7 @@ class GroupedWorkDriver extends RecordInterface{
 			if ($groupedWork->find(true)){
 				//Generate record information based on the information we have in the index
 				foreach ($recordsFromIndex as $recordDetails){
-					$relatedRecord = $this->setupRelatedRecordDetails($recordDetails, $groupedWork, $timer, $scopingInfo, $activePTypes, $searchLocation, $library);
+					$relatedRecord = $this->setupRelatedRecordDetails($recordDetails, $groupedWork, $timer, $scopingInfo, $activePTypes, $searchLocation, $library, $forCovers);
 					$relatedRecords[$relatedRecord['id']] = $relatedRecord;
 					$memoryWatcher->logMemory("Setup related record details for " . $relatedRecord['id']);
 				}
@@ -2022,7 +2135,6 @@ class GroupedWorkDriver extends RecordInterface{
 	}
 
 	public function getTags(){
-		global $user;
 		/** @var UserTag[] $tags */
 		$tags = array();
 		require_once ROOT_DIR . '/sys/LocalEnrichment/UserTag.php';
@@ -2035,10 +2147,10 @@ class GroupedWorkDriver extends RecordInterface{
 				$tags[$userTags->tag]->userAddedThis = false;
 			}
 			$tags[$userTags->tag]->cnt++;
-			if (!$user){
+			if (UserAccount::isLoggedIn()){
 				return false;
 			}else{
-				if ($user->id == $tags[$userTags->tag]->userId){
+				if (UserAccount::getActiveUserId() == $tags[$userTags->tag]->userId){
 					$tags[$userTags->tag]->userAddedThis = true;
 				}
 			}
@@ -2546,7 +2658,7 @@ class GroupedWorkDriver extends RecordInterface{
 	 * @param Library $library
 	 * @return array
 	 */
-	protected function setupRelatedRecordDetails($recordDetails, $groupedWork, $timer, $scopingInfo, $activePTypes, $searchLocation, $library) {
+	protected function setupRelatedRecordDetails($recordDetails, $groupedWork, $timer, $scopingInfo, $activePTypes, $searchLocation, $library, $forCovers = false) {
 		//Check to see if we have any volume data for the record
 		require_once ROOT_DIR . '/Drivers/marmot_inc/IlsVolumeInfo.php';
 		global $memoryWatcher;
@@ -2821,7 +2933,10 @@ class GroupedWorkDriver extends RecordInterface{
 					'subLocation' => $subLocation,
 					'itemId' => $itemId
 			);
-			$itemSummaryInfo['actions'] = $recordDriver != null ? $recordDriver->getItemActions($itemSummaryInfo) : array();
+			if (!$forCovers){
+				$itemSummaryInfo['actions'] = $recordDriver != null ? $recordDriver->getItemActions($itemSummaryInfo) : array();
+			}
+
 			//Group the item based on location and call number for display in the summary
 			if (isset($relatedRecord['itemSummary'][$key])) {
 				$relatedRecord['itemSummary'][$key]['totalCopies']++;
@@ -2856,9 +2971,12 @@ class GroupedWorkDriver extends RecordInterface{
 		$timer->logTime("Setup record items");
 		$memoryWatcher->logMemory("Setup record items");
 
-		$relatedRecord['actions'] = $recordDriver != null ? $recordDriver->getRecordActions($relatedRecord['availableLocally'] || $relatedRecord['availableOnline'], $recordHoldable, $recordBookable, $relatedUrls, $volumeData) : array();
-		$timer->logTime("Loaded actions");
-		$memoryWatcher->logMemory("Loaded actions");
+		if (!$forCovers){
+			$relatedRecord['actions'] = $recordDriver != null ? $recordDriver->getRecordActions($relatedRecord['availableLocally'] || $relatedRecord['availableOnline'], $recordHoldable, $recordBookable, $relatedUrls, $volumeData) : array();
+			$timer->logTime("Loaded actions");
+			$memoryWatcher->logMemory("Loaded actions");
+		}
+
 		$recordDriver = null;
 		return $relatedRecord;
 	}
@@ -2947,11 +3065,12 @@ class GroupedWorkDriver extends RecordInterface{
 	public function getLexileDisplayString() {
 		$lexileScore = $this->getLexileScore();
 		if ($lexileScore != null){
-			$lexileInfo = $lexileScore;
+			$lexileInfo = '';
 			$lexileCode = $this->getLexileCode();
 			if ($lexileCode != null){
-				$lexileInfo .= ' ' . $lexileCode;
+				$lexileInfo .=  $lexileCode . ' ';
 			}
+			$lexileInfo .= $lexileScore. 'L';
 			return $lexileInfo;
 		}
 		return null;

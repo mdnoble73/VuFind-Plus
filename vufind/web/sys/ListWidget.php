@@ -46,11 +46,10 @@ class ListWidget extends DB_DataObject
 	}
 
 	function getObjectStructure(){
-		global $user;
-
 		//Load Libraries for lookup values
 		$libraryList = array();
-		if ($user->hasRole('opacAdmin')){
+		$user = UserAccount::getLoggedInUser();
+		if (UserAccount::userHasRole('opacAdmin')){
 			$library = new Library();
 			$library->orderBy('displayName');
 			$library->find();
@@ -58,7 +57,7 @@ class ListWidget extends DB_DataObject
 			while ($library->fetch()){
 				$libraryList[$library->libraryId] = $library->displayName;
 			}
-		}elseif ($user->hasRole('libraryAdmin') || $user->hasRole('contentEditor')){
+		}elseif (UserAccount::userHasRole('libraryAdmin') || UserAccount::userHasRole('contentEditor')){
 			$homeLibrary = Library::getPatronHomeLibrary();
 			$libraryList[$homeLibrary->libraryId] = $homeLibrary->displayName;
 		}

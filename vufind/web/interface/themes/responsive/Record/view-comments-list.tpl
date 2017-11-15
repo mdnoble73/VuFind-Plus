@@ -2,7 +2,7 @@
   <div class='comment'>
   	<div class="commentHeader">
     <div class='commentDate'>{$comment->created|date_format}
-	    {if $user && ($comment->user_id == $user->id || $user->hasRole('opacAdmin'))}
+	    {if $loggedIn && ($comment->user_id == $activeUserId || array_key_exists('opacAdmin', $userRoles))}
 	    <span onclick='deleteComment("{$id|escape:"url"}", {$comment->id}, {literal}{{/literal}save_error: "{translate text='comment_error_save'}", load_error: "{translate text='comment_error_load'}", save_title: "{translate text='Save Comment'}"{literal}}{/literal});' class="deleteComment"><span class="silk delete">&nbsp;</span>{translate text='Delete'}</span>
 	    {/if}
     </div>

@@ -72,6 +72,8 @@
 			Globals.url = '{$url}';
 			Globals.loggedIn = {$loggedIn};
 			Globals.opac = {if $onInternalIP}true{else}false{/if};
+			Globals.activeModule = '{$module}';
+			Globals.activeAction = '{$action}';
 			{*Globals.masqueradeMode = {if $masqueradeMode}true{else}false{/if};*}
 			{if $repositoryUrl}
 				Globals.repositoryUrl = '{$repositoryUrl}';

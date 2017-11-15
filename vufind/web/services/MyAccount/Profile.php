@@ -26,7 +26,7 @@ class MyAccount_Profile extends MyAccount
 	{
 		global $configArray;
 		global $interface;
-		global $user;
+		$user = UserAccount::getLoggedInUser();
 
 		$ils = $configArray['Catalog']['ils'];
 		$smsEnabled = $configArray['Catalog']['smsEnabled'];

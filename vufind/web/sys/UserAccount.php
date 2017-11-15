@@ -24,8 +24,13 @@ require_once 'XML/Serializer.php';
 require_once ROOT_DIR . '/sys/Authentication/AuthenticationFactory.php';
 
 class UserAccount {
-	static $isLoggedIn = null;
-	static $primaryUserData = null;
+	private static $isLoggedIn = null;
+	private static $primaryUserData = null;
+	/** @var User|false  */
+	private static $primaryUserObjectFromDB = null;
+	/** @var User|false $guidingUserObjectFromDB */
+	private static $guidingUserObjectFromDB = null;
+	private static $userRoles = null;
 	/**
 	 * Checks whether the user is logged in.
 	 *
@@ -35,15 +40,236 @@ class UserAccount {
 	 * @return bool|User
 	 */
 	public static function isLoggedIn() {
+		if (UserAccount::$isLoggedIn == null) {
+			if (isset($_SESSION['activeUserId'])) {
+				UserAccount::$isLoggedIn = true;
+			} else {
+				UserAccount::$isLoggedIn = false;
+				//Need to check cas just in case the user logged in from another site
+				//if ($action != 'AJAX' && $action != 'DjatokaResolver' && $action != 'Logout' && $module != 'MyAccount' && $module != 'API' && !isset($_REQUEST['username'])){
+				//If the library uses CAS/SSO we may already be logged in even though they never logged in within Pika
+				global $library;
+				if (strlen($library->casHost) > 0) {
+					$checkCAS = false;
+					$curTime = time();
+					if (!isset($_SESSION['lastCASCheck'])){
+						$checkCAS = true;
+					}elseif ($curTime - $_SESSION['lastCASCheck'] > 10){
+						$checkCAS = true;
+					}
+					global $action;
+					global $module;
+					if ($checkCAS && $action != 'AJAX' && $action != 'DjatokaResolver' && $action != 'Logout' && $module != 'MyAccount' && $module != 'API' && !isset($_REQUEST['username'])) {
+						//Check CAS first
+						require_once ROOT_DIR . '/sys/Authentication/CASAuthentication.php';
+						global $logger;
+						$casAuthentication = new CASAuthentication(null);
+						$casUsername = $casAuthentication->validateAccount(null, null, null, false);
+						$_SESSION['lastCASCheck'] = time();
+						$logger->log("Checked CAS Authentication from UserAccount::isLoggedIn result was $casUsername", PEAR_LOG_DEBUG);
+						if ($casUsername == false || PEAR_Singleton::isError($casUsername)) {
+							//The user could not be authenticated in CAS
+							UserAccount::$isLoggedIn = false;
+
+						} else {
+							$logger->log("We got a valid user from CAS, getting the user from the database", PEAR_LOG_DEBUG);
+							//We have a valid user via CAS, need to do a login to Pika
+							$_REQUEST['casLogin'] = true;
+							UserAccount::$isLoggedIn = true;
+							//Set the active user id for the user
+							$user = new User();
+							//TODO this may need to change if anyone but Fort Lewis ever does CAS authentication
+							$user->cat_password = $casUsername;
+							if ($user->find(true)){
+								$_SESSION['activeUserId'] = $user->id;
+								UserAccount::$primaryUserObjectFromDB = $user;
+							}
+						}
+					}
+				}
+			}
+		}
+		return UserAccount::$isLoggedIn;
+	}
+
+	public static function getActiveUserId() {
+		if (isset($_SESSION['activeUserId'])) {
+			return $_SESSION['activeUserId'];
+		}else{
+			return false;
+		}
+	}
+
+	public static function userHasRole($roleName) {
+		$userRoles = UserAccount::getActiveRoles();
+		return array_key_exists($roleName, $userRoles);
+	}
+
+	public static function getActiveRoles(){
+		if (UserAccount::$userRoles == null){
+			if (UserAccount::isLoggedIn()){
+				UserAccount::$userRoles = array();
+
+				//Roles for the user
+				require_once ROOT_DIR . '/sys/Administration/Role.php';
+				$role = new Role();
+				$canUseTestRoles = false;
+				$role->query("SELECT roles.name FROM roles INNER JOIN user_roles ON roles.roleId = user_roles.roleId WHERE userId = " . UserAccount::getActiveUserId() . " ORDER BY name");
+				while ($role->fetch()){
+					UserAccount::$userRoles[$role->name] = $role->name;
+					if ($role->name == 'userAdmin'){
+						$canUseTestRoles = true;
+					}
+				}
+
+				//Test roles if we are doing overrides
+				$testRole = '';
+				if (isset($_REQUEST['test_role'])){
+					$testRole = $_REQUEST['test_role'];
+				}elseif (isset($_COOKIE['test_role'])){
+					$testRole = $_COOKIE['test_role'];
+				}
+				if ($canUseTestRoles && $testRole != ''){
+					if (is_array($testRole)){
+						$testRoles = $testRole;
+					}else{
+						$testRoles = array($testRole);
+					}
+					//Ignore the standard roles for the user
+					UserAccount::$userRoles = array();
+					foreach ($testRoles as $tmpRole){
+						$role = new Role();
+						if (is_numeric($tmpRole)){
+							$role->roleId = $tmpRole;
+						}else{
+							$role->name = $tmpRole;
+						}
+						$found = $role->find(true);
+						if ($found == true){
+							UserAccount::$userRoles[$role->name] = $role->name;
+						}
+					}
+				}
+
+				//TODO: Figure out roles for masquerade mode see User.php line 251
+
+			}else{
+				UserAccount::$userRoles = array();
+			}
+		}
+		return UserAccount::$userRoles;
+	}
+
+	private static function loadUserObjectFromDatabase(){
+		if (UserAccount::$primaryUserObjectFromDB == null){
+			$activeUserId = UserAccount::getActiveUserId();
+			if ($activeUserId){
+				$user = new User();
+				$user->id = $activeUserId;
+				if ($user->find(true)){
+					UserAccount::$primaryUserObjectFromDB = $user;
+				}else{
+					UserAccount::$primaryUserObjectFromDB = false;
+				}
+			}else{
+				UserAccount::$primaryUserObjectFromDB = false;
+			}
+		}
+	}
+
+	public static function getActiveUserObj(){
+		UserAccount::loadUserObjectFromDatabase();
+		return UserAccount::$primaryUserObjectFromDB;
+	}
+
+	public static function getUserDisplayName(){
+		UserAccount::loadUserObjectFromDatabase();
+		if (UserAccount::$primaryUserObjectFromDB != false){
+			if (strlen(UserAccount::$primaryUserObjectFromDB->displayName)){
+				return UserAccount::$primaryUserObjectFromDB->displayName;
+			}else{
+				return UserAccount::$primaryUserObjectFromDB->firstname . ' ' . UserAccount::$primaryUserObjectFromDB->lastname;;
+			}
+
+		}
+		return '';
+	}
+
+	public static function getUserPType(){
+		UserAccount::loadUserObjectFromDatabase();
+		if (UserAccount::$primaryUserObjectFromDB != false){
+			return UserAccount::$primaryUserObjectFromDB->patronType;
+		}
+		return 'logged out';
+	}
+
+	public static function getDisableCoverArt(){
+		UserAccount::loadUserObjectFromDatabase();
+		if (UserAccount::$primaryUserObjectFromDB != false){
+			return UserAccount::$primaryUserObjectFromDB->disableCoverArt;
+		}
+		return 'logged out';
+	}
+
+	public static function hasLinkedUsers(){
+		UserAccount::loadUserObjectFromDatabase();
+		if (UserAccount::$primaryUserObjectFromDB != false){
+			return count(UserAccount::$primaryUserObjectFromDB->getLinkedUserObjects()) > 0;
+		}
+		return 'false';
+	}
+
+	public static function getUserHomeLocationId(){
+		UserAccount::loadUserObjectFromDatabase();
+		if (UserAccount::$primaryUserObjectFromDB != false){
+			return UserAccount::$primaryUserObjectFromDB->homeLocationId;
+		}
+		return -1;
+	}
+
+	public static function isUserMasquerading(){
+		return !empty($_SESSION['guidingUserId']);
+	}
+
+	public static function getGuidingUserObject(){
+		if (UserAccount::$guidingUserObjectFromDB == null){
+			if (UserAccount::isUserMasquerading()){
+				$activeUserId = $_SESSION['guidingUserId'];
+				if ($activeUserId){
+					$user = new User();
+					$user->id = $activeUserId;
+					if ($user->find(true)){
+						UserAccount::$guidingUserObjectFromDB = $user;
+					}else{
+						UserAccount::$guidingUserObjectFromDB = false;
+					}
+				}else{
+					UserAccount::$guidingUserObjectFromDB = false;
+				}
+			}else{
+				UserAccount::$guidingUserObjectFromDB = false;
+			}
+		}
+		return UserAccount::$guidingUserObjectFromDB;
+	}
+
+	/**
+	 * @return bool|null|User
+	 */
+	public static function getLoggedInUser(){
 		if (UserAccount::$isLoggedIn != null){
 			if (UserAccount::$isLoggedIn){
-				return UserAccount::$primaryUserData;
+				if (!is_null(UserAccount::$primaryUserData)) {
+					return UserAccount::$primaryUserData;
+				}
 			}else{
 				return false;
 			}
 		}
 		global $action;
 		global $module;
+		global $logger;
+
 		$userData = false;
 		if (isset($_SESSION['activeUserId'])) {
 			$activeUserId = $_SESSION['activeUserId'];
@@ -54,23 +280,23 @@ class UserAccount {
 			/** @var User $userData */
 			$userData = $memCache->get("user_{$serverName}_{$activeUserId}");
 			if ($userData === false || isset($_REQUEST['reload'])){
+
 				//Load the user from the database
 				$userData = new User();
+
 				$userData->id = $activeUserId;
 				if ($userData->find(true)){
+					$logger->log("Loading user {$userData->cat_username}, {$userData->cat_password} because we didn't have data in memcache", PEAR_LOG_DEBUG);
 					$userData = UserAccount::validateAccount($userData->cat_username, $userData->cat_password, $userData->source);
+					self::updateSession($userData);
 				}
 			}else{
-				$userData->updateRuntimeInformation();
-				global $timer;
-				$timer->logTime("Updated Runtime Information");
+				$logger->log("Found cached user {$userData->id}", PEAR_LOG_DEBUG);
 			}
 			UserAccount::$isLoggedIn = true;
 
-			global $masqueradeMode;
-			$masqueradeMode = false;
-			if (!empty($_SESSION['guidingUserId'])) {
-				$masqueradeMode = true;
+			$masqueradeMode = UserAccount::isUserMasquerading();
+			if ($masqueradeMode) {
 				global $guidingUser;
 				$guidingUser = $memCache->get("user_{$serverName}_{$_SESSION['guidingUserId']}"); //TODO: check if this ever works
 				if ($guidingUser === false || isset($_REQUEST['reload'])){
@@ -93,6 +319,8 @@ class UserAccount {
 				//Check CAS first
 				require_once ROOT_DIR . '/sys/Authentication/CASAuthentication.php';
 				$casAuthentication = new CASAuthentication(null);
+				global $logger;
+				$logger->log("Checking CAS Authentication from UserAccount::getLoggedInUser", PEAR_LOG_DEBUG);
 				$casUsername = $casAuthentication->validateAccount(null, null, null, false);
 				if ($casUsername == false || PEAR_Singleton::isError($casUsername)){
 					//The user could not be authenticated in CAS
@@ -108,8 +336,12 @@ class UserAccount {
 		}
 		if (UserAccount::$isLoggedIn){
 			UserAccount::$primaryUserData = $userData;
+			global $interface;
+			if ($interface){
+				$interface->assign('user', $userData);
+			}
 		}
-		return $userData;
+		return UserAccount::$primaryUserData;
 	}
 
 	/**
@@ -184,7 +416,7 @@ class UserAccount {
 			// If we authenticated, store the user in the session:
 			if (!PEAR_Singleton::isError($tempUser)) {
 				if ($validatedViaSSO){
-					$tempUser->loggedInViaCAS = true;
+					$_SESSION['loggedInViaCAS'] = true;
 				}
 				global $library;
 				if (isset($library) && $library->preventExpiredCardLogin && $tempUser->expired) {
@@ -198,6 +430,7 @@ class UserAccount {
 				global $serverName;
 				global $configArray;
 				$memCache->set("user_{$serverName}_{$tempUser->id}", $tempUser, 0, $configArray['Caching']['user']);
+				$logger->log("Cached user {$tempUser->id}", PEAR_LOG_DEBUG);
 
 				$validUsers[] = $tempUser;
 				if ($primaryUser == null){
@@ -208,10 +441,8 @@ class UserAccount {
 					$primaryUser->addLinkedUser($tempUser);
 				}
 			}else{
-				global $logger;
-				global $user;
 				$username = isset($_REQUEST['username']) ? $_REQUEST['username'] : 'No username provided';
-				$logger->log("Error authenticating patron $username for driver {$driverName}\r\n" . print_r($user, true), PEAR_LOG_ERR);
+				$logger->log("Error authenticating patron $username for driver {$driverName}\r\n", PEAR_LOG_ERR);
 				$lastError = $tempUser;
 				$logger->log($lastError->toString(), PEAR_LOG_ERR);
 			}
@@ -227,6 +458,8 @@ class UserAccount {
 		}
 	}
 
+	private static $validatedAccounts = array();
+
 	/**
 	 * Validate the account information (username and password are correct).
 	 * Returns the account, but does not set the global user variable.
@@ -239,21 +472,29 @@ class UserAccount {
 	 * @return User|false
 	 */
 	public static function validateAccount($username, $password, $accountSource = null, $parentAccount = null){
+		if (array_key_exists($username . $password, UserAccount::$validatedAccounts)){
+			return UserAccount::$validatedAccounts[$username . $password];
+		}
 		// Perform authentication:
 		//Test all valid authentication methods and see which (if any) result in a valid login.
 		$driversToTest = self::loadAccountProfiles();
 
 		global $library;
+		global $logger;
 		$validatedViaSSO = false;
 		if (strlen($library->casHost) > 0 && $username == null && $password == null){
 			//Check CAS first
 			require_once ROOT_DIR . '/sys/Authentication/CASAuthentication.php';
 			$casAuthentication = new CASAuthentication(null);
+			$logger->log("Checking CAS Authentication from UserAccount::validateAccount", PEAR_LOG_DEBUG);
 			$casUsername = $casAuthentication->validateAccount(null, null, $parentAccount, false);
 			if ($casUsername == false || PEAR_Singleton::isError($casUsername)){
 				//The user could not be authenticated in CAS
+				$logger->log("User could not be authenticated in CAS", PEAR_LOG_DEBUG);
+				UserAccount::$validatedAccounts[$username . $password] = false;
 				return false;
 			}else{
+				$logger->log("User was authenticated in CAS", PEAR_LOG_DEBUG);
 				//Set both username and password since authentication methods could use either.
 				//Each authentication method will need to deal with the possibility that it gets a barcode for both user and password
 				$username = $casUsername;
@@ -272,14 +513,17 @@ class UserAccount {
 					global $serverName;
 					global $configArray;
 					$memCache->set("user_{$serverName}_{$validatedUser->id}", $validatedUser, 0, $configArray['Caching']['user']);
+					$logger->log("Cached user {$validatedUser->id}", PEAR_LOG_DEBUG);
 					if ($validatedViaSSO){
-						$validatedUser->loggedInViaCAS = true;
+						$_SESSION['loggedInViaCAS'] = true;
 					}
+					UserAccount::$validatedAccounts[$username . $password] = $validatedUser;
 					return $validatedUser;
 				}
 			}
 		}
 
+		UserAccount::$validatedAccounts[$username . $password] = false;
 		return false;
 	}
 
@@ -288,9 +532,10 @@ class UserAccount {
 	 */
 	public static function logout()
 	{
-		global $user;
-		global $logger;
-		if ($user && $user->loggedInViaCAS){
+		$user = UserAccount::getLoggedInUser();
+		if ($user && isset($_SESSION['loggedInViaCAS']) && $_SESSION['loggedInViaCAS']){
+			global $logger;
+			$logger->log("Logging user out of CAS", PEAR_LOG_DEBUG);
 			require_once ROOT_DIR . '/sys/Authentication/CASAuthentication.php';
 			$casAuthentication = new CASAuthentication(null);
 			$casAuthentication->logout();
@@ -313,8 +558,8 @@ class UserAccount {
 				unset($_SESSION['guidingUserId']);
 			}
 			unset($_SESSION['activeUserId']);
-			global $user;
-			if ($user && $user->loggedInViaCAS){
+			$user = UserAccount::getLoggedInUser();
+			if ($user && isset($_SESSION['loggedInViaCAS']) && $_SESSION['loggedInViaCAS']){
 				require_once ROOT_DIR . '/sys/Authentication/CASAuthentication.php';
 				$casAuthentication = new CASAuthentication(null);
 				$casAuthentication->logout();

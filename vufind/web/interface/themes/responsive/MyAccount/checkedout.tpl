@@ -1,5 +1,5 @@
 {strip}
-	{if $user->cat_username}
+	{if $loggedIn}
 		{if $profile->web_note}
 			<div class="row">
 				<div id="web_note" class="alert alert-info text-center col-xs-12">{$profile->web_note}</div>
@@ -9,7 +9,7 @@
 		{* Alternate Mobile MyAccount Menu *}
 		{include file="MyAccount/mobilePageHeader.tpl"}
 
-		{include file="MyAccount/availableHoldsNotice.tpl"}
+		<span class='availableHoldsNoticePlaceHolder'></span>
 
 		<h2>{translate text='Checked Out Titles'}</h2>
 

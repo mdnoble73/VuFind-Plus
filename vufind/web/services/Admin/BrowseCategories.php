@@ -25,7 +25,7 @@ require_once ROOT_DIR . '/sys/Browse/BrowseCategory.php';
 
 class Admin_BrowseCategories extends ObjectEditor
 {
-	
+
 	function getObjectType(){
 		return 'BrowseCategory';
 	}
@@ -36,8 +36,8 @@ class Admin_BrowseCategories extends ObjectEditor
 		return 'Browse Categories';
 	}
 	function canDelete(){
-		global $user;
-		return $user->hasRole('opacAdmin');
+		$user = UserAccount::getLoggedInUser();
+		return UserAccount::userHasRole('opacAdmin');
 	}
 	function getAllObjects(){
 		$browseCategory = new BrowseCategory();

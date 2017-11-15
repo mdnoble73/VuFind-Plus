@@ -109,12 +109,7 @@ class UserAPI extends Action {
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function isLoggedIn(){
-		$user = UserAccount::isLoggedIn();
-		if ($user != false && !PEAR_Singleton::isError($user)){
-			return true;
-		}else{
-			return false;
-		}
+		return UserAccount::isLoggedIn();
 	}
 
 	/**
@@ -142,8 +137,8 @@ class UserAPI extends Action {
 	 */
 	function login(){
 		//Login the user.  Must be called via Post parameters.
-		$user = UserAccount::isLoggedIn();
 		if (isset($_POST['username']) && isset($_POST['password'])){
+			$user = UserAccount::getLoggedInUser();
 			if ($user && !PEAR_Singleton::isError($user)){
 				return array('success'=>true,'name'=>ucwords($user->firstname . ' ' . $user->lastname));
 			}else{
@@ -361,7 +356,6 @@ class UserAPI extends Action {
 	function getPatronProfile(){
 		$username = $_REQUEST['username'];
 		$password = $_REQUEST['password'];
-		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
 			//Remove a bunch of junk from the user data
@@ -482,7 +476,6 @@ class UserAPI extends Action {
 		$username = $_REQUEST['username'];
 		$password = $_REQUEST['password'];
 
-		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
 			$allHolds = $user->getMyHolds();
@@ -558,7 +551,6 @@ class UserAPI extends Action {
 	function getPatronHoldsOverDrive(){
 		$username = $_REQUEST['username'];
 		$password = $_REQUEST['password'];
-		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
 			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
@@ -611,7 +603,6 @@ class UserAPI extends Action {
 	function getPatronCheckedOutItemsOverDrive(){
 		$username = $_REQUEST['username'];
 		$password = $_REQUEST['password'];
-		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
 			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
@@ -660,7 +651,6 @@ class UserAPI extends Action {
 	function getPatronOverDriveSummary(){
 		$username = $_REQUEST['username'];
 		$password = $_REQUEST['password'];
-		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
 			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
@@ -711,7 +701,6 @@ class UserAPI extends Action {
 	function getPatronFines(){
 		$username = $_REQUEST['username'];
 		$password = $_REQUEST['password'];
-		global $user;
 		$includeMessages = isset($_REQUEST['includeMessages']) ? $_REQUEST['includeMessages'] : false;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
@@ -730,7 +719,6 @@ class UserAPI extends Action {
 	function getOverDriveLendingOptions(){
 		$username = $_REQUEST['username'];
 		$password = $_REQUEST['password'];
-		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
 			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
@@ -858,7 +846,6 @@ class UserAPI extends Action {
 		$username = $_REQUEST['username'];
 		$password = $_REQUEST['password'];
 		$itemBarcode = $_REQUEST['itemBarcode'];
-		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
 			$renewalMessage = $this->getCatalogConnection()->renewItem($user->cat_username, $itemBarcode);
@@ -896,7 +883,6 @@ class UserAPI extends Action {
 	function renewAll(){
 		$username = $_REQUEST['username'];
 		$password = $_REQUEST['password'];
-		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
 			$renewalMessage = $this->getCatalogConnection()->renewAll($user->cat_username);
@@ -1041,7 +1027,6 @@ class UserAPI extends Action {
 		$overDriveId = $_REQUEST['overDriveId'];
 		$format = $_REQUEST['format'];
 
-		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
 			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
@@ -1092,7 +1077,6 @@ class UserAPI extends Action {
 		$overDriveId = $_REQUEST['overDriveId'];
 		$format = $_REQUEST['format'];
 
-		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
 			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
@@ -1153,7 +1137,6 @@ class UserAPI extends Action {
 		$overDriveId = $_REQUEST['overDriveId'];
 		$format = $_REQUEST['format'];
 
-		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
 			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
@@ -1205,7 +1188,6 @@ class UserAPI extends Action {
 		$overDriveId = $_REQUEST['overDriveId'];
 		$format = $_REQUEST['format'];
 
-		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
 			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
@@ -1253,7 +1235,6 @@ class UserAPI extends Action {
 		$username = $_REQUEST['username'];
 		$password = $_REQUEST['password'];
 
-		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
 			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
@@ -1323,7 +1304,6 @@ class UserAPI extends Action {
 			$cancelId = $_REQUEST['cancelId'];
 		}
 
-		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
 			$holdMessage = $user->cancelHold($recordId, $cancelId);
@@ -1370,7 +1350,6 @@ class UserAPI extends Action {
 	function freezeHold(){
 		$username = $_REQUEST['username'];
 		$password = $_REQUEST['password'];
-		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
 			$holdMessage = $this->getCatalogConnection()->updateHoldDetailed('', $user->cat_username, 'update', '', null, null, 'on');
@@ -1416,7 +1395,6 @@ class UserAPI extends Action {
 	function activateHold(){
 		$username = $_REQUEST['username'];
 		$password = $_REQUEST['password'];
-		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
 			$holdMessage = $this->getCatalogConnection()->updateHoldDetailed('', $user->cat_username, 'update', '', null, null, 'off');
@@ -1491,7 +1469,6 @@ class UserAPI extends Action {
 		} else {
 			$username = $_REQUEST['username'];
 			$password = $_REQUEST['password'];
-			global $user;
 			$user = UserAccount::validateAccount($username, $password);
 			if ($user && !PEAR_Singleton::isError($user)) {
 				$readingHistory = $this->getCatalogConnection()->getReadingHistory($user);
@@ -1533,7 +1510,6 @@ class UserAPI extends Action {
 	function optIntoReadingHistory(){
 		$username = $_REQUEST['username'];
 		$password = $_REQUEST['password'];
-		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
 			$this->getCatalogConnection()->doReadingHistoryAction('optIn', array());
@@ -1572,7 +1548,6 @@ class UserAPI extends Action {
 	function optOutOfReadingHistory(){
 		$username = $_REQUEST['username'];
 		$password = $_REQUEST['password'];
-		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
 			$this->getCatalogConnection()->doReadingHistoryAction('optOut', array());
@@ -1611,7 +1586,6 @@ class UserAPI extends Action {
 	function deleteAllFromReadingHistory(){
 		$username = $_REQUEST['username'];
 		$password = $_REQUEST['password'];
-		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
 			$this->getCatalogConnection()->doReadingHistoryAction('deleteAll', array());
@@ -1652,7 +1626,6 @@ class UserAPI extends Action {
 		$username = $_REQUEST['username'];
 		$password = $_REQUEST['password'];
 		$selectedTitles = $_REQUEST['selected'];
-		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
 			$this->getCatalogConnection()->doReadingHistoryAction('deleteMarked', $selectedTitles);

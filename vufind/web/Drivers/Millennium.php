@@ -594,7 +594,7 @@ class Millennium extends ScreenScrapingDriver
 			}
 		}
 
-		$timer->logTime("Got patron information from Patron API");
+		$timer->logTime("Got patron information from Patron API for $barcode");
 		return $patronDump;
 	}
 
@@ -1004,7 +1004,7 @@ class Millennium extends ScreenScrapingDriver
 		if ($this->pTypes == null){
 			$this->pTypes = array();
 			/** @var $user User */
-			global $user;
+			$user = UserAccount::getLoggedInUser();
 			/** @var $locationSingleton Location */
 			global $locationSingleton;
 			$searchLocation = $locationSingleton->getSearchLocation();
@@ -1040,8 +1040,7 @@ class Millennium extends ScreenScrapingDriver
 	 */
 	public function _getBarcode($patron = null){
 		if ($patron == null){
-			global $user;
-			$patron = $user;
+			$patron = UserAccount::getLoggedInUser();
 		}
 		if ($patron){
 			return $patron->getBarcode();
@@ -1723,7 +1722,7 @@ class Millennium extends ScreenScrapingDriver
 	 */
 	function importListsFromIls($patron){
 		require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
-		global $user;
+		$user = UserAccount::getLoggedInUser();
 		$results = array(
 			'totalTitles' => 0,
 			'totalLists' => 0

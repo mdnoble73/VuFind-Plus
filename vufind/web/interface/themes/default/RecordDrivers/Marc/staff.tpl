@@ -14,13 +14,16 @@
 			{if $staffClientUrl}
 				<a href="{$staffClientUrl}" class="btn btn-sm btn-info">View in Staff Client</a>
 			{/if}
-			{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('cataloging'))}
+			{if $loggedIn && (array_key_exists('opacAdmin', $userRoles) || array_key_exists('cataloging', $userRoles))}
 				{if $classicUrl}
 					<a href="{$classicUrl}" class="btn btn-sm btn-info">View in Classic</a>
 				{/if}
 				<button onclick="return VuFind.GroupedWork.forceReindex('{$recordDriver->getPermanentId()}')" class="btn btn-sm btn-default">Force Reindex</button>
 				<button onclick="return VuFind.GroupedWork.forceRegrouping('{$recordDriver->getPermanentId()}')" class="btn btn-sm btn-default">Force Regrouping</button>
 				<a href="{$path}/{$recordDriver->getModule()}/{$id|escape:"url"}/AJAX?method=downloadMarc" class="btn btn-sm btn-default">{translate text="Download Marc"}</a>
+			{/if}
+			{if $loggedIn && (array_key_exists('opacAdmin', $userRoles) || array_key_exists('archives', $userRoles))}
+				<button onclick="return VuFind.GroupedWork.reloadIslandora('{$recordDriver->getPermanentId()}')" class="btn btn-sm btn-default">Clear Islandora Cache</button>
 			{/if}
 		</div>
 	</div>
@@ -75,14 +78,5 @@
 				<dd>{implode subject=$values glue=", "}</dd>
 			{/foreach}
 		</dl>
-	</div>
-{/if}
-
-{if $overDriveProductRaw}
-	<div id="formattedSolrRecord">
-		<h3>OverDrive Product Record</h3>
-		{formatJSON subject=$overDriveProductRaw}
-		<h3>OverDrive MetaData</h3>
-		{formatJSON subject=$overDriveMetaDataRaw}
 	</div>
 {/if}

@@ -10863,7 +10863,6 @@ fieldset[disabled] .btn-masquerade.active {
   border-bottom: 4px solid #54B948;
 }
 #header-logo {
-  background-color: rgba(230, 230, 230, 0.3);
   border-radius: 0.5em;
   margin-top: 15px;
   padding: 20px 60px;
@@ -10884,7 +10883,6 @@ fieldset[disabled] .btn-masquerade.active {
 }
 .header-button {
   margin-top: 42px;
-  color: #000000 !important;
 }
 #browse-category-carousel {
   overflow: visible;

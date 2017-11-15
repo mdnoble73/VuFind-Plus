@@ -40,7 +40,7 @@
 		</div>
 	{/if}
 
-	{if $user}
+	{if $loggedIn}
 		{* Account Menu *}
 		{include file="MyAccount/menu.tpl"}
 	{/if}

@@ -4,7 +4,7 @@
 	{if $error}
 		<div class="alert alert-danger">{$error}</div>
 	{/if}
-	{if $user}
+	{if $loggedIn}
 		<div id="materialsRequestFilters" class="accordion">
 			<div class="panel panel-default">
 			<div class="panel-heading">
@@ -215,7 +215,7 @@
 						{/foreach}
 					</tbody>
 				</table>
-				{if $user->hasRole('library_material_requests')}
+				{if array_key_exists('library_material_requests', $userRoles)}
 					<div id="materialsRequestActions">
 						<div class="row form-group">
 							<div class="col-sm-4">

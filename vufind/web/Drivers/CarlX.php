@@ -871,14 +871,23 @@ class CarlX extends SIP2Driver{
 			$state      = trim(strtoupper($_REQUEST['state']));
 			$zip        = trim($_REQUEST['zip']);
 			$email      = trim(strtoupper($_REQUEST['email']));
-			$pin        = trim($_REQUEST['pin']);
+//			$pin        = trim($_REQUEST['pin']);
 //			$pin1       = trim($_REQUEST['pin1']);
-			$phone      = trim($_REQUEST['phone']);
+			$phone      = preg_replace('/^(\d{3})(\d{3})(\d{4})$/','$1-$2-$3',preg_replace('/\D/','',trim($_REQUEST['phone'])));
 
 //			if (!empty($pin) && !empty($pin1) && $pin == $pin1) {
 
 
-/*
+				// DENY REGISTRATION IF EMAIL MATCHES @LOAOA.COM 
+				if (substr(strtolower($email),-10,10) == '@loaoa.com') {
+					global $logger;
+					$logger->log('Online Registration used forbidden loaoa.com. Email: ' . $email . ' IP: ' . $active_ip, PEAR_LOG_ERR);
+					return array(
+						'success' => false,
+						'barcode' => $tempPatronID,
+					);
+				}
+
 				// DENY REGISTRATION IF DUPLICATE EMAIL IS FOUND IN CARL.X
 				// searchPatron on Email appears to be case-insensitive and 
 				// appears to eliminate spurious whitespace
@@ -906,7 +915,6 @@ class CarlX extends SIP2Driver{
 						);
 					}
 				}
-*/
 
 				// CREATE PATRON REQUEST
 				$request                                         = new stdClass();

@@ -110,6 +110,10 @@ do
 			cp --update --preserve=timestamps $FILE /data/vufind-plus/${PIKASERVER}/marc_updates/ >> ${OUTPUT_FILE}
 		fi
 	done
+
+	#Get orders file from the FTP server
+	cp --update --preserve=timestamps /mnt/ftp/PIKA-onorderfile.txt /data/vufind-plus/${PIKASERVER}/marc/ >> ${OUTPUT_FILE}
+
 	umount /mnt/ftp >> ${OUTPUT_FILE}
 
 	#Get holds files from Google Drive

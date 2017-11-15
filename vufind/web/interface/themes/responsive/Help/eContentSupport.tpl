@@ -4,7 +4,7 @@
 	</div>
 	<form id="eContentSupport" action="{$path}/Help/eContentSupport" method="post">
 		<input type="hidden" name="submit" value="submitted"/>
-		{if !$user}
+		{if !$loggedIn}
 			<div class='form-group'>
 				<label for='libraryCardNumber' class='control-label'>Library Card Number:  <span class="requiredIndicator">*</span></label><input type="text" name="libraryCardNumber" id="libraryCardNumber" class="required form-control" maxlength="20" size="20"/>
 			</div>

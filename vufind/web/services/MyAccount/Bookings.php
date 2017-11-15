@@ -10,9 +10,9 @@ require_once ROOT_DIR . '/services/MyAccount/MyAccount.php';
 class MyAccount_Bookings extends MyAccount {
 
 	function launch() {
-		global $interface,
-		       $library,
-		       $user;
+		global $interface;
+		global $library;
+		$user = UserAccount::getLoggedInUser();
 
 //		// Define sorting options
 //		$sortOptions = array(

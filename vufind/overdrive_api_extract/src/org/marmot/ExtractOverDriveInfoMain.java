@@ -120,6 +120,9 @@ public class ExtractOverDriveInfoMain {
 		logEntry.addNote("Finished OverDrive extraction");
 		logEntry.saveResults();
 		logger.info("Finished OverDrive extraction");
+		Date endTime = new Date();
+		long elapsedTime = (endTime.getTime() - currentTime.getTime()) / 1000;
+		logger.info("Elapsed time " + String.format("%f2", ((float)elapsedTime / 60f)) + " minutes");
 	}
 	
 	private static Ini loadConfigFile(String filename){

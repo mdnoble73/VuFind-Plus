@@ -63,10 +63,10 @@ class MaterialsRequest extends DB_DataObject
 		require_once ROOT_DIR . '/sys/MaterialsRequestFormats.php';
 		$availableFormats = array();
 		$customFormats = new MaterialsRequestFormats();
-		global $user;
 		global $library;
 		$requestLibrary = $library;
-		if (!empty($user)) {
+		if (UserAccount::isLoggedIn()) {
+			$user = UserAccount::getLoggedInUser();
 			$homeLibrary = $user->getHomeLibrary();
 			if (isset($homeLibrary)) {
 				$requestLibrary = $homeLibrary;
@@ -126,7 +126,6 @@ class MaterialsRequest extends DB_DataObject
 			return MaterialsRequest::$materialsRequestEnabled;
 		}
 		global $configArray;
-		global $user;
 		global $library;
 
 		//First make sure we are enabled in the config file
@@ -136,7 +135,7 @@ class MaterialsRequest extends DB_DataObject
 			if ($enableMaterialsRequest){
 				if (isset($library) && $library->enableMaterialsRequest == 0){
 					$enableMaterialsRequest = false;
-				}else if ($user){
+				}else if (UserAccount::isLoggedIn()){
 					$homeLibrary = Library::getPatronHomeLibrary();
 					if (is_null($homeLibrary)){
 						$enableMaterialsRequest = false;
@@ -148,6 +147,7 @@ class MaterialsRequest extends DB_DataObject
 						//Check to see if we need to do additional restrictions by patron type
 						$allowablePatronTypes = $configArray['MaterialsRequest']['allowablePatronTypes'];
 						if (strlen($allowablePatronTypes) > 0){
+							$user = UserAccount::getLoggedInUser();
 							if (!preg_match("/^$allowablePatronTypes$/i", $user->patronType)){
 								$enableMaterialsRequest = false;
 							}

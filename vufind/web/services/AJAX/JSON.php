@@ -56,16 +56,11 @@ class AJAX_JSON extends Action {
 	}
 
 	function isLoggedIn(){
-		global $user;
-		if ($user != false){
-			return true;
-		}else{
-			return false;
-		}
+		return UserAccount::isLoggedIn();
 	}
 
 	function getUserLists(){
-		global $user;
+		$user = UserAccount::getLoggedInUser();
 		$lists = $user->getLists();
 		$userLists = array();
 		foreach($lists as $current) {
@@ -77,10 +72,9 @@ class AJAX_JSON extends Action {
 
 	function loginUser(){
 		//Login the user.  Must be called via Post parameters.
-		global $user;
 		global $interface;
-		$user = UserAccount::isLoggedIn();
-		if (!$user || PEAR_Singleton::isError($user)){
+		$isLoggedIn = UserAccount::isLoggedIn();
+		if (!$isLoggedIn){
 			$user = UserAccount::login();
 
 			$interface->assign('user', $user); // PLB Assignment Needed before error checking?
@@ -103,6 +97,8 @@ class AJAX_JSON extends Action {
 					'message' => $message
 				);
 			}
+		}else{
+			$user = UserAccount::getLoggedInUser();
 		}
 
 		$patronHomeBranch = Location::getUserHomeLocation();
@@ -218,7 +214,7 @@ class AJAX_JSON extends Action {
 
 	function getAutoLogoutPrompt(){
 		global $interface;
-		global $masqueradeMode;
+		$masqueradeMode = UserAccount::isUserMasquerading();
 		$result = array(
 			'title'        => 'Still There?',
 			'modalBody'    => $interface->fetch('AJAX/autoLogoutPrompt.tpl'),

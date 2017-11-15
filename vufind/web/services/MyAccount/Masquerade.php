@@ -36,14 +36,13 @@ class MyAccount_Masquerade extends MyAccount
 	static function initiateMasquerade()
 	{
 		global $library;
-		global $logger;
 		if (!empty($library) && $library->allowMasqueradeMode) {
 			if (!empty($_REQUEST['cardNumber'])) {
 				//$logger->log("Masquerading as " . $_REQUEST['cardNumber'], PEAR_LOG_ERR);
 				$libraryCard = $_REQUEST['cardNumber'];
 				global $guidingUser;
 				if (empty($guidingUser)) {
-					global $user;
+					$user = UserAccount::getLoggedInUser();
 					if ($user && $user->canMasquerade()) {
 						$masqueradedUser = new User();
 						//TODO: below, when $masquerade User account is in another ILS and the other ILS has a different $authenticationMethod (ie barcode/pin)
@@ -157,8 +156,6 @@ class MyAccount_Masquerade extends MyAccount
 								@session_start(); // (suppress notice if the session is already started)
 								$_SESSION['guidingUserId'] = $guidingUser->id;
 								$_SESSION['activeUserId'] = $user->id;
-								global $masqueradeMode;
-								$masqueradeMode = true;
 								return array('success' => true);
 							} else {
 								unset($_SESSION['guidingUserId']);
@@ -198,8 +195,7 @@ class MyAccount_Masquerade extends MyAccount
 	}
 
 	static function endMasquerade() {
-		global $user;
-		if ($user) {
+		if (UserAccount::isLoggedIn()) {
 			global $guidingUser,
 			       $masqueradeMode;
 			@session_start();  // (suppress notice if the session is already started)

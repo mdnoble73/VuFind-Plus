@@ -14,6 +14,8 @@ class CASAuthentication implements Authentication {
 		$this->initializeCASClient();
 
 		try{
+			global $logger;
+			$logger->log("Forcing CAS authentication", PEAR_LOG_DEBUG);
 			$isValidated = phpCAS::forceAuthentication();
 			if ($isValidated){
 				$userAttributes = phpCAS::getAttributes();
@@ -45,20 +47,27 @@ class CASAuthentication implements Authentication {
 			$this->initializeCASClient();
 
 			try{
+				global $logger;
+				$logger->log("Checking CAS Authentication", PEAR_LOG_DEBUG);
 				$isValidated = phpCAS::checkAuthentication();
+				$logger->log("isValidated = ". ($isValidated ? 'true' : 'false'), PEAR_LOG_DEBUG);
 			}catch (CAS_AuthenticationException $e){
 				global $logger;
 				$logger->log("Error validating account in CAS $e", PEAR_LOG_ERR);
 				$isValidated = false;
 			}
 
-			if ($isValidated){
+			if ($isValidated) {
 				//We have a valid user within CAS.  Return the user id
 				$userAttributes = phpCAS::getAttributes();
 				//TODO: If we use other CAS systems we will need a configuration option to store which
 				//attribute the id is in
-				$userId = $userAttributes['flcid'];
-				return $userId;
+				if (isset($userAttributes['flcid'])) {
+					$userId = $userAttributes['flcid'];
+					return $userId;
+				}else{
+					$logger->log("Did not find flcid in user attributes " . print_r($userAttributes, true), PEAR_LOG_WARNING);
+				}
 			}else{
 				return false;
 			}
@@ -84,6 +93,9 @@ class CASAuthentication implements Authentication {
 				phpCAS::setDebug();
 				phpCAS::setVerbose(true);
 			}
+
+			global $logger;
+			$logger->log("Initializing CAS Client", PEAR_LOG_DEBUG);
 
 			phpCAS::client(CAS_VERSION_3_0, $library->casHost, (int)$library->casPort, $library->casContext);
 

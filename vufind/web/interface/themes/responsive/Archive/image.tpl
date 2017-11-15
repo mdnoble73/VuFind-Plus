@@ -10,11 +10,11 @@
 		{if $canView}
 			<div class="main-project-image">
 				{* TODO: restrict access to original image *}
-				{if $anonymousMasterDownload || ($user && $verifiedMasterDownload)}
+				{if $anonymousMasterDownload || ($loggedIn && $verifiedMasterDownload)}
 					<a href="{$original_image}">
 				{/if}
 					<img src="{$large_image}" class="img-responsive">
-				{if $anonymousMasterDownload || ($user && $verifiedMasterDownload)}
+				{if $anonymousMasterDownload || ($loggedIn && $verifiedMasterDownload)}
 					</a>
 				{/if}
 			</div>
@@ -24,14 +24,14 @@
 
 		<div id="download-options">
 			{if $canView}
-				{if $anonymousLcDownload || ($user && $verifiedLcDownload)}
+				{if $anonymousLcDownload || ($loggedIn && $verifiedLcDownload)}
 					<a class="btn btn-default" href="/Archive/{$pid}/DownloadLC">Download Large Image</a>
-				{elseif (!$user && $verifiedLcDownload)}
+				{elseif (!$loggedIn && $verifiedLcDownload)}
 					<a class="btn btn-default" onclick="return VuFind.Account.followLinkIfLoggedIn(this)" href="/Archive/{$pid}/DownloadLC">Login to Download Large Image</a>
 				{/if}
-				{if $anonymousMasterDownload || ($user && $verifiedMasterDownload)}
+				{if $anonymousMasterDownload || ($loggedIn && $verifiedMasterDownload)}
 					<a class="btn btn-default" href="/Archive/{$pid}/DownloadOriginal">Download Original Image</a>
-				{elseif (!$user && $verifiedLcDownload)}
+				{elseif (!$loggedIn && $verifiedLcDownload)}
 					<a class="btn btn-default" onclick="return VuFind.Account.followLinkIfLoggedIn(this)" href="/Archive/{$pid}/DownloadOriginal">Login to Download Original Image</a>
 				{/if}
 			{/if}

@@ -33,16 +33,15 @@ class GroupedWork_AJAX {
 	}
 
 	function deleteUserReview(){
-		global $user;
 		$id = $_REQUEST['id'];
 		$result = array('result' => false);
-		if (!$user){
+		if (!UserAccount::isLoggedIn()){
 			$result['message'] = 'You must be logged in to delete ratings.';
 		}else{
 			require_once ROOT_DIR . '/sys/LocalEnrichment/UserWorkReview.php';
 			$userWorkReview = new UserWorkReview();
 			$userWorkReview->groupedRecordPermanentId = $id;
-			$userWorkReview->userId = $user->id;
+			$userWorkReview->userId = UserAccount::getActiveUserId();
 			if ($userWorkReview->find(true)){
 				$userWorkReview->delete();
 				$result = array('result' => true, 'message' => 'We successfully deleted the rating for you.');
@@ -337,8 +336,7 @@ class GroupedWork_AJAX {
 
 	function RateTitle(){
 		require_once(ROOT_DIR . '/sys/LocalEnrichment/UserWorkReview.php');
-		global $user;
-		if (!isset($user) || $user == false){
+		if (!UserAccount::isLoggedIn()){
 			return json_encode(array('error'=>'Please login to rate this title.'));
 		}
 		if (empty($_REQUEST['id'])) {
@@ -351,7 +349,7 @@ class GroupedWork_AJAX {
 		//Save the rating
 		$workReview = new UserWorkReview();
 		$workReview->groupedRecordPermanentId = $_REQUEST['id'];
-		$workReview->userId = $user->id;
+		$workReview->userId = UserAccount::getActiveUserId();
 		if ($workReview->find(true)) {
 			if ($rating != $workReview->rating){ // update gives an error if the rating value is the same as stored.
 				$workReview->rating = $rating;
@@ -383,9 +381,9 @@ class GroupedWork_AJAX {
 	private function clearMySuggestionsBrowseCategoryCache(){
 		// Reset any cached suggestion browse category for the user
 		/** @var Memcache $memCache */
-		global $memCache, $solrScope, $user;
+		global $memCache, $solrScope;
 		foreach (array('covers', 'grid') as $browseMode) { // (Browse modes are set in class Browse_AJAX)
-			$key = 'browse_category_system_recommended_for_you_' . $user->id . '_' . $solrScope . '_' . $browseMode;
+			$key = 'browse_category_system_recommended_for_you_' . UserAccount::getActiveUserId() . '_' . $solrScope . '_' . $browseMode;
 			$memCache->delete($key);
 		}
 
@@ -435,7 +433,7 @@ class GroupedWork_AJAX {
 	}
 
 	function getPromptforReviewForm() {
-		global $user;
+		$user = UserAccount::getActiveUserObj();
 		if ($user) {
 			if (!$user->noPromptForUserReviews) {
 				global $interface;
@@ -469,8 +467,7 @@ class GroupedWork_AJAX {
 	}
 
 	function setNoMoreReviews(){
-		/* var User $user */
-		global $user;
+		$user = UserAccount::getActiveUserObj();
 		if ($user) {
 			$user->noPromptForUserReviews = 1;
 			$success = $user->update();
@@ -479,7 +476,7 @@ class GroupedWork_AJAX {
 	}
 
 	function getReviewForm(){
-		global $interface, $library, $user;
+		global $interface;
 		$id = $_REQUEST['id'];
 		if (!empty($id)) {
 			$interface->assign('id', $id);
@@ -487,7 +484,7 @@ class GroupedWork_AJAX {
 			// check if rating/review exists for user and work
 			require_once ROOT_DIR . '/sys/LocalEnrichment/UserWorkReview.php';
 			$groupedWorkReview                           = new UserWorkReview();
-			$groupedWorkReview->userId                   = $user->id;
+			$groupedWorkReview->userId                   = UserAccount::getActiveUserId();
 			$groupedWorkReview->groupedRecordPermanentId = $id;
 			if ($groupedWorkReview->find(true)) {
 				$interface->assign('userRating', $groupedWorkReview->rating);
@@ -513,8 +510,7 @@ class GroupedWork_AJAX {
 	function saveReview() {
 		$result = array();
 
-		global $user;
-		if ($user === false) {
+		if (UserAccount::isLoggedIn() == false) {
 			$result['success'] = false;
 			$result['message'] = 'Please login before adding a review.';
 		}elseif (empty($_REQUEST['id'])) {
@@ -528,7 +524,7 @@ class GroupedWork_AJAX {
 			$comment   = $HadReview ? trim($_REQUEST['comment']) : ''; //avoids undefined index notice when doing only ratings.
 
 			$groupedWorkReview                           = new UserWorkReview();
-			$groupedWorkReview->userId                   = $user->id;
+			$groupedWorkReview->userId                   = UserAccount::getActiveUserId();
 			$groupedWorkReview->groupedRecordPermanentId = $id;
 			$newReview                                   = true;
 			if ($groupedWorkReview->find(true)) { // check for existing rating by user
@@ -684,8 +680,7 @@ class GroupedWork_AJAX {
 	function saveToList(){
 		$result = array();
 
-		global $user;
-		if ($user === false) {
+		if (UserAccount::isLoggedIn()) {
 			$result['success'] = false;
 			$result['message'] = 'Please login before adding a title to list.';
 		}else{
@@ -701,7 +696,7 @@ class GroupedWork_AJAX {
 			$listOk = true;
 			if (empty($listId)){
 				$userList->title = "My Favorites";
-				$userList->user_id = $user->id;
+				$userList->user_id = UserAccount::getActiveUserId();
 				$userList->public = 0;
 				$userList->description = '';
 				$userList->insert();
@@ -741,7 +736,6 @@ class GroupedWork_AJAX {
 
 	function getSaveToListForm(){
 		global $interface;
-		global $user;
 
 		$id = $_REQUEST['id'];
 		$interface->assign('id', $id);
@@ -753,7 +747,7 @@ class GroupedWork_AJAX {
 		$nonContainingLists = array();
 
 		$userLists = new UserList();
-		$userLists->user_id = $user->id;
+		$userLists->user_id = UserAccount::getActiveUserId();
 		$userLists->deleted = 0;
 		$userLists->orderBy('title');
 		$userLists->find();
@@ -847,12 +841,11 @@ class GroupedWork_AJAX {
 	}
 
 	function markNotInterested(){
-		global $user;
-		if ($user){
+		if (UserAccount::isLoggedIn()){
 			$id = $_REQUEST['id'];
 			require_once ROOT_DIR . '/sys/LocalEnrichment/NotInterested.php';
 			$notInterested = new NotInterested();
-			$notInterested->userId = $user->id;
+			$notInterested->userId = UserAccount::getActiveUserId();
 			$notInterested->groupedRecordPermanentId = $id;
 
 			if (!$notInterested->find(true)){
@@ -883,11 +876,10 @@ class GroupedWork_AJAX {
 	}
 
 	function clearNotInterested(){
-		global $user;
 		$idToClear = $_REQUEST['id'];
 		require_once ROOT_DIR . '/sys/LocalEnrichment/NotInterested.php';
 		$notInterested = new NotInterested();
-		$notInterested->userId = $user->id;
+		$notInterested->userId = UserAccount::getActiveUserId();
 		$notInterested->id = $idToClear;
 		$result = array('result' => false);
 		if ($notInterested->find(true)){
@@ -912,8 +904,7 @@ class GroupedWork_AJAX {
 
 	function saveTag()
 	{
-		global $user;
-		if ($user === false) {
+		if (!UserAccount::isLoggedIn()) {
 			return json_encode(array('success' => false, 'message' => 'Sorry, you must be logged in to add tags.'));
 		}
 
@@ -927,7 +918,7 @@ class GroupedWork_AJAX {
 
 			$userTag = new UserTag();
 			$userTag->tag = $tag;
-			$userTag->userId = $user->id;
+			$userTag->userId = UserAccount::getActiveUserId();
 			$userTag->groupedRecordPermanentId = $id;
 			if (!$userTag->find(true)){
 				//This is a new tag
@@ -942,8 +933,7 @@ class GroupedWork_AJAX {
 	}
 
 	function removeTag(){
-		global $user;
-		if ($user === false) {
+		if (!UserAccount::isLoggedIn()) {
 			return json_encode(array('success' => false, 'message' => 'Sorry, you must be logged in to remove tags.'));
 		}
 
@@ -953,7 +943,7 @@ class GroupedWork_AJAX {
 		$tag = $_REQUEST['tag'];
 		$userTag = new UserTag();
 		$userTag->tag = $tag;
-		$userTag->userId = $user->id;
+		$userTag->userId = UserAccount::getActiveUserId();
 		$userTag->groupedRecordPermanentId = $id;
 		if ($userTag->find(true)){
 			//This is a new tag
@@ -972,23 +962,16 @@ class GroupedWork_AJAX {
 		$id = $_REQUEST['id'];
 		$interface->assign('id', $id);
 
+		/** @var SearchObject_Solr $searchObject */
 		$searchObject = SearchObjectFactory::initSearchObject();
 		$searchObject->init();
-		// Setup Search Engine Connection
-		$class = $configArray['Index']['engine'];
-		$url = $configArray['Index']['url'];
-		/** @var SearchObject_Solr $db */
-		$db = new $class($url);
 
 		// Retrieve Full record from Solr
-		if (!($record = $db->getRecord($id))) {
+		if (!($record = $searchObject->getRecord($id))) {
 			PEAR_Singleton::raiseError(new PEAR_Error('Record Does Not Exist'));
 		}
 
 		$prospector = new Prospector();
-		//Check to see if the record exists within Prospector so we can get the prospector Id
-		$prospectorDetails = $prospector->getProspectorDetailsForLocalRecord($record);
-		$interface->assign('prospectorDetails', $prospectorDetails);
 
 		$searchTerms = array(
 				array(
@@ -1002,7 +985,8 @@ class GroupedWork_AJAX {
 					'index' => 'Author'
 			);
 		}
-		$prospectorResults = $prospector->getTopSearchResults($searchTerms, 10, $prospectorDetails);
+
+		$prospectorResults = $prospector->getTopSearchResults($searchTerms, 10);
 		$interface->assign('prospectorResults', $prospectorResults);
 
 		$result = array(
@@ -1041,5 +1025,30 @@ class GroupedWork_AJAX {
 		$ret = file_get_contents($largeCoverUrl);
 
 		return json_encode(array('success' => true, 'message' => 'Covers have been reloaded.  You may need to refresh the page to clear your local cache.'));
+	}
+
+	function reloadIslandora(){
+		$id = $_REQUEST['id'];
+		$samePikaCleared = false;
+		$cacheMessage = '';
+		require_once ROOT_DIR . '/sys/Islandora/IslandoraSamePikaCache.php';
+		//Check for cached links
+		$samePikaCache = new IslandoraSamePikaCache();
+		$samePikaCache->groupedWorkId = $id;
+		if ($samePikaCache->find(true)){
+			if ($samePikaCache->delete()){
+				$samePikaCleared = true;
+			}else{
+				$cacheMessage = 'Could not delete same pika cache';
+			}
+
+		}else{
+			$cacheMessage = 'Data not cached for same pika link';
+		}
+
+		return json_encode(array(
+				'success' => $samePikaCleared,
+				'message' => $cacheMessage
+		));
 	}
 }

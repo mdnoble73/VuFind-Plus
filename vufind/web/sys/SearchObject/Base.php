@@ -1482,12 +1482,10 @@ abstract class SearchObject_Base
 	 */
 	protected function addToHistory()
 	{
-		global $user;
-
 		// Get the list of all old searches for this session and/or user
 		$s = new SearchEntry();
 		/** @var SearchEntry[] $searchHistory */
-		$searchHistory = $s->getSearches(session_id(), is_object($user) ? $user->id : null);
+		$searchHistory = $s->getSearches(session_id(), UserAccount::isLoggedIn() ? UserAccount::getActiveUserId() : null);
 
 		// Duplicate elimination
 		$dupSaved  = false;
@@ -1545,8 +1543,7 @@ abstract class SearchObject_Base
 			// Found, make sure the user has the
 			//   rights to view this search
 			$currentSessionId = session_id();
-			global $user;
-			if ($search->session_id == $currentSessionId || $search->user_id == $user->id) {
+			if ($search->session_id == $currentSessionId || $search->user_id == UserAccount::getActiveUserId()) {
 				// They do, deminify it to a new object.
 				$minSO = unserialize($search->search_object);
 				$savedSearch = SearchObjectFactory::deminify($minSO);
@@ -1574,8 +1571,6 @@ abstract class SearchObject_Base
 	 */
 	public function restoreSavedSearch($searchId = null, $redirect = true, $forceReload = false)
 	{
-		global $user;
-
 		// Is this is a saved search?
 		if (isset($_REQUEST['saved']) || $searchId != null) {
 			// Yes, retrieve it
@@ -1584,7 +1579,7 @@ abstract class SearchObject_Base
 			if ($search->find(true)) {
 				// Found, make sure the user has the
 				//   rights to view this search
-				if ($forceReload || $search->session_id == session_id() || ($user && $search->user_id == $user->id)) {
+				if ($forceReload || $search->session_id == session_id() || (UserAccount::isLoggedIn() && $search->user_id == UserAccount::getActiveUserId())) {
 					// They do, deminify it to a new object.
 					$minSO = unserialize($search->search_object);
 					$savedSearch = SearchObjectFactory::deminify($minSO);
@@ -2190,6 +2185,7 @@ public function getNextPrevLinks(){
 			if ($s->N > 0){
 				$s->fetch();
 				$minSO = unserialize($s->search_object);
+				/** @var SearchObject_Solr $searchObject */
 				$searchObject = SearchObjectFactory::deminify($minSO);
 				$searchObject->setPage($currentPage);
 				//Run the search
@@ -2241,7 +2237,9 @@ public function getNextPrevLinks(){
 								if ($previousRecord['recordtype'] == 'grouped_work'){
 									require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
 									$groupedWork = New GroupedWorkDriver($previousRecord);
-									$relatedRecords = $groupedWork->getRelatedRecords();
+									$relatedRecords = $groupedWork->getRelatedRecords(true);
+									global $timer;
+									$timer->logTime('Loaded related records for previous result');
 									if (count($relatedRecords) == 1) {
 										$previousRecord = reset($relatedRecords);
 										list($previousType, $previousId) = explode('/', trim($previousRecord['url'], '/'));
@@ -2277,7 +2275,9 @@ public function getNextPrevLinks(){
 								if ($nextRecord['recordtype'] == 'grouped_work'){
 									require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
 									$groupedWork = New GroupedWorkDriver($nextRecord);
-									$relatedRecords = $groupedWork->getRelatedRecords();
+									$relatedRecords = $groupedWork->getRelatedRecords(true);
+									global $timer;
+									$timer->logTime('Loaded related records for next result');
 									if (count($relatedRecords) == 1) {
 										$nextRecord = reset($relatedRecords);
 										list($nextType, $nextId) = explode('/', trim($nextRecord['url'], '/'));

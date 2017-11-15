@@ -39,13 +39,11 @@ else
 					else
 						$LOG "~~ $FILE1 file was copied."
 						echo "$FILE1 file was copied."
-#						#Production ONLY
-#						if [ ! -d "$LOCAL/$SOURCE/processed/" ]; then
-#							mkdir $LOCAL/$SOURCE/processed/
-#						fi
-#						echo "Moving $FILE1 on ftp server to processed directory."
-#						mv "$FILE1" $LOCAL/$SOURCE/processed/
-
+						if [ ! -d "$LOCAL/$SOURCE/processed/" ]; then
+							mkdir $LOCAL/$SOURCE/processed/
+						fi
+						echo "Moving $FILE1 on ftp server to processed directory."
+						mv "$FILE1" $LOCAL/$SOURCE/processed/
 					fi
 #				else
 #					echo "No File was found in $SOURCE"

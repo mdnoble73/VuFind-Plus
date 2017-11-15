@@ -29,7 +29,6 @@ class Search_Home extends Action {
 		global $library;
 		global $locationSingleton;
 		global $timer;
-		global $user;
 
 		// Include Search Engine Class
 		require_once ROOT_DIR . '/sys/' . $configArray['Index']['engine'] . '.php';
@@ -97,7 +96,7 @@ class Search_Home extends Action {
 				if (($browseCategory->textId == 'system_recommended_for_you' && $user && $user->hasRatings()) || $browseCategory->find(true)) {
 					// Only Show the Recommended for You browse category if the user is logged in and has rated titles
 					if ($browseCategory->textId == 'system_recommended_for_you') {
-						$browseCategory->label = translate('Recommended for you');
+						$browseCategory->label = translate('Recommended For You');
 					}
 					$browseCategories[] = clone($browseCategory);
 					if (

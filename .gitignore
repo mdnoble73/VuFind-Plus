@@ -67,6 +67,7 @@ LexileTitles.txt
 
 # Logs and databases #
 ######################
+sites/default/solr/jetty/logs
 *.log
 *.log.1
 *.log.2
@@ -134,12 +135,15 @@ vufind/web/code_club_*.mp4
 
 # Nashville Symbolic Links #
 ############################
+sites/170.190.30.108
 sites/170.190.30.180
 sites/170.190.30.38
 sites/*.library.nashville.org
-!sites/catalog.library.nashville.org
 
-sites/default/solr/jetty/logs
+# Nashville CarlX Tools #
+########################
+vufind/web/services/CarlXTools
+vufind/web/interface/themes/nashville_resp/CarlXTools
 
 # Other stuff #
 ###############

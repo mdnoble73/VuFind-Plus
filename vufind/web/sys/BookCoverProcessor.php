@@ -60,16 +60,32 @@ class BookCoverProcessor{
 			if ($this->getColoradoGovDocCover()){
 				return;
 			}
-		} elseif (stripos($this->type, 'ebrary') !== false){
+		}elseif ($this->type == 'Classroom Video on Demand'){
+			if ($this->getClassroomVideoOnDemandCover($this->id)){
+				return;
+			}
+		} elseif (stripos($this->type, 'films on demand') !== false){
+			if ($this->getFilmsOnDemandCover($this->id)) {
+				return;
+			}
+		} elseif (stripos($this->type, 'proquest') !== false || stripos($this->type, 'ebrary') !== false){
 			if ($this->getEbraryCover($this->id)) {
 				return;
 			}
-		// Any Sideloaded Collection that has a cover in the 856 tag (and additional conditionals)
+			// Any Sideloaded Collection that has a cover in the 856 tag (and additional conditionals)
+		} elseif (stripos($this->type, 'kanopy') !== false){
+			if ($this->getSideLoadedCover($this->type.':'.$this->id)) {
+				return;
+			}
 		} elseif (stripos($this->type, 'bookflix') !== false){
 			if ($this->getSideLoadedCover($this->type.':'.$this->id)) {
 				return;
 			}
 		} elseif (stripos($this->type, 'boombox') !== false){
+			if ($this->getSideLoadedCover($this->type.':'.$this->id)) {
+				return;
+			}
+		} elseif (stripos($this->type, 'biblioboard') !== false){
 			if ($this->getSideLoadedCover($this->type.':'.$this->id)) {
 				return;
 			}
@@ -165,8 +181,34 @@ class BookCoverProcessor{
 		if (strpos($id, ':') !== false){
 			list(, $id) = explode(":", $id);
 		}
-		$coverId = str_replace(array('ebr', "PQE"), '', $id);
-		$coverUrl = "http://covers.ebrary.com/cc/$coverId-l.jpg";
+		$coverId = preg_replace('/^[a-zA-Z]+/', '', $id);
+		$coverUrl = "http://ebookcentral.proquest.com/covers/$coverId-l.jpg";
+		if ($this->processImageURL($coverUrl, true)){
+			return true;
+		}else{
+			return false;
+		}
+	}
+
+	private function getClassroomVideoOnDemandCover($id) {
+		if (strpos($id, ':') !== false){
+			list(, $id) = explode(":", $id);
+		}
+		$coverId = preg_replace('/^10+/', '', $id);
+		$coverUrl = "http://cvod.infobase.com/image/$coverId";
+		if ($this->processImageURL($coverUrl, true)){
+			return true;
+		}else{
+			return false;
+		}
+	}
+
+	private function getFilmsOnDemandCover($id) {
+		if (strpos($id, ':') !== false){
+			list(, $id) = explode(":", $id);
+		}
+		$coverId = preg_replace('/^10+/', '', $id);
+		$coverUrl = "http://fod.infobase.com/image/$coverId";
 		if ($this->processImageURL($coverUrl, true)){
 			return true;
 		}else{
@@ -384,7 +426,7 @@ class BookCoverProcessor{
 					$this->log("Checking provider ".$provider[0], PEAR_LOG_INFO);
 					$func = $provider[0];
 					$key = isset($provider[1]) ? $provider[1] : '';
-					if ($this->$func($key)) {
+					if (method_exists($this, $func) && $this->$func($key)) {
 						$this->log("Found image from $provider[0]", PEAR_LOG_INFO);
 						$this->logTime("Checked $func");
 						return true;
@@ -832,30 +874,31 @@ class BookCoverProcessor{
 		return $this->processImageURL($url);
 	}
 
-	function openlibrary($id = null)
-	{
-		if (is_null($this->isn)){
-			return false;
-		}
-		// Convert internal size value to openlibrary equivalent:
-		switch($this->size) {
-			case 'large':
-				$size = 'L';
-				break;
-			case 'medium':
-				$size = 'M';
-				break;
-			case 'small':
-			default:
-				$size = 'S';
-				break;
-		}
-
-		// Retrieve the image; the default=false parameter indicates that we want a 404
-		// if the ISBN is not supported.
-		$url = "http://covers.openlibrary.org/b/isbn/{$this->isn}-{$size}.jpg?default=false";
-		return $this->processImageURL($url);
-	}
+	// Removed as cover provider due to unwanted cover image. 11-14-2017 see  https://marmot.myjetbrains.com/youtrack/issue/D-1608
+//	function openlibrary($id = null)
+//	{
+//		if (is_null($this->isn)){
+//			return false;
+//		}
+//		// Convert internal size value to openlibrary equivalent:
+//		switch($this->size) {
+//			case 'large':
+//				$size = 'L';
+//				break;
+//			case 'medium':
+//				$size = 'M';
+//				break;
+//			case 'small':
+//			default:
+//				$size = 'S';
+//				break;
+//		}
+//
+//		// Retrieve the image; the default=false parameter indicates that we want a 404
+//		// if the ISBN is not supported.
+//		$url = "http://covers.openlibrary.org/b/isbn/{$this->isn}-{$size}.jpg?default=false";
+//		return $this->processImageURL($url);
+//	}
 
 	/**
 	 * Retrieve a Content Cafe cover.
@@ -1048,7 +1091,7 @@ class BookCoverProcessor{
 	private function getGroupedWorkCover() {
 		if ($this->loadGroupedWork()){
 			//Have not found a grouped work based on isbn or upc, check based on related records
-			$relatedRecords = $this->groupedWork->getRelatedRecords(false);
+			$relatedRecords = $this->groupedWork->getRelatedRecords(true);
 			foreach ($relatedRecords as $relatedRecord){
 				if (strcasecmp($relatedRecord['source'], 'OverDrive') == 0){
 					if ($this->getOverDriveCover($relatedRecord['id'])){
@@ -1062,8 +1105,20 @@ class BookCoverProcessor{
 					if ($this->getColoradoGovDocCover()){
 						return true;
 					}
-				}elseif (stripos($relatedRecord['source'], 'ebrary') !== false){
+				}elseif (strcasecmp($relatedRecord['source'], 'Classroom Video on Demand') == 0){
+					if ($this->getClassroomVideoOnDemandCover($relatedRecord['id'])){
+						return true;
+					}
+				}elseif (stripos($relatedRecord['source'], 'proquest') !== false || stripos($relatedRecord['source'], 'ebrary') !== false){
 					if ($this->getEbraryCover($relatedRecord['id'])){
+						return true;
+					}
+				}elseif (stripos($relatedRecord['source'], 'films on demand') !== false){
+					if ($this->getFilmsOnDemandCover($relatedRecord['id'])){
+						return true;
+					}
+				}elseif (stripos($relatedRecord['source'], 'kanopy') !== false){
+					if ($this->getSideLoadedCover($relatedRecord['id'])){
 						return true;
 					}
 				} elseif (stripos($relatedRecord['source'], 'bookflix') !== false){
@@ -1071,6 +1126,10 @@ class BookCoverProcessor{
 						return true;
 					}
 				} elseif (stripos($relatedRecord['source'], 'boombox') !== false){
+					if ($this->getSideLoadedCover($relatedRecord['id'])) {
+						return true;
+					}
+				} elseif (stripos($relatedRecord['source'], 'biblioboard') !== false){
 					if ($this->getSideLoadedCover($relatedRecord['id'])) {
 						return true;
 					}

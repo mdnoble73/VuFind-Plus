@@ -14,7 +14,7 @@ PIKASERVER=santafe.production
 PIKADBNAME=pika
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
 
-MINFILE1SIZE=$((321000000))
+MINFILE1SIZE=$((320000000))
 
 # Check if full_update is already running
 #TODO: Verify that the PID file doesn't get log-rotated
@@ -119,7 +119,7 @@ rm /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
 cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 
 # OneClick digital Marc Updates
-/usr/local/vufind-plus/sites/santafe.production/moveFullExport.sh santafe/oneclickdigital oneclickdigital >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} santafe/oneclickdigital oneclickdigital/santafe >> ${OUTPUT_FILE}
 
 
 #Get the updated volume information

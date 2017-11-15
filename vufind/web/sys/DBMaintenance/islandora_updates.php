@@ -46,5 +46,19 @@ function getIslandoraUpdates() {
 							"ALTER TABLE islandora_object_cache ADD COLUMN originalCoverUrl VARCHAR (255) DEFAULT ''",
 					),
 			),
+
+			'islandora_samePika_cache' => array(
+					'title' => 'Islandora Same Pika Cache ',
+					'description' => 'Caching for Islandora same pika link to limit the times we need to load data',
+					'sql' => array(
+							"CREATE TABLE islandora_samepika_cache (
+									id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+									groupedWorkId CHAR(36) NOT NULL,
+									pid VARCHAR(100),
+									archiveLink VARCHAR(255),
+									UNIQUE (groupedWorkId)
+									) ENGINE = INNODB",
+					),
+			),
 	);
 }

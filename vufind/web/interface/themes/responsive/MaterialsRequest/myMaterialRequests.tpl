@@ -6,7 +6,7 @@
 		</div>
 	{/if}
 
-	{include file="MyAccount/availableHoldsNotice.tpl"}
+	<span class='availableHoldsNoticePlaceHolder'></span>
 
 	<h2>My {translate text='Materials_Request_alt'}s</h2>
 	{if $error}

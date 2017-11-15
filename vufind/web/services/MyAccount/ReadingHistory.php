@@ -27,7 +27,7 @@ class ReadingHistory extends MyAccount
 	{
 		global $configArray;
 		global $interface;
-		global $user;
+		$user = UserAccount::getLoggedInUser();
 
 		global $library;
 		if (isset($library)){

@@ -62,12 +62,12 @@ class LibraryFacetSettings extends ObjectEditor
 		return array('opacAdmin', 'libraryAdmin');
 	}
 	function canAddNew(){
-		global $user;
-		return $user->hasRole('opacAdmin');
+		$user = UserAccount::getLoggedInUser();
+		return UserAccount::userHasRole('opacAdmin');
 	}
 	function canDelete(){
-		global $user;
-		return $user->hasRole('opacAdmin');
+		$user = UserAccount::getLoggedInUser();
+		return UserAccount::userHasRole('opacAdmin');
 	}
 	function getAdditionalObjectActions($existingObject){
 		$objectActions = array();

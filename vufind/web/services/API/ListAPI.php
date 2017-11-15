@@ -106,7 +106,6 @@ class ListAPI extends Action {
 	function getUserLists(){
 		$username = $_REQUEST['username'];
 		$password = $_REQUEST['password'];
-		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if (!isset($_REQUEST['username']) || !isset($_REQUEST['password'])){
 			return array('success'=>false, 'message'=>'The username and password must be provided to load lists.');
@@ -368,7 +367,6 @@ class ListAPI extends Action {
 	}
 
 	private function _getUserListTitles($listId, $numTitlesToShow){
-		global $user;
 		//The list is a patron generated list
 		$list = new UserList();
 		$list->id = $listId;
@@ -383,6 +381,7 @@ class ListAPI extends Action {
 			}
 
 			require_once ROOT_DIR . '/services/MyResearch/lib/FavoriteHandler.php';
+			$user = UserAccount::getLoggedInUser();
 			$favoriteHandler = new FavoriteHandler($list, $user, false);
 			$isMixedContentList = $favoriteHandler->isMixedUserList();
 			$orderedListOfIds = $isMixedContentList ? $favoriteHandler->getFavorites() : array();
@@ -434,10 +433,9 @@ class ListAPI extends Action {
 		if (isset($_REQUEST['username']) && isset($_REQUEST['password'])){
 			$username = $_REQUEST['username'];
 			$password = $_REQUEST['password'];
-			global $user;
 			$user = UserAccount::validateAccount($username, $password);
 		}else{
-			global $user;
+			$user = UserAccount::getLoggedInUser();
 		}
 
 		if (!is_numeric($numTitlesToShow)){
@@ -565,10 +563,9 @@ class ListAPI extends Action {
 		if (isset($_REQUEST['username']) && isset($_REQUEST['password'])){
 			$username = $_REQUEST['username'];
 			$password = $_REQUEST['password'];
-			global $user;
 			$user = UserAccount::validateAccount($username, $password);
 		}else{
-			global $user;
+			$user = UserAccount::getLoggedInUser();
 		}
 
 		if (is_numeric($listId) || preg_match('/list[-:](.*)/', $listId, $listInfo)){
@@ -750,7 +747,6 @@ class ListAPI extends Action {
 		if (!isset($_REQUEST['title'])){
 			return array('success'=>false, 'message'=>'You must provide the title of the list to be created.');
 		}
-		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
 			$list = new UserList();
@@ -818,7 +814,6 @@ class ListAPI extends Action {
 		}else{
 			$recordIds = $_REQUEST['recordIds'];
 		}
-		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
 			$list = new UserList();
@@ -893,7 +888,6 @@ class ListAPI extends Action {
 		if (!isset($_REQUEST['listId'])){
 			return array('success'=>false, 'message'=>'You must provide the listId to clear titles from.');
 		}
-		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
 			$list = new UserList();

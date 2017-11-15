@@ -1,5 +1,5 @@
 {strip}
-	{if $user}{* Logged In *}
+	{if $loggedIn}{* Logged In *}
 		<a href="{$path}/MyAccount/Logout" id="logoutLink" class="menu-icon" title="{translate text="Log Out"}">
 			<img src="{img filename='/interface/themes/responsive/images/Logout.png'}" alt="{translate text="Log Out"}">
 		</a>

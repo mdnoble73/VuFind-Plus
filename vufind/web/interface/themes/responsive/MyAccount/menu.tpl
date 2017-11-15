@@ -1,5 +1,5 @@
 {strip}
-{if $user != false}
+{if $loggedIn}
 	{* Setup the accoridon *}
 	<div id="home-account-links" class="sidebar-links row"{if $displaySidebarMenu} style="display: none"{/if}>
 		<div class="panel-group accordion" id="account-link-accordion">
@@ -26,79 +26,29 @@
 				{*  This content is duplicated in MyAccount/mobilePageHeader.tpl; Update any changes there as well *}
 				<div id="myAccountPanel" class="panel-collapse collapse{if  $displaySidebarMenu || $curSection} in{/if}">
 					<div class="panel-body">
-						{if !$offline}
-							{* No need to calculate total fines if in offline mode*}
-							{assign var="totalFines" value=$user->getTotalFines()}
-						{/if}
-						{if ($totalFines > 0 && $showFines) || ($showExpirationWarnings && $user->expireClose)}
-							<div id="myAccountFines">
-								{if $totalFines > 0 && $showFines}
-									{if $showEcommerceLink && $totalFines > $minimumFineAmount}
-										<div class="myAccountLink">
-											<a href="{$ecommerceLink}" target="_blank"{if $showRefreshAccountButton} onclick="VuFind.Account.ajaxLightbox('{$path}/AJAX/JSON?method=getPayFinesAfterAction')"{/if}  style="color:red; font-weight:bold;">
-												Your account{if count($user->getLinkedUsers())>0}s have{else} has{/if} ${$totalFines|number_format:2} in fines.
-											</a>
-										</div>
-										<div class="myAccountLink">
-											<a href="{$ecommerceLink}" target="_blank"{if $showRefreshAccountButton} onclick="VuFind.Account.ajaxLightbox('{$path}/AJAX/JSON?method=getPayFinesAfterAction')"{/if}>
-												{if $payFinesLinkText}{$payFinesLinkText}{else}Pay Fines Online{/if}
-											</a>
-										</div>
-									{else}
-										<div class="myAccountLink" title="Please contact your local library to pay fines or charges." style="color:red; font-weight:bold;" onclick="alert('Please contact your local library to pay fines or charges.')">
-											Your account{if count($user->getLinkedUsers())>0}s have{else} has{/if} ${$totalFines|number_format:2} in fines.
-										</div>
-									{/if}
-								{/if}
-
-								{if $showExpirationWarnings && $user->expireClose}
-									<div class="myAccountLink">
-										<a class="alignright" title="Please contact your local library to have your library card renewed." style="color:red; font-weight:bold;" onclick="alert('Please Contact your local library to have your library card renewed.')" href="#">
-											{if $user->expired}
-												{if $expiredMessage}
-													{$expiredMessage}
-												{else}
-													Your library card expired on {$user->expires}.
-												{/if}
-											{else}
-												{if $expirationNearMessage}
-													{$expirationNearMessage}
-												{else}
-													Your library card will expire on {$user->expires}.
-												{/if}
-											{/if}
-										</a>
-									</div>
-								{/if}
-							</div>
-							<hr class="menu">
-						{/if}
+						<span class="expirationFinesNotice-placeholder"></span>
 
 						<div class="myAccountLink{if $action=="CheckedOut"} active{/if}">
 							<a href="{$path}/MyAccount/CheckedOut" id="checkedOut">
-								Checked Out Titles {if !$offline}<span class="badge">{$user->getNumCheckedOutTotal()}</span>{/if}
+								Checked Out Titles {if !$offline}<span class="checkouts-placeholder"><img src="{$path}/images/loading.gif" alt="loading"></span>{/if}
 							</a>
 						</div>
 						<div class="myAccountLink{if $action=="Holds"} active{/if}">
 							<a href="{$path}/MyAccount/Holds" id="holds">
-								Titles On Hold {if !$offline}<span class="badge">{$user->getNumHoldsTotal()}</span>
-								{if !$offline && $user->getNumHoldsAvailableTotal() && $user->getNumHoldsAvailableTotal() > 0}
-									&nbsp;<span class="label label-success">{$user->getNumHoldsAvailableTotal()} ready for pick up</span>
-								{/if}
-								{/if}
+								Titles On Hold {if !$offline}<span class="holds-placeholder"><img src="{$path}/images/loading.gif" alt="loading"></span>{/if}
 							</a>
 						</div>
 
 						{if $enableMaterialsBooking}
 						<div class="myAccountLink{if $action=="Bookings"} active{/if}">
 							<a href="{$path}/MyAccount/Bookings" id="bookings">
-								Scheduled Items  {if !$offline}<span class="badge">{$user->getNumBookingsTotal()}</span>{/if}
+								Scheduled Items  {if !$offline}<span class="bookings-placeholder"><img src="{$path}/images/loading.gif" alt="loading"></span>{/if}
 							</a>
 						</div>
 						{/if}
 						<div class="myAccountLink{if $action=="ReadingHistory"} active{/if}">
 							<a href="{$path}/MyAccount/ReadingHistory">
-								Reading History {if !$offline}{if $user->readingHistorySize}<span class="badge">{$user->readingHistorySize}</span>{/if}{/if}
+								Reading History {if !$offline}<span class="readingHistory-placeholder"><img src="{$path}/images/loading.gif" alt="loading"></span>{/if}
 							</a>
 						</div>
 
@@ -107,7 +57,7 @@
 						{/if}
 						{if $enableMaterialsRequest}
 							<div class="myAccountLink{if $pageTemplate=="myMaterialRequests.tpl"} active{/if}" title="{translate text='Materials_Request_alt'}s">
-								<a href="{$path}/MaterialsRequest/MyRequests">{translate text='Materials_Request_alt'}s <span class="badge">{$user->numMaterialsRequests}</span></a>
+								<a href="{$path}/MaterialsRequest/MyRequests">{translate text='Materials_Request_alt'}s <span class="materialsRequests-placeholder"><img src="{$path}/images/loading.gif" alt="loading"></span></a>
 							</div>
 						{/if}
 						{if $showRatings}
@@ -122,7 +72,7 @@
 						{* Only highlight saved searches as active if user is logged in: *}
 						<div class="myAccountLink{if $user && $pageTemplate=="history.tpl"} active{/if}"><a href="{$path}/Search/History?require_login">{translate text='history_saved_searches'}</a></div>
 						{if $allowMasqueradeMode && !$masqueradeMode}
-							{if $user->canMasquerade()}
+							{if $canMasquerade}
 								<hr class="menu">
 								<div class="myAccountLink"><a onclick="VuFind.Account.getMasqueradeForm();" href="#">Masquerade</a></div>
 							{/if}
@@ -132,12 +82,11 @@
 			</div>
 
 			{* My Lists*}
-			{*{if $lists || $showConvertListsFromClassic}*}
-				{if $action == 'MyList'}
-					{assign var="curSection" value=true}
-				{else}
-					{assign var="curSection" value=false}
-				{/if}
+			{if $action == 'MyList'}
+				{assign var="curSection" value=true}
+			{else}
+				{assign var="curSection" value=false}
+			{/if}
 			<div class="panel{if $curSection} active{/if}">
 					<a data-toggle="collapse" data-parent="#account-link-accordion" href="#myListsPanel">
 						<div class="panel-heading">
@@ -153,12 +102,7 @@
 								<br>
 							{/if}
 
-							{foreach from=$lists item=list}
-								{if $list.id != -1}
-									<div class="myAccountLink"><a href="{$list.url}">{$list.name}{if $list.numTitles} ({$list.numTitles}){/if}</a></div>
-									{*<div class="myAccountLink"><a href="{$list.url}">{$list.name}{if $list.numTitles} <span class="badge">{$list.numTitles}</span>{/if}</a></div>*}
-								{/if}
-							{/foreach}
+							<div id="lists-placeholder"><img src="{$path}/images/loading.gif" alt="loading"></div>
 
 							<a href="#" onclick="return VuFind.Account.showCreateListForm();" class="btn btn-sm btn-primary">Create a New List</a>
 						</div>
@@ -166,35 +110,11 @@
 				</div>
 			{*{/if}*}
 
-			{if $tagList}
-				<div class="panel">
-					<a data-toggle="collapse" data-parent="#account-link-accordion" href="#myTagsPanel">
-						<div class="panel-heading">
-							<div class="panel-title collapsed">
-								My Tags
-							</div>
-						</div>
-					</a>
-					<div id="myTagsPanel" class="panel-collapse collapse">
-						<div class="panel-collapse">
-							<div class="panel-body">
-								{foreach from=$tagList item=tag}
-									<div class="myAccountLink">
-										<a href='{$path}/Search/Results?lookfor={$tag->tag|escape:"url"}&amp;basicType=tag'>{$tag->tag|escape:"html"}</a> ({$tag->cnt})&nbsp;
-										<a href='#' onclick="return VuFind.Account.removeTag('{$tag->tag}');">
-											<span class="glyphicon glyphicon-remove-circle" title="Delete Tag">&nbsp;</span>
-										</a>
-									</div>
-								{/foreach}
-							</div>
-						</div>
-					</div>
-				</div>
-			{/if}
+			<span id="tagsMenu-placeholder"></span>
 
 			{* Admin Functionality if Available *}
-			{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('contentEditor') || $user->hasRole('libraryManager') || $user->hasRole('locationManager'))}
-				{if in_array($action, array('Libraries', 'Locations', 'IPAddresses', 'ListWidgets', 'BrowseCategories', 'PTypes', 'CirculationStatuses', 'LoanRules', 'LoanRuleDeterminers', 'AccountProfiles', 'NYTLists'))}
+			{if $loggedIn && (array_key_exists('opacAdmin', $userRoles) || array_key_exists('libraryAdmin', $userRoles) || array_key_exists('contentEditor', $userRoles) || array_key_exists('libraryManager', $userRoles) || array_key_exists('locationManager', $userRoles))}
+				{if in_array($action, array('Libraries', 'Locations', 'IPAddresses', 'ListWidgets', 'BrowseCategories', 'PTypes', 'CirculationStatuses', 'LoanRules', 'LoanRuleDeterminers', 'AccountProfiles', 'NYTLists', 'BlockPatronAccountLinks'))}
 					{assign var="curSection" value=true}
 				{else}
 					{assign var="curSection" value=false}
@@ -210,30 +130,30 @@
 					<div id="vufindMenuGroup" class="panel-collapse collapse {if $curSection}in{/if}">
 						<div class="panel-body">
 							{* Library Admin Actions *}
-							{if ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('libraryManager'))}
+							{if (array_key_exists('opacAdmin', $userRoles) || array_key_exists('libraryAdmin', $userRoles) || array_key_exists('libraryManager', $userRoles))}
 								<div class="adminMenuLink{if $action == "Libraries"} active{/if}"><a href="{$path}/Admin/Libraries">Library Systems</a></div>
 							{/if}
-							{if ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('libraryManager') || $user->hasRole('locationManager'))}
+							{if (array_key_exists('opacAdmin', $userRoles) || array_key_exists('libraryAdmin', $userRoles) || array_key_exists('libraryManager', $userRoles) || array_key_exists('locationManager', $userRoles))}
 								<div class="adminMenuLink{if $action == "Locations"} active{/if}"><a href="{$path}/Admin/Locations">Locations</a></div>
 							{/if}
-							{if ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('libraryManager') || $user->hasRole('locationManager'))}
+							{if (array_key_exists('opacAdmin', $userRoles) || array_key_exists('libraryAdmin', $userRoles) || array_key_exists('libraryManager', $userRoles) || array_key_exists('locationManager', $userRoles))}
 								<div class="adminMenuLink{if $action == "BlockPatronAccountLinks"} active{/if}"><a href="{$path}/Admin/BlockPatronAccountLinks">Block Patron Account Linking</a></div>
 							{/if}
 
 							{* OPAC Admin Actions*}
-							{if $user->hasRole('opacAdmin')}
+							{if array_key_exists('opacAdmin', $userRoles)}
 								<div class="adminMenuLink{if $action == "IPAddresses"} active{/if}"><a href="{$path}/Admin/IPAddresses">IP Addresses</a></div>
 							{/if}
 
 							{* Content Editor Actions *}
 							<div class="adminMenuLink{if $action == "ListWidgets"} active{/if}"><a href="{$path}/Admin/ListWidgets">List Widgets</a></div>
 							<div class="adminMenuLink{if $action == "BrowseCategories"} active{/if}"><a href="{$path}/Admin/BrowseCategories">Browse Categories</a></div>
-							{if ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('libraryManager') || $user->hasRole('contentEditor'))}
+							{if (array_key_exists('opacAdmin', $userRoles) || array_key_exists('libraryAdmin', $userRoles) || array_key_exists('libraryManager', $userRoles) || array_key_exists('contentEditor', $userRoles))}
 								<div class="adminMenuLink{if $action == "NYTLists"} active{/if}"><a href="{$path}/Admin/NYTLists">NY Times Lists</a></div>
 							{/if}
 
 							{* OPAC Admin Actions*}
-							{if $user->hasRole('opacAdmin')}
+							{if array_key_exists('opacAdmin', $userRoles)}
 								{* Sierra/Millennium OPAC Admin Actions*}
 								{if ($ils == 'Millennium' || $ils == 'Sierra' || $ils == 'Horizon')}
 								<div class="adminMenuLink{if $action == "PTypes"} active{/if}"><a href="{$path}/Admin/PTypes">P-Types</a></div>
@@ -252,8 +172,8 @@
 				</div>
 			{/if}
 
-			{if $user && ($user->hasRole('userAdmin') || $user->hasRole('opacAdmin'))}
-				{if in_array($action, array('Administrators', 'DBMaintenance', 'DBMaintenanceEContent', 'PHPInfo', 'OpCacheInfo', 'Variables', 'CronLog', 'PTypes'))
+			{if $loggedIn && (array_key_exists('userAdmin', $userRoles) || array_key_exists('opacAdmin', $userRoles))}
+				{if in_array($action, array('Administrators', 'DBMaintenance', 'DBMaintenanceEContent', 'PHPInfo', 'OpCacheInfo', 'Variables', 'CronLog', 'MemCacheInfo'))
 				|| ($module == 'Admin' && $action == 'Home')}
 					{assign var="curSection" value=true}
 				{else}
@@ -269,11 +189,10 @@
 					</a>
 					<div id="adminMenuGroup" class="panel-collapse collapse {if $curSection}in{/if}">
 						<div class="panel-body">
-							{if $user->hasRole('userAdmin')}
+							{if array_key_exists('userAdmin', $userRoles)}
 								<div class="adminMenuLink {if $action == "Administrators"} active{/if}"><a href="{$path}/Admin/Administrators">Administrators</a></div>
 							{/if}
-							{if $user->hasRole('opacAdmin')}
-								<div class="adminMenuLink{if $action == "PTypes"} active{/if}"><a href="{$path}/Admin/PTypes">PTypes</a></div>
+							{if array_key_exists('opacAdmin', $userRoles)}
 								<div class="adminMenuLink{if $action == "DBMaintenance"} active{/if}"><a href="{$path}/Admin/DBMaintenance">DB Maintenance - Pika</a></div>
 								<div class="adminMenuLink{if $action == "DBMaintenanceEContent"} active{/if}"><a href="{$path}/Admin/DBMaintenanceEContent">DB Maintenance - EContent</a></div>
 								<div class="adminMenuLink{if $module == 'Admin' && $action == "Home"} active{/if}"><a href="{$path}/Admin/Home">Solr Information</a></div>
@@ -288,7 +207,7 @@
 				</div>
 			{/if}
 
-			{if $user && ($user->hasRole('libraryAdmin') || $user->hasRole('opacAdmin') || $user->hasRole('cataloging'))}
+			{if $loggedIn && (array_key_exists('libraryAdmin', $userRoles) || array_key_exists('opacAdmin', $userRoles) || array_key_exists('cataloging', $userRoles))}
 				{if in_array($action, array('ReindexLog', 'OverDriveExtractLog', 'IndexingStats', 'IndexingProfiles', 'TranslationMaps'))}
 					{assign var="curSection" value=true}
 				{else}
@@ -314,7 +233,7 @@
 				</div>
 			{/if}
 
-			{if $user && $enableMaterialsRequest && ($user->hasRole('cataloging') || $user->hasRole('library_material_requests') || $user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin'))}
+			{if $loggedIn && $enableMaterialsRequest && (array_key_exists('cataloging', $userRoles) || array_key_exists('library_material_requests', $userRoles) || array_key_exists('opacAdmin', $userRoles) || array_key_exists('libraryAdmin', $userRoles))}
 				{if in_array($action, array('ManageRequests', 'SummaryReport', 'UserReport', 'ManageStatuses'))}
 					{assign var="curSection" value=true}
 				{else}
@@ -340,7 +259,7 @@
 				</div>
 			{/if}
 
-			{if $user && ($user->hasRole('cataloging') || $user->hasRole('opacAdmin'))}
+			{if $loggedIn && (array_key_exists('cataloging', $userRoles) || array_key_exists('opacAdmin', $userRoles))}
 				{if in_array($action, array('MergedGroupedWorks', 'NonGroupedRecords', 'AuthorEnrichment'))}
 					{assign var="curSection" value=true}
 				{else}
@@ -364,7 +283,7 @@
 				</div>
 			{/if}
 
-			{if $user && ($user->hasRole('archives') || $user->hasRole('opacAdmin'))}
+			{if $loggedIn && (array_key_exists('archives', $userRoles) || array_key_exists('opacAdmin', $userRoles))}
 				{if in_array($action, array('ArchiveSubjects', 'ArchiveRequests', 'AuthorshipClaims', 'ClearArchiveCache', 'ArchiveUsage'))}
 					{assign var="curSection" value=true}
 				{else}
@@ -384,7 +303,7 @@
 							<div class="adminMenuLink{if $action == "AuthorshipClaims"} active{/if}"><a href="{$path}/Admin/AuthorshipClaims">Archive Authorship Claims</a></div>
 							<div class="adminMenuLink{if $action == "ArchiveUsage"} active{/if}"><a href="{$path}/Admin/ArchiveUsage">Archive Usage</a></div>
 							<div class="adminMenuLink{if $action == "ArchiveSubjects"} active{/if}"><a href="{$path}/Admin/ArchiveSubjects">Archive Subject Control</a></div>
-							{if $user->hasRole('opacAdmin')}
+							{if array_key_exists('opacAdmin', $userRoles)}
 								<div class="adminMenuLink{if $action == "ClearArchiveCache"} active{/if}"><a href="{$path}/Admin/ClearArchiveCache">Clear Cache</a></div>
 							{/if}
 						</div>
@@ -392,7 +311,7 @@
 				</div>
 			{/if}
 
-			{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('circulationReports'))}
+			{if $loggedIn && (array_key_exists('opacAdmin', $userRoles) || array_key_exists('libraryAdmin', $userRoles) || array_key_exists('circulationReports', $userRoles))}
 				{if $module == 'Circa'}
 					{assign var="curSection" value=true}
 				{else}
@@ -417,7 +336,7 @@
 				</div>
 			{/if}
 
-			{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('contentEditor'))}
+			{if $loggedIn && (array_key_exists('opacAdmin', $userRoles) || array_key_exists('libraryAdmin', $userRoles) || array_key_exists('contentEditor', $userRoles))}
 				{if $module == "EditorialReview"}
 					{assign var="curSection" value=true}
 				{else}
@@ -440,7 +359,7 @@
 				</div>
 			{/if}
 
-			{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('locationReports') || $user->hasRole('contentEditor'))}
+			{if $loggedIn && (array_key_exists('opacAdmin', $userRoles) || array_key_exists('libraryAdmin', $userRoles) || array_key_exists('locationReports', $userRoles) || array_key_exists('contentEditor', $userRoles))}
 				{if in_array($action, array('ReportExternalLinks', 'StudentReport'))}
 					{assign var="curSection" value=true}
 				{else}
@@ -456,10 +375,10 @@
 					</a>
 					<div id="reportsMenu" class="panel-collapse collapse {if $curSection}in{/if}">
 						<div class="panel-body">
-							{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin'))}
+							{if $loggedIn && (array_key_exists('opacAdmin', $userRoles) || array_key_exists('libraryAdmin', $userRoles))}
 								<div class="adminMenuLink{if $action == "ReportExternalLinks"} active{/if}"><a href="{$path}/Report/ReportExternalLinks">External Link Tracking</a></div>
 							{/if}
-							{if $ils == 'Sierra' && $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('locationReports'))}
+							{if $ils == 'Sierra' && $loggedIn && (array_key_exists('opacAdmin', $userRoles) || array_key_exists('libraryAdmin', $userRoles) || array_key_exists('locationReports', $userRoles))}
 								<div class="adminMenuLink{if $action == "StudentReport"} active{/if}"><a href="{$path}/Report/StudentReport">Student Reports</a></div>
 							{/if}
 						</div>
@@ -471,4 +390,7 @@
 		{include file="library-links.tpl" libraryLinks=$libraryAccountLinks linksId='home-library-account-links' section='Account'}
 	</div>
 {/if}
+<script type="text/javascript">
+	VuFind.Account.loadMenuData();
+</script>
 {/strip}

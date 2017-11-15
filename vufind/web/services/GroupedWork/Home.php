@@ -24,6 +24,7 @@ class GroupedWork_Home extends Action{
 			die();
 		}
 		$interface->assign('recordDriver', $recordDriver);
+		$timer->logTime('Loaded Grouped Work Driver');
 
 		// Set Show in Search Results Main Details Section options for template
 		// (needs to be set before moreDetailsOptions)
@@ -44,26 +45,25 @@ class GroupedWork_Home extends Action{
 		$searchObject = SearchObjectFactory::initSearchObject();
 		$searchObject->init($searchSource);
 		$searchObject->getNextPrevLinks();
+		$timer->logTime('Got next and previous links');
 
 		$interface->assign('moreDetailsOptions', $recordDriver->getMoreDetailsOptions());
+		$timer->logTime('Got more details options');
+
 		$exploreMoreInfo = $recordDriver->getExploreMoreInfo();
 		$interface->assign('exploreMoreInfo', $exploreMoreInfo);
+		$timer->logTime('Got explore more information');
 
 		$interface->assign('metadataTemplate', 'GroupedWork/metadata.tpl');
 
 		$interface->assign('semanticData', json_encode($recordDriver->getSemanticData()));
+		$timer->logTime('Loaded semantic data');
 
 		// Send down text for inclusion in breadcrumbs
 		$interface->assign('breadcrumbText', $recordDriver->getBreadcrumb());
+		$timer->logTime('Loaded breadcrumbs');
 
 		// Display Page
-
-//		global $configArray;
-//		if ($configArray['Catalog']['showExploreMoreForFullRecords']) {
-//			$interface->assign('showExploreMore', true);
-//		}
-		// above is done in $recordDriver->getExploreMoreInfo() plb 2-25-2016
-
 		$this->display('full-record.tpl', $recordDriver->getTitle());
 	}
 

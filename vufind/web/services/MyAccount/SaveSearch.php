@@ -26,7 +26,6 @@ class SaveSearch extends MyAccount
 	function launch()
 	{
 		global $configArray;
-		global $user;
 
 		$searchId = null;
 		$todo = 'addSearch';
@@ -45,7 +44,7 @@ class SaveSearch extends MyAccount
 		$search->id = $searchId;
 		if ($search->find(true)) {
 			// Found, make sure this is a search from this user
-			if ($search->session_id == session_id() || $search->user_id == $user->id) {
+			if ($search->session_id == session_id() || $search->user_id == UserAccount::getActiveUserId()) {
 				// Call whichever function is required below
 				$this->$todo($search);
 			}
@@ -71,8 +70,7 @@ class SaveSearch extends MyAccount
 	private function addSearch($search)
 	{
 		if ($search->saved != 1) {
-			global $user;
-			$search->user_id = $user->id;
+			$search->user_id = UserAccount::getActiveUserId();
 			$search->saved = 1;
 			$search->update();
 		}

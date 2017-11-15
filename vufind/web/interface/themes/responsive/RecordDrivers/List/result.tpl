@@ -2,7 +2,7 @@
 <div id="record{$summId|escape}" class="resultsList row">
 	{if $showCovers}
 		<div class="coversColumn col-xs-3 col-sm-3 col-md-3 col-lg-2 text-center">
-			{if $user->disableCoverArt != 1}
+			{if $disableCoverArt != 1}
 				<a href="{$path}/MyAccount/MyList/{$summShortId}" class="alignleft listResultImage">
 					<img src="{img filename="lists.png"}" class="listResultImage img-thumbnail" alt="{translate text='No Cover Image'}">
 				</a>

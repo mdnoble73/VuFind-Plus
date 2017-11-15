@@ -526,12 +526,13 @@ class SearchAPI extends Action {
 
 	function getListWidget(){
 		global $interface;
-		global $user;
 		if (isset($_REQUEST['username']) && isset($_REQUEST['password'])){
 			$username = $_REQUEST['username'];
 			$password = $_REQUEST['password'];
 			$user = UserAccount::validateAccount($username, $password);
 			$interface->assign('user', $user);
+		}else{
+			$user = UserAccount::getLoggedInUser();
 		}
 		//Load the widget configuration
 		require_once ROOT_DIR . '/sys/ListWidget.php';

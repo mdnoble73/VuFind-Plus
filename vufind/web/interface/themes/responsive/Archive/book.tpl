@@ -10,7 +10,7 @@
 			<div id="main-content" class="col-xs-12 text-center">
 				{if $canView}
 					<div id="view-toggle" class="btn-group" role="group" data-toggle="buttons">
-						{if $anonymousMasterDownload || ($user && $verifiedMasterDownload)}
+						{if $anonymousMasterDownload || ($loggedIn && $verifiedMasterDownload)}
 						<label class="btn btn-group-small btn-default">
 							<input type="radio" name="pageView" id="view-toggle-pdf" autocomplete="off" onchange="return VuFind.Archive.handleBookClick('{$pid}', VuFind.Archive.activeBookPage, 'pdf');">
 							{*TODO: set bookPID*}
@@ -59,9 +59,9 @@
 			<a class="btn btn-default" href="/Archive/{$activePage}/DownloadPDF" id="downloadPageAsPDF">Download Page As PDF</a>
 			*}
 			<br/>
-			{if $hasPdf && ($anonymousMasterDownload || ($user && $verifiedMasterDownload))}
+			{if $hasPdf && ($anonymousMasterDownload || ($loggedIn && $verifiedMasterDownload))}
 				<a class="btn btn-default" href="/Archive/{$pid}/DownloadPDF">Download PDF</a>
-			{elseif ($hasPdf && !$user && $verifiedMasterDownload)}
+			{elseif ($hasPdf && !$loggedIn && $verifiedMasterDownload)}
 				<a class="btn btn-default" onclick="return VuFind.Account.followLinkIfLoggedIn(this)" href="/Archive/{$pid}/DownloadPDF">Login to Download PDF</a>
 			{/if}
 			{if $allowRequestsForArchiveMaterials}
@@ -124,7 +124,7 @@
 <script src="{$path}/js/openseadragon/djtilesource.js" ></script>
 {if $canView}
 <script type="text/javascript">
-	{if !($anonymousMasterDownload || ($user && $verifiedMasterDownload))}
+	{if !($anonymousMasterDownload || ($loggedIn && $verifiedMasterDownload))}
 		VuFind.Archive.allowPDFView = false;
 	{/if}
 	{assign var=pageCounter value=1}
@@ -132,14 +132,14 @@
 		VuFind.Archive.pageDetails['{$section.pid}'] = {ldelim}
 			pid: '{$section.pid}',
 			title: "{$section.title|escape:javascript}",
-			pdf: {if $anonymousMasterDownload || ($user && $verifiedMasterDownload)}'{$section.pdf}'{else}''{/if}
+			pdf: {if $anonymousMasterDownload || ($loggedIn && $verifiedMasterDownload)}'{$section.pdf}'{else}''{/if}
 		{rdelim};
 
 		{foreach from=$section.pages item=page}
 			VuFind.Archive.pageDetails['{$page.pid}'] = {ldelim}
 				pid: '{$page.pid}',
 				title: 'Page {$pageCounter}',
-				pdf: {if $anonymousMasterDownload || ($user && $verifiedMasterDownload)}'{$page.pdf}'{else}''{/if},
+				pdf: {if $anonymousMasterDownload || ($loggedIn && $verifiedMasterDownload)}'{$page.pdf}'{else}''{/if},
 				jp2: '{$page.jp2}',
 				transcript: '{$page.transcript}',
 				index: '{$pageCounter}'

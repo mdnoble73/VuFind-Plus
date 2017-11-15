@@ -32,6 +32,9 @@ spl_autoload_register('vufind_autoloader');
 initializeSession();
 $timer->logTime("Initialized session");
 
+//global $logger;
+//$logger->log("Opening URL " . $_SESSION['REQUEST_URI'], PEAR_LOG_DEBUG);
+
 if (isset($_REQUEST['test_role'])){
 	if ($_REQUEST['test_role'] == ''){
 		setcookie('test_role', $_REQUEST['test_role'], time() - 1000, '/');
@@ -254,28 +257,15 @@ if (isset($_REQUEST['lookfor'])) {
 	}
 }
 
-//Check to see if the user is already logged in
-/** @var User $user */
-global $user,
-       $guidingUser,
-       $masqueradeMode;
-
-$user = UserAccount::isLoggedIn();
+$isLoggedIn = UserAccount::isLoggedIn();
 $timer->logTime('Check if user is logged in');
 
 // Process Authentication, must be done here so we can redirect based on user information
 // immediately after logging in.
-$interface->assign('loggedIn', $user == false ? 'false' : 'true');
-if ($user) {
-	//The user is logged in
-	$interface->assign('user', $user);
-	//Create a cookie for the user's home branch so we can sort holdings even if they logout.
-	//Cookie expires in 1 week.
-	setcookie('home_location', $user->homeLocationId, time()+60*60*24*7, '/');
-	$interface->assign('masqueradeMode', $masqueradeMode);
-	if ($masqueradeMode) {
-		$interface->assign('guidingUser', $guidingUser);
-	}
+$interface->assign('loggedIn', $isLoggedIn);
+if ($isLoggedIn) {
+	$activeUserId = UserAccount::getActiveUserId();
+	$interface->assign('activeUserId', $activeUserId);
 } else if ( (isset($_POST['username']) && isset($_POST['password']) && ($action != 'Account' && $module != 'AJAX')) || isset($_REQUEST['casLogin']) ) {
 	//The user is trying to log in
 	$user = UserAccount::login();
@@ -283,7 +273,7 @@ if ($user) {
 	if (PEAR_Singleton::isError($user)) {
 		require_once ROOT_DIR . '/services/MyAccount/Login.php';
 		$launchAction = new MyAccount_Login();
-		$launchAction->launch($user->getMessage());
+		$launchAction->launch();
 		exit();
 	}elseif(!$user){
 		require_once ROOT_DIR . '/services/MyAccount/Login.php';
@@ -293,6 +283,11 @@ if ($user) {
 	}
 	$interface->assign('user', $user);
 	$interface->assign('loggedIn', $user == false ? 'false' : 'true');
+	if ($user){
+		$interface->assign('activeUserId', $user->id);
+
+	}
+
 	//Check to see if there is a followup module and if so, use that module and action for the next page load
 	if (isset($_REQUEST['returnUrl'])) {
 		$followupUrl = $_REQUEST['returnUrl'];
@@ -304,6 +299,7 @@ if ($user) {
 
 			// For Masquerade Follow up, start directly instead of a redirect
 			if ($_REQUEST['followupAction'] == 'Masquerade' && $_REQUEST['followupModule'] == 'MyAccount') {
+				global $logger;
 				$logger->log("Processing Masquerade after logging in", PEAR_LOG_ERR);
 				require_once ROOT_DIR . '/services/MyAccount/Masquerade.php';
 				$masquerade = new MyAccount_Masquerade();
@@ -340,12 +336,29 @@ if ($user) {
 $timer->logTime('User authentication');
 
 //Load user data for the user as long as we aren't in the act of logging out.
-if ($user && (!isset($_REQUEST['action']) || $_REQUEST['action'] != 'Logout')){
+if (UserAccount::isLoggedIn() && (!isset($_REQUEST['action']) || $_REQUEST['action'] != 'Logout')){
 	loadUserData();
 	$timer->logTime('Load user data');
 
-	$interface->assign('pType', $user->patronType);
-	$homeLibrary = Library::getLibraryForLocation($user->homeLocationId);
+	$userDisplayName = UserAccount::getUserDisplayName();
+	$interface->assign('userDisplayName', $userDisplayName);
+	$userRoles = UserAccount::getActiveRoles();
+	$interface->assign('userRoles', $userRoles);
+	$disableCoverArt = UserAccount::getDisableCoverArt();
+	$interface->assign('disableCoverArt', $disableCoverArt);
+	$hasLinkedUsers = UserAccount::hasLinkedUsers();
+	$interface->assign('hasLinkedUsers', $hasLinkedUsers);
+	$interface->assign('pType', UserAccount::getUserPType());
+	$interface->assign('canMasquerade', UserAccount::getActiveUserObj()->canMasquerade());
+	$masqueradeMode = UserAccount::isUserMasquerading();
+	$interface->assign('masqueradeMode', $masqueradeMode);
+	if ($masqueradeMode){
+		$guidingUser = UserAccount::getGuidingUserObject();
+		$interface->assign('guidingUser', $guidingUser);
+	}
+
+
+	$homeLibrary = Library::getLibraryForLocation(UserAccount::getUserHomeLocationId());
 	if (isset($homeLibrary)){
 		$interface->assign('homeLibrary', $homeLibrary->displayName);
 	}
@@ -353,6 +366,7 @@ if ($user && (!isset($_REQUEST['action']) || $_REQUEST['action'] != 'Logout')){
 }else{
 	$interface->assign('pType', 'logged out');
 	$interface->assign('homeLibrary', 'n/a');
+	$masqueradeMode = false;
 }
 
 //Setup analytics
@@ -366,15 +380,15 @@ if (!$analytics->isTrackingDisabled()){
 	$analytics->setMobile($interface->isMobile() ? 1 : 0);
 	$analytics->setDevice(get_device_name());
 	$analytics->setPhysicalLocation($physicalLocation);
-	if ($user){
-		$analytics->setPatronType($user->patronType);
-		$analytics->setHomeLocationId($user->homeLocationId);
+	if (UserAccount::isLoggedIn()){
+		$analytics->setPatronType(UserAccount::getUserPType());
+		$analytics->setHomeLocationId(UserAccount::getUserHomeLocationId());
 	}else{
 		$analytics->setPatronType('logged out');
 		$analytics->setHomeLocationId(-1);
 	}
+	$timer->logTime('Setup Analytics');
 }
-$timer->logTime('Setup Analytics');
 
 //Find a reasonable default location to go to
 if ($module == null && $action == null){
@@ -385,7 +399,8 @@ if ($module == null && $action == null){
 	$action = 'Home';
 }
 //Override MyAccount Home as needed
-if ($module == 'MyAccount' && $action == 'Home' && $user){
+if ($module == 'MyAccount' && $action == 'Home' && UserAccount::isLoggedIn()){
+	$user = UserAccount::getLoggedInUser();
 	if ($user->getNumCheckedOutTotal() > 0){
 		$action ='CheckedOut';
 		header('Location:/MyAccount/CheckedOut');
@@ -446,8 +461,9 @@ if ($action == "AJAX" || $action == "JSON"){
 	//Load basic search types for use in the interface.
 	/** @var SearchObject_Solr|SearchObject_Base $searchObject */
 	$searchObject = SearchObjectFactory::initSearchObject();
-	$searchObject->init();
 	$timer->logTime('Create Search Object');
+	$searchObject->init();
+	$timer->logTime('Init Search Object');
 	$basicSearchTypes = is_object($searchObject) ? $searchObject->getBasicTypes() : array();
 	$interface->assign('basicSearchTypes', $basicSearchTypes);
 
@@ -508,20 +524,7 @@ if ($action == "AJAX" || $action == "JSON"){
 			$interface->assign('homeLinkText', 'Home');
 		}
 	}
-	//Load user list for book bag
-	if ($user){
-		$lists = $user->getLists();
-		$timer->logTime('Get user lists for book cart');
 
-		$userLists = array();
-		foreach($lists as $current) {
-			$userLists[] = array(
-				'id'    => $current->id,
-        'title' => $current->title
-			);
-		}
-		$interface->assign('userLists', $userLists);
-	}
 }
 
 //Determine if we should include autoLogout Code
@@ -561,7 +564,11 @@ if (($isOpac || $masqueradeMode || (!empty($ipLocation) && $ipLocation->getOpacS
 			$includeAutoLogoutCode = false;
 		}
 
-		if ($user) {
+		if (UserAccount::isLoggedIn()) {
+			if (!isset($user)){
+				$user = UserAccount::getActiveUserObj();
+			}
+
 			// User has bypass AutoLog out setting turned on
 			if ($user->bypassAutoLogout == 1) {
 				// The account setting profile template only presents this option to users that are staff
@@ -950,66 +957,31 @@ function initializeSession(){
 }
 
 function loadUserData(){
-	global $user;
 	global $interface;
 	global $timer;
 
 	//Assign User information to the interface
-	if (!PEAR_Singleton::isError($user)) {
-		$interface->assign('profile', $user); // TODO Phase out in favor of $user below; $profile should be for Account Pages for specified linked Accounts
-		$interface->assign('user', $user); //TODO $user is also assigned to User on line 237
+	if (UserAccount::isLoggedIn()) {
+		//$user = UserAccount::getLoggedInUser();
 	}
 
-	if ($interface->getVariable('expiredMessage')){
-		$interface->assign('expiredMessage', str_replace('%date%', $user->expires, $interface->getVariable('expiredMessage')));
-	}
-	if ($interface->getVariable('expirationNearMessage')){
-		$interface->assign('expirationNearMessage', str_replace('%date%', $user->expires, $interface->getVariable('expirationNearMessage')));
-	}
-
-	//Load a list of lists
-	$lists = array();
-	require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
-	$tmpList = new UserList();
-	$tmpList->user_id = $user->id;
-	$tmpList->deleted = 0;
-	$tmpList->orderBy("title ASC");
-	$tmpList->find();
-	if ($tmpList->N > 0){
-		while ($tmpList->fetch()){
-			$lists[$tmpList->id] = array(
-					'name' => $tmpList->title,
-					'url' => '/MyAccount/MyList/' .$tmpList->id ,
-					'id' => $tmpList->id,
-					'numTitles' => $tmpList->numValidListItems()
-			);
+	if (UserAccount::isLoggedIn()){
+		if (UserAccount::userHasRole('opacAdmin') || UserAccount::userHasRole('libraryAdmin') || UserAccount::userHasRole('cataloging') || UserAccount::userHasRole('libraryManager') || UserAccount::userHasRole('locationManager')){
+			$variable = new Variable();
+			$variable->name= 'lastFullReindexFinish';
+			if ($variable->find(true)){
+				$interface->assign('lastFullReindexFinish', date('m-d-Y H:i:s', $variable->value));
+			}else{
+				$interface->assign('lastFullReindexFinish', 'Unknown');
+			}
+			$variable = new Variable();
+			$variable->name= 'lastPartialReindexFinish';
+			if ($variable->find(true)){
+				$interface->assign('lastPartialReindexFinish', date('m-d-Y H:i:s', $variable->value));
+			}else{
+				$interface->assign('lastPartialReindexFinish', 'Unknown');
+			}
+			$timer->logTime("Load Information about Index status");
 		}
 	}
-	$interface->assign('lists', $lists);
-	$timer->logTime("Load Lists");
-
-	// Get My Tags
-	$tagList = $user->getTags();
-	$interface->assign('tagList', $tagList);
-	$timer->logTime("Load Tags");
-
-	if ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('cataloging') || $user->hasRole('libraryManager') || $user->hasRole('locationManager')){
-		$variable = new Variable();
-		$variable->name= 'lastFullReindexFinish';
-		if ($variable->find(true)){
-			$interface->assign('lastFullReindexFinish', date('m-d-Y H:i:s', $variable->value));
-		}else{
-			$interface->assign('lastFullReindexFinish', 'Unknown');
-		}
-		$variable = new Variable();
-		$variable->name= 'lastPartialReindexFinish';
-		if ($variable->find(true)){
-			$interface->assign('lastPartialReindexFinish', date('m-d-Y H:i:s', $variable->value));
-		}else{
-			$interface->assign('lastPartialReindexFinish', 'Unknown');
-		}
-		$timer->logTime("Load Information about Index status");
-	}
-
-	$interface->setFinesRelatedTemplateVariables();
 }

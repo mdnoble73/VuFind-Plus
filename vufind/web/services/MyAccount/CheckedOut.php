@@ -2,7 +2,7 @@
 /**
  * Shows all titles that are checked out to a user (combines all sources)
  *
- * @category VuFind-Plus 
+ * @category VuFind-Plus
  * @author Mark Noble <mark@marmot.org>
  * Date: 10/10/13
  * Time: 1:10 PM
@@ -17,8 +17,7 @@ class MyAccount_CheckedOut extends MyAccount{
 		if (!$offlineMode) {
 			global $configArray,
 			       $interface,
-			       $library,
-			       $user;
+			       $library;
 
 			//Determine which columns to show
 			$ils = $configArray['Catalog']['ils'];
@@ -37,6 +36,7 @@ class MyAccount_CheckedOut extends MyAccount{
 				'dueDate' => 'Due Date',
 				'format'  => 'Format',
 			);
+			$user = UserAccount::getLoggedInUser();
 			if (count($user->getLinkedUsers()) > 0){
 				$sortOptions['libraryAccount'] = 'Library Account';
 			}

@@ -21,7 +21,6 @@ abstract class Search_AdvancedBase extends Action{
 	protected function loadSavedSearch()
 	{
 		global $interface;
-		global $user;
 
 		// Are we editing an existing search?
 		if (isset($_REQUEST['edit']) || isset($_SESSION['lastSearchId'])) {
@@ -30,7 +29,7 @@ abstract class Search_AdvancedBase extends Action{
 			$search->id = isset($_REQUEST['edit']) ? $_REQUEST['edit'] : $_SESSION['lastSearchId'];
 			if ($search->find(true)) {
 				// Check permissions
-				if ($search->session_id == session_id() || $search->user_id == $user->id) {
+				if ($search->session_id == session_id() || $search->user_id == UserAccount::getActiveUserId()) {
 					// Retrieve the search details
 					$minSO = unserialize($search->search_object);
 					$savedSearch = SearchObjectFactory::deminify($minSO);

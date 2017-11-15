@@ -26,7 +26,6 @@ class Fines extends MyAccount
 	function launch()
 	{
 		global $interface,
-		       $user,
 		       $configArray;
 
 		$ils = $configArray['Catalog']['ils'];
@@ -35,10 +34,11 @@ class Fines extends MyAccount
 		$useOutstanding = ($ils == 'Koha' || $ils == 'Symphony');
 		$interface->assign('showOutstanding', $useOutstanding);
 
-		if ($user) {
+		if (UserAccount::isLoggedIn()) {
 			global $offlineMode;
 			if (!$offlineMode) {
 				// Get My Fines
+				$user = UserAccount::getLoggedInUser();
 				$fines = $user->getMyFines();
 				$interface->assign('userFines', $fines);
 //			$minimumFineAmount = $interface->get_template_vars('minimumFineAmount');

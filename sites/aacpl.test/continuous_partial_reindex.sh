@@ -109,6 +109,10 @@ do
 			cp --update --preserve=timestamps $FILE /data/vufind-plus/${PIKASERVER}/marc_updates/ >> ${OUTPUT_FILE}
 		fi
 	done
+
+	#Get orders file from the FTP server
+	cp --update --preserve=timestamps /mnt/ftp/PIKA-onorderfile.txt /data/vufind-plus/${PIKASERVER}/marc/ >> ${OUTPUT_FILE}
+
 	umount /mnt/ftp >> ${OUTPUT_FILE}
 
 	#Get holds files from Google Drive
@@ -116,7 +120,7 @@ do
 	wget -q "https://drive.google.com/uc?export=download&id=0B_xqNQMfUrAzanJUZkNXekgtU2s" -O "Pika_Hold_Periodicals.csv"
 	wget -q "https://drive.google.com/uc?export=download&id=0B_xqNQMfUrAzNGJrajJzQWs3ZGs" -O "Pika_Holds.csv"
 
-    cd /usr/local/vufind-plus/vufind/symphony_export/
+	cd /usr/local/vufind-plus/vufind/symphony_export/
 	java -server -jar symphony_export.jar  ${PIKASERVER} >> ${OUTPUT_FILE}
 
 	#export from overdrive

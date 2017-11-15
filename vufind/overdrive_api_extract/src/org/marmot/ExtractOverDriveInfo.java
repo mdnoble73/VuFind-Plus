@@ -9,9 +9,8 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.sql.*;
 import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.zip.CRC32;
 
 import javax.net.ssl.HostnameVerifier;
@@ -26,11 +25,13 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class ExtractOverDriveInfo {
+class ExtractOverDriveInfo {
 	private static Logger logger = Logger.getLogger(ExtractOverDriveInfo.class);
 	private Connection vufindConn;
 	private Connection econtentConn;
 	private OverDriveExtractLogEntry results;
+
+	private String mainLibraryName;
 
 	private Long lastExtractTime;
 	private Long extractStartTime;
@@ -58,6 +59,9 @@ public class ExtractOverDriveInfo {
 	private HashMap<String, Long> existingSubjectIds = new HashMap<>();
 	
 	private PreparedStatement addProductStmt;
+	private PreparedStatement setNeedsUpdateStmt;
+	private PreparedStatement getNumProductsNeedingUpdatesStmt;
+	private PreparedStatement getProductsNeedingUpdatesStmt;
 	private PreparedStatement updateProductStmt;
 	private PreparedStatement deleteProductStmt;
 	private PreparedStatement updateProductMetadataStmt;
@@ -87,7 +91,7 @@ public class ExtractOverDriveInfo {
 	private CRC32 checksumCalculator = new CRC32();
 	private boolean errorsWhileLoadingProducts;
 
-	public void extractOverDriveInfo(Ini configIni, Connection vufindConn, Connection econtentConn, OverDriveExtractLogEntry logEntry, boolean doFullReload, String individualIdToProcess) {
+	void extractOverDriveInfo(Ini configIni, Connection vufindConn, Connection econtentConn, OverDriveExtractLogEntry logEntry, boolean doFullReload, String individualIdToProcess) {
 		this.vufindConn = vufindConn;
 		this.econtentConn = econtentConn;
 		this.results = logEntry;
@@ -95,8 +99,13 @@ public class ExtractOverDriveInfo {
 		extractStartTime = new Date().getTime() / 1000;
 
 		try {
-			addProductStmt = econtentConn.prepareStatement("INSERT INTO overdrive_api_products set overdriveid = ?, mediaType = ?, title = ?, subtitle = ?, series = ?, primaryCreatorRole = ?, primaryCreatorName = ?, cover = ?, dateAdded = ?, dateUpdated = ?, lastMetadataCheck = 0, lastMetadataChange = 0, lastAvailabilityCheck = 0, lastAvailabilityChange = 0, rawData=?", PreparedStatement.RETURN_GENERATED_KEYS);
-			updateProductStmt = econtentConn.prepareStatement("UPDATE overdrive_api_products SET mediaType = ?, title = ?, subtitle = ?, series = ?, primaryCreatorRole = ?, primaryCreatorName = ?, cover = ?, dateUpdated = ?, deleted = 0, rawData=? where id = ?");
+			addProductStmt = econtentConn.prepareStatement("INSERT INTO overdrive_api_products set overdriveid = ?, crossRefId = ?, mediaType = ?, title = ?, subtitle = ?, series = ?, primaryCreatorRole = ?, primaryCreatorName = ?, cover = ?, dateAdded = ?, dateUpdated = ?, lastMetadataCheck = 0, lastMetadataChange = 0, lastAvailabilityCheck = 0, lastAvailabilityChange = 0, rawData=?", PreparedStatement.RETURN_GENERATED_KEYS);
+			setNeedsUpdateStmt = econtentConn.prepareStatement("UPDATE overdrive_api_products set needsUpdate = ? where overdriveid = ?");
+			PreparedStatement markAllAsNeedingUpdatesStmt = econtentConn.prepareStatement("UPDATE overdrive_api_products set needsUpdate = 1");
+			long maxProductsToUpdate = 1500;
+			getNumProductsNeedingUpdatesStmt = econtentConn.prepareCall("SELECT count(overdrive_api_products.id) from overdrive_api_products INNER JOIN overdrive_api_product_metadata ON overdrive_api_product_metadata.productId = overdrive_api_products.id where needsUpdate = 1 and isOwnedByCollections = 1 LIMIT " + maxProductsToUpdate);
+			getProductsNeedingUpdatesStmt = econtentConn.prepareCall("SELECT overdrive_api_products.id, overdriveId, crossRefId, lastMetadataCheck, lastMetadataChange, lastAvailabilityCheck, lastAvailabilityChange from overdrive_api_products INNER JOIN overdrive_api_product_metadata ON overdrive_api_product_metadata.productId = overdrive_api_products.id where needsUpdate = 1 and isOwnedByCollections = 1 LIMIT " + maxProductsToUpdate);
+			updateProductStmt = econtentConn.prepareStatement("UPDATE overdrive_api_products SET crossRefId = ?, mediaType = ?, title = ?, subtitle = ?, series = ?, primaryCreatorRole = ?, primaryCreatorName = ?, cover = ?, dateUpdated = ?, deleted = 0, rawData=? where id = ?");
 			deleteProductStmt = econtentConn.prepareStatement("UPDATE overdrive_api_products SET deleted = 1, dateDeleted = ? where id = ?");
 			updateProductMetadataStmt = econtentConn.prepareStatement("UPDATE overdrive_api_products SET lastMetadataCheck = ?, lastMetadataChange = ? where id = ?");
 			loadMetaDataStmt = econtentConn.prepareStatement("SELECT * FROM overdrive_api_product_metadata WHERE productId = ?");
@@ -150,6 +159,7 @@ public class ExtractOverDriveInfo {
 				}
 			}else{
 				logger.info("Doing a full reload of all records.");
+				markAllAsNeedingUpdatesStmt.executeUpdate();
 			}
 
 			//Load last extract time regardless of if we are doing full index or partial index
@@ -223,22 +233,30 @@ public class ExtractOverDriveInfo {
 				if (clientSecret == null || clientKey == null || accountId == null || clientSecret.length() == 0 || clientKey.length() == 0 || accountId.length() == 0) {
 					logEntry.addNote("Did not find correct configuration in config.ini, not loading overdrive titles");
 				} else {
-					//Load products from database
+					//Load products from database this lets us know what is new, what has been deleted, and what has been updated
 					if (!loadProductsFromDatabase()) {
 						return;
 					}
 
-					//Load products from API
+					//Load products from API to figure out what is actually new, what is deleted, and what needs an update
 					if (!loadProductsFromAPI(individualIdToProcess)) {
 						return;
 					}
 
 					//Update products in database
 					updateDatabase();
+
+					//Get a list of records to get full details for.  We don't want this to take forever so only do a few thousand
+					//records at the most
+					updateMetadataAndAvailability();
 				}
 			}catch (SocketTimeoutException toe){
 				logger.info("Timeout while loading information from OverDrive, aborting");
 				logEntry.addNote("Timeout while loading information from OverDrive, aborting");
+				errorsWhileLoadingProducts = true;
+			}catch (Exception e){
+				logger.error("Error while loading information from OverDrive, aborting");
+				logEntry.addNote("Error while loading information from OverDrive, aborting");
 				errorsWhileLoadingProducts = true;
 			}
 
@@ -267,7 +285,63 @@ public class ExtractOverDriveInfo {
 			results.saveResults();
 		}
 	}
-	
+
+	private void updateMetadataAndAvailability() {
+		try {
+			logger.debug("Starting to update metadata and availability for products");
+			ResultSet numProductsNeedingUpdatesRS = getNumProductsNeedingUpdatesStmt.executeQuery();
+			numProductsNeedingUpdatesRS.next();
+			logger.info("There are " + numProductsNeedingUpdatesRS.getInt(1) + " products that currently need updates.");
+
+			ResultSet productsNeedingUpdatesRS = getProductsNeedingUpdatesStmt.executeQuery();
+			//Add the main collection to make iteration easier later
+			libToOverDriveAPIKeyMap.put(-1L, overDriveProductsKey);
+
+			ArrayList<MetaAvailUpdateData> productsToUpdate = new ArrayList<>();
+			while (productsNeedingUpdatesRS.next()) {
+				MetaAvailUpdateData productToUpdate = new MetaAvailUpdateData();
+				productToUpdate.databaseId = productsNeedingUpdatesRS.getLong("id");
+				productToUpdate.crossRefId = productsNeedingUpdatesRS.getLong("crossRefId");
+				productToUpdate.lastMetadataCheck = productsNeedingUpdatesRS.getLong("lastMetadataCheck");
+				productToUpdate.lastMetadataChange = productsNeedingUpdatesRS.getLong("lastMetadataChange");
+				productToUpdate.lastAvailabilityChange = productsNeedingUpdatesRS.getLong("lastAvailabilityChange");
+				productToUpdate.overDriveId = productsNeedingUpdatesRS.getString("overdriveId");
+				productsToUpdate.add(productToUpdate);
+			}
+
+			int batchSize = 25;
+			int batchNum = 1;
+			while (productsToUpdate.size() > 0){
+				int maxIndex = productsToUpdate.size() > batchSize ? batchSize : productsToUpdate.size();
+				ArrayList<MetaAvailUpdateData> productsToUpdateBatch = new ArrayList<>();
+				for (int i = 0; i < maxIndex; i++){
+					productsToUpdateBatch.add(productsToUpdate.get(i));
+				}
+				productsToUpdate.removeAll(productsToUpdateBatch);
+				//Loop through the libraries first and then the products so we can get data as a batch.
+				for (Long libraryId : libToOverDriveAPIKeyMap.keySet()){
+					updateOverDriveMetaDataBatch(libraryId, productsToUpdateBatch);
+					updateOverDriveAvailabilityBatch(libraryId, productsToUpdateBatch);
+
+					//Do a final update to mark that they don't need to be updated again.
+					for (MetaAvailUpdateData productToUpdate : productsToUpdateBatch){
+						if (!productToUpdate.hadAvailabilityErrors && !productToUpdate.hadMetadataErrors){
+							setNeedsUpdateStmt.setInt(1, 0);
+							setNeedsUpdateStmt.setString(2, productToUpdate.overDriveId);
+							setNeedsUpdateStmt.executeUpdate();
+						}else{
+							logger.info("Had errors updating metadata (" + productToUpdate.hadMetadataErrors + ") and/or availability (" + productToUpdate.hadAvailabilityErrors + ") for " + productToUpdate.overDriveId + " crossRefId " + productToUpdate.crossRefId);
+						}
+					}
+				}
+				logger.debug("Processed availability and metadata batch " + batchNum + " records " + ((batchNum - 1) * batchSize) + " to " + (batchNum * batchSize));
+				batchNum++;
+			}
+		}catch (Exception e){
+			logger.error("Error updating metadata and availability", e);
+		}
+	}
+
 	private void updateDatabase() throws SocketTimeoutException {
 		int numProcessed = 0;
 		for (String overDriveId : overDriveTitles.keySet()){
@@ -292,7 +366,7 @@ public class ExtractOverDriveInfo {
 			results.saveResults();
 			numProcessed++;
 			if (numProcessed % 100 == 0){
-				logger.debug("Processed " + numProcessed + " products from the API");
+				logger.debug("Updated database for  " + numProcessed + " products from the API");
 			}
 		}
 		
@@ -335,12 +409,14 @@ public class ExtractOverDriveInfo {
 					!Util.compareStrings(overDriveInfo.getPrimaryCreatorRole(), overDriveDBInfo.getPrimaryCreatorRole()) ||
 					!Util.compareStrings(overDriveInfo.getPrimaryCreatorName(), overDriveDBInfo.getPrimaryCreatorName()) ||
 					!Util.compareStrings(overDriveInfo.getCoverImage(), overDriveDBInfo.getCover()) ||
+					overDriveInfo.getCrossRefId() != overDriveDBInfo.getCrossRefId() ||
 					overDriveDBInfo.isDeleted() ||
 					!overDriveDBInfo.hasRawData()
 					){
 				//Update the product in the database
 				long curTime = new Date().getTime() / 1000;
 				int curCol = 0;
+				updateProductStmt.setLong(++curCol, overDriveInfo.getCrossRefId());
 				updateProductStmt.setString(++curCol, overDriveInfo.getMediaType());
 				updateProductStmt.setString(++curCol, overDriveInfo.getTitle());
 				updateProductStmt.setString(++curCol, overDriveInfo.getSubtitle());
@@ -353,13 +429,15 @@ public class ExtractOverDriveInfo {
 				updateProductStmt.setLong(++curCol, overDriveDBInfo.getDbId());
 
 				updateProductStmt.executeUpdate();
+
 				updateMade = true;
 			}
+
+			setNeedsUpdateStmt.setBoolean(1, true);
+			setNeedsUpdateStmt.setString(2, overDriveInfo.getId());
+			setNeedsUpdateStmt.executeUpdate();
 			
-			boolean metadataChanged = updateOverDriveMetaData(overDriveInfo, overDriveDBInfo.getDbId(), overDriveDBInfo);
-			boolean availabilityChanged = updateOverDriveAvailability(overDriveInfo, overDriveDBInfo.getDbId(), overDriveDBInfo);
-			
-			if (updateMade || availabilityChanged || metadataChanged){
+			if (updateMade){
 				//Mark that the grouped work needs to be updated
 				markGroupedWorkForBibAsChangedStmt.setLong(1, extractStartTime);
 				markGroupedWorkForBibAsChangedStmt.setString(2, overDriveInfo.getId());
@@ -383,6 +461,7 @@ public class ExtractOverDriveInfo {
 		try {
 			long curTime = new Date().getTime() / 1000;
 			addProductStmt.setString(++curCol, overDriveInfo.getId());
+			addProductStmt.setLong(++curCol, overDriveInfo.getCrossRefId());
 			addProductStmt.setString(++curCol, overDriveInfo.getMediaType());
 			addProductStmt.setString(++curCol, overDriveInfo.getTitle());
 			addProductStmt.setString(++curCol, overDriveInfo.getSubtitle());
@@ -402,6 +481,7 @@ public class ExtractOverDriveInfo {
 			results.incAdded();
 
 			//Update metadata based information
+			//Do this the first time we detect it to be certain that all the data exists on the first extract.
 			updateOverDriveMetaData(overDriveInfo, databaseId, null);
 			updateOverDriveAvailability(overDriveInfo, databaseId, null);
 		} catch (MySQLIntegrityConstraintViolationException e1){
@@ -425,6 +505,7 @@ public class ExtractOverDriveInfo {
 				String overdriveId = loadProductsRS.getString("overdriveId").toLowerCase();
 				OverDriveDBInfo curProduct = new OverDriveDBInfo();
 				curProduct.setDbId(loadProductsRS.getLong("id"));
+				curProduct.setCrossRefId(loadProductsRS.getLong("crossRefId"));
 				curProduct.setMediaType(loadProductsRS.getString("mediaType"));
 				curProduct.setSeries(loadProductsRS.getString("series"));
 				curProduct.setTitle(loadProductsRS.getString("title"));
@@ -451,11 +532,11 @@ public class ExtractOverDriveInfo {
 		
 	}
 	private boolean loadProductsFromAPI(String individualIdToProcess) throws SocketTimeoutException {
-		WebServiceResponse libraryInfoResponse = callOverDriveURL("http://api.overdrive.com/v1/libraries/" + accountId);
+		WebServiceResponse libraryInfoResponse = callOverDriveURL("https://api.overdrive.com/v1/libraries/" + accountId);
 		if (libraryInfoResponse.getResponseCode() == 200 && libraryInfoResponse.getResponse() != null){
 			JSONObject libraryInfo = libraryInfoResponse.getResponse();
 			try {
-				String libraryName = libraryInfo.getString("name");
+				String mainLibraryName = libraryInfo.getString("name");
 				String mainProductUrl = libraryInfo.getJSONObject("links").getJSONObject("products").getString("href");
 				if (lastUpdateTimeParam.length() > 0) {
 					if (mainProductUrl.contains("?")) {
@@ -464,7 +545,7 @@ public class ExtractOverDriveInfo {
 						mainProductUrl += "?" + lastUpdateTimeParam;
 					}
 				}
-				loadProductsFromUrl(libraryName, mainProductUrl, individualIdToProcess);
+				loadProductsFromUrl(mainLibraryName, mainProductUrl, individualIdToProcess);
 				logger.info("loaded " + overDriveTitles.size() + " overdrive titles in shared collection");
 				//Get a list of advantage collections
 				if (libraryInfo.getJSONObject("links").has("advantageAccounts")) {
@@ -573,7 +654,16 @@ public class ExtractOverDriveInfo {
 						logger.debug(" Found " + products.length() + " products");
 						for (int j = 0; j < products.length(); j++) {
 							JSONObject curProduct = products.getJSONObject(j);
-							OverDriveRecordInfo curRecord = loadOverDriveRecordFromJSON(libraryName, curProduct);
+							//Mark the product as updated and needing metadata and availability checks
+							try {
+								setNeedsUpdateStmt.setBoolean(1, true);
+								setNeedsUpdateStmt.setString(2, curProduct.getString("id"));
+								setNeedsUpdateStmt.executeUpdate();
+							}catch (SQLException e){
+								logger.error("Unable to update needs update ", e);
+							}
+
+							OverDriveRecordInfo curRecord = loadOverDriveRecordFromJSON(libraryId, curProduct);
 							if (curRecord != null) {
 								if (overDriveTitles.containsKey(curRecord.getId().toLowerCase())) {
 									OverDriveRecordInfo oldRecord = overDriveTitles.get(curRecord.getId().toLowerCase());
@@ -602,7 +692,7 @@ public class ExtractOverDriveInfo {
 		}
 	}
 	
-	private OverDriveRecordInfo loadOverDriveRecordFromJSON(String libraryName, JSONObject curProduct) throws JSONException {
+	private OverDriveRecordInfo loadOverDriveRecordFromJSON(Long libraryId, JSONObject curProduct) throws JSONException {
 		OverDriveRecordInfo curRecord = new OverDriveRecordInfo();
 		curRecord.setId(curProduct.getString("id"));
 		//logger.debug("Processing overdrive title " + curRecord.getId());
@@ -612,6 +702,7 @@ public class ExtractOverDriveInfo {
 			return null;
 		}
 		curRecord.setTitle(curProduct.getString("title"));
+		curRecord.setCrossRefId(curProduct.getLong("crossRefId"));
 		if (curProduct.has("subtitle")){
 			curRecord.setSubtitle(curProduct.getString("subtitle"));
 		}
@@ -632,7 +723,7 @@ public class ExtractOverDriveInfo {
 			String thumbnailUrl = curProduct.getJSONObject("images").getJSONObject("thumbnail").getString("href");
 			curRecord.setCoverImage(thumbnailUrl);
 		}
-		curRecord.getCollections().add(getLibraryIdForOverDriveAccount(libraryName));
+		curRecord.getCollections().add(libraryId);
 		curRecord.setRawData(curProduct.toString(2));
 		return curRecord;
 	}
@@ -667,7 +758,7 @@ public class ExtractOverDriveInfo {
 			logger.error("Unable to get api key for collection " + firstCollection);
 			results.incErrors();
 		}
-		String url = "http://api.overdrive.com/v1/collections/" + apiKey + "/products/" + overDriveInfo.getId() + "/metadata";
+		String url = "https://api.overdrive.com/v1/collections/" + apiKey + "/products/" + overDriveInfo.getId() + "/metadata";
 		WebServiceResponse metaDataResponse = callOverDriveURL(url);
 		if (metaDataResponse.getResponseCode() != 200){
 			logger.info("Could not load metadata from " + url );
@@ -907,6 +998,289 @@ public class ExtractOverDriveInfo {
 			return updateMetaData;
 		}
 	}
+
+	private void updateOverDriveMetaDataBatch(long libraryId, List<MetaAvailUpdateData> productsToUpdateBatch) throws SocketTimeoutException {
+		if (productsToUpdateBatch.size() == 0){
+			return;
+		}
+		//Check to see if we need to load metadata
+		long curTime = new Date().getTime() / 1000;
+
+		String apiKey = libToOverDriveAPIKeyMap.get(libraryId);
+		String url = "https://api.overdrive.com/v1/collections/" + apiKey + "/bulkmetadata?reserveIds=";
+		ArrayList<MetaAvailUpdateData> productsToUpdateMetadata = new ArrayList<>();
+		for (MetaAvailUpdateData curProduct : productsToUpdateBatch) {
+			if (!curProduct.metadataUpdated) {
+				if (productsToUpdateMetadata.size() >= 1) {
+					url += ",";
+				}
+				url += curProduct.overDriveId;
+				productsToUpdateMetadata.add(curProduct);
+			}
+		}
+
+		if (productsToUpdateMetadata.size() == 0){
+			return;
+		}
+
+		WebServiceResponse metaDataResponse = callOverDriveURL(url);
+		if (metaDataResponse.getResponseCode() != 200){
+			//Doesn't exist in this collection, skip to the next.
+			logger.error("Error " + metaDataResponse.getResponseCode() + " retrieving batch metadata for batch " + url + " " + metaDataResponse.getError());
+		}else{
+			JSONObject bulkResponse = metaDataResponse.getResponse();
+			if (bulkResponse.has("metadata")){
+				try {
+					JSONArray metaDataArray = bulkResponse.getJSONArray("metadata");
+					for (int i = 0; i < metaDataArray.length(); i++) {
+						JSONObject metadata = metaDataArray.getJSONObject(i);
+						//Get the product to update
+						for (MetaAvailUpdateData curProduct : productsToUpdateMetadata){
+							if (metadata.getString("id").equalsIgnoreCase(curProduct.overDriveId)){
+								updateDBMetadataForProduct(curProduct, metadata, curTime);
+								curProduct.metadataUpdated = true;
+								productsToUpdateMetadata.remove(curProduct);
+								break;
+							}
+						}
+
+					}
+				}catch (Exception e){
+					logger.error("Error loading metadata within batch", e);
+				}
+			}
+		}
+	}
+
+	private void updateDBMetadataForProduct(MetaAvailUpdateData updateData, JSONObject metaData, long curTime){
+		OverDriveDBMetaData databaseMetaData = loadMetadataFromDatabase(updateData.databaseId);
+		checksumCalculator.reset();
+		checksumCalculator.update(metaData.toString().getBytes());
+		long metadataChecksum = checksumCalculator.getValue();
+		boolean updateMetaData = false;
+		if (databaseMetaData.getId() == -1 || forceMetaDataUpdate){
+			updateMetaData = true;
+		}else{
+			if (!databaseMetaData.hasRawData()){
+				updateMetaData = true;
+			}else if (metadataChecksum != databaseMetaData.getChecksum()){
+				//The metadata has definitely changed.
+				updateMetaData = true;
+			}else if (updateData.lastMetadataCheck <= curTime - 14 * 24 * 60 * 60){
+				//If it's been two weeks since we last updated, give a 20% chance of updating
+				//Don't update everything at once to spread out the number of calls and reduce time.
+				double randomNumber = Math.random() * 100;
+				if (randomNumber <= 20.0){
+					updateMetaData = true;
+				}
+			}
+		}
+		if (updateMetaData){
+			try {
+				int curCol = 0;
+				PreparedStatement metaDataStatement = addMetaDataStmt;
+				if (databaseMetaData.getId() != -1){
+					metaDataStatement = updateMetaDataStmt;
+				}
+				metaDataStatement.setLong(++curCol, updateData.databaseId);
+				metaDataStatement.setLong(++curCol, metadataChecksum);
+				metaDataStatement.setString(++curCol, metaData.has("sortTitle") ? metaData.getString("sortTitle") : "");
+				metaDataStatement.setString(++curCol, metaData.has("publisher") ? metaData.getString("publisher") : "");
+				//Grab the textual version of publish date rather than the actual date
+				if (metaData.has("publishDateText")){
+					String publishDateText = metaData.getString("publishDateText");
+					if (publishDateText.matches("\\d{2}/\\d{2}/\\d{4}")){
+						publishDateText = publishDateText.substring(6, 10);
+						metaDataStatement.setLong(++curCol, Long.parseLong(publishDateText));
+					}else{
+						metaDataStatement.setNull(++curCol, Types.INTEGER);
+					}
+				}else{
+					metaDataStatement.setNull(++curCol, Types.INTEGER);
+				}
+
+				metaDataStatement.setBoolean(++curCol, metaData.has("isPublicDomain") && metaData.getBoolean("isPublicDomain"));
+				metaDataStatement.setBoolean(++curCol, metaData.has("isPublicPerformanceAllowed") && metaData.getBoolean("isPublicPerformanceAllowed"));
+				metaDataStatement.setString(++curCol, metaData.has("shortDescription") ? metaData.getString("shortDescription") : "");
+				metaDataStatement.setString(++curCol, metaData.has("fullDescription") ? metaData.getString("fullDescription") : "");
+				metaDataStatement.setDouble(++curCol, metaData.has("starRating") ? metaData.getDouble("starRating") : 0);
+				metaDataStatement.setInt(++curCol, metaData.has("popularity") ? metaData.getInt("popularity") : 0);
+				String thumbnail = "";
+				String cover = "";
+				if (metaData.has("images")){
+					JSONObject imagesData = metaData.getJSONObject("images");
+					if (imagesData.has("thumbnail")){
+						thumbnail = imagesData.getJSONObject("thumbnail").getString("href");
+					}
+					if (imagesData.has("cover")){
+						cover = imagesData.getJSONObject("cover").getString("href");
+					}
+				}
+				metaDataStatement.setString(++curCol, thumbnail);
+				metaDataStatement.setString(++curCol, cover);
+				metaDataStatement.setBoolean(++curCol, metaData.has("isOwnedByCollections") && metaData.getBoolean("isOwnedByCollections"));
+				metaDataStatement.setString(++curCol, metaData.toString(2));
+
+				if (databaseMetaData.getId() != -1){
+					metaDataStatement.setLong(++curCol, databaseMetaData.getId());
+				}
+				metaDataStatement.executeUpdate();
+
+				clearCreatorsStmt.setLong(1, updateData.databaseId);
+				clearCreatorsStmt.executeUpdate();
+				if (metaData.has("creators")){
+					JSONArray contributors = metaData.getJSONArray("creators");
+					for (int i = 0; i < contributors.length(); i++){
+						JSONObject contributor = contributors.getJSONObject(i);
+						addCreatorStmt.setLong(1, updateData.databaseId);
+						addCreatorStmt.setString(2, contributor.getString("role"));
+						addCreatorStmt.setString(3, contributor.getString("name"));
+						addCreatorStmt.setString(4, contributor.getString("fileAs"));
+						addCreatorStmt.executeUpdate();
+					}
+				}
+
+				clearLanguageRefStmt.setLong(1, updateData.databaseId);
+				clearLanguageRefStmt.executeUpdate();
+				if (metaData.has("languages")){
+					JSONArray languages = metaData.getJSONArray("languages");
+					for (int i = 0; i < languages.length(); i++){
+						JSONObject language = languages.getJSONObject(i);
+						String code = language.getString("code");
+						long languageId;
+						if (existingLanguageIds.containsKey(code)){
+							languageId = existingLanguageIds.get(code);
+						}else{
+							addLanguageStmt.setString(1, code);
+							addLanguageStmt.setString(2, language.getString("name"));
+							addLanguageStmt.executeUpdate();
+							ResultSet keys = addLanguageStmt.getGeneratedKeys();
+							keys.next();
+							languageId = keys.getLong(1);
+							existingLanguageIds.put(code, languageId);
+						}
+						addLanguageRefStmt.setLong(1, updateData.databaseId);
+						addLanguageRefStmt.setLong(2, languageId);
+						addLanguageRefStmt.executeUpdate();
+					}
+				}
+
+				clearSubjectRefStmt.setLong(1, updateData.databaseId);
+				clearSubjectRefStmt.executeUpdate();
+				if (metaData.has("subjects")){
+					HashSet<String> subjectsProcessed = new HashSet<>();
+					JSONArray subjects = metaData.getJSONArray("subjects");
+					for (int i = 0; i < subjects.length(); i++){
+						JSONObject subject = subjects.getJSONObject(i);
+						String curSubject = subject.getString("value").trim();
+						String lcaseSubject = curSubject.toLowerCase();
+						//First make sure we haven't processed this, htere are a few records where the same subject occurs twice
+						if (subjectsProcessed.contains(lcaseSubject)){
+							continue;
+						}
+						long subjectId;
+						if (existingSubjectIds.containsKey(lcaseSubject)){
+							subjectId = existingSubjectIds.get(lcaseSubject);
+						}else{
+							addSubjectStmt.setString(1, curSubject);
+							addSubjectStmt.executeUpdate();
+							ResultSet keys = addSubjectStmt.getGeneratedKeys();
+							keys.next();
+							subjectId = keys.getLong(1);
+							existingSubjectIds.put(lcaseSubject, subjectId);
+						}
+						addSubjectRefStmt.setLong(1, updateData.databaseId);
+						addSubjectRefStmt.setLong(2, subjectId);
+						addSubjectRefStmt.executeUpdate();
+						subjectsProcessed.add(lcaseSubject);
+					}
+				}
+
+				clearFormatsStmt.setLong(1, updateData.databaseId);
+				clearFormatsStmt.executeUpdate();
+				clearIdentifiersStmt.setLong(1, updateData.databaseId);
+				clearIdentifiersStmt.executeUpdate();
+				if (metaData.has("formats")){
+					JSONArray formats = metaData.getJSONArray("formats");
+					HashSet<String> uniqueIdentifiers = new HashSet<>();
+					for (int i = 0; i < formats.length(); i++){
+						JSONObject format = formats.getJSONObject(i);
+						addFormatStmt.setLong(1, updateData.databaseId);
+						String textFormat = format.getString("id");
+						addFormatStmt.setString(2, textFormat);
+						Long numericFormat = overDriveFormatMap.get(textFormat);
+						if (numericFormat == null){
+							logger.warn("Could not find numeric format for format " + textFormat);
+							results.addNote("Could not find numeric format for format " + textFormat);
+							updateData.hadMetadataErrors = true;
+							System.out.println("Warning: new format for OverDrive found " + textFormat);
+							continue;
+						}
+						addFormatStmt.setLong(3, numericFormat);
+						addFormatStmt.setString(4, format.getString("name"));
+						addFormatStmt.setString(5, format.has("filename") ? format.getString("fileName") : "");
+						addFormatStmt.setLong(6, format.has("fileSize") ? format.getLong("fileSize") : 0L);
+						addFormatStmt.setLong(7, format.has("partCount") ? format.getLong("partCount") : 0L);
+
+						if (format.has("identifiers")){
+							JSONArray identifiers = format.getJSONArray("identifiers");
+							for (int j = 0; j < identifiers.length(); j++){
+								JSONObject identifier = identifiers.getJSONObject(j);
+								uniqueIdentifiers.add(identifier.getString("type") + ":" + identifier.getString("value"));
+							}
+						}
+						//Default samples to null
+						addFormatStmt.setString(8, null);
+						addFormatStmt.setString(9, null);
+						addFormatStmt.setString(10, null);
+						addFormatStmt.setString(11, null);
+
+						if (format.has("samples")){
+							JSONArray samples = format.getJSONArray("samples");
+							for (int j = 0; j < samples.length(); j++){
+								JSONObject sample = samples.getJSONObject(j);
+								if (j == 0){
+									addFormatStmt.setString(8, sample.getString("source"));
+									addFormatStmt.setString(9, sample.getString("url"));
+								}else if (j == 1){
+									addFormatStmt.setString(10, sample.getString("source"));
+									addFormatStmt.setString(11, sample.getString("url"));
+								}
+							}
+						}
+						addFormatStmt.executeUpdate();
+					}
+
+					for (String curIdentifier : uniqueIdentifiers){
+						addIdentifierStmt.setLong(1, updateData.databaseId);
+						String[] identifierInfo = curIdentifier.split(":");
+						addIdentifierStmt.setString(2, identifierInfo[0]);
+						addIdentifierStmt.setString(3, identifierInfo[1]);
+						addIdentifierStmt.executeUpdate();
+					}
+				}
+				results.incMetadataChanges();
+			} catch (Exception e) {
+				logger.info("Error loading meta data for title ", e);
+				results.addNote("Error loading meta data for title " + updateData.overDriveId + " " + e.toString());
+				updateData.hadMetadataErrors = true;
+			}
+		}
+		try {
+			updateProductMetadataStmt.setLong(1, curTime);
+			if (updateMetaData){
+				updateProductMetadataStmt.setLong(2, curTime);
+			}else{
+				updateProductMetadataStmt.setLong(2, updateData.lastMetadataChange);
+			}
+			updateProductMetadataStmt.setLong(3, updateData.databaseId);
+			updateProductMetadataStmt.executeUpdate();
+		} catch (SQLException e) {
+			logger.warn("Error updating product metadata summary ", e);
+			results.addNote("Error updating product metadata summary " + updateData.overDriveId + " " + e.toString());
+			updateData.hadMetadataErrors = true;
+		}
+	}
 	
 	private OverDriveDBMetaData loadMetadataFromDatabase(long databaseId) {
 		OverDriveDBMetaData metaData = new OverDriveDBMetaData();
@@ -935,7 +1309,6 @@ public class ExtractOverDriveInfo {
 		}
 
 		//logger.debug("Loading availability, " + overDriveInfo.getId() + " is in " + overDriveInfo.getCollections().size() + " collections");
-
 		boolean availabilityChanged = false;
 		for (Long curCollection : overDriveInfo.getCollections()){
 			try {
@@ -958,7 +1331,7 @@ public class ExtractOverDriveInfo {
 					results.incErrors();
 					continue;
 				}
-				String url = "http://api.overdrive.com/v1/collections/" + apiKey + "/products/" + overDriveInfo.getId() + "/availability";
+				String url = "https://api.overdrive.com/v2/collections/" + apiKey + "/products/" + overDriveInfo.getId() + "/availability";
 				WebServiceResponse availabilityResponse = callOverDriveURL(url);
 				//404 is a message that availability has been deleted.
 				if (availabilityResponse.getResponseCode() != 200 && availabilityResponse.getResponseCode() != 404){
@@ -978,53 +1351,90 @@ public class ExtractOverDriveInfo {
 					//If availability is null, it isn't available for this collection
 					try {
 						boolean available = availability.has("available") && availability.getString("available").equals("true");
-						int copiesOwned = availability.getInt("copiesOwned");
-						int copiesAvailable;
-						if (availability.has("copiesAvailable")){
-							copiesAvailable = availability.getInt("copiesAvailable");
-						}else{
-							logger.info("copiesAvailable was not provided for collection " + apiKey + " title " + overDriveInfo.getId());
-							copiesAvailable = 0;
+						JSONArray allAccounts = availability.getJSONArray("accounts");
+						JSONObject accountData = null;
+						for (int i = 0; i < allAccounts.length(); i++){
+							accountData = allAccounts.getJSONObject(i);
+							long accountId = accountData.getLong("id");
+							if (curCollection == -1L && accountId == -1L){
+								break;
+							}else if (curCollection != -1L && accountId != -1L){
+								//These don't match because overdrive has it's own number scheme.  There is only one that is not -1 though
+								break;
+							}else{
+								accountData = null;
+							}
 						}
-						int numberOfHolds = availability.getInt("numberOfHolds");
-						String availabilityType = availability.getString("availabilityType");
-						if (hasExistingAvailability){
-							//Check to see if the availability has changed
-							if (available != existingAvailabilityRS.getBoolean("available") || 
-									copiesOwned != existingAvailabilityRS.getInt("copiesOwned") || 
-									copiesAvailable != existingAvailabilityRS.getInt("copiesAvailable") || 
-									numberOfHolds != existingAvailabilityRS.getInt("numberOfHolds") ||
-									!availabilityType.equals(existingAvailabilityRS.getString("availabilityType"))
-									){
-								updateAvailabilityStmt.setBoolean(1, available);
-								updateAvailabilityStmt.setInt(2, copiesOwned);
-								updateAvailabilityStmt.setInt(3, copiesAvailable);
-								updateAvailabilityStmt.setInt(4, numberOfHolds);
-								updateAvailabilityStmt.setString(5, availabilityType);
-								updateAvailabilityStmt.setLong(6, existingAvailabilityRS.getLong("id"));
-								updateAvailabilityStmt.executeUpdate();
+
+						if (accountData != null){
+							int copiesOwned = accountData.getInt("copiesOwned");
+							int copiesAvailable;
+							if (accountData.has("copiesAvailable")) {
+								copiesAvailable = accountData.getInt("copiesAvailable");
+							} else {
+								logger.info("copiesAvailable was not provided for collection " + apiKey + " title " + overDriveInfo.getId());
+								copiesAvailable = 0;
+							}
+							boolean shared = false;
+							if (accountData.has("shared")){
+								shared = accountData.getBoolean("shared");
+							}
+							int numberOfHolds;
+							if (curCollection == -1) {
+								numberOfHolds = availability.getInt("numberOfHolds");
+							}else{
+								numberOfHolds = 0;
+							}
+							String availabilityType = availability.getString("availabilityType");
+							if (hasExistingAvailability) {
+								//Check to see if the availability has changed
+								if (available != existingAvailabilityRS.getBoolean("available") ||
+												copiesOwned != existingAvailabilityRS.getInt("copiesOwned") ||
+												copiesAvailable != existingAvailabilityRS.getInt("copiesAvailable") ||
+												numberOfHolds != existingAvailabilityRS.getInt("numberOfHolds") ||
+												!availabilityType.equals(existingAvailabilityRS.getString("availabilityType"))
+												) {
+									updateAvailabilityStmt.setBoolean(1, available);
+									updateAvailabilityStmt.setInt(2, copiesOwned);
+									updateAvailabilityStmt.setInt(3, copiesAvailable);
+									updateAvailabilityStmt.setInt(4, numberOfHolds);
+									updateAvailabilityStmt.setString(5, availabilityType);
+									long existingId = existingAvailabilityRS.getLong("id");
+									updateAvailabilityStmt.setLong(6, existingId);
+									updateAvailabilityStmt.executeUpdate();
+									availabilityChanged = true;
+								}
+							} else {
+								addAvailabilityStmt.setLong(1, databaseId);
+								addAvailabilityStmt.setLong(2, curCollection);
+								addAvailabilityStmt.setBoolean(3, available);
+								addAvailabilityStmt.setInt(4, copiesOwned);
+								addAvailabilityStmt.setInt(5, copiesAvailable);
+								addAvailabilityStmt.setInt(6, numberOfHolds);
+								addAvailabilityStmt.setString(7, availabilityType);
+								addAvailabilityStmt.executeUpdate();
 								availabilityChanged = true;
 							}
 						}else{
-							addAvailabilityStmt.setLong(1, databaseId);
-							addAvailabilityStmt.setLong(2, curCollection);
-							addAvailabilityStmt.setBoolean(3, available);
-							addAvailabilityStmt.setInt(4, copiesOwned);
-							addAvailabilityStmt.setInt(5, copiesAvailable);
-							addAvailabilityStmt.setInt(6, numberOfHolds);
-							addAvailabilityStmt.setString(7, availabilityType);
-							addAvailabilityStmt.executeUpdate();
-							availabilityChanged = true;
+							if (hasExistingAvailability){
+								//Delete availability from the database if it used to exist since there is none now
+
+								long existingId = existingAvailabilityRS.getLong("id");
+								deleteAvailabilityStmt.setLong(1, existingId);
+								deleteAvailabilityStmt.executeUpdate();
+								availabilityChanged = true;
+							}
 						}
+
 					} catch (JSONException e) {
-						logger.info("Error loading availability for title ", e);
-						results.addNote("Error loading availability for title " + overDriveInfo.getId() + " " + e.toString());
+						logger.info("JSON Error loading availability for title ", e);
+						results.addNote("JSON Error loading availability for title " + overDriveInfo.getId() + " " + e.toString());
 						results.incErrors();
 					}
 				}
 			} catch (SQLException e) {
-				logger.info("Error loading availability for title ", e);
-				results.addNote("Error loading availability for title " + overDriveInfo.getId() + " " + e.toString());
+				logger.info("SQL Error loading availability for title ", e);
+				results.addNote("SQL Error loading availability for title " + overDriveInfo.getId() + " " + e.toString());
 				results.incErrors();
 			}
 		}
@@ -1046,6 +1456,196 @@ public class ExtractOverDriveInfo {
 			results.incErrors();
 		}
 		return availabilityChanged;
+	}
+
+	private void updateOverDriveAvailabilityBatch(long libraryId, List<MetaAvailUpdateData> productsToUpdateBatch) throws SocketTimeoutException {
+		//logger.debug("Loading availability, " + overDriveInfo.getId() + " is in " + overDriveInfo.getCollections().size() + " collections");
+		long curTime = new Date().getTime() / 1000;
+		String apiKey;
+		apiKey = libToOverDriveAPIKeyMap.get(libraryId);
+		String url = "https://api.overdrive.com/v2/collections/" + apiKey + "/availability?products=";
+		int numAdded = 0;
+		ArrayList<MetaAvailUpdateData> productsToUpdateClone = new ArrayList<>();
+		productsToUpdateClone.addAll(productsToUpdateBatch);
+		for (MetaAvailUpdateData curProduct : productsToUpdateBatch){
+			if (numAdded > 0){
+				url += ",";
+			}
+			url += curProduct.crossRefId;
+			numAdded++;
+		}
+
+		int numTries = 0;
+		WebServiceResponse availabilityResponse = null;
+		while (numTries < 3){
+			try{
+				availabilityResponse = callOverDriveURL(url);
+				break;
+			}catch (SocketTimeoutException e){
+				numTries++;
+			}
+		}
+
+		if (availabilityResponse == null || availabilityResponse.getResponseCode() != 200){
+			//Doesn't exist in this collection, skip to the next.
+			logger.error("Did not get availability (" + availabilityResponse.getResponseCode() + ") for batch " + url);
+			for (MetaAvailUpdateData curProduct : productsToUpdateClone){
+				curProduct.hadAvailabilityErrors = true;
+			}
+		}else{
+			JSONObject bulkResponse = availabilityResponse.getResponse();
+			if (bulkResponse.has("availability")){
+				try {
+					JSONArray availabilityArray = bulkResponse.getJSONArray("availability");
+					for (int i = 0; i < availabilityArray.length(); i++) {
+						JSONObject availability = availabilityArray.getJSONObject(i);
+						//Get the product to update
+						for (MetaAvailUpdateData curProduct : productsToUpdateClone){
+							if (availability.getLong("titleId") == curProduct.crossRefId){
+								updateDBAvailabilityForProduct(libraryId, curProduct, availability, curTime);
+								productsToUpdateClone.remove(curProduct);
+								break;
+							}
+						}
+					}
+
+					//Anything that is still left should have availability removed from the database
+					for (MetaAvailUpdateData curProduct : productsToUpdateClone){
+						checkForExistingAvailabilityStmt.setLong(1, curProduct.databaseId);
+						checkForExistingAvailabilityStmt.setLong(2, libraryId);
+						ResultSet existingAvailabilityRS = checkForExistingAvailabilityStmt.executeQuery();
+						boolean hasExistingAvailability = existingAvailabilityRS.next();
+						if (hasExistingAvailability){
+							deleteAvailabilityStmt.setLong(1, existingAvailabilityRS.getLong("id"));
+							deleteAvailabilityStmt.executeUpdate();
+						}
+					}
+				}catch (Exception e){
+					logger.error("Error loading availability within batch", e);
+				}
+			}
+		}
+	}
+
+	private void updateDBAvailabilityForProduct(long libraryId, MetaAvailUpdateData curProduct, JSONObject availability, long curTime){
+		boolean availabilityChanged = false;
+		try {
+			//Get existing availability
+			checkForExistingAvailabilityStmt.setLong(1, curProduct.databaseId);
+			checkForExistingAvailabilityStmt.setLong(2, libraryId);
+
+			ResultSet existingAvailabilityRS = checkForExistingAvailabilityStmt.executeQuery();
+			boolean hasExistingAvailability = existingAvailabilityRS.next();
+
+			//If availability is null, it isn't available for this collection
+			try {
+				boolean available = availability.has("available") && availability.getString("available").equals("true");
+				JSONArray allAccounts = availability.getJSONArray("accounts");
+				JSONObject accountData = null;
+				for (int i = 0; i < allAccounts.length(); i++) {
+					accountData = allAccounts.getJSONObject(i);
+					long accountId = accountData.getLong("id");
+					if (libraryId == -1L && accountId == -1L) {
+						break;
+					} else if (libraryId != -1L && accountId != -1L) {
+						//These don't match because overdrive has it's own number scheme.  There is only one that is not -1 though
+						break;
+					} else {
+						accountData = null;
+					}
+				}
+
+				if (accountData != null) {
+					int copiesOwned = accountData.getInt("copiesOwned");
+					int copiesAvailable;
+					if (accountData.has("copiesAvailable")) {
+						copiesAvailable = accountData.getInt("copiesAvailable");
+					} else {
+						logger.info("copiesAvailable was not provided for library " + libraryId + " title " + curProduct.overDriveId);
+						copiesAvailable = 0;
+					}
+					boolean shared = false;
+					if (accountData.has("shared")) {
+						shared = accountData.getBoolean("shared");
+					}
+					int numberOfHolds;
+					if (libraryId == -1) {
+						numberOfHolds = availability.getInt("numberOfHolds");
+					} else {
+						numberOfHolds = 0;
+					}
+					String availabilityType = availability.getString("availabilityType");
+					if (hasExistingAvailability) {
+						//Check to see if the availability has changed
+						if (available != existingAvailabilityRS.getBoolean("available") ||
+										copiesOwned != existingAvailabilityRS.getInt("copiesOwned") ||
+										copiesAvailable != existingAvailabilityRS.getInt("copiesAvailable") ||
+										numberOfHolds != existingAvailabilityRS.getInt("numberOfHolds") ||
+										!availabilityType.equals(existingAvailabilityRS.getString("availabilityType"))
+										) {
+							updateAvailabilityStmt.setBoolean(1, available);
+							updateAvailabilityStmt.setInt(2, copiesOwned);
+							updateAvailabilityStmt.setInt(3, copiesAvailable);
+							updateAvailabilityStmt.setInt(4, numberOfHolds);
+							updateAvailabilityStmt.setString(5, availabilityType);
+							long existingId = existingAvailabilityRS.getLong("id");
+							updateAvailabilityStmt.setLong(6, existingId);
+							updateAvailabilityStmt.executeUpdate();
+							availabilityChanged = true;
+						}
+					} else {
+						addAvailabilityStmt.setLong(1, curProduct.databaseId);
+						addAvailabilityStmt.setLong(2, libraryId);
+						addAvailabilityStmt.setBoolean(3, available);
+						addAvailabilityStmt.setInt(4, copiesOwned);
+						addAvailabilityStmt.setInt(5, copiesAvailable);
+						addAvailabilityStmt.setInt(6, numberOfHolds);
+						addAvailabilityStmt.setString(7, availabilityType);
+						addAvailabilityStmt.executeUpdate();
+						availabilityChanged = true;
+					}
+				} else {
+					if (hasExistingAvailability) {
+						//Delete availability from the database if it used to exist since there is none now
+
+						long existingId = existingAvailabilityRS.getLong("id");
+						deleteAvailabilityStmt.setLong(1, existingId);
+						deleteAvailabilityStmt.executeUpdate();
+						availabilityChanged = true;
+					}
+				}
+
+			} catch (JSONException e) {
+				logger.info("Error loading availability for title ", e);
+				results.addNote("Error loading availability for title " + curProduct.overDriveId + " " + e.toString());
+				results.incErrors();
+				curProduct.hadAvailabilityErrors = true;
+			}
+		} catch (SQLException e) {
+			logger.info("Error loading availability for title ", e);
+			results.addNote("Error loading availability for title " + curProduct.overDriveId + " " + e.toString());
+			results.incErrors();
+			curProduct.hadAvailabilityErrors = true;
+		}
+
+		//Update the product to indicate that we checked availability
+		try {
+			updateProductAvailabilityStmt.setLong(1, curTime);
+			if (availabilityChanged){
+				updateProductAvailabilityStmt.setLong(2, curTime);
+				results.incAvailabilityChanges();
+				results.saveResults();
+			}else{
+				updateProductAvailabilityStmt.setLong(2, curProduct.lastAvailabilityChange);
+			}
+			updateProductAvailabilityStmt.setLong(3, curProduct.databaseId);
+			updateProductAvailabilityStmt.executeUpdate();
+		} catch (SQLException e) {
+			logger.warn("Error updating product availability status ", e);
+			results.addNote("Error updating product availability status " + curProduct.overDriveId + " " + e.toString());
+			results.incErrors();
+			curProduct.hadAvailabilityErrors = true;
+		}
 	}
 	
 	private WebServiceResponse callOverDriveURL(String overdriveUrl) throws SocketTimeoutException {
@@ -1096,9 +1696,9 @@ public class ExtractOverDriveInfo {
 					while ((line = rd.readLine()) != null) {
 						response.append(line);
 					}
-					logger.info("Received error " + conn.getResponseCode() + " connecting to overdrive API " + response.toString());
-					logger.debug("  Finished reading response");
-					logger.debug(response.toString());
+					//logger.info("Received error " + conn.getResponseCode() + " connecting to overdrive API " + response.toString());
+					//logger.debug("  Finished reading response");
+					//logger.debug(response.toString());
 					webServiceResponse.setError(response.toString());
 
 					rd.close();

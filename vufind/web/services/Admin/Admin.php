@@ -20,15 +20,12 @@
 
 require_once ROOT_DIR . '/Action.php';
 
-abstract class Admin_Admin extends Action
-{
+abstract class Admin_Admin extends Action {
 	protected $db;
 
-	function __construct()
-	{
-		global $interface;
+	function __construct() {
 		global $configArray;
-		global $user;
+		$user = UserAccount::getLoggedInUser();
 
 		//If the user isn't logged in, take them to the login page
 		if (!$user){
@@ -40,7 +37,7 @@ abstract class Admin_Admin extends Action
 		$allowableRoles = $this->getAllowableRoles();
 		$userCanAccess = false;
 		foreach($allowableRoles as $roleId => $roleName){
-			if ($user->hasRole($roleName)){
+			if (UserAccount::userHasRole($roleName)){
 				$userCanAccess = true;
 				break;
 			}

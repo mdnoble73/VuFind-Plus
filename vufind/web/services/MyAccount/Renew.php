@@ -26,7 +26,6 @@ class Renew extends Action
 	function launch()
 	{
 		global $configArray;
-		global $user;
 		global $logger;
 		$logger->log("Starting renew action", PEAR_LOG_INFO);
 

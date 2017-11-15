@@ -29,7 +29,6 @@ class RenewMultiple extends Action
 	{
 
 		global $configArray;
-		global $user;
 
 		try {
 			$this->catalog = CatalogFactory::getCatalogConnectionInstance();;

@@ -10,7 +10,7 @@ class OverDrive_AJAX extends Action {
 		global $analytics;
 		$analytics->disableTracking();
 		$method = $_GET['method'];
-		if (in_array($method, array('CheckoutOverDriveItem', 'PlaceOverDriveHold', 'CancelOverDriveHold', 'GetOverDriveHoldPrompts', 'ReturnOverDriveItem', 'SelectOverDriveDownloadFormat', 'GetDownloadLink', 'GetOverDriveCheckoutPrompts'))){
+		if (in_array($method, array('CheckoutOverDriveItem', 'PlaceOverDriveHold', 'CancelOverDriveHold', 'GetOverDriveHoldPrompts', 'ReturnOverDriveItem', 'SelectOverDriveDownloadFormat', 'GetDownloadLink', 'GetOverDriveCheckoutPrompts', 'forceUpdateFromAPI'))){
 			header('Content-type: text/plain');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
@@ -33,8 +33,30 @@ class OverDrive_AJAX extends Action {
 		}
 	}
 
+	function forceUpdateFromAPI(){
+		require_once ROOT_DIR . '/sys/OverDrive/OverDriveAPIProduct.php';
+		$id = $_REQUEST['id'];
+		$overDriveProduct = new OverDriveAPIProduct();
+		$overDriveProduct->overdriveId = $id;
+		if ($overDriveProduct->find(true)){
+			if ($overDriveProduct->needsUpdate == true){
+				return json_encode(array('success' => true, 'message' => 'This title was already marked to be updated from the API again the next time the extract is run.'));
+			}
+			$overDriveProduct->needsUpdate = true;
+			$numRows = $overDriveProduct->update();
+			if ($numRows == 1){
+				return json_encode(array('success' => true, 'message' => 'This title will be updated from the API again the next time the extract is run.'));
+			}else{
+				return json_encode(array('success' => false, 'message' => 'Unable to mark the title for needing update. Could not update the title.'));
+			}
+		}else{
+
+			return json_encode(array('success' => false, 'message' => 'Unable to mark the title for needing update. Could not find the title.'));
+		}
+	}
+
 	function PlaceOverDriveHold(){
-		global $user;
+		$user = UserAccount::getLoggedInUser();
 
 		$overDriveId = $_REQUEST['overDriveId'];
 		if ($user){
@@ -65,7 +87,7 @@ class OverDrive_AJAX extends Action {
 	}
 
 	function CheckoutOverDriveItem(){
-		global $user;
+		$user = UserAccount::getLoggedInUser();
 		$overDriveId = $_REQUEST['overDriveId'];
 		//global $logger;
 		//$logger->log("Lending period = $lendingPeriod", PEAR_LOG_INFO);
@@ -87,7 +109,7 @@ class OverDrive_AJAX extends Action {
 	}
 
 	function ReturnOverDriveItem(){
-		global $user;
+		$user = UserAccount::getLoggedInUser();
 		$overDriveId = $_REQUEST['overDriveId'];
 		$transactionId = $_REQUEST['transactionId'];
 		if ($user){
@@ -108,7 +130,7 @@ class OverDrive_AJAX extends Action {
 	}
 
 	function SelectOverDriveDownloadFormat(){
-		global $user;
+		$user = UserAccount::getLoggedInUser();
 		$overDriveId = $_REQUEST['overDriveId'];
 		$formatId = $_REQUEST['formatId'];
 		if ($user){
@@ -129,7 +151,7 @@ class OverDrive_AJAX extends Action {
 	}
 
 	function GetDownloadLink(){
-		global $user;
+		$user = UserAccount::getLoggedInUser();
 		$overDriveId = $_REQUEST['overDriveId'];
 		$formatId = $_REQUEST['formatId'];
 		if ($user){
@@ -150,7 +172,7 @@ class OverDrive_AJAX extends Action {
 	}
 
 	function GetOverDriveHoldPrompts(){
-		global $user;
+		$user = UserAccount::getLoggedInUser();
 		global $interface;
 		$id = $_REQUEST['id'];
 		$interface->assign('overDriveId', $id);
@@ -193,7 +215,7 @@ class OverDrive_AJAX extends Action {
 	}
 
 	function GetOverDriveCheckoutPrompts(){
-		global $user;
+		$user = UserAccount::getLoggedInUser();
 		global $interface;
 		$id = $_REQUEST['id'];
 		$interface->assign('overDriveId', $id);
@@ -235,7 +257,7 @@ class OverDrive_AJAX extends Action {
 	}
 
 	function CancelOverDriveHold(){
-		global $user;
+		$user = UserAccount::getLoggedInUser();
 		$overDriveId = $_REQUEST['overDriveId'];
 		if ($user){
 			$patronId = $_REQUEST['patronId'];

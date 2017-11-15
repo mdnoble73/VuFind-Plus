@@ -25,7 +25,7 @@ require_once ROOT_DIR . '/sys/LibraryLink.php';
 
 class Admin_LibraryLinks extends ObjectEditor
 {
-	
+
 	function getObjectType(){
 		return 'LibraryLink';
 	}
@@ -37,12 +37,12 @@ class Admin_LibraryLinks extends ObjectEditor
 	}
 	function getAllObjects(){
 		//Look lookup information for display in the user interface
-		global $user;
+		$user = UserAccount::getLoggedInUser();
 
 		$object = new LibraryLink();
 		$location = new Location();
 		$location->orderBy('displayName');
-		if (!$user->hasRole('opacAdmin')){
+		if (!UserAccount::userHasRole('opacAdmin')){
 			//Scope to just locations for the user based on home library
 			$patronLibrary = Library::getLibraryForLocation($user->homeLocationId);
 			$object->libraryId = $patronLibrary->libraryId;

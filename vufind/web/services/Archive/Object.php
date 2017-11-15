@@ -30,7 +30,6 @@ abstract class Archive_Object extends Action {
 	 */
 	function display($mainContentTemplate, $pageTitle = null) {
 		global $interface;
-		global $user;
 		global $logger;
 
 		$pageTitle = $pageTitle == null ? $this->archiveObject->label : $pageTitle;
@@ -62,6 +61,7 @@ abstract class Archive_Object extends Action {
 			$canView = false;
 			$validHomeLibraries = array();
 
+			$user = UserAccount::getLoggedInUser();
 			if ($user && $user->getHomeLibrary()){
 				$validHomeLibraries[] = $user->getHomeLibrary()->subdomain;
 				$linkedAccounts = $user->getLinkedUsers();

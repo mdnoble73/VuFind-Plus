@@ -13,7 +13,7 @@
 
 		<div class="row">
 			<div class="col-xs-4 col-sm-5 col-md-4 col-lg-3 text-center">
-				{if $user->disableCoverArt != 1}
+				{if $disableCoverArt != 1}
 					<div id="recordcover" class="text-center row">
 						<img alt="{translate text='Book Cover'}" class="img-thumbnail" src="{$recordDriver->getBookcoverUrl('medium')}">
 					</div>
@@ -126,7 +126,7 @@
 
 				{if $showLexileInfo && $summLexileInfo}
 					<div class="row">
-						<div class="result-label col-tn-3">Lexile Score: </div>
+						<div class="result-label col-tn-3">{translate text='Lexile measure'}: </div>
 						<div class="result-value col-tn-9">
 							{$summLexileInfo}
 						</div>

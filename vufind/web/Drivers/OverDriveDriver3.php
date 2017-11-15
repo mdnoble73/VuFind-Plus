@@ -87,9 +87,11 @@ class OverDriveDriver3 {
 	private function _connectToPatronAPI($user, $patronBarcode, $patronPin, $forceNewConnection = false){
 		/** @var Memcache $memCache */
 		global $memCache;
+		global $timer;
 		$patronTokenData = $memCache->get('overdrive_patron_token_' . $patronBarcode);
 		if ($forceNewConnection || $patronTokenData == false){
 			$tokenData = $this->_connectToAPI($forceNewConnection);
+			$timer->logTime("Connected to OverDrive API");
 			if ($tokenData){
 				global $configArray;
 				$ch = curl_init("https://oauth-patron.overdrive.com/patrontoken");
@@ -139,8 +141,10 @@ class OverDriveDriver3 {
 
 				$return = curl_exec($ch);
 				$curlInfo = curl_getinfo($ch);
+				$timer->logTime("Logged $patronBarcode into OverDrive API");
 				curl_close($ch);
 				$patronTokenData = json_decode($return);
+				$timer->logTime("Decoded return for login of $patronBarcode into OverDrive API");
 				if ($patronTokenData){
 					if (isset($patronTokenData->error)){
 						if ($patronTokenData->error == 'unauthorized_client'){ // login failure
@@ -155,7 +159,6 @@ class OverDriveDriver3 {
 						if (property_exists($patronTokenData, 'expires_in')){
 							$memCache->set('overdrive_patron_token_' . $patronBarcode, $patronTokenData, 0, $patronTokenData->expires_in - 10);
 						}
-
 					}
 				}
 			}else{
@@ -349,25 +352,28 @@ class OverDriveDriver3 {
 	public function getLibraryAccountInformation(){
 		global $configArray;
 		$libraryId = $configArray['OverDrive']['accountId'];
-		return $this->_callUrl("http://api.overdrive.com/v1/libraries/$libraryId");
-//		return $this->_callUrl("https://api.overdrive.com/v1/libraries/$libraryId");
+		return $this->_callUrl("https://api.overdrive.com/v1/libraries/$libraryId");
 	}
 
 	public function getAdvantageAccountInformation(){
 		global $configArray;
 		$libraryId = $configArray['OverDrive']['accountId'];
-		return $this->_callUrl("http://api.overdrive.com/v1/libraries/$libraryId/advantageAccounts");
-//		return $this->_callUrl("https://api.overdrive.com/v1/libraries/$libraryId/advantageAccounts");
+		return $this->_callUrl("https://api.overdrive.com/v1/libraries/$libraryId/advantageAccounts");
 	}
 
 	public function getProductsInAccount($productsUrl = null, $start = 0, $limit = 25){
 		global $configArray;
 		if ($productsUrl == null){
 			$libraryId = $configArray['OverDrive']['accountId'];
-			$productsUrl = "http://api.overdrive.com/v1/collections/$libraryId/products";
-//			$productsUrl = "https://api.overdrive.com/v1/collections/$libraryId/products";
+			$productsUrl = "https://api.overdrive.com/v1/collections/$libraryId/products";
 		}
 		$productsUrl .= "?offset=$start&limit=$limit";
+		return $this->_callUrl($productsUrl);
+	}
+
+	public function getProductById($overDriveId, $productsKey = null){
+		$productsUrl = "https://api.overdrive.com/v1/collections/$productsKey/products";
+		$productsUrl .= "?crossRefId=$overDriveId";
 		return $this->_callUrl($productsUrl);
 	}
 
@@ -377,8 +383,7 @@ class OverDriveDriver3 {
 			$productsKey = $configArray['OverDrive']['productsKey'];
 		}
 		$overDriveId= strtoupper($overDriveId);
-		$metadataUrl = "http://api.overdrive.com/v1/collections/$productsKey/products/$overDriveId/metadata";
-//		$metadataUrl = "https://api.overdrive.com/v1/collections/$productsKey/products/$overDriveId/metadata";
+		$metadataUrl = "https://api.overdrive.com/v1/collections/$productsKey/products/$overDriveId/metadata";
 		//echo($metadataUrl);
 		return $this->_callUrl($metadataUrl);
 	}
@@ -388,8 +393,7 @@ class OverDriveDriver3 {
 		if ($productsKey == null){
 			$productsKey = $configArray['OverDrive']['productsKey'];
 		}
-		$availabilityUrl = "http://api.overdrive.com/v1/collections/$productsKey/products/$overDriveId/availability";
-//		$availabilityUrl = "https://api.overdrive.com/v1/collections/$productsKey/products/$overDriveId/availability";
+		$availabilityUrl = "https://api.overdrive.com/v2/collections/$productsKey/products/$overDriveId/availability";
 		//print_r($availabilityUrl);
 		return $this->_callUrl($availabilityUrl);
 	}
@@ -900,6 +904,7 @@ class OverDriveDriver3 {
 	 */
 	public function isUserValidForOverDrive($user){
 		global $configArray;
+		global $timer;
 		$barcodeProperty = $configArray['Catalog']['barcodeProperty'];
 		$userBarcode = $user->getBarcode();
 		if ($this->getRequirePin($user)){
@@ -910,6 +915,7 @@ class OverDriveDriver3 {
 		}else{
 			$tokenData = $this->_connectToPatronAPI($user, $userBarcode, null, false);
 		}
+		$timer->logTime("Checked to see if the user $userBarcode is valid for OverDrive");
 		return ($tokenData !== false) && ($tokenData !== null) && !array_key_exists('error', $tokenData);
 	}
 

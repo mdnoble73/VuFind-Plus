@@ -22,10 +22,10 @@ class MaterialsRequestStatus extends DB_DataObject {
 	}
 
 	function getObjectStructure(){
-		global $user;
 		$library = new Library();
 		$library->orderBy('displayName');
-		if ($user->hasRole('library_material_requests')){
+		$user = UserAccount::getLoggedInUser();
+		if (UserAccount::userHasRole('library_material_requests')){
 			$homeLibrary = Library::getPatronHomeLibrary();
 			$library->libraryId = $homeLibrary->libraryId;
 		}else{

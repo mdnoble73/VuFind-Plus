@@ -12,12 +12,11 @@ require_once ROOT_DIR . '/services/Archive/Object.php';
 class DownloadOriginal extends Archive_Object{
 	function launch(){
 		global $interface;
-		global $user;
 		$this->loadArchiveObjectData();
 		$anonymousMasterDownload = $interface->getVariable('anonymousMasterDownload');
 		$verifiedMasterDownload = $interface->getVariable('verifiedMasterDownload');
 
-		if ($anonymousMasterDownload || ($user && $verifiedMasterDownload)){
+		if ($anonymousMasterDownload || (UserAccount::isLoggedIn() && $verifiedMasterDownload)){
 			$expires = 60*60*24*14;  //expire the cover in 2 weeks on the client side
 			header("Cache-Control: maxage=".$expires);
 			header('Expires: ' . gmdate('D, d M Y H:i:s', time()+$expires) . ' GMT');

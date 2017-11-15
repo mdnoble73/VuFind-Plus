@@ -384,11 +384,40 @@ class Archive_AJAX extends Action {
 			require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
 			$fedoraUtils = FedoraUtils::getInstance();
 			$pid = urldecode($_REQUEST['collectionId']);
+			/** @var IslandoraDriver $collectionDriver */
+			$collectionDriver = RecordDriverFactory::initIslandoraDriverFromPid($pid);
 			$interface->assign('exhibitPid', $pid);
 			if (isset($_REQUEST['reloadHeader'])){
 				$interface->assign('reloadHeader', $_REQUEST['reloadHeader']);
 			}else{
 				$interface->assign('reloadHeader', '1');
+			}
+
+			$additionalCollections = array();
+			if ($collectionDriver->getModsValue('pikaCollectionDisplay', 'marmot') == 'custom'){
+				//Load the options to show
+				$collectionOptionsOriginalRaw = $collectionDriver->getModsValue('collectionOptions', 'marmot');
+				$collectionOptionsOriginal = explode("\r\n", html_entity_decode($collectionOptionsOriginalRaw));
+				$additionalCollections = array();
+				if (isset($collectionOptionsOriginal)){
+					foreach ($collectionOptionsOriginal as $collectionOption){
+						if (strpos($collectionOption, 'googleMap') === 0){
+							$filterOptions = explode('|', $collectionOption);
+							if (count($filterOptions) > 1){
+								$additionalCollections = explode(',', $filterOptions[1]);
+								break;
+							}
+						}
+					}
+				}
+			}
+
+			if (isset($_REQUEST['showTimeline']) && $_REQUEST['showTimeline'] != 'undefined'){
+				$interface->assign('showTimeline', $_REQUEST['showTimeline']);
+				$showTimeline = $_REQUEST['showTimeline'] == 'true';
+			}else{
+				$interface->assign('showTimeline', true);
+				$showTimeline = true;
 			}
 
 			$placeId = urldecode($_REQUEST['placeId']);
@@ -402,7 +431,11 @@ class Archive_AJAX extends Action {
 			$_SESSION['placeLabel'] = $placeObject->label;
 			$logger->log("Setting place label for context $placeObject->label", PEAR_LOG_DEBUG);
 
-			$interface->assign('displayType', 'map');
+			if ($showTimeline){
+				$interface->assign('displayType', 'map');
+			}else{
+				$interface->assign('displayType', 'mapNoTimeline');
+			}
 
 			$interface->assign('label', $placeObject->label);
 
@@ -423,7 +456,15 @@ class Archive_AJAX extends Action {
 			$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
 			$searchObject->addHiddenFilter('!RELS_EXT_isConstituentOf_uri_ms', "*");
 			$searchObject->clearFilters();
-			$searchObject->addFilter("RELS_EXT_isMemberOfCollection_uri_ms:\"info:fedora/{$pid}\"");
+			if (isset($additionalCollections) && count($additionalCollections > 0)){
+				$filter = "RELS_EXT_isMemberOfCollection_uri_ms:\"info:fedora/{$pid}\"";
+				foreach ($additionalCollections as $collection){
+					$filter .= " OR RELS_EXT_isMemberOfCollection_uri_ms:\"info:fedora/" . trim($collection) . "\"";
+				}
+				$searchObject->addFilter($filter);
+			}else{
+				$searchObject->addFilter("RELS_EXT_isMemberOfCollection_uri_ms:\"info:fedora/{$pid}\"");
+			}
 			$searchObject->setBasicQuery("mods_extension_marmotLocal_relatedEntity_place_entityPid_ms:\"{$placeId}\" OR " .
 					"mods_extension_marmotLocal_relatedPlace_entityPlace_entityPid_ms:\"{$placeId}\" OR " .
 					"mods_extension_marmotLocal_militaryService_militaryRecord_relatedPlace_entityPlace_entityPid_ms:\"{$placeId}\" OR " .
@@ -432,7 +473,9 @@ class Archive_AJAX extends Action {
 			);
 
 			$searchObject->clearFacets();
-			$this->setupTimelineFacetsAndFilters($searchObject);
+			if ($showTimeline) {
+				$this->setupTimelineFacetsAndFilters($searchObject);
+			}
 			$this->setupTimelineSorts($sort, $searchObject);
 			$interface->assign('showThumbnailsSorted', true);
 
@@ -484,7 +527,9 @@ class Archive_AJAX extends Action {
 						$timer->logTime('Loaded related object');
 					}
 				}
-				$this->processTimelineData($response, $interface);
+				if ($showTimeline){
+					$this->processTimelineData($response, $interface);
+				}
 			}
 
 			$interface->assign('relatedObjects', $relatedObjects);
@@ -854,7 +899,6 @@ class Archive_AJAX extends Action {
 
 	function getSaveToListForm(){
 		global $interface;
-		global $user;
 
 		$id = $_REQUEST['id'];
 		$interface->assign('id', $id);
@@ -866,7 +910,7 @@ class Archive_AJAX extends Action {
 		$nonContainingLists = array();
 
 		$userLists = new UserList();
-		$userLists->user_id = $user->id;
+		$userLists->user_id = UserAccount::getActiveUserId();
 		$userLists->deleted = 0;
 		$userLists->orderBy('title');
 		$userLists->find();
@@ -902,8 +946,7 @@ class Archive_AJAX extends Action {
 	function saveToList(){
 		$result = array();
 
-		global $user;
-		if ($user === false) {
+		if (!UserAccount::isLoggedIn()) {
 			$result['success'] = false;
 			$result['message'] = 'Please login before adding a title to list.';
 		}else{
@@ -919,7 +962,7 @@ class Archive_AJAX extends Action {
 			$listOk = true;
 			if (empty($listId)){
 				$userList->title = "My Favorites";
-				$userList->user_id = $user->id;
+				$userList->user_id = UserAccount::getActiveUserId();
 				$userList->public = 0;
 				$userList->description = '';
 				$userList->insert();
@@ -1089,6 +1132,8 @@ class Archive_AJAX extends Action {
 		}
 		$id = $_REQUEST['id'];
 
+		$mainCacheCleared = false;
+		$cacheMessage = '';
 		require_once ROOT_DIR . '/sys/Islandora/IslandoraObjectCache.php';
 		$objectCache = new IslandoraObjectCache();
 		$objectCache->pid = $id;
@@ -1097,22 +1142,35 @@ class Archive_AJAX extends Action {
 				/** @var Memcache $memCache */
 				global $memCache;
 				$memCache->delete('islandora_object_valid_in_pika_' . $id);
+				$mainCacheCleared = true;
 
-				return array(
-						'success' => false,
-						'message' => 'Cached data was removed for this object.'
-				);
 			}else{
-				return array(
-						'success' => false,
-						'message' => 'Could not delete cached data.'
-				);
+				$cacheMessage = 'Could not delete cached data.<br/>';
 			}
 		}else{
-			return array(
-					'success' => false,
-					'message' => 'Cached data does not exist for that id.'
-			);
+			$mainCacheCleared = true;
+			$cacheMessage = 'Cached data does not exist for that id.<br/>';
 		}
+
+		$samePikaCleared = false;
+		require_once ROOT_DIR . '/sys/Islandora/IslandoraSamePikaCache.php';
+		//Check for cached links
+		$samePikaCache = new IslandoraSamePikaCache();
+		$samePikaCache->pid = $id;
+		if ($samePikaCache->find(true)){
+			if ($samePikaCache->delete()){
+				$samePikaCleared = true;
+			}else{
+				$cacheMessage .= 'Could not delete same pika cache';
+			}
+
+		}else{
+			$cacheMessage .= 'Data not cached for same pika link';
+		}
+
+		return array(
+				'success' => $mainCacheCleared || $samePikaCleared,
+				'message' => $cacheMessage
+		);
 	}
 }

@@ -168,34 +168,6 @@ class Solr implements IndexEngine {
 
 		$this->host = $host . '/' . $index;
 
-		/** @var Memcache $memCache */
-		global $memCache;
-		if ($memCache){
-			$pingDone = $memCache->get('solr_ping');
-		}else{
-			$pingDone = false;
-		}
-		if ($pingDone == false){
-			// Test to see solr is online
-			$test_url = $this->host . "/admin/ping";
-			$test_client = new Proxy_Request();
-			$test_client->setMethod(HTTP_REQUEST_METHOD_GET);
-			$test_client->setURL($test_url);
-			$result = $test_client->sendRequest();
-			if (!PEAR_Singleton::isError($result)) {
-				// Even if we get a response, make sure it's a 'good' one.
-				if ($test_client->getResponseCode() != 200) {
-					PEAR_Singleton::raiseError('Solr index is offline.');
-				}
-			} else {
-				PEAR_Singleton::raiseError($result);
-			}
-			if ($memCache){
-				$memCache->set('solr_ping', true, 0, $configArray['Caching']['solr_ping']);
-			}
-			$timer->logTime('Ping Solr instance');
-		}
-
 		// If we're still processing then solr is online
 		$this->client = new Proxy_Request(null, array('useBrackets' => false));
 
@@ -237,6 +209,77 @@ class Solr implements IndexEngine {
 	{
 		$this->client->disconnect();
 		$this->client = null;
+	}
+
+	private static $serversPinged = array();
+	public function pingServer($failOnError = true){
+		/** @var Memcache $memCache */
+		global $memCache;
+		global $timer;
+		global $configArray;
+		global $logger;
+		$hostEscaped = preg_replace('[\W]', '_', $this->host);
+		if (array_key_exists($this->host, Solr::$serversPinged)){
+			//$logger->log("Pinging solr has already been done this page load", PEAR_LOG_DEBUG);
+			return Solr::$serversPinged[$this->host];
+		}
+		if ($memCache){
+
+			$pingDone = $memCache->get('solr_ping_' . $hostEscaped);
+			if ($pingDone != null){
+				//$logger->log("Not pinging solr {$this->host} because we have a cached ping $pingDone", PEAR_LOG_DEBUG);
+				Solr::$serversPinged[$this->host] = $pingDone;
+				return Solr::$serversPinged[$this->host];
+			}else{
+				$pingDone = false;
+			}
+		}else{
+			$pingDone = false;
+			//$logger->log("Pinging solr because memcache has not been initialized", PEAR_LOG_DEBUG);
+		}
+
+		if ($pingDone == false){
+
+			//$logger->log("Pinging solr server {$this->host} $hostEscaped", PEAR_LOG_DEBUG);
+			// Test to see solr is online
+			$test_url = $this->host . "/admin/ping";
+			$test_client = new Proxy_Request('', array('timeout' => 2, 'read_timeout' => 1));
+			$test_client->setMethod(HTTP_REQUEST_METHOD_GET);
+			$test_client->setURL($test_url);
+			$result = $test_client->sendRequest();
+			if (!PEAR_Singleton::isError($result)) {
+				// Even if we get a response, make sure it's a 'good' one.
+				if ($test_client->getResponseCode() != 200) {
+					$pingResult = 'false';
+					Solr::$serversPinged[$this->host] = false;
+					if ($failOnError){
+						PEAR_Singleton::raiseError('Solr index is offline.');
+					}else{
+						$logger->log("Ping of {$this->host} failed", PEAR_LOG_DEBUG);
+						return false;
+					}
+				}else{
+					$pingResult = 'true';
+				}
+			} else {
+				$pingResult = 'false';
+				Solr::$serversPinged[$this->host] = false;
+				if ($failOnError){
+					PEAR_Singleton::raiseError($result);
+				}else{
+					$logger->log("Ping of {$this->host} failed", PEAR_LOG_DEBUG);
+					return false;
+				}
+			}
+			if ($memCache){
+				$memCache->set('solr_ping_' . $hostEscaped, $pingResult, 0, $configArray['Caching']['solr_ping']);
+			}
+			Solr::$serversPinged[$this->host] = $pingResult;
+			$timer->logTime('Ping Solr instance ' . $this->host);
+		}else{
+			Solr::$serversPinged[$this->host] = true;
+		}
+		return Solr::$serversPinged[$this->host];
 	}
 
 	public function setDebugging($enableDebug, $enableSolrQueryDebugging) {
@@ -369,7 +412,7 @@ class Solr implements IndexEngine {
 		$record = $memCache->get("solr_record_{$id}_{$solrScope}_{$fieldsToReturn}");
 
 		if ($record == false || isset($_REQUEST['reload'])){
-
+			$this->pingServer();
 			// Query String Parameters
 			$options = array('ids' => "$id");
 			$options['fl'] = $fieldsToReturn;
@@ -391,7 +434,7 @@ class Solr implements IndexEngine {
 
 			if (isset($result['response']['docs'][0])){
 				$record = $result['response']['docs'][0];
-				$memCache->set("solr_record_{$id}_{$solrScope}", $record, 0, $configArray['Caching']['solr_record']);
+				$memCache->set("solr_record_{$id}_{$solrScope}_{$fieldsToReturn}", $record, 0, $configArray['Caching']['solr_record']);
 			}else{
 				//global $logger;
 				//$logger->log("Unable to find record $id in Solr", PEAR_LOG_ERR);
@@ -458,6 +501,8 @@ class Solr implements IndexEngine {
 		$records = array();
 		$startIndex = 0;
 		$batchSize = 40;
+
+		$this->pingServer();
 
 		$lastBatch = false;
 		while (true){
@@ -2223,7 +2268,11 @@ class Solr implements IndexEngine {
 	{
 		global $timer;
 		global $memoryWatcher;
+
 		$memoryWatcher->logMemory('Start Solr Select');
+
+		$this->pingServer();
+
 		$this->client->setMethod($method);
 		$this->client->setURL($this->host . "/select/");
 
@@ -2320,6 +2369,9 @@ class Solr implements IndexEngine {
 	{
 		global $configArray;
 		global $timer;
+
+		$this->pingServer();
+
 		$this->client->setMethod('POST');
 		$this->client->setURL($this->host . "/update/");
 
@@ -2660,6 +2712,8 @@ class Solr implements IndexEngine {
 	 * @access public
 	 */
 	public function alphabeticBrowse($source, $from, $page, $page_size = 20, $returnSolrError = false) {
+		$this->pingServer();
+
 		$this->client->setMethod('GET');
 		$this->client->setURL($this->host . "/browse");
 
@@ -2736,6 +2790,7 @@ class Solr implements IndexEngine {
 	 */
 	public function getTerms($field, $start, $limit, $returnSolrError = false)
 	{
+		$this->pingServer();
 		$this->client->setMethod('GET');
 		$this->client->setURL($this->host . '/term');
 

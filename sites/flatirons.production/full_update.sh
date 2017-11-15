@@ -13,7 +13,7 @@ PIKASERVER=flatirons.production
 PIKADBNAME=pika
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
 
-MINFILE1SIZE=$((1160000000))
+MINFILE1SIZE=$((1140000000))
 
 # Check for conflicting processes currently running
 function checkConflictingProcesses() {
@@ -100,34 +100,23 @@ cd /data/vufind-plus/; curl --remote-name --remote-time --silent --show-error --
 cd /data/vufind-plus/accelerated_reader; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/accelerated_reader/RLI-ARDataTAB.txt https://cassini.marmot.org/RLI-ARDataTAB.txt >> ${OUTPUT_FILE}
 
 #Zinio Marc Updates
-#scp flatirons_sideload@sftp.marmot.org:/ftp/flatirons_sideload/zinio/shared/*.mrc /data/vufind-plus/zinio/boulderBroomfield/marc/ >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/sites/${PIKASERVER}/moveFullExport.sh flatirons_sideload/zinio/shared zinio/boulderBroomfield >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} flatirons_sideload/zinio/shared zinio/shared >> ${OUTPUT_FILE}
+
+#OneClick Digital Marc Updates
+/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} flatirons_sideload/oneclickdigital/longmont oneclickdigital/longmont >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} flatirons_sideload/oneclickdigital/loveland oneclickdigital/loveland >> ${OUTPUT_FILE}
 
 #Ebrary Marc Updates
-#scp flatirons_sideload@sftp.marmot.org:/ftp/flatirons_sideload/ebrary/boulder/*.mrc /data/vufind-plus/ebrary/bpl/marc/merge >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/sites/${PIKASERVER}/moveSideloadAdds.sh flatirons_sideload/ebrary/boulder ebrary/bpl/merge >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} flatirons_sideload/ebrary/boulder ebrary/bpl >> ${OUTPUT_FILE}
 
-#scp flatirons_sideload@sftp.marmot.org:/ftp/flatirons_sideload/ebrary/boulder/deletes/*.mrc /data/vufind-plus/ebrary/bpl/deletes/marc/ >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/sites/${PIKASERVER}/moveSideloadAdds.sh flatirons_sideload/ebrary/boulder/deletes ebrary/bpl/deletes >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh ebrary/bpl >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} flatirons_sideload/ebrary/broomfield ebrary/mde >> ${OUTPUT_FILE}
 
-#scp flatirons_sideload@sftp.marmot.org:/ftp/flatirons_sideload/ebrary/broomfield/*.mrc /data/vufind-plus/ebrary/mde/marc/ >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/sites/${PIKASERVER}/moveFullExport.sh flatirons_sideload/ebrary/broomfield ebrary/mde >> ${OUTPUT_FILE}
-
-# Possible curl version; if I can figure out how to implement the --time-condition check on a range of files
-# (Can't do *.mrc; have to specify a range of files that curl will check for each one in the range)
-#curl --verbose --remote-name --remote-time --compressed --pubkey ~/.ssh/id_rsa.pub --key ~/.ssh/id_rsa sftp://flatirons_sideload@sftp.marmot.org:22//ftp/flatirons_sideload/ebrary/boulder/Zinio_boulderco_1619_Magazine_[1-12]_[1-31]_[2016-2017].mrc
-
-#OneClick Digit Marc Updates
-#scp flatirons_sideload@sftp.marmot.org:/ftp/flatirons_sideload/oneclickdigital/longmont/*.mrc /data/vufind-plus/oneclickdigital/longmont/marc/ >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/sites/${PIKASERVER}/moveSideloadAdds.sh flatirons_sideload/oneclickdigital/longmont oneclickdigital/longmont/ >> ${OUTPUT_FILE}
-
-#scp flatirons_sideload@sftp.marmot.org:/ftp/flatirons_sideload/oneclickdigital/loveland/*.mrc /data/vufind-plus/oneclickdigital/loveland/marc/ >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/sites/${PIKASERVER}/moveSideloadAdds.sh flatirons_sideload/oneclickdigital/loveland oneclickdigital/loveland/ >> ${OUTPUT_FILE}
+#Kanopy Marc Updates
+/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} flatirons_sideload/kanopy/boulder kanopy/boulder >> ${OUTPUT_FILE}
 
 #Colorado State Goverment Documents Updates
-curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/colorado_gov_docs/marc/fullexport.mrc http://cassini.marmot.org/colorado_state_docs.mrc
-#curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/colorado_gov_docs/marc/fullexport.mrc https://cassini.marmot.org/colorado_state_docs.mrc
+curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/colorado_gov_docs/marc/fullexport.mrc https://cassini.marmot.org/colorado_state_docs.mrc
+
 
 #Do a full extract from OverDrive just once a week to catch anything that doesn't
 #get caught in the regular extract

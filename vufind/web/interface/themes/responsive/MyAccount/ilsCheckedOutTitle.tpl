@@ -12,7 +12,7 @@
 					{/if}
 				</div>
 				<div class="{*coverColumn *}text-center col-xs-12 col-sm-10">
-					{if $user->disableCoverArt != 1}{*TODO: should become part of $showCovers *}
+					{if $disableCoverArt != 1}{*TODO: should become part of $showCovers *}
 						{if $record.coverUrl}
 							{if $record.recordId && $record.linkUrl}
 								<a href="{$record.linkUrl}" id="descriptionTrigger{$record.recordId|escape:"url"}">
@@ -116,7 +116,7 @@
 							</div>
 					{/if}
 
-					{if count($user->getLinkedUsers()) > 0}
+					{if $hasLinkedUsers}
 					<div class="row">
 						<div class="result-label col-tn-4 col-lg-3">{translate text='Checked Out To'}</div>
 						<div class="result-value col-tn-8 col-lg-9">

@@ -71,21 +71,15 @@ class User extends DB_DataObject
 	public $numHoldsIls;
 	public $numHoldsAvailableIls;
 	public $numHoldsRequestedIls;
-	public $numCheckedOutEContent;
-	public $numHoldsEContent;
-	public $numHoldsAvailableEContent;
-	public $numHoldsRequestedEContent;
-	public $numCheckedOutOverDrive;
-	public $canUseOverDrive;
-	public $numHoldsOverDrive;
-	public $numHoldsAvailableOverDrive;
-	public $numHoldsRequestedOverDrive;
+	private $numCheckedOutOverDrive = 0;
+	private $numHoldsOverDrive = 0;
+	private $numHoldsAvailableOverDrive = 0;
+	private $numHoldsRequestedOverDrive = 0;
 	public $numBookings;
 	public $notices;
 	public $noticePreferenceLabel;
-	public $numMaterialsRequests;
-	public $readingHistorySize;
-	public $loggedInViaCAS;
+	private $numMaterialsRequests = 0;
+	private $readingHistorySize = 0;
 
 	private $data = array();
 
@@ -253,7 +247,7 @@ class User extends DB_DataObject
 		}
 
 
-		global $masqueradeMode;
+		$masqueradeMode = UserAccount::isUserMasquerading();
 		if ($masqueradeMode && !$isGuidingUser) {
 			if (is_null($this->masqueradingRoles)) {
 				global /** @var User $guidingUser */
@@ -327,7 +321,47 @@ class User extends DB_DataObject
 	 */
 	function getLinkedUsers(){
 		if (is_null($this->linkedUsers)){
-			$this->linkedUsers = array();
+ 			$this->linkedUsers = array();
+			/* var Library $library */
+			global $library;
+			/** @var Memcache $memCache */
+			global $memCache;
+			global $serverName;
+			global $logger;
+			if ($this->id && $library->allowLinkedAccounts){
+				require_once ROOT_DIR . '/sys/Account/UserLink.php';
+				$userLink = new UserLink();
+				$userLink->primaryAccountId = $this->id;
+				$userLink->find();
+				while ($userLink->fetch()){
+					if (!$this->isBlockedAccount($userLink->linkedAccountId)) {
+						$linkedUser = new User();
+						$linkedUser->id = $userLink->linkedAccountId;
+						if ($linkedUser->find(true)){
+							/** @var User $userData */
+							$userData = $memCache->get("user_{$serverName}_{$linkedUser->id}");
+							if ($userData === false || isset($_REQUEST['reload'])){
+								//Load full information from the catalog
+								$linkedUser = UserAccount::validateAccount($linkedUser->cat_username, $linkedUser->cat_password, $linkedUser->source, $this);
+							}else{
+								$logger->log("Found cached linked user {$userData->id}", PEAR_LOG_DEBUG);
+								$linkedUser = $userData;
+							}
+							if ($linkedUser && !PEAR_Singleton::isError($linkedUser)) {
+								$this->linkedUsers[] = clone($linkedUser);
+							}
+						}
+					}
+				}
+			}
+		}
+		return $this->linkedUsers;
+	}
+
+	private $linkedUserObjects;
+	function getLinkedUserObjects(){
+		if (is_null($this->linkedUserObjects)){
+			$this->linkedUserObjects = array();
 			/* var Library $library */
 			global $library;
 			if ($this->id && $library->allowLinkedAccounts){
@@ -340,17 +374,14 @@ class User extends DB_DataObject
 						$linkedUser = new User();
 						$linkedUser->id = $userLink->linkedAccountId;
 						if ($linkedUser->find(true)){
-							//Load full information from the catalog
-							$linkedUser = UserAccount::validateAccount($linkedUser->cat_username, $linkedUser->cat_password, $linkedUser->source, $this);
-							if ($linkedUser && !PEAR_Singleton::isError($linkedUser)) {
-								$this->linkedUsers[] = clone($linkedUser);
-							}
+							/** @var User $userData */
+							$this->linkedUserObjects[] = clone($linkedUser);
 						}
 					}
 				}
 			}
 		}
-		return $this->linkedUsers;
+		return $this->linkedUserObjects;
 	}
 
 	public function setParentUser($user){
@@ -578,11 +609,15 @@ class User extends DB_DataObject
 		}
 	}
 
+	private $runtimeInfoUpdated = false;
 	function updateRuntimeInformation(){
-		if ($this->getCatalogDriver()){
-			$this->getCatalogDriver()->updateUserWithAdditionalRuntimeInformation($this);
-		}else{
-			echo("Catalog Driver is not configured properly.  Please update indexing profiles and setup Account Profiles");
+		if (!$this->runtimeInfoUpdated) {
+			if ($this->getCatalogDriver()) {
+				$this->getCatalogDriver()->updateUserWithAdditionalRuntimeInformation($this);
+			} else {
+				echo("Catalog Driver is not configured properly.  Please update indexing profiles and setup Account Profiles");
+			}
+			$this->runtimeInfoUpdated = true;
 		}
 	}
 
@@ -705,7 +740,8 @@ class User extends DB_DataObject
 	}
 
 	public function getNumCheckedOutTotal($includeLinkedUsers = true) {
-		$myCheckouts = $this->numCheckedOutIls + $this->numCheckedOutEContent + $this->numCheckedOutOverDrive;
+		$this->updateRuntimeInformation();
+		$myCheckouts = $this->numCheckedOutIls + $this->numCheckedOutOverDrive;
 		if ($includeLinkedUsers) {
 			if ($this->getLinkedUsers() != null) {
 				/** @var User $user */
@@ -718,7 +754,8 @@ class User extends DB_DataObject
 	}
 
 	public function getNumHoldsTotal($includeLinkedUsers = true) {
-		$myHolds = $this->numHoldsIls + $this->numHoldsEContent + $this->numHoldsOverDrive;
+		$this->updateRuntimeInformation();
+		$myHolds = $this->numHoldsIls + $this->numHoldsOverDrive;
 		if ($includeLinkedUsers) {
 			if ($this->getLinkedUsers() != null) {
 				/** @var User $user */
@@ -731,7 +768,8 @@ class User extends DB_DataObject
 	}
 
 	public function getNumHoldsAvailableTotal($includeLinkedUsers = true){
-		$myHolds = $this->numHoldsAvailableIls + $this->numHoldsAvailableEContent + $this->numHoldsAvailableOverDrive;
+		$this->updateRuntimeInformation();
+		$myHolds = $this->numHoldsAvailableIls + $this->numHoldsAvailableOverDrive;
 		if ($includeLinkedUsers){
 			if ($this->getLinkedUsers() != null) {
 				/** @var User $user */
@@ -784,7 +822,6 @@ class User extends DB_DataObject
 	 * Will check:
 	 * 1) The current ILS for the user
 	 * 2) OverDrive
-	 * 3) eContent stored by Pika
 	 *
 	 * @param bool $includeLinkedUsers
 	 * @return array
@@ -1273,9 +1310,9 @@ class User extends DB_DataObject
 		$relatedPTypes = array();
 		$relatedPTypes[$this->patronType] = $this->patronType;
 		if ($includeLinkedUsers){
-			if ($this->getLinkedUsers() != null) {
+			if ($this->getLinkedUserObjects() != null) {
 				/** @var User $user */
-				foreach ($this->getLinkedUsers() as $user) {
+				foreach ($this->getLinkedUserObjects() as $user) {
 					$relatedPTypes = array_merge($relatedPTypes, $user->getRelatedPTypes(false));
 				}
 			}
@@ -1332,6 +1369,38 @@ class User extends DB_DataObject
 	public function setMaterialsRequestEmailSignature($materialsRequestEmailSignature)
 	{
 		$this->materialsRequestEmailSignature = $materialsRequestEmailSignature;
+	}
+
+	function setNumCheckedOutOverDrive($val){
+		$this->numCheckedOutOverDrive = $val;
+	}
+
+	function setNumHoldsAvailableOverDrive($val){
+		$this->numHoldsAvailableOverDrive = $val;
+		$this->numHoldsOverDrive += $val;
+	}
+
+	function setNumHoldsRequestedOverDrive($val){
+		$this->numHoldsRequestedOverDrive = $val;
+		$this->numHoldsOverDrive += $val;
+	}
+
+	function setNumMaterialsRequests($val){
+		$this->numMaterialsRequests = $val;
+	}
+
+	function getNumMaterialsRequests(){
+		$this->updateRuntimeInformation();
+		return $this->numMaterialsRequests;
+	}
+
+	function setReadingHistorySize($val){
+		$this->readingHistorySize = $val;
+	}
+
+	function getReadingHistorySize(){
+		$this->updateRuntimeInformation();
+		return $this->readingHistorySize;
 	}
 }
 

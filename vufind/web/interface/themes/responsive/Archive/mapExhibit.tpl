@@ -67,12 +67,12 @@
 
 								VuFind.Archive.markers[{$smarty.foreach.place.index}] = marker{$smarty.foreach.place.index};
 								marker{$smarty.foreach.place.index}.addListener('click', function(){ldelim}
-									VuFind.Archive.handleMapClick({$smarty.foreach.place.index}, '{$pid|urlencode}', '{$place.pid|urlencode}', '{$place.label|escape:javascript}');
+									VuFind.Archive.handleMapClick({$smarty.foreach.place.index}, '{$pid|urlencode}', '{$place.pid|urlencode}', '{$place.label|escape:javascript}', false, {$showTimeline});
 								{rdelim});
 
 								{if $selectedPlace == $place.pid}
 									{* Click the first marker so we show images by default *}
-									VuFind.Archive.handleMapClick({$smarty.foreach.place.index}, '{$pid|urlencode}', '{$place.pid|urlencode}', '{$place.label|escape:javascript}');
+									VuFind.Archive.handleMapClick({$smarty.foreach.place.index}, '{$pid|urlencode}', '{$place.pid|urlencode}', '{$place.label|escape:javascript}', false, {$showTimeline});
 								{/if}
 							{/if}
 						{/foreach}
@@ -92,7 +92,7 @@
 						{foreach from=$unmappedPlaces item=place}
 							{if $selectedPlace == $place.pid}
 								{* Click the first marker so we show images by default *}
-								VuFind.Archive.handleMapClick(-1, '{$pid|urlencode}', '{$place.pid|urlencode}', '{$place.label|escape:javascript}');
+								VuFind.Archive.handleMapClick(-1, '{$pid|urlencode}', '{$place.pid|urlencode}', '{$place.label|escape:javascript}', false, {$showTimeline});
 							{/if}
 						{/foreach}
 					{rdelim}
@@ -118,7 +118,7 @@
 				<ol>
 					{foreach from=$unmappedPlaces item=place}
 						<li>
-							<a href="{$place.url}" onclick="VuFind.closeLightbox();return VuFind.Archive.handleMapClick(-1, '{$pid|urlencode}', '{$place.pid|urlencode}', '{$place.label|escape:javascript}');">
+							<a href="{$place.url}" onclick="VuFind.closeLightbox();return VuFind.Archive.handleMapClick(-1, '{$pid|urlencode}', '{$place.pid|urlencode}', '{$place.label|escape:javascript}', false, {$showTimeline});">
 								{$place.label} has {$place.count} objects
 							</a>
 						</li>
@@ -136,7 +136,7 @@
 		</div>
 	</div>
 
-	{if $repositoryLink && $user && ($user->hasRole('archives') || $user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin'))}
+	{if $repositoryLink && $loggedIn && (array_key_exists('archives', $userRoles) || array_key_exists('opacAdmin', $userRoles) || array_key_exists('libraryAdmin', $userRoles))}
 		<div id="more-details-accordion" class="panel-group">
 			<div class="panel {*active*}{*toggle on for open*}" id="staffViewPanel">
 				<a href="#staffViewPanelBody" data-toggle="collapse">

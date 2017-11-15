@@ -446,10 +446,10 @@ abstract class IslandoraDriver extends RecordInterface {
 	public function getFullTitle() {
 		if (empty($this->fullTitle)){
 			$titleInfo = $this->getModsValue('titleInfo','mods');
-			$title = $this->getModsValue('title','mods', $titleInfo);
-			$subTitle = $this->getModsValue('subTitle','mods', $titleInfo);
+			$title = trim($this->getModsValue('title','mods', $titleInfo));
+			$subTitle = trim($this->getModsValue('subTitle','mods', $titleInfo));
 			$this->fullTitle = $title;
-			if ($subTitle){
+			if ($subTitle && $subTitle != $title){
 				$this->fullTitle .= ": " . $subTitle;
 			}
 		}
@@ -459,9 +459,14 @@ abstract class IslandoraDriver extends RecordInterface {
 
 	public function getSubTitle() {
 		$titleInfo = $this->getModsValue('titleInfo','mods');
-		$subTitle = $this->getModsValue('subTitle','mods', $titleInfo);
+		$title = $this->getTitle();
+		$subTitle = trim($this->getModsValue('subTitle','mods', $titleInfo));
+		if ($subTitle && $title != $subTitle){
+			return $subTitle;
+		}else{
+			return '';
+		}
 
-		return $subTitle;
 	}
 
 	/**
@@ -849,8 +854,8 @@ abstract class IslandoraDriver extends RecordInterface {
 
 		$repositoryLink = $configArray['Islandora']['repositoryUrl'] . '/islandora/object/' . $this->getUniqueID();
 		$interface->assign('repositoryLink', $repositoryLink);
-		global $user;
-		if($user && ($user->hasRole('archives') || $user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin'))) {
+		$user = UserAccount::getLoggedInUser();
+		if($user && (UserAccount::userHasRole('archives') || UserAccount::userHasRole('opacAdmin') || UserAccount::userHasRole('libraryAdmin'))) {
 			$moreDetailsOptions['staffView'] = array(
 				'label' => 'Staff View',
 				'body' => $interface->fetch('Archive/staffViewSection.tpl'),
@@ -1847,7 +1852,7 @@ abstract class IslandoraDriver extends RecordInterface {
 		if ($dateCreated == ''){
 			$dateCreated = $this->getModsValue('dateIssued', 'mods');
 			if ($dateCreated == ''){
-				return 'Unknown';
+				return 'Date Unknown';
 			}
 		}
 		$formattedDate = DateTime::createFromFormat('Y-m-d', $dateCreated);

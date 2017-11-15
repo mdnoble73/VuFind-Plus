@@ -4,7 +4,7 @@
 			{foreach from=$libraryLinks item=linkCategory key=categoryName name=linkLoop}
 				{if $categoryName}
 					{* Put the links within a collapsible section *}
-					<div class="panel {if $smarty.foreach.linkLoop.first && !$user}active{/if}">
+					<div class="panel {if $smarty.foreach.linkLoop.first && !$loggedIn}active{/if}">
 						<a data-toggle="collapse" data-parent="#link-accordion" href="#{$categoryName|escapeCSS}{$section}Panel">
 							<div class="panel-heading">
 								<div class="panel-title">
@@ -12,7 +12,7 @@
 								</div>
 							</div>
 						</a>
-						<div id="{$categoryName|escapeCSS}{$section}Panel" class="panel-collapse collapse {if ($smarty.foreach.linkLoop.first && !$user) || array_key_exists($categoryName, $expandedLinkCategories)}in{/if}">
+						<div id="{$categoryName|escapeCSS}{$section}Panel" class="panel-collapse collapse {if ($smarty.foreach.linkLoop.first && !$loggedIn) || array_key_exists($categoryName, $expandedLinkCategories)}in{/if}">
 							<div class="panel-body">
 								{foreach from=$linkCategory item=link key=linkName}
 									{if $link->htmlContents}

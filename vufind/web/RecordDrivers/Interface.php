@@ -276,6 +276,7 @@ abstract class RecordInterface {
 	public function getBaseMoreDetailsOptions($isbn){
 		global $interface;
 		global $configArray;
+		global $timer;
 		$moreDetailsOptions = array();
 		$description = $this->getDescription();
 		if (strlen($description) == 0){
@@ -289,12 +290,14 @@ abstract class RecordInterface {
 				'hideByDefault' => false,
 				'openByDefault' => true
 		);
+		$timer->logTime('Loaded Description');
 		$moreDetailsOptions['series'] = array(
 				'label' => 'Also in this Series',
 				'body' => $interface->fetch('GroupedWork/series.tpl'),
 				'hideByDefault' => false,
 				'openByDefault' => true
 		);
+		$timer->logTime('Loaded Series Data');
 		if (!$configArray['Catalog']['showExploreMoreForFullRecords']) {
 			$moreDetailsOptions['moreLikeThis'] = array(
 					'label' => 'More Like This',
@@ -303,6 +306,7 @@ abstract class RecordInterface {
 					'openByDefault' => true
 			);
 		}
+		$timer->logTime('Loaded More Like This');
 		if ($interface->getVariable('enablePospectorIntegration')){
 			$moreDetailsOptions['prospector'] = array(
 					'label' => 'More Copies In Prospector',
@@ -315,6 +319,7 @@ abstract class RecordInterface {
 				'body'  => $interface->fetch('GroupedWork/tableOfContents.tpl'),
 				'hideByDefault' => true
 		);
+		$timer->logTime('Loaded Table of Contents');
 		$moreDetailsOptions['excerpt'] = array(
 				'label' => 'Excerpt',
 				'body'  => '<div id="excerptPlaceholder">Loading Excerpt...</div>',

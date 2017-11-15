@@ -27,7 +27,7 @@ $LOG ">> Purge ftp directory starting <<"
 $LOG "~> Keeping last 90 days worth of files"
 
 #find /ftp -maxdepth 4 -mtime +90 -type f ! -iname '.*' -exec /bin/rm {} \;
-find /ftp -maxdepth 4 -mtime +90 -type f ! -iname '.*' ! -name authorized_keys -exec /bin/rm {} \;
+find /ftp -maxdepth 4 -mtime +90 -type f ! -iname '.*' ! -name authorized_keys ! -name empty.txt -exec /bin/rm {} \;
 # added to exclude ssh keys for scp. pascal 4-21-2017
 EXITCODE=$?
 $LOG "~> Exit Code $EXITCODE"

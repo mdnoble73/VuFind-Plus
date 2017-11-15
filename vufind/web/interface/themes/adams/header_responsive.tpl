@@ -12,7 +12,7 @@
 				<a class="nielsenlibrarytxt" href="https://adams.edu/library/">Nielsen Library</a>
 			</div>
 
-			<div class="logoutOptions"{if !$user} style="display: none;"{/if}>
+			<div class="logoutOptions"{if !$loggedIn} style="display: none;"{/if}>
 				<div class="hidden-xs col-sm-2 col-sm-offset-5 col-md-2 col-md-offset-0 col-lg-2 col-lg-offset-0">
 					<a id="myAccountNameLink" href="{$path}/MyAccount/Home">
 						<div class="header-button header-primary">
@@ -30,7 +30,7 @@
 				</div>
 			</div>
 
-			<div class="loginOptions col-sm-2 col-sm-offset-7 col-md-2 col-md-offset-2 col-lg-offset-2 col-lg-2"{if $user} style="display: none;"{/if}>
+			<div class="loginOptions col-sm-2 col-sm-offset-7 col-md-2 col-md-offset-2 col-lg-offset-2 col-lg-2"{if $loggedIn} style="display: none;"{/if}>
 				{if $showLoginButton == 1}
 					<a id="headerLoginLink" href="{$path}/MyAccount/Home" class="loginLink" data-login="true" title="Login" onclick="{if $isLoginPage}$('#username').focus();return false{else}return VuFind.Account.followLinkIfLoggedIn(this);{/if}">
 						<div class="hidden-xs header-button header-primary">

@@ -254,6 +254,22 @@ class DBMaintenanceEContent extends Admin_Admin {
 						),
 				),
 
+			'overdrive_api_data_needsUpdate' => array(
+					'title' => 'Add needsUpdate to OverDrive Product API',
+					'description' => 'Update overdrive_api_product table to add needsUpdate to determine if the record should be reloaded from the API',
+					'sql' => array(
+							"ALTER TABLE overdrive_api_products ADD COLUMN needsUpdate TINYINT(1) DEFAULT '0'",
+					),
+			),
+
+				'overdrive_api_data_crossRefId' => array(
+						'title' => 'Add crossRefId to OverDrive Product API',
+						'description' => 'Update overdrive_api_product table to add crossRefId to allow quering of product data ',
+						'sql' => array(
+								"ALTER TABLE overdrive_api_products ADD COLUMN crossRefId INT(11) DEFAULT '0'",
+						),
+				),
+
 			'utf8_update' => array(
 				'title' => 'Update to UTF-8',
 				'description' => 'Update database to use UTF-8 encoding',

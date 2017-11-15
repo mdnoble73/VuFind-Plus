@@ -29,7 +29,7 @@ class MyAccount_AJAX
 			'renewItem', 'renewAll', 'renewSelectedItems', 'getPinResetForm',
 			'getAddAccountLinkForm', 'addAccountLink', 'removeAccountLink',
 			'cancelBooking', 'getCitationFormatsForm', 'getAddBrowseCategoryFromListForm'
-		  ,'getMasqueradeAsForm', 'initiateMasquerade', 'endMasquerade'
+		  ,'getMasqueradeAsForm', 'initiateMasquerade', 'endMasquerade', 'getMenuData'
 		);
 		$method = $_GET['method'];
 		if (in_array($method, $valid_json_methods)) {
@@ -107,8 +107,7 @@ class MyAccount_AJAX
 	}
 
 	function addAccountLink(){
-		global $user;
-		if (!$user){
+		if (!UserAccount::isLoggedIn()){
 			$result = array(
 				'result' => false,
 				'message' => 'Sorry, you must be logged in to manage accounts.'
@@ -120,6 +119,7 @@ class MyAccount_AJAX
 			$accountToLink = UserAccount::validateAccount($username, $password);
 
 			if ($accountToLink){
+				$user = UserAccount::getLoggedInUser();
 				$addResult = $user->addLinkedUser($accountToLink);
 				if ($addResult === true) {
 					$result = array(
@@ -144,14 +144,14 @@ class MyAccount_AJAX
 	}
 
 	function removeAccountLink(){
-		global $user;
-		if (!$user){
+		if (!UserAccount::isLoggedIn()){
 			$result = array(
 				'result' => false,
 				'message' => 'Sorry, you must be logged in to manage accounts.'
 			);
 		}else{
 			$accountToRemove = $_REQUEST['idToRemove'];
+			$user = UserAccount::getLoggedInUser();
 			if ($user->removeLinkedUser($accountToRemove)){
 				$result = array(
 					'result' => true,
@@ -219,35 +219,38 @@ class MyAccount_AJAX
 
 	function removeTag()
 	{
-		global $user;
-		$tagToRemove = $_REQUEST['tag'];
+		if (UserAccount::isLoggedIn()) {
+			$tagToRemove = $_REQUEST['tag'];
 
-		require_once ROOT_DIR . '/sys/LocalEnrichment/UserTag.php';
-		$userTag = new UserTag();
-		$userTag->tag = $tagToRemove;
-		$userTag->userId = $user->id;
-		$numDeleted = $userTag->delete();
-		$result = array(
-			'result' => true,
-			'message' => "Removed tag '{$tagToRemove}' from $numDeleted titles."
-		);
+			require_once ROOT_DIR . '/sys/LocalEnrichment/UserTag.php';
+			$userTag = new UserTag();
+			$userTag->tag = $tagToRemove;
+			$userTag->userId = UserAccount::getActiveUserId();
+			$numDeleted = $userTag->delete();
+			$result = array(
+					'result' => true,
+					'message' => "Removed tag '{$tagToRemove}' from $numDeleted titles."
+			);
+		}else{
+			$result = array(
+					'result' => false,
+					'message' => "Please login to remove a tag."
+			);
+		}
 		return $result;
 	}
 
 	function saveSearch()
 	{
-		global $user;
-
 		$searchId = $_REQUEST['searchId'];
 		$search = new SearchEntry();
 		$search->id = $searchId;
 		$saveOk = false;
 		if ($search->find(true)) {
 			// Found, make sure this is a search from this user
-			if ($search->session_id == session_id() || $search->user_id == $user->id) {
+			if ($search->session_id == session_id() || $search->user_id == UserAccount::getActiveUserId()) {
 				if ($search->saved != 1) {
-					global $user;
-					$search->user_id = $user->id;
+					$search->user_id = UserAccount::getActiveUserId();
 					$search->saved = 1;
 					$saveOk = ($search->update() !== FALSE);
 					$message = $saveOk ? 'Your search was saved successfully.  You can view the saved search by clicking on <a href="/Search/History?require_login">Search History</a> within '.translate('My Account').'.' : "Sorry, we could not save that search for you.  It may have expired.";
@@ -270,15 +273,13 @@ class MyAccount_AJAX
 
 	function deleteSavedSearch()
 	{
-		global $user;
-
 		$searchId = $_REQUEST['searchId'];
 		$search = new SearchEntry();
 		$search->id = $searchId;
 		$saveOk = false;
 		if ($search->find(true)) {
 			// Found, make sure this is a search from this user
-			if ($search->session_id == session_id() || $search->user_id == $user->id) {
+			if ($search->session_id == session_id() || $search->user_id == UserAccount::getActiveUserId()) {
 				if ($search->saved != 0) {
 					$search->saved = 0;
 					$saveOk = ($search->update() !== FALSE);
@@ -313,16 +314,17 @@ class MyAccount_AJAX
 	}
 
 	function cancelHold() {
-		global $user;
 		$result = array(
 			'success' => false,
 			'message' => 'Error cancelling hold.'
 		);
-		if (!$user){
+
+		if (!UserAccount::isLoggedIn()){
 			$result['message'] = 'You must be logged in to cancel a hold.  Please close this dialog and login again.';
 		}else{
 			//Determine which user the hold is on so we can cancel it.
 			$patronId = $_REQUEST['patronId'];
+			$user = UserAccount::getLoggedInUser();
 			$patronOwningHold = $user->getUserReferredTo($patronId);
 
 			if ($patronOwningHold == false){
@@ -358,7 +360,7 @@ class MyAccount_AJAX
 
 	function cancelBooking() {
 		try {
-			global $user;
+			$user = UserAccount::getLoggedInUser();
 
 			if (!empty($_REQUEST['cancelAll']) && $_REQUEST['cancelAll'] == 1) {
 				$result = $user->cancelAllBookedMaterial();
@@ -416,8 +418,8 @@ class MyAccount_AJAX
 
 	function cancelHolds() { // for cancelling multiple holds
 		try {
-			global $configArray,
-			       $user;
+			global $configArray;
+			$user = UserAccount::getLoggedInUser();
 			$catalog = CatalogFactory::getCatalogConnectionInstance();
 
 			// ids grabbed in MillenniumHolds.php in $_REQUEST['waitingholdselected'] & $_REQUEST['availableholdselected']
@@ -463,7 +465,7 @@ class MyAccount_AJAX
 	}
 
 	function freezeHold() {
-		global $user;
+		$user = UserAccount::getLoggedInUser();
 		$result = array(
 			'success' => false,
 			'message' => 'Error '.translate('freezing').' hold.'
@@ -514,7 +516,7 @@ class MyAccount_AJAX
 	}
 
 	function thawHold() {
-		global $user;
+		$user = UserAccount::getLoggedInUser();
 		$result = array( // set default response
 			'success' => false,
 			'message' => 'Error thawing hold.'
@@ -551,9 +553,9 @@ class MyAccount_AJAX
 	// Create new list
 	function AddList()
 	{
-		global $user;
 		$return = array();
-		if ($user) {
+		if (UserAccount::isLoggedIn()) {
+			$user = UserAccount::getLoggedInUser();
 			require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
 			$title = isset($_REQUEST['title']) ? urldecode($_REQUEST['title']) : '';
 			if (strlen(trim($title)) == 0) {
@@ -819,8 +821,8 @@ class MyAccount_AJAX
 
 	function getOverDriveSummary()
 	{
-		global $user;
-		if ($user) {
+		if (UserAccount::isLoggedIn()) {
+			$user = UserAccount::getLoggedInUser();
 			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 			$overDriveDriver = OverDriveDriverFactory::getDriver();
 			$summary = $overDriveDriver->getOverDriveSummary($user);
@@ -890,8 +892,8 @@ class MyAccount_AJAX
 		global $interface;
 		/** @var $interface UInterface
 		 * @var $user User */
-		global $user;
-		if ($user) {
+		if (UserAccount::isLoggedIn()) {
+			$user = UserAccount::getLoggedInUser();
 			$patronId = $_REQUEST['patronId'];
 			$interface->assign('patronId', $patronId);
 			$patronOwningHold = $user->getUserReferredTo($patronId);
@@ -926,12 +928,11 @@ class MyAccount_AJAX
 	// called by js function Account.freezeHold
 	function getReactivationDateForm(){
 		global $interface;
-		global $user;
 		global $configArray;
 
 		$id = $_REQUEST['holdId'];
 		$interface->assign('holdId', $id);
-		$interface->assign('patronId', $user->id);
+		$interface->assign('patronId', UserAccount::getActiveUserId());
 		$interface->assign('recordId', $_REQUEST['recordId']);
 
 		$ils = $configArray['Catalog']['ils'];
@@ -954,10 +955,9 @@ class MyAccount_AJAX
 		try {
 			$holdId = $_REQUEST['holdId'];
 			$newPickupLocation = $_REQUEST['newLocation'];
-			global $user;
 
-			if ($user){
-
+			if (UserAccount::isLoggedIn()){
+				$user = UserAccount::getLoggedInUser();
 				$patronId = $_REQUEST['patronId'];
 				$patronOwningHold = $user->getUserReferredTo($patronId);
 
@@ -1134,13 +1134,13 @@ class MyAccount_AJAX
 				$itemIndex = null;
 			}
 
-			global $user;
-			if (!$user){
+			if (!UserAccount::isLoggedIn()){
 				$renewResults = array(
 					'success' => false,
 					'message' => 'Not Logged in.'
 				);
 			}else{
+				$user = UserAccount::getLoggedInUser();
 				$patronId = $_REQUEST['patronId'];
 				$recordId = $_REQUEST['recordId'];
 				$patron = $user->getUserReferredTo($patronId);
@@ -1172,8 +1172,7 @@ class MyAccount_AJAX
 	}
 
 	function renewSelectedItems() {
-		global $user;
-		if (!$user){
+		if (!UserAccount::isLoggedIn()){
 			$renewResults = array(
 				'success' => false,
 				'message' => 'Not Logged in.'
@@ -1193,13 +1192,14 @@ class MyAccount_AJAX
 //				}
 //			}
 
-
+				$user = UserAccount::getLoggedInUser();
 				if (method_exists($user, 'renewItem')) {
 
 					$failure_messages = array();
 					$renewResults     = array();
 					foreach ($_REQUEST['selected'] as $selected => $ignore) {
-						list($patronId, $recordId, $itemId, $itemIndex) = explode('|', $selected);
+						//Suppress errors because sometimes we don't get an item index
+						@list($patronId, $recordId, $itemId, $itemIndex) = explode('|', $selected);
 						$patron = $user->getUserReferredTo($patronId);
 						if ($patron){
 							$tmpResult = $patron->renewItem($recordId, $itemId, $itemIndex);
@@ -1257,7 +1257,7 @@ class MyAccount_AJAX
 			'success' => false,
 			'message' => array('Unable to renew all titles'),
 		);
-		global $user;
+		$user = UserAccount::getLoggedInUser();
 		if ($user){
 			$renewResults = $user->renewAll(true);
 		}else{
@@ -1280,7 +1280,7 @@ class MyAccount_AJAX
 		$listId = $_REQUEST['listID'];
 		$updates = $_REQUEST['updates'];
 		if (ctype_digit($listId) && !empty($updates)) {
-			global $user;
+			$user = UserAccount::getLoggedInUser();
 			require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
 			$list = new UserList();
 			$list->id = $listId;
@@ -1305,5 +1305,100 @@ class MyAccount_AJAX
 			}
 		}
 		return array('success' => $success);
+	}
+
+	function getMenuData(){
+		global $timer;
+		global $interface;
+		global $configArray;
+		/** @var Memcache $memCache */
+		global $memCache;
+		$result = array();
+		if (UserAccount::isLoggedIn()){
+			$user = UserAccount::getLoggedInUser();
+			$interface->assign('user', $user);
+
+			//Load a list of lists
+			$userListData = $memCache->get('user_list_data_' . UserAccount::getActiveUserId());
+			if ($userListData == null || isset($_REQUEST['reload'])){
+				$lists = array();
+				require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
+				$tmpList = new UserList();
+				$tmpList->user_id = UserAccount::getActiveUserId();
+				$tmpList->deleted = 0;
+				$tmpList->orderBy("title ASC");
+				$tmpList->find();
+				if ($tmpList->N > 0){
+					while ($tmpList->fetch()){
+						$lists[$tmpList->id] = array(
+								'name' => $tmpList->title,
+								'url' => '/MyAccount/MyList/' .$tmpList->id ,
+								'id' => $tmpList->id,
+								'numTitles' => $tmpList->numValidListItems()
+						);
+					}
+				}
+				$memCache->set('user_list_data_' . UserAccount::getActiveUserId(), $lists, 0, $configArray['Caching']['user']);
+				$timer->logTime("Load Lists");
+			}else{
+				$lists = $userListData;
+				$timer->logTime("Load Lists from cache");
+			}
+
+			$interface->assign('lists', $lists);
+			$result['lists'] = $interface->fetch('MyAccount/listsMenu.tpl');
+
+			//Count of Checkouts
+			$result['checkouts'] = '</div><span class="badge">' . $user->getNumCheckedOutTotal() . '</span>';
+
+			//Count of Holds
+			$result['holds'] = '<span class="badge">' . $user->getNumHoldsTotal() . '</span>';
+			if ($user->getNumHoldsAvailableTotal() > 0){
+				$result['holds'] .= '&nbsp;<span class="label label-success">' . $user->getNumHoldsAvailableTotal() . ' ready for pick up</span>';
+			}
+
+			//Count of bookings
+			global $library;
+			if ($library->enableMaterialsBooking){
+				$result['bookings'] = '</div><span class="badge">' . $user->getNumBookingsTotal() . '</span>';
+			}else{
+				$result['bookings'] = '';
+			}
+
+			//Count of Reading History
+			$result['readingHistory'] = '';
+			if ($user->getReadingHistorySize() > 0){
+				$result['readingHistory'] = '<span class="badge">' . $user->getReadingHistorySize() . '</span>';
+			}
+
+			//Count of Materials Requests
+			$result['materialsRequests'] = '<span class="badge">' . $user->getNumMaterialsRequests() . '</span>';
+
+			//Available Holds
+			if ($_REQUEST['activeModule'] == 'MyAccount' && $_REQUEST['activeAction'] == 'Holds'){
+				$interface->assign('noLink', true);
+			}else{
+				$interface->assign('noLink', false);
+			}
+			$result['availableHoldsNotice'] = $interface->fetch('MyAccount/availableHoldsNotice.tpl');
+
+			//Expiration and fines
+			$interface->setFinesRelatedTemplateVariables();
+			if ($interface->getVariable('expiredMessage')){
+				$interface->assign('expiredMessage', str_replace('%date%', $user->expires, $interface->getVariable('expiredMessage')));
+			}
+			if ($interface->getVariable('expirationNearMessage')){
+				$interface->assign('expirationNearMessage', str_replace('%date%', $user->expires, $interface->getVariable('expirationNearMessage')));
+			}
+			$result['expirationFinesNotice'] = $interface->fetch('MyAccount/expirationFinesNotice.tpl');
+
+			// Get My Tags
+			$tagList = $user->getTags();
+			$interface->assign('tagList', $tagList);
+			$timer->logTime("Load Tags");
+			$result['tagsMenu'] = $interface->fetch('MyAccount/tagsMenu.tpl');
+		}//User is not logged in
+
+		return $result;
 	}
 }

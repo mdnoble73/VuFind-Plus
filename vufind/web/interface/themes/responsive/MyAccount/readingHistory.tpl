@@ -1,5 +1,5 @@
 <div class="col-xs-12">
-{if $user->cat_username}
+{if $loggedIn}
 
 	{if $profile->web_note}
 		<div class="row">
@@ -10,7 +10,7 @@
 		{* Alternate Mobile MyAccount Menu *}
 		{include file="MyAccount/mobilePageHeader.tpl"}
 
-		{include file="MyAccount/availableHoldsNotice.tpl"}
+	<span class='availableHoldsNoticePlaceHolder'></span>
 
 	<h2>{translate text='My Reading History'} {if $historyActive == true}<small><a id="readingListWhatsThis" href="#" onclick="$('#readingListDisclaimer').toggle();return false;">(What's This?)</a></small>{/if}</h2>
 

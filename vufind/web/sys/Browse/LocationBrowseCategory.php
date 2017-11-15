@@ -2,7 +2,7 @@
 /**
  * A location defined for a browse category
  *
- * @category VuFind-Plus 
+ * @category VuFind-Plus
  * @author Mark Noble <mark@marmot.org>
  * Date: 3/4/14
  * Time: 9:26 PM
@@ -16,11 +16,11 @@ class LocationBrowseCategory extends DB_DataObject{
 	public $locationId;
 
 	static function getObjectStructure(){
-		global $user;
 		//Load Libraries for lookup values
 		$location = new Location();
 		$location->orderBy('displayName');
-		if ($user->hasRole('libraryAdmin')){
+		$user = UserAccount::getLoggedInUser();
+		if (UserAccount::userHasRole('libraryAdmin')){
 			$homeLibrary = Library::getPatronHomeLibrary();
 			$location->libraryId = $homeLibrary->libraryId;
 		}
@@ -48,4 +48,4 @@ class LocationBrowseCategory extends DB_DataObject{
 		);
 		return $structure;
 	}
-} 
+}

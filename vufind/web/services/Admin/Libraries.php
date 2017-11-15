@@ -37,15 +37,15 @@ class Admin_Libraries extends ObjectEditor
 	function getAllObjects(){
 		$libraryList = array();
 
-		global $user;
-		if ($user->hasRole('opacAdmin')){
+		$user = UserAccount::getLoggedInUser();
+		if (UserAccount::userHasRole('opacAdmin')){
 			$library = new Library();
 			$library->orderBy('subdomain');
 			$library->find();
 			while ($library->fetch()){
 				$libraryList[$library->libraryId] = clone $library;
 			}
-		}else if ($user->hasRole('libraryAdmin') || $user->hasRole('libraryManager')){
+		}else if (UserAccount::userHasRole('libraryAdmin') || UserAccount::userHasRole('libraryManager')){
 			$patronLibrary = Library::getLibraryForLocation($user->homeLocationId);
 			$libraryList[$patronLibrary->libraryId] = clone $patronLibrary;
 		}
@@ -54,8 +54,8 @@ class Admin_Libraries extends ObjectEditor
 	}
 	function getObjectStructure(){
 		$objectStructure = Library::getObjectStructure();
-		global $user;
-		if (!$user->hasRole('opacAdmin')){
+		$user = UserAccount::getLoggedInUser();
+		if (!UserAccount::userHasRole('opacAdmin')){
 			unset($objectStructure['isDefault']);
 		}
 		return $objectStructure;
@@ -70,12 +70,12 @@ class Admin_Libraries extends ObjectEditor
 		return array('opacAdmin', 'libraryAdmin', 'libraryManager');
 	}
 	function canAddNew(){
-		global $user;
-		return $user->hasRole('opacAdmin');
+		$user = UserAccount::getLoggedInUser();
+		return UserAccount::userHasRole('opacAdmin');
 	}
 	function canDelete(){
-		global $user;
-		return $user->hasRole('opacAdmin');
+		$user = UserAccount::getLoggedInUser();
+		return UserAccount::userHasRole('opacAdmin');
 	}
 	function getAdditionalObjectActions($existingObject){
 		$objectActions = array();

@@ -133,30 +133,56 @@ public class SymphonyExportMain {
 			}
 		}
 
-		File ordersFile = new File(indexingProfile.marcPath + "/Pika_orders.csv");
+		//We have gotten 2 different exports a single export as CSV and a second daily version as XLSX.  If the XLSX exists, we will
+		//process that and ignore the CSV version.
 		File ordersFileMarc = new File(indexingProfile.marcPath + "/Pika_orders.mrc");
+		File ordersFile = new File(indexingProfile.marcPath + "/PIKA-onorderfile.txt");
+		convertOrdersFileToMarc(ordersFile, ordersFileMarc, idsInMainFile);
+
+	}
+
+	private static void convertOrdersFileToMarc(File ordersFile, File ordersFileMarc, HashSet<String> idsInMainFile) {
 		if (ordersFile.exists()){
+			long now = new Date().getTime();
+			long ordersFileLastModified = ordersFile.lastModified();
+			if (now - ordersFileLastModified > 7 * 24 * 60 * 60 * 1000){
+				logger.warn("Orders File was last written more than 7 days ago");
+			}
 			//Always process since we only received one export and we are gradually removing records as they appear in the full export.
 			try{
 				MarcWriter writer = new MarcStreamWriter(new FileOutputStream(ordersFileMarc, false));
-				CSVReader ordersReader = new CSVReader(new InputStreamReader(new FileInputStream(ordersFile)));
-				String[] ordersData = ordersReader.readNext();
+				BufferedReader ordersReader = new BufferedReader(new InputStreamReader(new FileInputStream(ordersFile)));
+				String line = ordersReader.readLine();
 				int numOrderRecordsWritten = 0;
 				int numOrderRecordsSkipped = 0;
-				while (ordersData != null){
-					//Check to see if the bib already exists
-					if (ordersData.length >= 4){
-						String recordNumber = cleanIniValue(ordersData[3]);
-						recordNumber = recordNumber.replace("XX(", "");
-						recordNumber = recordNumber.replace(".1)", "");
+				while (line != null){
+					int firstPipePos = line.indexOf('|');
+					if (firstPipePos != -1){
+						String recordNumber = line.substring(0, firstPipePos);
+						line = line.substring(firstPipePos + 1);
 						if (recordNumber.matches("^\\d+$")) {
 							if (!idsInMainFile.contains("a" + recordNumber)){
+								if (line.endsWith("|")){
+									line = line.substring(0, line.length() - 1);
+								}
+								int lastPipePosition = line.lastIndexOf('|');
+								String title = line.substring(lastPipePosition + 1);
+								line = line.substring(0, lastPipePosition);
+								lastPipePosition = line.lastIndexOf('|');
+								String author = line.substring(lastPipePosition + 1);
+								line = line.substring(0, lastPipePosition);
+								String ohohseven = line.replaceAll("|", " ");
 								//The marc record does not exist, create a temporary bib in the orders file which will get processed by record grouping
 								MarcFactory factory = MarcFactory.newInstance();
 								Record marcRecord = factory.newRecord();
 								marcRecord.addVariableField(factory.newControlField("001", "a" + recordNumber));
-								marcRecord.addVariableField(factory.newDataField("100", '0', '0', "a", cleanIniValue(ordersData[1])));
-								marcRecord.addVariableField(factory.newDataField("245", '0', '0', "a", cleanIniValue(ordersData[2])));
+								if (!ohohseven.equals("-")) {
+									marcRecord.addVariableField(factory.newControlField("007", "a" + ohohseven));
+								}
+								if (!author.equals("-")){
+									marcRecord.addVariableField(factory.newDataField("100", '0', '0', "a", author));
+								}
+								marcRecord.addVariableField(factory.newDataField("245", '0', '0', "a", title));
 								writer.write(marcRecord);
 								numOrderRecordsWritten++;
 							}else{
@@ -165,7 +191,7 @@ public class SymphonyExportMain {
 							}
 						}
 					}
-					ordersData = ordersReader.readNext();
+					line = ordersReader.readLine();
 				}
 				writer.close();
 				logger.info("Finished writing Orders to MARC record");

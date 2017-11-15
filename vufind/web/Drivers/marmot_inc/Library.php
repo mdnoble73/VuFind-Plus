@@ -50,7 +50,6 @@ class Library extends DB_DataObject
 	public $showRatings; // User Ratings
 	public $showFavorites;
 	public $showTableOfContentsTab;
-	public $notesTabName;
 	public $inSystemPickupsOnly;
 	public $validPickupSystems;
 	public $pTypes;
@@ -233,7 +232,6 @@ class Library extends DB_DataObject
 		'showFormats'              => 'Formats',
 		'showEditions'             => 'Editions',
 		'showPhysicalDescriptions' => 'Physical Descriptions',
-		'showLocations'            => 'Locations',
 		'showISBNs'                => 'ISBNs',
 		'showArInfo'               => 'Show Accelerated Reader Information',
 		'showLexileInfo'           => 'Show Lexile Information',
@@ -334,10 +332,9 @@ class Library extends DB_DataObject
 		unset($materialsRequestFormFieldsStructure['libraryId']); //needed?
 		unset($materialsRequestFormFieldsStructure['weight']);
 
-		global $user;
 		require_once ROOT_DIR . '/sys/ListWidget.php';
 		$widget = new ListWidget();
-		if (($user->hasRole('libraryAdmin') || $user->hasRole('contentEditor')) && !$user->hasRole('opacAdmin') || $user->hasRole('libraryManager') || $user->hasRole('locationManager')){
+		if ((UserAccount::userHasRole('libraryAdmin') || UserAccount::userHasRole('contentEditor')) && !UserAccount::userHasRole('opacAdmin') || UserAccount::userHasRole('libraryManager') || UserAccount::userHasRole('locationManager')){
 			$patronLibrary = Library::getPatronHomeLibrary();
 			if ($patronLibrary){
 				$widget->libraryId = $patronLibrary->libraryId;
@@ -570,7 +567,6 @@ class Library extends DB_DataObject
 				'showShareOnExternalSites' => array('property'=>'showShareOnExternalSites', 'type'=>'checkbox', 'label'=>'Show Sharing To External Sites',    'description'=>'Whether or not sharing on external sites (Twitter, Facebook, Pinterest, etc. is shown)', 'hideInLists' => true, 'default' => 1),
 				'showQRCode'               => array('property'=>'showQRCode',               'type'=>'checkbox', 'label'=>'Show QR Code',                      'description'=>'Whether or not the catalog should show a QR Code in full record view', 'hideInLists' => true, 'default' => 1),
 				'showTagging'              => array('property'=>'showTagging',              'type'=>'checkbox', 'label'=>'Show Tagging',                      'description'=>'Whether or not tags are shown (also disables adding tags)', 'hideInLists' => true, 'default' => 1),
-				'notesTabName'             => array('property'=>'notesTabName',             'type'=>'text',     'label'=>'Notes Tab Name',                    'description'=>'Text to display for the the notes tab.', 'size'=>'40', 'maxLength' => '50', 'hideInLists' => true, 'default' => 'Notes'),
 //				'exportOptions'            => array('property'=>'exportOptions',            'type'=>'text',     'label'=>'Export Options',                    'description'=>'A list of export options that should be enabled separated by pipes.  Valid values are currently RefWorks and EndNote.', 'size'=>'40', 'hideInLists' => true,),
 				'show856LinksAsTab'        => array('property'=>'show856LinksAsTab',        'type'=>'checkbox', 'label'=>'Show 856 Links as Tab',             'description'=>'Whether or not 856 links will be shown in their own tab or on the same tab as holdings.', 'hideInLists' => true, 'default' => 1),
 				'showCheckInGrid'          => array('property'=>'showCheckInGrid',          'type'=>'checkbox', 'label'=>'Show Check-in Grid',                'description'=>'Whether or not the check-in grid is shown for periodicals.', 'default' => 1, 'hideInLists' => true,),
@@ -865,9 +861,9 @@ class Library extends DB_DataObject
 			)),
 
 			'casSection' => array('property'=>'casSection', 'type' => 'section', 'label' =>'CAS Single Sign On', 'hideInLists' => true, 'helpLink'=>'https://docs.google.com/document/d/1KQ_RMVvHhB2ulTyXnGF7rJXUQuzbL5RVTtnqlXdoNTk/edit?usp=sharing', 'properties' => array(
-					'edsApiProfile' => array('property'=>'casHost', 'type'=>'text', 'label'=>'CAS Host', 'description'=>'The host to use for CAS authentication', 'hideInLists' => true),
-					'edsApiUsername' => array('property'=>'casPort', 'type'=>'integer', 'label'=>'CAS Port', 'description'=>'The port to use for CAS authentication (typically 443)', 'hideInLists' => true),
-					'edsApiPassword' => array('property'=>'casContext', 'type'=>'text', 'label'=>'CAS Context', 'description'=>'The context to use for CAS', 'hideInLists' => true),
+					'casHost' => array('property'=>'casHost', 'type'=>'text', 'label'=>'CAS Host', 'description'=>'The host to use for CAS authentication', 'hideInLists' => true),
+					'casPort' => array('property'=>'casPort', 'type'=>'integer', 'label'=>'CAS Port', 'description'=>'The port to use for CAS authentication (typically 443)', 'hideInLists' => true),
+					'casContext' => array('property'=>'casContext', 'type'=>'text', 'label'=>'CAS Context', 'description'=>'The context to use for CAS', 'hideInLists' => true),
 			)),
 
 			'dplaSection' => array('property'=>'dplaSection', 'type' => 'section', 'label' =>'DPLA', 'hideInLists' => true, 'helpLink'=> 'https://docs.google.com/document/d/1I6RuNhKNwDJOMpM63a4V5Lm0URgWp23465HegEIkP_w', 'properties' => array(
@@ -953,7 +949,7 @@ class Library extends DB_DataObject
 			),
 		);
 
-		if ($user->hasRole('libraryManager')){
+		if (UserAccount::userHasRole('libraryManager')){
 			$structure['subdomain']['type'] = 'label';
 			$structure['displayName']['type'] = 'label';
 			unset($structure['showDisplayNameInHeader']);
@@ -1048,14 +1044,13 @@ class Library extends DB_DataObject
 	}
 
 	static function getPatronHomeLibrary($tmpUser = null){
-		if ($tmpUser == null){
-			global $user;
-			$tmpUser = $user;
-		}
 		//Finally check to see if the user has logged in and if so, use that library
-		if (isset($tmpUser) && $tmpUser != false){
-			//Load the library based on the home branch for the user
+		if ($tmpUser != null){
 			return self::getLibraryForLocation($tmpUser->homeLocationId);
+		}
+		if (UserAccount::isLoggedIn()){
+			//Load the library based on the home branch for the user
+			return self::getLibraryForLocation(UserAccount::getUserHomeLocationId());
 		}else{
 			return null;
 		}
@@ -1720,13 +1715,13 @@ class Library extends DB_DataObject
 		$defaultFacets[] = $facet;
 
 		$facet = new LibraryFacetSetting();
-		$facet->setupAdvancedFacet('lexile_code', 'Lexile Code', true);
+		$facet->setupAdvancedFacet('lexile_code', 'Lexile code', true);
 		$facet->libraryId = $libraryId;
 		$facet->weight = count($defaultFacets) + 1;
 		$defaultFacets[] = $facet;
 
 		$facet = new LibraryFacetSetting();
-		$facet->setupAdvancedFacet('lexile_score', 'Lexile Score', true);
+		$facet->setupAdvancedFacet('lexile_score', 'Lexile measure', true);
 		$facet->libraryId = $libraryId;
 		$facet->weight = count($defaultFacets) + 1;
 		$defaultFacets[] = $facet;

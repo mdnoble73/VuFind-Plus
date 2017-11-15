@@ -36,7 +36,6 @@ class MyAccount_MyList extends MyAccount {
 	function launch() {
 		global $configArray;
 		global $interface;
-		global $user;
 
 		// Fetch List object
 		$listId = $_REQUEST['id'];
@@ -50,7 +49,7 @@ class MyAccount_MyList extends MyAccount {
 		if (!$list->find(true)){
 			//TODO: Use the first list?
 			$list = new UserList();
-			$list->user_id = $user->id;
+			$list->user_id = UserAccount::getActiveUserId();
 			$list->public = false;
 			$list->title = "My Favorites";
 		}
@@ -61,9 +60,9 @@ class MyAccount_MyList extends MyAccount {
 			MyAccount_Login::launch();
 			exit();
 		}
-		if (!$list->public && $list->user_id != $user->id) {
+		if (!$list->public && $list->user_id != UserAccount::getActiveUserId()) {
 			//Allow the user to view if they are admin
-			if ($user && $user->hasRole('opacAdmin')){
+			if (UserAccount::isLoggedIn() && UserAccount::userHasRole('opacAdmin')){
 				//Allow the user to view
 			}else{
 				$this->display('invalidList.tpl', 'Invalid List');
@@ -78,8 +77,9 @@ class MyAccount_MyList extends MyAccount {
 
 		//Perform an action on the list, but verify that the user has permission to do so.
 		$userCanEdit = false;
-		if ($user != false){
-			$userCanEdit = $user->canEditList($list);
+		$userObj = UserAccount::getActiveUserObj();
+		if ($userObj != false){
+			$userCanEdit = $userObj->canEditList($list);
 		}
 
 		if ($userCanEdit && (isset($_REQUEST['myListActionHead']) || isset($_REQUEST['myListActionItem']) || isset($_GET['delete']))){
@@ -134,8 +134,8 @@ class MyAccount_MyList extends MyAccount {
 		$interface->assign('listSelected', $list->id);
 
 		// Load the User object for the owner of the list (if necessary):
-		if ($user && ($user->id == $list->user_id)) {
-			$listUser = $user;
+		if (UserAccount::isLoggedIn() && (UserAccount::getActiveUserId() == $list->user_id)) {
+			$listUser = UserAccount::getActiveUserObj();
 		} elseif ($list->user_id != 0){
 			$listUser = new User();
 			$listUser->id = $list->user_id;
@@ -158,7 +158,6 @@ class MyAccount_MyList extends MyAccount {
 	}
 
 	function bulkAddTitles($list){
-		global $user;
 		$numAdded = 0;
 		$notes = array();
 		$titlesToAdd = $_REQUEST['titlesToAdd'];

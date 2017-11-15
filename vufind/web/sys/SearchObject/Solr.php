@@ -764,6 +764,12 @@ class SearchObject_Solr extends SearchObject_Base
 		global $memoryWatcher;
 		$html = array();
 		if (isset($this->indexResult['response'])) {
+			$allWorkIds = array();
+			for ($x = 0; $x < count($this->indexResult['response']['docs']); $x++) {
+				$allWorkIds[] = $this->indexResult['response']['docs'][$x]['id'];
+			}
+			require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
+			GroupedWorkDriver::loadArchiveLinksForWorks($allWorkIds);
 			for ($x = 0; $x < count($this->indexResult['response']['docs']); $x++) {
 				$memoryWatcher->logMemory("Started loading record information for index $x");
 				$current = &$this->indexResult['response']['docs'][$x];
@@ -2211,5 +2217,9 @@ class SearchObject_Solr extends SearchObject_Base
 			$this->indexEngine = null;
 			unset($this->indexEngine);
 		}
+	}
+
+	public function pingServer($failOnError = true){
+		return $this->indexEngine->pingServer($failOnError);
 	}
 }

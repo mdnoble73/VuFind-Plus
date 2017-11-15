@@ -13,7 +13,7 @@
 				</div>
 			</div>
 			<div id="main-content" class="col-xs-8 col-sm-7 col-md-8 col-lg-9">
-				{if $genealogyData}
+				{if $genealogyData || $birthDate || $deathDate}
 					{if $genealogyData->otherName}
 						<div class='personDetail'><span class='result-label'>Other Names: </span><span class='personDetailValue'>{$genealogyData->otherName|escape}</span></div>
 					{/if}

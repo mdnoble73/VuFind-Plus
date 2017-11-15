@@ -126,7 +126,7 @@ class Admin_AJAX extends Action {
 		}
 		return json_encode($results);
 	}
-    
+
   function getOverDriveExtractNotes()	{
 		global $interface;
 		$id = $_REQUEST['id'];
@@ -153,13 +153,13 @@ class Admin_AJAX extends Action {
 
 	function getAddToWidgetForm(){
 		global $interface;
-		global $user;
+		$user = UserAccount::getLoggedInUser();
 		// Display Page
 		$interface->assign('id', strip_tags($_REQUEST['id']));
 		$interface->assign('source', strip_tags($_REQUEST['source']));
 		$existingWidgets = array();
 		$listWidget = new ListWidget();
-		if ($user->hasRole('libraryAdmin') || $user->hasRole('contentEditor') || $user->hasRole('libraryManager') || $user->hasRole('locationManager')){
+		if (UserAccount::userHasRole('libraryAdmin') || UserAccount::userHasRole('contentEditor') || UserAccount::userHasRole('libraryManager') || UserAccount::userHasRole('locationManager')){
 			//Get all widgets for the library
 			$userLibrary = Library::getPatronHomeLibrary();
 			$listWidget->libraryId = $userLibrary->libraryId;

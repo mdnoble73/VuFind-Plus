@@ -17,8 +17,7 @@ class Suggestions{
 		$doSimilarlyRatedRecommendations = false;
 		$maxRecommendations = empty($numberOfSuggestionsToGet) ? 30 : $numberOfSuggestionsToGet;
 		if ($userId == -1){
-			global $user;
-			$userId = $user->id;
+			$userId = UserAccount::getActiveUserId();
 		}
 
 		//Load all titles the user is not interested in

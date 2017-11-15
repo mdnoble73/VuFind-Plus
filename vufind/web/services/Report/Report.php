@@ -30,9 +30,7 @@ abstract class Report_Report extends Admin_Admin
 
 	function __construct()
 	{
-		global $interface;
 		global $configArray;
-		global $user;
 
 		if (!UserAccount::isLoggedIn()) {
 			header("Location: " . $configArray['Site']['path'] . "/MyResearch/Home");

@@ -211,14 +211,11 @@ class UserList extends DB_DataObject
 	 * @return UserListEntry|bool
 	 */
 	function cleanListEntry($listEntry){
-//		global $configArray;
-		global $user;
-
 		// Connect to Database
 		$this->catalog = CatalogFactory::getCatalogConnectionInstance();
 
 		//Filter list information for bad words as needed.
-		if ($user == false || $this->user_id != $user->id){
+		if (!UserAccount::isLoggedIn() || $this->user_id != UserAccount::getActiveUserId()){
 			//Load all bad words.
 			global $library;
 			require_once ROOT_DIR . '/Drivers/marmot_inc/BadWord.php';
@@ -240,7 +237,6 @@ class UserList extends DB_DataObject
 				//Filter notes
 				// TODO: possible problem: $notesText overwrites the above description?
 				$notesText = $badWords->censorBadWords($listEntry->notes);
-//				$this->notes = $notesText;
 				$listEntry->notes = $notesText;
 			}else{
 				//Check for bad words in the title or description
@@ -297,32 +293,57 @@ class UserList extends DB_DataObject
 		$sort               = in_array($this->defaultSort, array_keys($this->userListSortOptions)) ? $this->userListSortOptions[$this->defaultSort] : null;
 		list($listEntries)  = $this->getListEntries($sort);
 		$listEntries        = array_slice($listEntries, $start, $numItems);
+		$groupedWorkIds = array();
+		$archiveIds = array();
 		foreach ($listEntries as $listItemId) {
 			if (strpos($listItemId, ':') === false) {
 				// Catalog Items
-				require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
-				$groupedWork = new GroupedWorkDriver($listItemId);
+				$groupedWorkIds[] = $listItemId;
+			} else {
+				$archiveIds[] = $listItemId;
+			}
+		}
+
+		//Load catalog items
+		if (count($groupedWorkIds) > 0){
+			/** @var SearchObject_Solr $searchObject */
+			$searchObject = SearchObjectFactory::initSearchObject();
+			$catalogRecords = $searchObject->getRecords($groupedWorkIds);
+			require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
+			foreach ($catalogRecords as $catalogRecord){
+				$groupedWork = new GroupedWorkDriver($catalogRecord);
 				if ($groupedWork->isValid) {
 					if (method_exists($groupedWork, 'getBrowseResult')) {
-						$browseRecords[] = $interface->fetch($groupedWork->getBrowseResult());
+						$browseRecords[$catalogRecord['id']] = $interface->fetch($groupedWork->getBrowseResult());
 					} else {
-						$browseRecords[] = 'Browse Result not available';
+						$browseRecords[$catalogRecord['id']] = 'Browse Result not available';
 					}
-				}
-			} // Archive Items
-			else {
-				require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
-				$fedoraUtils = FedoraUtils::getInstance();
-				$archiveObject = $fedoraUtils->getObject($listItemId);
-				$recordDriver = RecordDriverFactory::initRecordDriver($archiveObject);
-				if (method_exists($recordDriver, 'getBrowseResult')) {
-					$browseRecords[] = $interface->fetch($recordDriver->getBrowseResult());
-				} else {
-					$browseRecords[] = 'Browse Result not available';
 				}
 			}
 		}
-		return $browseRecords;
+
+		//Load archive items
+		if (count($archiveIds) > 0){
+			require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
+			foreach ($archiveIds as $archiveId){
+				$fedoraUtils = FedoraUtils::getInstance();
+				$archiveObject = $fedoraUtils->getObject($archiveId);
+				$recordDriver = RecordDriverFactory::initRecordDriver($archiveObject);
+				if (method_exists($recordDriver, 'getBrowseResult')) {
+					$browseRecords[$archiveId] = $interface->fetch($recordDriver->getBrowseResult());
+				} else {
+					$browseRecords[$archiveId] = 'Browse Result not available';
+				}
+			}
+		}
+
+		//Properly sort items
+		$browseRecordsSorted = array();
+		foreach ($listEntries as $listItemId) {
+			$browseRecordsSorted[] = $browseRecords[$listItemId];
+		}
+
+		return $browseRecordsSorted;
 	}
 
 	/**

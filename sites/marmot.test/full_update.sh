@@ -79,36 +79,53 @@ cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE}
 
 # Ebrary Marc Updates
-#TODO: refactor CCU's ebrary destination
-/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh ccu/ebrary ebrary_ccu >> ${OUTPUT_FILE}
-#/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh adams/ebrary ebrary/adams >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh western/ebrary ebrary/western >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh ccu/ebrary ebrary/ccu >> ${OUTPUT_FILE}
+
+/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} western/ebrary ebrary/western >> ${OUTPUT_FILE}
 
 #Adams Ebrary DDA files
-/usr/local/vufind-plus/sites/marmot.test/moveSideloadAdds.sh adams/ebrary/DDA ebrary/adams/dda/merge >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/sites/${PIKASERVER}/moveFullExport.sh adams/ebrary/DDA ebrary/adams/dda/merge >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh ebrary/adams/dda >> ${OUTPUT_FILE}
 
 # CCU Alexander Street Press Marc Updates
-/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh ccu/alexanderStreetPress alexanderstreetpress/ccu >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} ccu/alexanderStreetPress alexanderstreetpress/ccu >> ${OUTPUT_FILE}
 
 # CCU Ebsco Marc Updates
-/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh ccu/ebsco ebsco/ccu >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} ccu/ebsco ebsco/ccu >> ${OUTPUT_FILE}
+
+# CCU Biblioboard Marc Updates
+/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} ccu/biblioboard biblioboard/ccu >> ${OUTPUT_FILE}
 
 # CMC Ebsco Academic Marc Updates
-/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh cmc/ebsco ebsco/cmc >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} cmc/ebsco ebsco/cmc >> ${OUTPUT_FILE}
+
+#CMC Overdrive sideload
+/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} cmc/overdrive overdrive/cmc >> ${OUTPUT_FILE}
+
+# Adams Ebsco Marc Updates
+/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} adams/ebsco ebsco/adams >> ${OUTPUT_FILE}
 
 # Fort Lewis Ebsco Academic Marc Updates
-/usr/local/vufind-plus/sites/marmot.test/moveSideloadAdds.sh fortlewis_sideload/EBSCO_Academic ebsco/fortlewis/merge >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/sites/marmot.test/moveSideloadAdds.sh fortlewis_sideload/EBSCO_Academic/deletes ebsco/fortlewis/deletes >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} fortlewis_sideload/EBSCO_Academic ebsco/fortlewis >> ${OUTPUT_FILE}
+
+# Englewood Axis 360 Marc Updates
+/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} englewood/axis360 axis360/englewood >> ${OUTPUT_FILE}
+
+## Marmot RBDigital (magazine) Marc Updates
+#/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} marmot/rbdigital zinio/marmot >> ${OUTPUT_FILE}
 
 # Western Oxford Reference Marc Updates
-/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh western/oxfordReference oxfordReference/western >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} western/oxfordReference oxfordReference/western >> ${OUTPUT_FILE}
 
 # Western Springer Marc Updates
-/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh western/springer springer/western >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} western/springer springer/western >> ${OUTPUT_FILE}
 
-# Western Kanopy Marc Updates
-/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh western/kanopy kanopy/western >> ${OUTPUT_FILE}
+# CCU Gale Marc Updates
+/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} ccu/gale gale/ccu >> ${OUTPUT_FILE}
+
+# Kanopy Marc Updates
+/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} western/kanopy kanopy/western >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} budwerner/kanopy kanopy/budwerner >> ${OUTPUT_FILE}
 
 # SD51 Mackin VIA Marc Updates
 #/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh sd51/mackinvia/mvcp mackinvia/mvcp >> ${OUTPUT_FILE}
@@ -117,47 +134,30 @@ cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE
 #/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh sd51/mackinvia/mvtm mackinvia/mvtm >> ${OUTPUT_FILE}
 
 # Learning Express Marc Updates
-/usr/local/vufind-plus/sites/marmot.test/moveSideloadAdds.sh budwerner/learning_express learning_express/steamboatsprings/merge >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/sites/marmot.test/moveSideloadAdds.sh budwerner/learning_express/deletes learning_express/steamboatsprings/deletes >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/sites/marmot.test/moveSideloadAdds.sh garfield/learning_express learning_express/garfield/merge >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/sites/marmot.test/moveSideloadAdds.sh garfield/learning_express/deletes learning_express/garfield/deletes >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/sites/marmot.test/moveSideloadAdds.sh mesa/learning_express learning_express/mesa/merge -n >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/sites/marmot.test/moveSideloadAdds.sh mesa/learning_express/deletes learning_express/mesa/deletes -n >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/sites/marmot.test/moveSideloadAdds.sh vail/learning_express learning_express/vail/merge >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/sites/marmot.test/moveSideloadAdds.sh vail/learning_express/deletes learning_express/vail/deletes >> ${OUTPUT_FILE}
-
-# Colorado State Gov Docs Marc Updates
-/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh  marmot/coloGovDocs colorado_gov_docs >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} budwerner/learning_express learning_express/steamboatsprings >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} garfield/learning_express learning_express/garfield >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} mesa/learning_express learning_express/mesa >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} vail/learning_express learning_express/vail >> ${OUTPUT_FILE}
 
 #Films On Demand
-/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh cmc/filmsondemand filmsondemand/cmc >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} cmc/filmsondemand filmsondemand/cmc >> ${OUTPUT_FILE}
 
-# Lynda.com Marc Updates (received on marmot ftp server)
-/usr/local/vufind-plus/sites/marmot.test/moveSideloadAdds.sh lynda.com/evld lynda/evld/merge >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/sites/marmot.test/moveSideloadAdds.sh lynda.com/vail lynda/vail/merge >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/sites/marmot.test/moveSideloadAdds.sh lynda.com/telluride lynda/telluride/merge >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/sites/marmot.test/moveSideloadAdds.sh lynda.com/grand lynda/grand/merge >> ${OUTPUT_FILE}
+#Federal Government Documents Marc Updates (Western)
+/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} western/federalGovDocs federal_gov_docs/western >> ${OUTPUT_FILE}
+
+# Colorado State Gov Docs Marc Updates
+#/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh  marmot/coloGovDocs colorado_gov_docs >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} marmot/coloGovDocs colorado_gov_docs/marmot >> ${OUTPUT_FILE}
 
 #Extracts for sideloaded eContent; settings defined in config.pwd.ini [Sideload]
 cd /usr/local/vufind-plus/vufind/cron; ./sideload.sh ${PIKASERVER}
 
-# Merge Learning Express Records
-/usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh learning_express/steamboatsprings >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh learning_express/garfield >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh learning_express/mesa >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh learning_express/vail >> ${OUTPUT_FILE}
-
-# Merge Lynda.com Records
-/usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh lynda/evld >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh lynda/vail >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh lynda/telluride >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh lynda/grand >> ${OUTPUT_FILE}
-
-#Merge EBSCO records
-/usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh ebsco/fortlewis >> ${OUTPUT_FILE}
-
-# Merge OneClick digital Records
-/usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh oneclickdigital/englewood >> ${OUTPUT_FILE}
+# Not needed on marmot test site
+##Extract Lexile Data
+#cd /data/vufind-plus/; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/lexileTitles.txt https://cassini.marmot.org/lexileTitles.txt
+#
+##Extract AR Data
+#cd /data/vufind-plus/accelerated_reader; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/accelerated_reader/RLI-ARDataTAB.txt https://cassini.marmot.org/RLI-ARDataTAB.txt
 
 
 #Do a full extract from OverDrive just once a week to catch anything that doesn't

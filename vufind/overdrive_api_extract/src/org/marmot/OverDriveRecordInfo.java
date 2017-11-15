@@ -5,6 +5,7 @@ import java.util.HashSet;
 public class OverDriveRecordInfo {
 	//Data from base title call
 	private String id;
+	private long crossRefId;
 	private String mediaType;
 	private String title;
 	private String subtitle;
@@ -30,6 +31,12 @@ public class OverDriveRecordInfo {
 	}
 	public void setId(String id) {
 		this.id = id.toLowerCase();
+	}
+	public long getCrossRefId(){
+		return crossRefId;
+	}
+	public void setCrossRefId(long crossRefId){
+		this.crossRefId = crossRefId;
 	}
 	public String getMediaType() {
 		return mediaType;

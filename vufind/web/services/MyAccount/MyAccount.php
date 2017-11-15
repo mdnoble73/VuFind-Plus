@@ -31,11 +31,9 @@ abstract class MyAccount extends Action
 	protected $catalog;
 	protected $requireLogin = true;
 
-	function __construct()
-	{
+	function __construct() {
 		global $interface;
 		global $configArray;
-		global $user;
 
 		$interface->assign('page_body_style', 'sidebar_left');
 
@@ -51,7 +49,8 @@ abstract class MyAccount extends Action
 		$this->db = new $class($configArray['Index']['url']);
 
 		// Connect to Database
-		$this->catalog = CatalogFactory::getCatalogConnectionInstance($user ? $user->source : null);
+		//$user = UserAccount::getLoggedInUser();
+		//$this->catalog = CatalogFactory::getCatalogConnectionInstance($user ? $user->source : null);
 			// When loading MyList.php and the list is public, user does not need to be logged in to see list
 
 		// Hide Covers when the user has set that setting on an Account Page

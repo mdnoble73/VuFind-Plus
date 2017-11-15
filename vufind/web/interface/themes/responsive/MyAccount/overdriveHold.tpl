@@ -78,7 +78,7 @@
 						</div>
 					{/if}
 
-					{if count($user->getLinkedUsers()) > 0}
+					{if $hasLinkedUsers}
 					<div class="row">
 						<div class="result-label col-tn-3">{translate text='On Hold For'}</div>
 						<div class="col-tn-9 result-value">

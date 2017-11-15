@@ -36,7 +36,6 @@ class MaterialsRequest_Submit extends Action
 	{
 		global $configArray;
 		global $interface;
-		global $user;
 		global $library;
 
 		$maxActiveRequests = isset($library) ? $library->maxOpenRequests : 5;
@@ -48,7 +47,7 @@ class MaterialsRequest_Submit extends Action
 
 		//Make sure that the user is valid
 		$processForm = true;
-		if (!$user){
+		if (!UserAccount::isLoggedIn()){
 			$user = UserAccount::login();
 			if ($user == null){
 				$interface->assign('error', 'Sorry, we could not log you in.  Please enter a valid barcode and pin number submit a '. translate('materials request') .'.');
@@ -61,6 +60,7 @@ class MaterialsRequest_Submit extends Action
 			if (isset($configArray['MaterialsRequest']['allowablePatronTypes'])){
 				//Check to see if we need to do additional restrictions by patron type
 				$allowablePatronTypes = $configArray['MaterialsRequest']['allowablePatronTypes'];
+				$user = UserAccount::getLoggedInUser();
 				if (strlen($allowablePatronTypes) > 0 && $user){
 					if (!preg_match("/^$allowablePatronTypes$/i", $user->patronType)){
 						$enableMaterialsRequest = false;
@@ -76,7 +76,7 @@ class MaterialsRequest_Submit extends Action
 			}else{
 				//Check to see how many active materials request results the user has already.
 				$materialsRequest = new MaterialsRequest();
-				$materialsRequest->createdBy = $user->id;
+				$materialsRequest->createdBy = UserAccount::getActiveUserId();
 				$statusQuery = new MaterialsRequestStatus();
 				$homeLibrary = Library::getPatronHomeLibrary();
 				$statusQuery->libraryId = $homeLibrary->libraryId;
@@ -96,7 +96,7 @@ class MaterialsRequest_Submit extends Action
 				}else{
 					//Check the total number of requests created this year
 					$materialsRequest = new MaterialsRequest();
-					$materialsRequest->createdBy = $user->id;
+					$materialsRequest->createdBy = UserAccount::getActiveUserId();
 					$materialsRequest->whereAdd('dateCreated >= unix_timestamp(now() - interval 1 year)');
 					//To be fair, don't include any requests that were cancelled by the patron
 					$statusQuery = new MaterialsRequestStatus();
@@ -175,7 +175,7 @@ class MaterialsRequest_Submit extends Action
 							} else {
 								$materialsRequest->status      = $defaultStatus->id;
 								$materialsRequest->dateCreated = time();
-								$materialsRequest->createdBy   = $user->id;
+								$materialsRequest->createdBy   = UserAccount::getActiveUserId();
 								$materialsRequest->dateUpdated = time();
 
 								if ($materialsRequest->insert()) {
