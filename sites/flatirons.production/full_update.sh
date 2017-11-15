@@ -13,7 +13,7 @@ PIKASERVER=flatirons.production
 PIKADBNAME=pika
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
 
-MINFILE1SIZE=$((1160000000))
+MINFILE1SIZE=$((1140000000))
 
 # Check for conflicting processes currently running
 function checkConflictingProcesses() {
