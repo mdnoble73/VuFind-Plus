@@ -83,7 +83,7 @@
 # Let's Encrypt #
 #################
 #update catalog.aspencat.info certificate twice daily
-43 3,10 * * * /root/cron/certbot-auto renew
+43 3,10 * * * certbot renew
 
 #final end of line character needed for crontab to be read
 
