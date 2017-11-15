@@ -42,9 +42,9 @@
 # Daily full update #
 #####################
 # avoid 6pm - 11pm for AspenCat PLB  (PK-288)
-10 00 * * 0-5 cd /usr/local/vufind-plus/sites/aspencat.production; ./full_update_aspencat_production.sh
+10 00 * * 0-5 cd /usr/local/vufind-plus/sites/aspencat.production; ./full_update.sh
 # start full update early, expecting to use the same full export file as previous days
-30 03 * * 6 cd /usr/local/vufind-plus/sites/aspencat.production; ./full_update_aspencat_production.sh
+30 03 * * 6 cd /usr/local/vufind-plus/sites/aspencat.production; ./full_update.sh
 # start full update saturday morning after the new full export has arrived
 
 ################
