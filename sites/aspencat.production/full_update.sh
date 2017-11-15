@@ -8,7 +8,7 @@ PIKASERVER=aspencat.production
 PIKADBNAME=pika
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
 
-MINFILE1SIZE=$((1010000000))
+MINFILE1SIZE=$((1030000000))
 
 # Check for conflicting processes currently running
 function checkConflictingProcesses() {
