@@ -878,7 +878,6 @@ class CarlX extends SIP2Driver{
 //			if (!empty($pin) && !empty($pin1) && $pin == $pin1) {
 
 
-/*
 				// DENY REGISTRATION IF DUPLICATE EMAIL IS FOUND IN CARL.X
 				// searchPatron on Email appears to be case-insensitive and 
 				// appears to eliminate spurious whitespace
@@ -906,7 +905,6 @@ class CarlX extends SIP2Driver{
 						);
 					}
 				}
-*/
 
 				// CREATE PATRON REQUEST
 				$request                                         = new stdClass();
