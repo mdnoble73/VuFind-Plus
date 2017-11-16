@@ -90,6 +90,7 @@ class MaterialsRequest_MyRequests extends MyAccount
 
 			$statusQuery = new MaterialsRequestStatus();
 			if ($showOpen){
+				$user = UserAccount::getActiveUserObj();
 				$homeLibrary = $user->getHomeLibrary();
 				$statusQuery->libraryId = $homeLibrary->libraryId;
 				$statusQuery->isOpen = 1;
