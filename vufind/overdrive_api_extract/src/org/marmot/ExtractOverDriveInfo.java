@@ -1037,7 +1037,11 @@ class ExtractOverDriveInfo {
 						//Get the product to update
 						for (MetaAvailUpdateData curProduct : productsToUpdateMetadata){
 							if (metadata.getString("id").equalsIgnoreCase(curProduct.overDriveId)){
-								updateDBMetadataForProduct(curProduct, metadata, curTime);
+								if (metadata.getBoolean("isOwnedByCollections")){
+									updateDBMetadataForProduct(curProduct, metadata, curTime);
+								}else{
+									//Sometimes a product is owned by just advantage accounts so we need to check those accounts too
+								}
 								curProduct.metadataUpdated = true;
 								productsToUpdateMetadata.remove(curProduct);
 								break;
