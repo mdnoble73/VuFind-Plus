@@ -48,18 +48,18 @@ function smarty_function_js($params, &$smarty){
 	// Extract details from the config file, Smarty interface and parameters
 	// so we can find CSS files:
 	global $configArray;
-	
+
 	$path = $configArray['Site']['path'];
 	$local = $configArray['Site']['local'];
 	$themes = explode(',', $smarty->getVuFindTheme());
 	$themes[] = 'default';
 	$filename = $params['filename'];
-	
+
 	// Loop through the available themes looking for the requested JS file:
 	$js = false;
 	foreach ($themes as $theme) {
 		$theme = trim($theme);
-	
+
 		// If the file exists on the local file system, set $js to the relative
 		// path needed to link to it from the web interface.
 		if (file_exists("{$local}/interface/themes/{$theme}/js/{$filename}")) {
@@ -67,7 +67,7 @@ function smarty_function_js($params, &$smarty){
 			break;
 		}
 	}
-	
+
 	// If we couldn't find the file, check the global Javascript area; if that
 	// still doesn't help, we shouldn't try to link to it:
 	if (!$js) {
@@ -77,7 +77,8 @@ function smarty_function_js($params, &$smarty){
 			return '';
 		}
 	}
-	
+
 	// We found the file -- build the script tag:
-	return "<script type=\"text/javascript\" src=\"{$js}\"></script>";
+	global $interface;
+	return "<script type=\"text/javascript\" src=\"{$js}?v=" . urlencode($interface->getVariable('gitBranch')) . "\"></script>";
 }
