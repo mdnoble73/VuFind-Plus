@@ -33,6 +33,7 @@ class OverDriveExtractLog extends Admin_Admin
 		//Get the number of changes that are outstanding
 		$overdriveProduct = new OverDriveAPIProduct();
 		$overdriveProduct->needsUpdate = 1;
+		$overdriveProduct->deleted = 0;
 		$overdriveProduct->find();
 		$numOutstandingChanges = $overdriveProduct->N;
 		$interface->assign('numOutstandingChanges', $numOutstandingChanges);
