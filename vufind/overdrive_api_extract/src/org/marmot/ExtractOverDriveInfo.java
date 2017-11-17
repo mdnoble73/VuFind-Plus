@@ -1040,8 +1040,31 @@ class ExtractOverDriveInfo {
 								if (metadata.getBoolean("isOwnedByCollections")){
 									updateDBMetadataForProduct(curProduct, metadata, curTime);
 								}else{
+									boolean ownedByAdvantage = false;
+									logger.debug("Product " + curProduct.overDriveId + " is not owned by the shared collection, checking advantage collections.");
 									//Sometimes a product is owned by just advantage accounts so we need to check those accounts too
+									for (String advantageKey : libToOverDriveAPIKeyMap.values()){
+										url = "https://api.overdrive.com/v1/collections/" +advantageKey+ "/products/" + curProduct.overDriveId + "/metadata";
+										WebServiceResponse advantageMetaDataResponse = callOverDriveURL(url);
+										if (advantageMetaDataResponse.getResponseCode() != 200){
+											//Doesn't exist in this collection, skip to the next.
+											logger.error("Error " + advantageMetaDataResponse.getResponseCode() + " retrieving metadata for advantage account " + url + " " + metaDataResponse.getError());
+										}else {
+											JSONObject advantageMetadata = advantageMetaDataResponse.getResponse();
+											if (advantageMetadata.getBoolean("isOwnedByCollections")){
+												updateDBMetadataForProduct(curProduct, advantageMetadata, curTime);
+												ownedByAdvantage = true;
+												break;
+											}
+										}
+									}
+									if (!ownedByAdvantage){
+										//Not owned by any collections, make sure we set that it isn't owned.
+										logger.debug("Product " + curProduct.overDriveId + " is not owned by any collections.");
+										updateDBMetadataForProduct(curProduct, metadata, curTime);
+									}
 								}
+
 								curProduct.metadataUpdated = true;
 								productsToUpdateMetadata.remove(curProduct);
 								break;
