@@ -816,6 +816,14 @@ class OverDriveRecordDriver extends RecordInterface {
 		$scopedAvailability = $driver->getScopedAvailability($this);
 		$interface->assign('availability', $scopedAvailability['mine']);
 		$interface->assign('availabilityOther', $scopedAvailability['other']);
+		$numberOfHolds = 0;
+		foreach ($scopedAvailability['mine'] as $availability){
+			if ($availability->numberOfHolds > 0){
+				$numberOfHolds = $availability->numberOfHolds;
+				break;
+			}
+		}
+		$interface->assign('numberOfHolds', $numberOfHolds);
 		$showAvailability = true;
 		$showAvailabilityOther = true;
 		$interface->assign('showAvailability', $showAvailability);
