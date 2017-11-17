@@ -353,10 +353,10 @@ class OverDriveRecordDriver extends RecordInterface {
 		$overDriveAPIProduct->overdriveId = strtolower($this->id);
 		$overDriveAPIProductMetaData = new OverDriveAPIProductMetaData();
 		$overDriveAPIProduct->joinAdd($overDriveAPIProductMetaData, 'INNER');
-		$overDriveAPIProduct->selectAdd(null);
 		$overDriveAPIProduct->selectAdd("overdrive_api_products.rawData as productRaw");
 		$overDriveAPIProduct->selectAdd("overdrive_api_product_metadata.rawData as metaDataRaw");
 		if ($overDriveAPIProduct->find(true)){
+			$interface->assign('overDriveProduct', $overDriveAPIProduct);
 			$productRaw = json_decode($overDriveAPIProduct->productRaw);
 			//Remove links to overdrive that could be used to get semi-sensitive data
 			unset($productRaw->links);
@@ -816,6 +816,14 @@ class OverDriveRecordDriver extends RecordInterface {
 		$scopedAvailability = $driver->getScopedAvailability($this);
 		$interface->assign('availability', $scopedAvailability['mine']);
 		$interface->assign('availabilityOther', $scopedAvailability['other']);
+		$numberOfHolds = 0;
+		foreach ($scopedAvailability['mine'] as $availability){
+			if ($availability->numberOfHolds > 0){
+				$numberOfHolds = $availability->numberOfHolds;
+				break;
+			}
+		}
+		$interface->assign('numberOfHolds', $numberOfHolds);
 		$showAvailability = true;
 		$showAvailabilityOther = true;
 		$interface->assign('showAvailability', $showAvailability);

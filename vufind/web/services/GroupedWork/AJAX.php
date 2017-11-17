@@ -680,7 +680,7 @@ class GroupedWork_AJAX {
 	function saveToList(){
 		$result = array();
 
-		if (UserAccount::isLoggedIn()) {
+		if (!UserAccount::isLoggedIn()) {
 			$result['success'] = false;
 			$result['message'] = 'Please login before adding a title to list.';
 		}else{
@@ -740,6 +740,7 @@ class GroupedWork_AJAX {
 		$id = $_REQUEST['id'];
 		$interface->assign('id', $id);
 
+		require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
 		require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
 
 		//Get a list of all lists for the user

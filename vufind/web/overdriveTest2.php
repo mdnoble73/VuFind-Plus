@@ -7,17 +7,25 @@ require_once 'bootstrap.php';
 require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 $driver = OverDriveDriverFactory::getDriver();
 
-function easy_printr(&$var) {
-	echo '<pre>';
+function easy_printr($title, $section, &$var) {
+	echo "<a onclick='$(\"#{$section}\").toggle();return false;' href='#'>{$title}</a>";
+	echo "<pre style='display:none' id='{$section}'>";
 	print_r($var);
 	echo '</pre>';
 }
+echo ("<html>");
+echo ("<head><script type='text/javascript' src='/js/jquery-1.9.1.min.js'></script></head>");
+
+echo ("<body>");
+
+echo '<p>Add url paramater id={OverdriveProductID} to see a specific Product</p>';
 
 $libraryInfo = $driver->getLibraryAccountInformation();
-easy_printr($libraryInfo);
+easy_printr('Library Account Information', 'libraryAccountInfo', $libraryInfo);
 
 echo "<h1>Advantage Accounts</h1>";
 
+$advantageAccounts = null;
 try {
 	$advantageAccounts = $driver->getAdvantageAccountInformation();
 	if ($advantageAccounts) {
@@ -31,35 +39,7 @@ try {
 
 $productKey = $libraryInfo->collectionToken;
 
-echo"<h1>{$libraryInfo->name}</h1>",
-	"<h2>Products</h2>",
-	"Products link {$libraryInfo->links->products->href}<br/>",
-	"Product Key $productKey<br/>";
-//showProductInfo($driver, $libraryInfo->links->products->href);
-
-$productInfo = $driver->getProductsInAccount($libraryInfo->links->products->href);
-$firstProduct = reset($productInfo->products);
-
-$subtitle = isset($firstProduct->subtitle) ? ": {$firstProduct->subtitle}" : '';
-
-echo "<h2>First Product Details</h2>",
-	"{$firstProduct->title}$subtitle<br/>",
-	"By {$firstProduct->primaryCreator->name}<br/>";
-
-easy_printr($firstProduct);
-
-//echo("<h2>Advantage Product Details</h2>");
-//$productInfo = $driver->_callUrl("http://api.overdrive.com/v1/libraries/1201/advantageAccounts/50");
-//print_r($productInfo);
-
-//echo("<h2>Bud Unique Products</h2>");
-//$productInfo = $driver->_callUrl("http://api.overdrive.com/v1/collections/L1BUwYAAA2r/products");
-//print_r($productInfo);
-
-//	$firstProduct->links->metadata->href;
-
-//$metadata = $driver->getProductMetadata($firstProduct->links->metadata->href);
-//$metadata = $driver->getProductMetadata("cda4632c-0593-46e7-94a4-1e4c4451da09", "L1BMAEAAA2k");
+echo"<h1>{$libraryInfo->name}</h1>";
 
 if (!empty($_REQUEST['id'])) {
 	$overDriveId = $_REQUEST['id'];
@@ -67,107 +47,58 @@ if (!empty($_REQUEST['id'])) {
 	$overDriveId = "24f6c1d4-64c1-4d79-bd9a-610bc22c4d59";
 }
 
-/*echo "<h3>Lookup by ID</h3>",
-'<p>Add url paramater id={OverdriveProductID}to this page to see a specific Product</p>';
-$productInfoSingle = $driver->getProductById('1403332', $productKey);
-easy_printr($productInfoSingle);*/
-
-echo "<h3>Metadata</h3>",
-'<p>Add url paramater id={OverdriveProductID}to this page to see a specific Product</p>';
+echo "<h2>Metadata</h2>";
+echo "<h3>Metadata for $overDriveId</h3>";
 $metadata    = $driver->getProductMetadata($overDriveId, $productKey);
-easy_printr($metadata);
-
-
-//Get Update Batch Instead
-echo "<h2>OverDrive Extract Batch</h2>";
-
-
-require_once ROOT_DIR . '/sys/Variable.php';
-$lastOverDriveExtractVariable = new Variable();
-$lastOverDriveExtractVariable->name = 'last_overdrive_extract_time';
-if ($lastOverDriveExtractVariable->find(true)) {
-	$lastUpdateTime = date(DATE_W3C, $lastOverDriveExtractVariable->value/1000);
-
+easy_printr("Metadata for $overDriveId in shared collection", "metadata_{$overDriveId}_{$productKey}", $metadata);
+if ($advantageAccounts) {
+	foreach ($advantageAccounts->advantageAccounts as $accountInfo) {
+		echo("<h3>Metadata - {$accountInfo->name}</h3>");
+		$metadata = $driver->getProductMetadata($overDriveId, $accountInfo->collectionToken);
+		if ($metadata){
+			easy_printr("Metadata response", "metadata_{$overDriveId}_{$accountInfo->collectionToken}", $metadata);
+		}else{
+			echo("No metadata<br/>");
+		}
+	}
 }
 
-$url = "http://api.overdrive.com/v1/collections/v1L1ByAAAAA2r/products?lastupdatetime=$lastUpdateTime&offset=0&limit=300";
-echo "<p>$url</p>";
-
-$productInfo = $driver->_callUrl($url);
-easy_printr($productInfo);
-
-
-
-
-
-echo("<h3>Availability - MDL</h3>");
+echo "<h2>Availability</h2>";
+echo("<h3>Availability - {$libraryInfo->name}</h3>");
 //echo("{$firstProduct->links->availability->href}<br/>");
-$availability = $driver->getProductAvailability($overDriveId, "L1BMAEAAA2k");
-echo("Copies Owned {$availability->copiesOwned }<br/>");
-echo("Available Copies {$availability->copiesAvailable }<br/>");
-echo("Num Holds {$availability->numberOfHolds }<br/>");
-easy_printr($availability);
-
-echo("<h3>Availability - Wilkinson</h3>");
-//echo("{$firstProduct->links->availability->href}<br/>");
-$availability = $driver->getProductAvailability($overDriveId, "L2BMAEAALoBAAA1X");
-echo("Copies Owned {$availability->copiesOwned }<br/>");
-echo("Available Copies {$availability->copiesAvailable }<br/>");
-echo("Num Holds {$availability->numberOfHolds }<br/>");
-easy_printr($availability);
-
-echo("<h3>Availability - Pitkin</h3>");
-//echo("{$firstProduct->links->availability->href}<br/>");
-$availability = $driver->getProductAvailability($overDriveId, "L2BMAEAALoBAAA1X");
-echo("Copies Owned {$availability->copiesOwned }<br/>");
-echo("Available Copies {$availability->copiesAvailable }<br/>");
-echo("Num Holds {$availability->numberOfHolds }<br/>");
-easy_printr($availability);
-
-echo("<h3>Availability - Eagle</h3>");
-//echo("{$firstProduct->links->availability->href}<br/>");
-$availability = $driver->getProductAvailability($overDriveId, "L2BMAEAANIBAAA1R");
-echo("Copies Owned {$availability->copiesOwned }<br/>");
-echo("Available Copies {$availability->copiesAvailable }<br/>");
-echo("Num Holds {$availability->numberOfHolds }<br/>");
-easy_printr($availability);
-
-echo("<h3>Availability - Grand County</h3>");
-//echo("{$firstProduct->links->availability->href}<br/>");
-$availability = $driver->getProductAvailability($overDriveId, "L2BMAEAABUGAAA1w");
-echo("Copies Owned {$availability->copiesOwned }<br/>");
-echo("Available Copies {$availability->copiesAvailable }<br/>");
-echo("Num Holds {$availability->numberOfHolds }<br/>");
-easy_printr($availability);
-
-echo("<h3>Availability - Garfield</h3>");
-//echo("{$firstProduct->links->availability->href}<br/>");
-$availability = $driver->getProductAvailability($overDriveId, "v1L1BBggAAA2G");
-echo("Copies Owned {$availability->copiesOwned }<br/>");
-echo("Available Copies {$availability->copiesAvailable }<br/>");
-echo("Num Holds {$availability->numberOfHolds }<br/>");
-easy_printr($availability);
-
-echo("<h3>Availability - Bud Werner</h3>");
-//echo("{$firstProduct->links->availability->href}<br/>");
-$availability = $driver->getProductAvailability($overDriveId, "L1BUwYAAA2r");
-echo("Copies Owned {$availability->copiesOwned }<br/>");
-echo("Available Copies {$availability->copiesAvailable }<br/>");
-echo("Num Holds {$availability->numberOfHolds }<br/>");
-easy_printr($availability);
-
-$advantageInfo = ($driver->getAdvantageAccountInformation());
-echo("<h2>Advantage Accounts</h2>");
-//print_r($advantageInfo);
-foreach ($advantageInfo->advantageAccounts as $advantageAccount){
-	echo("<h3>{$advantageAccount->name} - {$advantageAccount->links->self->href}</h3>");
-	//print_r($advantageAccount);
-	$selfAdvantageInfo = $driver->_callUrl($advantageAccount->links->self->href);
-	//print_r($selfAdvantageInfo);
-	echo("Library API Key = {$selfAdvantageInfo->links->products->href}");
-	//showProductInfo($driver, "{$advantageAccount->links->products->href}");
+$availability = $driver->getProductAvailability($overDriveId, $productKey);
+if ($availability && !isset($availability->errorCode)) {
+	echo("Copies Owned {$availability->copiesOwned }<br/>");
+	echo("Available Copies {$availability->copiesAvailable }<br/>");
+	echo("Num Holds {$availability->numberOfHolds }<br/>");
+	easy_printr("Availability response", "availability_{$overDriveId}_{$productKey}", $availability);
+}else{
+	echo("Not owned<br/>");
+	if ($availability){
+		easy_printr("Availability response", "availability_{$overDriveId}_{$productKey}", $availability);
+	}
 }
 
+if ($advantageAccounts) {
+	foreach ($advantageAccounts->advantageAccounts as $accountInfo) {
+		echo("<h3>Availability - {$accountInfo->name}</h3>");
+		$availability = $driver->getProductAvailability($overDriveId, $accountInfo->collectionToken);
+		if ($availability && !isset($availability->errorCode)){
+			echo("Copies Owned {$availability->copiesOwned }<br/>");
+			echo("Available Copies {$availability->copiesAvailable }<br/>");
+			echo("Num Holds {$availability->numberOfHolds }<br/>");
+			easy_printr("Availability response", "availability_{$overDriveId}_{$accountInfo->collectionToken}", $availability);
+		}else{
+			echo("Not owned<br/>");
+			if ($availability){
+				easy_printr("Availability response", "availability_{$overDriveId}_{$productKey}", $availability);
+			}
+		}
+	}
+}
+
+echo ("</body>");
+echo ("</html>");
 
 function showProductInfo($driver, $productUrl){
 	$now = time();
