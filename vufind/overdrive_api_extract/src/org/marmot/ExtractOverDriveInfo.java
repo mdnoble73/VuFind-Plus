@@ -1514,7 +1514,8 @@ class ExtractOverDriveInfo {
 			if (availabilityResponse == null || availabilityResponse.getResponseCode() != 200){
 				//Doesn't exist in this collection, skip to the next.
 				if (availabilityResponse != null){
-					if (availabilityResponse.getResponseCode() == 404){
+					if (availabilityResponse.getResponseCode() == 404 || availabilityResponse.getResponseCode() == 500){
+						//No availability for this product
 						deleteOverDriveAvailability(curProduct, libraryId);
 					}else{
 						logger.error("Did not get availability (" + availabilityResponse.getResponseCode() + ") for batch " + url);
