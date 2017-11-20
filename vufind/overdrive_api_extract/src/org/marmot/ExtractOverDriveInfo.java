@@ -1543,7 +1543,7 @@ class ExtractOverDriveInfo {
 								updateDBAvailabilityForProduct(libraryId, curProduct, availability, curTime);
 								productsToUpdateClone.remove(curProduct);
 								break;
-							}else if (availability.has("reserveId") && availability.getString("reserveId") == curProduct.overDriveId) {
+							}else if (availability.has("reserveId") && availability.getString("reserveId").equals(curProduct.overDriveId)) {
 								updateDBAvailabilityForProduct(libraryId, curProduct, availability, curTime);
 								productsToUpdateClone.remove(curProduct);
 								break;
