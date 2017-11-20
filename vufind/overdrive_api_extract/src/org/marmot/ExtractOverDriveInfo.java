@@ -1498,7 +1498,7 @@ class ExtractOverDriveInfo {
 		String apiKey;
 		apiKey = libToOverDriveAPIKeyMap.get(libraryId);
 		for (MetaAvailUpdateData curProduct : productsToUpdateBatch){
-			String url = "https://api.overdrive.com/v1/collections/" + apiKey + "/products/" + curProduct.overDriveId + "/availability";
+			String url = "https://api.overdrive.com/v2/collections/" + apiKey + "/products/" + curProduct.overDriveId + "/availability";
 			int numTries = 0;
 			WebServiceResponse availabilityResponse = null;
 			while (numTries < 3){
