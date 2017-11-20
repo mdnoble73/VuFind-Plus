@@ -207,6 +207,11 @@ class Library extends DB_DataObject
 	public $expiredMessage;
 	public $expirationNearMessage;
 
+	//Combined Results (Bento Box)
+	public $enableCombinedResults;
+	public $combinedResultsLabel;
+	public $defaultToCombinedResults;
+
 	// Archive Request Form Field Settings
 	public $archiveRequestFieldName;
 	public $archiveRequestFieldAddress;
