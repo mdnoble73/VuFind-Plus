@@ -323,6 +323,7 @@ class ExtractOverDriveInfo {
 			int batchSize = 25;
 			int batchNum = 1;
 			while (productsToUpdate.size() > 0){
+				SharedStats sharedStats = new SharedStats();
 				int maxIndex = productsToUpdate.size() > batchSize ? batchSize : productsToUpdate.size();
 				ArrayList<MetaAvailUpdateData> productsToUpdateBatch = new ArrayList<>();
 				for (int i = 0; i < maxIndex; i++){
@@ -333,7 +334,7 @@ class ExtractOverDriveInfo {
 				for (Long libraryId : libToOverDriveAPIKeyMap.keySet()){
 					updateOverDriveMetaDataBatch(libraryId, productsToUpdateBatch);
 					//TODO: Switch to V2 as soon as loading holds works properly
-					updateOverDriveAvailabilityBatchV1(libraryId, productsToUpdateBatch);
+					updateOverDriveAvailabilityBatchV1(libraryId, productsToUpdateBatch, sharedStats);
 				}
 				//Do a final update to mark that they don't need to be updated again.
 				for (MetaAvailUpdateData productToUpdate : productsToUpdateBatch){
@@ -1492,7 +1493,7 @@ class ExtractOverDriveInfo {
 		return availabilityChanged;
 	}
 
-	private void updateOverDriveAvailabilityBatchV1(long libraryId, List<MetaAvailUpdateData> productsToUpdateBatch) throws SocketTimeoutException {
+	private void updateOverDriveAvailabilityBatchV1(long libraryId, List<MetaAvailUpdateData> productsToUpdateBatch, SharedStats sharedStats) throws SocketTimeoutException {
 		//logger.debug("Loading availability, " + overDriveInfo.getId() + " is in " + overDriveInfo.getCollections().size() + " collections");
 		long curTime = new Date().getTime() / 1000;
 		String apiKey;
@@ -1525,7 +1526,7 @@ class ExtractOverDriveInfo {
 				}
 			}else{
 				JSONObject availability = availabilityResponse.getResponse();
-				updateDBAvailabilityForProductV1(libraryId, curProduct, availability, curTime);
+				updateDBAvailabilityForProductV1(libraryId, curProduct, availability, curTime, sharedStats);
 			}
 		}
 	}
@@ -1546,7 +1547,7 @@ class ExtractOverDriveInfo {
 		}
 	}
 
-	private void updateOverDriveAvailabilityBatchV2(long libraryId, List<MetaAvailUpdateData> productsToUpdateBatch) throws SocketTimeoutException {
+	private void updateOverDriveAvailabilityBatchV2(long libraryId, List<MetaAvailUpdateData> productsToUpdateBatch, HashMap<String, Integer> copiesOwnedByShared, HashMap<String, Integer> copiesAvailableInShared) throws SocketTimeoutException {
 		//logger.debug("Loading availability, " + overDriveInfo.getId() + " is in " + overDriveInfo.getCollections().size() + " collections");
 		long curTime = new Date().getTime() / 1000;
 		String apiKey;
@@ -1617,7 +1618,7 @@ class ExtractOverDriveInfo {
 		}
 	}
 
-	private void updateDBAvailabilityForProductV1(long libraryId, MetaAvailUpdateData curProduct, JSONObject availability, long curTime){
+	private void updateDBAvailabilityForProductV1(long libraryId, MetaAvailUpdateData curProduct, JSONObject availability, long curTime, SharedStats sharedStats){
 		boolean availabilityChanged = false;
 		try {
 			//Get existing availability
@@ -1631,61 +1632,62 @@ class ExtractOverDriveInfo {
 			try {
 				boolean available = availability.has("available") && availability.getString("available").equals("true");
 
-				if (availability != null) {
-					int copiesOwned = availability.getInt("copiesOwned");
-					int copiesAvailable;
-					if (availability.has("copiesAvailable")) {
-						copiesAvailable = availability.getInt("copiesAvailable");
-					} else {
-						logger.info("copiesAvailable was not provided for library " + libraryId + " title " + curProduct.overDriveId);
-						copiesAvailable = 0;
-					}
-					boolean shared = false;
-					if (availability.has("shared")) {
-						shared = availability.getBoolean("shared");
-					}
-					//Don't restrict this to only the library since it could be owned by an advantage library only.
-					int numberOfHolds;
+				int copiesOwned = availability.getInt("copiesOwned");
+				int copiesAvailable;
+				if (availability.has("copiesAvailable")) {
+					copiesAvailable = availability.getInt("copiesAvailable");
+				} else {
+					logger.info("copiesAvailable was not provided for library " + libraryId + " title " + curProduct.overDriveId);
+					copiesAvailable = 0;
+				}
+				if (libraryId == -1){
+					sharedStats.copiesOwnedByShared = copiesOwned;
+					sharedStats.copiesAvailableInShared = copiesAvailable;
+				}else{
+					copiesOwned -= sharedStats.copiesOwnedByShared;
+					copiesAvailable -= sharedStats.copiesAvailableInShared;
+				}
+
+				boolean shared = false;
+				if (availability.has("shared")) {
+					shared = availability.getBoolean("shared");
+				}
+				//Don't restrict this to only the library since it could be owned by an advantage library only.
+				int numberOfHolds;
+				if (libraryId == -1 || sharedStats.copiesOwnedByShared > 0) {
 					numberOfHolds = availability.getInt("numberOfHolds");
-					String availabilityType = availability.getString("availabilityType");
-					if (hasExistingAvailability) {
-						//Check to see if the availability has changed
-						if (available != existingAvailabilityRS.getBoolean("available") ||
-										copiesOwned != existingAvailabilityRS.getInt("copiesOwned") ||
-										copiesAvailable != existingAvailabilityRS.getInt("copiesAvailable") ||
-										numberOfHolds != existingAvailabilityRS.getInt("numberOfHolds") ||
-										!availabilityType.equals(existingAvailabilityRS.getString("availabilityType"))
-										) {
-							updateAvailabilityStmt.setBoolean(1, available);
-							updateAvailabilityStmt.setInt(2, copiesOwned);
-							updateAvailabilityStmt.setInt(3, copiesAvailable);
-							updateAvailabilityStmt.setInt(4, numberOfHolds);
-							updateAvailabilityStmt.setString(5, availabilityType);
-							long existingId = existingAvailabilityRS.getLong("id");
-							updateAvailabilityStmt.setLong(6, existingId);
-							updateAvailabilityStmt.executeUpdate();
-							availabilityChanged = true;
-						}
-					} else {
-						addAvailabilityStmt.setLong(1, curProduct.databaseId);
-						addAvailabilityStmt.setLong(2, libraryId);
-						addAvailabilityStmt.setBoolean(3, available);
-						addAvailabilityStmt.setInt(4, copiesOwned);
-						addAvailabilityStmt.setInt(5, copiesAvailable);
-						addAvailabilityStmt.setInt(6, numberOfHolds);
-						addAvailabilityStmt.setString(7, availabilityType);
-						addAvailabilityStmt.executeUpdate();
+				}else{
+					numberOfHolds = 0;
+				}
+				String availabilityType = availability.getString("availabilityType");
+				if (hasExistingAvailability) {
+					//Check to see if the availability has changed
+					if (available != existingAvailabilityRS.getBoolean("available") ||
+									copiesOwned != existingAvailabilityRS.getInt("copiesOwned") ||
+									copiesAvailable != existingAvailabilityRS.getInt("copiesAvailable") ||
+									numberOfHolds != existingAvailabilityRS.getInt("numberOfHolds") ||
+									!availabilityType.equals(existingAvailabilityRS.getString("availabilityType"))
+									) {
+						updateAvailabilityStmt.setBoolean(1, available);
+						updateAvailabilityStmt.setInt(2, copiesOwned);
+						updateAvailabilityStmt.setInt(3, copiesAvailable);
+						updateAvailabilityStmt.setInt(4, numberOfHolds);
+						updateAvailabilityStmt.setString(5, availabilityType);
+						long existingId = existingAvailabilityRS.getLong("id");
+						updateAvailabilityStmt.setLong(6, existingId);
+						updateAvailabilityStmt.executeUpdate();
 						availabilityChanged = true;
 					}
 				} else {
-					if (hasExistingAvailability) {
-						//Delete availability from the database if it used to exist since there is none now
-
-						long existingId = existingAvailabilityRS.getLong("id");
-						deleteAvailabilityStmt.setLong(1, existingId);
-						deleteAvailabilityStmt.executeUpdate();
-						availabilityChanged = true;
-					}
+					addAvailabilityStmt.setLong(1, curProduct.databaseId);
+					addAvailabilityStmt.setLong(2, libraryId);
+					addAvailabilityStmt.setBoolean(3, available);
+					addAvailabilityStmt.setInt(4, copiesOwned);
+					addAvailabilityStmt.setInt(5, copiesAvailable);
+					addAvailabilityStmt.setInt(6, numberOfHolds);
+					addAvailabilityStmt.setString(7, availabilityType);
+					addAvailabilityStmt.executeUpdate();
+					availabilityChanged = true;
 				}
 
 			} catch (JSONException e) {
