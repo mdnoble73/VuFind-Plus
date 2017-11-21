@@ -6,6 +6,7 @@
  * Time: 4:00 PM
  */
 
+require_once ROOT_DIR . '/Drivers/marmot_inc/CombinedResultSection.php';
 class LibraryCombinedResultSection extends CombinedResultSection{
 	public $__table = 'library_combined_results_section';    // table name
 	public $libraryId;

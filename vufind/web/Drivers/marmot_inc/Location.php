@@ -6,9 +6,11 @@ require_once 'DB/DataObject.php';
 require_once 'DB/DataObject/Cast.php';
 require_once ROOT_DIR . '/Drivers/marmot_inc/LocationHours.php';
 require_once ROOT_DIR . '/Drivers/marmot_inc/LocationFacetSetting.php';
+require_once ROOT_DIR . '/Drivers/marmot_inc/LocationCombinedResultSection.php';
 require_once ROOT_DIR . '/sys/Browse/LocationBrowseCategory.php';
 require_once ROOT_DIR . '/sys/Indexing/LocationRecordOwned.php';
 require_once ROOT_DIR . '/sys/Indexing/LocationRecordToInclude.php';
+
 
 class Location extends DB_DataObject
 {
@@ -82,6 +84,12 @@ class Location extends DB_DataObject
 	public $includeAllRecordsInDateAddedFacets;
 	public $includeLibraryRecordsToInclude;
 
+	//Combined Results (Bento Box)
+	public $enableCombinedResults;
+	public $combinedResultsLabel;
+	public $defaultToCombinedResults;
+	public $useLibraryCombinedResultsSettings;
+
 	/** @var  array $data */
 	protected $data;
 
@@ -144,6 +152,10 @@ class Location extends DB_DataObject
 		unset($locationRecordToIncludeStructure['locationId']);
 		unset($locationRecordToIncludeStructure['weight']);
 
+		$combinedResultsStructure = LocationCombinedResultSection::getObjectStructure();
+		unset($combinedResultsStructure['locationId']);
+		unset($combinedResultsStructure['weight']);
+
 		$browseCategoryInstructions = 'For more information on how to setup browse categories, see the <a href="https://docs.google.com/document/d/11biGMw6UDKx9UBiDCCj_GBmatx93UlJBLMESNf_RtDU">online documentation</a>.';
 
 		$structure = array(
@@ -181,31 +193,68 @@ class Location extends DB_DataObject
 				)),
 
 				'searchingSection' => array('property'=>'searchingSection', 'type' => 'section', 'label' =>'Searching', 'hideInLists' => true, 'properties' => array(
-						array('property'=>'facetLabel', 'type'=>'text', 'label'=>'Facet Label', 'description'=>'The label of the facet that identifies this location.', 'hideInLists' => true, 'size'=>'40'),
 						array('property'=>'restrictSearchByLocation', 'type'=>'checkbox', 'label'=>'Restrict Search By Location', 'description'=>'Whether or not search results should only include titles from this location', 'hideInLists' => true, 'default'=>false),
-//						array('property'=>'econtentLocationsToInclude', 'type'=>'text', 'label'=>'eContent Locations To Include', 'description'=>'A list of eContent Locations to include within the scope.', 'size'=>'40', 'hideInLists' => true,),
-
+						array('property' => 'publicListsToInclude', 'type'=>'enum', 'values' => array(0 => 'No Lists', '1' => 'Lists from this library', '4'=>'Lists from library list publishers Only', '2'=>'Lists from this location', '5'=>'Lists from list publishers at this location Only', '6'=>'Lists from all list publishers', '3' => 'All Lists'), 'label'=>'Public Lists To Include', 'description'=>'Which lists should be included in this scope'),
 						array('property'=>'boostByLocation', 'type'=>'checkbox', 'label'=>'Boost By Location', 'description'=>'Whether or not boosting of titles owned by this location should be applied', 'hideInLists' => true, 'default'=>true),
 						array('property'=>'additionalLocalBoostFactor', 'type'=>'integer', 'label'=>'Additional Local Boost Factor', 'description'=>'An additional numeric boost to apply to any locally owned and locally available titles', 'hideInLists' => true, 'default'=>1),
-						array('property' => 'publicListsToInclude', 'type'=>'enum', 'values' => array(0 => 'No Lists', '1' => 'Lists from this library', '4'=>'Lists from library list publishers Only', '2'=>'Lists from this location', '5'=>'Lists from list publishers at this location Only', '6'=>'Lists from all list publishers', '3' => 'All Lists'), 'label'=>'Public Lists To Include', 'description'=>'Which lists should be included in this scope'),
-						//array('property'=>'recordsToBlackList', 'type'=>'textarea', 'label'=>'Records to deaccession', 'description'=>'A list of records to deaccession (hide) in search results.  Enter one record per line.', 'hideInLists' => true,),
-						array('property'=>'availabilityToggleLabelSuperScope', 'type' => 'text', 'label' => 'SuperScope Toggle Label', 'description' => 'The label to show when viewing super scope i.e. Consortium Name / Entire Collection / Everything.  Does not show if superscope is not enabled.', 'default' => 'Entire Collection'),
-						array('property'=>'availabilityToggleLabelLocal', 'type' => 'text', 'label' => 'Local Collection Toggle Label', 'description' => 'The label to show when viewing the local collection i.e. Library Name / Local Collection.  Leave blank to hide the button.', 'default' => '{display name}'),
-						array('property'=>'availabilityToggleLabelAvailable', 'type' => 'text', 'label' => 'Available Toggle Label', 'description' => 'The label to show when viewing available items i.e. Available Now / Available Locally / Available Here.', 'default' => 'Available Now'),
-						array('property'=>'availabilityToggleLabelAvailableOnline', 'type' => 'text', 'label' => 'Available Online Toggle Label', 'description' => 'The label to show when viewing available items i.e. Available Online.', 'default' => 'Available Online'),
-						array('property'=>'baseAvailabilityToggleOnLocalHoldingsOnly', 'type'=>'checkbox', 'label'=>'Base Availability Toggle on Local Holdings Only', 'description'=>'Turn on to use local materials only in availability toggle.', 'hideInLists' => true, 'default'=>false),
-						array('property'=>'includeOnlineMaterialsInAvailableToggle', 'type'=>'checkbox', 'label'=>'Include Online Materials in Available Toggle', 'description'=>'Turn on to include online materials in both the Available Now and Available Online Toggles.', 'hideInLists' => true, 'default'=>false),
-
-						array('property'=>'repeatSearchOption', 'type'=>'enum', 'values'=>array('none'=>'None', 'librarySystem'=>'Library System','marmot'=>'Entire Consortium'), 'label'=>'Repeat Search Options', 'description'=>'Where to allow repeating search. Valid options are: none, librarySystem, marmot, all', 'default'=>'marmot'),
-						array('property'=>'repeatInOnlineCollection', 'type'=>'checkbox', 'label'=>'Repeat In Online Collection', 'description'=>'Turn on to allow repeat search in the Online Collection.', 'hideInLists' => true, 'default'=>false),
-						array('property'=>'repeatInProspector', 'type'=>'checkbox', 'label'=>'Repeat In Prospector', 'description'=>'Turn on to allow repeat search in Prospector functionality.', 'hideInLists' => true, 'default'=>false),
-						array('property'=>'repeatInWorldCat', 'type'=>'checkbox', 'label'=>'Repeat In WorldCat', 'description'=>'Turn on to allow repeat search in WorldCat functionality.', 'hideInLists' => true, 'default'=>false),
-						array('property'=>'repeatInOverdrive', 'type'=>'checkbox', 'label'=>'Repeat In Overdrive', 'description'=>'Turn on to allow repeat search in Overdrive functionality.', 'hideInLists' => true, 'default'=>false),
-						array('property'=>'systemsToRepeatIn', 'type'=>'text', 'label'=>'Systems To Repeat In', 'description'=>'A list of library codes that you would like to repeat search in separated by pipes |.', 'hideInLists' => true),
-						array('property'=>'includeAllLibraryBranchesInFacets', 'type'=>'checkbox', 'label'=>'Include All Library Branches In Facets', 'description'=>'Turn on to include all branches of the library within facets (ownership and availability).', 'hideInLists' => true, 'default'=>true),
-						array('property'=>'additionalLocationsToShowAvailabilityFor', 'type'=>'text', 'label'=>'Additional Locations to Include in Available At Facet', 'description'=>'A list of library codes that you would like included in the available at facet separated by pipes |.', 'size'=>'20', 'hideInLists' => true,),
-						array('property'=>'includeAllRecordsInShelvingFacets', 'type'=>'checkbox', 'label'=>'Include All Records In Shelving Facets', 'description'=>'Turn on to include all records (owned and included) in shelving related facets (detailed location, collection).', 'hideInLists' => true, 'default'=>false),
-						array('property'=>'includeAllRecordsInDateAddedFacets', 'type'=>'checkbox', 'label'=>'Include All Records In Date Added Facets', 'description'=>'Turn on to include all records (owned and included) in date added facets.', 'hideInLists' => true, 'default'=>false),
+						array('property' => 'searchBoxSection', 'type' => 'section', 'label' => 'Search Box', 'hideInLists' => true, 'properties' => array(
+								array('property'=>'systemsToRepeatIn', 'type'=>'text', 'label'=>'Systems To Repeat In', 'description'=>'A list of library codes that you would like to repeat search in separated by pipes |.', 'hideInLists' => true),
+								array('property'=>'repeatSearchOption', 'type'=>'enum', 'values'=>array('none'=>'None', 'librarySystem'=>'Library System','marmot'=>'Entire Consortium'), 'label'=>'Repeat Search Options', 'description'=>'Where to allow repeating search. Valid options are: none, librarySystem, marmot, all', 'default'=>'marmot'),
+								array('property'=>'repeatInOnlineCollection', 'type'=>'checkbox', 'label'=>'Repeat In Online Collection', 'description'=>'Turn on to allow repeat search in the Online Collection.', 'hideInLists' => true, 'default'=>false),
+								array('property'=>'repeatInProspector', 'type'=>'checkbox', 'label'=>'Repeat In Prospector', 'description'=>'Turn on to allow repeat search in Prospector functionality.', 'hideInLists' => true, 'default'=>false),
+								array('property'=>'repeatInWorldCat', 'type'=>'checkbox', 'label'=>'Repeat In WorldCat', 'description'=>'Turn on to allow repeat search in WorldCat functionality.', 'hideInLists' => true, 'default'=>false),
+								array('property'=>'repeatInOverdrive', 'type'=>'checkbox', 'label'=>'Repeat In Overdrive', 'description'=>'Turn on to allow repeat search in Overdrive functionality.', 'hideInLists' => true, 'default'=>false),
+						)),
+						array('property' => 'searchFacetsSection', 'type' => 'section', 'label' => 'Search Facets', 'hideInLists' => true, 'properties' => array(
+								array('property'=>'availabilityToggleLabelSuperScope', 'type' => 'text', 'label' => 'SuperScope Toggle Label', 'description' => 'The label to show when viewing super scope i.e. Consortium Name / Entire Collection / Everything.  Does not show if superscope is not enabled.', 'default' => 'Entire Collection'),
+								array('property'=>'availabilityToggleLabelLocal', 'type' => 'text', 'label' => 'Local Collection Toggle Label', 'description' => 'The label to show when viewing the local collection i.e. Library Name / Local Collection.  Leave blank to hide the button.', 'default' => '{display name}'),
+								array('property'=>'availabilityToggleLabelAvailable', 'type' => 'text', 'label' => 'Available Toggle Label', 'description' => 'The label to show when viewing available items i.e. Available Now / Available Locally / Available Here.', 'default' => 'Available Now'),
+								array('property'=>'availabilityToggleLabelAvailableOnline', 'type' => 'text', 'label' => 'Available Online Toggle Label', 'description' => 'The label to show when viewing available items i.e. Available Online.', 'default' => 'Available Online'),
+								array('property'=>'baseAvailabilityToggleOnLocalHoldingsOnly', 'type'=>'checkbox', 'label'=>'Base Availability Toggle on Local Holdings Only', 'description'=>'Turn on to use local materials only in availability toggle.', 'hideInLists' => true, 'default'=>false),
+								array('property'=>'includeOnlineMaterialsInAvailableToggle', 'type'=>'checkbox', 'label'=>'Include Online Materials in Available Toggle', 'description'=>'Turn on to include online materials in both the Available Now and Available Online Toggles.', 'hideInLists' => true, 'default'=>false),
+								array('property'=>'facetLabel', 'type'=>'text', 'label'=>'Facet Label', 'description'=>'The label of the facet that identifies this location.', 'hideInLists' => true, 'size'=>'40'),
+								array('property'=>'includeAllLibraryBranchesInFacets', 'type'=>'checkbox', 'label'=>'Include All Library Branches In Facets', 'description'=>'Turn on to include all branches of the library within facets (ownership and availability).', 'hideInLists' => true, 'default'=>true),
+								array('property'=>'additionalLocationsToShowAvailabilityFor', 'type'=>'text', 'label'=>'Additional Locations to Include in Available At Facet', 'description'=>'A list of library codes that you would like included in the available at facet separated by pipes |.', 'size'=>'20', 'hideInLists' => true,),
+								array('property'=>'includeAllRecordsInShelvingFacets', 'type'=>'checkbox', 'label'=>'Include All Records In Shelving Facets', 'description'=>'Turn on to include all records (owned and included) in shelving related facets (detailed location, collection).', 'hideInLists' => true, 'default'=>false),
+								array('property'=>'includeAllRecordsInDateAddedFacets', 'type'=>'checkbox', 'label'=>'Include All Records In Date Added Facets', 'description'=>'Turn on to include all records (owned and included) in date added facets.', 'hideInLists' => true, 'default'=>false),
+								'facets' => array(
+										'property'=>'facets',
+										'type'=>'oneToMany',
+										'label'=>'Facets',
+										'description'=>'A list of facets to display in search results',
+										'keyThis' => 'locationId',
+										'keyOther' => 'locationId',
+										'subObjectType' => 'LocationFacetSetting',
+										'structure' => $facetSettingStructure,
+										'sortable' => true,
+										'storeDb' => true,
+										'allowEdit' => true,
+										'canEdit' => true,
+								),
+						)),
+						'combinedResultsSection' => array('property' => 'combinedResultsSection', 'type' => 'section', 'label' => 'Combined Results', 'hideInLists' => true, 'properties' => array(
+								'useLibraryCombinedResultsSettings' => array('property' => 'useLibraryCombinedResultsSettings', 'type'=>'checkbox', 'label'=>'Use Library Settings', 'description'=>'Whether or not settings from the library should be used rather than settings from here', 'hideInLists' => true, 'default' => true),
+								'enableCombinedResults' => array('property' => 'enableCombinedResults', 'type'=>'checkbox', 'label'=>'Enable Combined Results', 'description'=>'Whether or not combined results should be shown ', 'hideInLists' => true, 'default' => false),
+								'combinedResultsLabel' => array('property' => 'combinedResultsLabel', 'type' => 'text', 'label' => 'Combined Results Label', 'description' => 'The label to use in the search source box when combined results is active.', 'size'=>'20', 'hideInLists' => true, 'default' => 'Combined Results'),
+								'defaultToCombinedResults' => array('property' => 'defaultToCombinedResults', 'type'=>'checkbox', 'label'=>'Default To Combined Results', 'description'=>'Whether or not combined results should be the default search source when active ', 'hideInLists' => true, 'default' => true),
+								'combinedResultSections' => array(
+										'property' => 'combinedResultSections',
+										'type' => 'oneToMany',
+										'label' => 'Combined Results Sections',
+										'description' => 'Which sections should be shown in the combined results search display',
+										'helpLink' => '',
+										'keyThis' => 'locationId',
+										'keyOther' => 'locationId',
+										'subObjectType' => 'LocationCombinedResultSection',
+										'structure' => $combinedResultsStructure,
+										'sortable' => true,
+										'storeDb' => true,
+										'allowEdit' => true,
+										'canEdit' => false,
+										'additionalOneToManyActions' => array(
+										)
+								),
+						)),
 				)),
 
 			// Catalog Enrichment //
@@ -291,21 +340,6 @@ class Location extends DB_DataObject
 				'description' => 'Library Hours',
 				'sortable' => false,
 				'storeDb' => true
-			),
-
-			'facets' => array(
-				'property'=>'facets',
-				'type'=>'oneToMany',
-				'label'=>'Facets',
-				'description'=>'A list of facets to display in search results',
-				'keyThis' => 'locationId',
-				'keyOther' => 'locationId',
-				'subObjectType' => 'LocationFacetSetting',
-				'structure' => $facetSettingStructure,
-				'sortable' => true,
-				'storeDb' => true,
-				'allowEdit' => true,
-				'canEdit' => true,
 			),
 
 			'recordsOwned' => array(
@@ -919,6 +953,19 @@ class Location extends DB_DataObject
 				}
 			}
 			return $this->browseCategories;
+		}elseif ($name == 'combinedResultSections') {
+			if (!isset($this->combinedResultSections) && $this->locationId){
+				$this->combinedResultSections = array();
+				$combinedResultSection = new LocationCombinedResultSection();
+				$combinedResultSection->locationId = $this->locationId;
+				$combinedResultSection->orderBy('weight');
+				if ($combinedResultSection->find()) {
+					while ($combinedResultSection->fetch()) {
+						$this->combinedResultSections[$combinedResultSection->id] = clone $combinedResultSection;
+					}
+				}
+				return $this->combinedResultSections;
+			}
 		}else{
 			return $this->data[$name];
 		}
@@ -938,6 +985,8 @@ class Location extends DB_DataObject
 			$this->recordsOwned = $value;
 		}elseif ($name == 'recordsToInclude'){
 			$this->recordsToInclude = $value;
+		}elseif ($name == 'combinedResultSections') {
+			$this->combinedResultSections = $value;
 		}else{
 			$this->data[$name] = $value;
 		}
@@ -957,6 +1006,7 @@ class Location extends DB_DataObject
 			$this->saveMoreDetailsOptions();
 			$this->saveRecordsOwned();
 			$this->saveRecordsToInclude();
+			$this->saveCombinedResultSections();
 		}
 		return $ret;
 	}
@@ -975,103 +1025,62 @@ class Location extends DB_DataObject
 			$this->saveMoreDetailsOptions();
 			$this->saveRecordsOwned();
 			$this->saveRecordsToInclude();
+			$this->saveCombinedResultSections();
 		}
 		return $ret;
 	}
 
 	public function saveBrowseCategories(){
 		if (isset ($this->browseCategories) && is_array($this->browseCategories)){
-			/** @var LocationBrowseCategory[] $browseCategories */
-			foreach ($this->browseCategories as $locationBrowseCategory){
-				if (isset($locationBrowseCategory->deleteOnSave) && $locationBrowseCategory->deleteOnSave == true){
-					$locationBrowseCategory->delete();
-				}else{
-					if (isset($locationBrowseCategory->id) && is_numeric($locationBrowseCategory->id)){
-						$ret = $locationBrowseCategory->update();
-					}else{
-						$locationBrowseCategory->locationId = $this->locationId;
-						$locationBrowseCategory->insert();
-					}
-				}
-			}
+			$this->saveOneToManyOptions($this->browseCategories);
 			unset($this->browseCategories);
 		}
 	}
 
 	public function clearBrowseCategories(){
-		$browseCategories = new LocationBrowseCategory();
-		$browseCategories->locationId = $this->locationId;
-		$browseCategories->delete();
+		$this->clearOneToManyOptions('LocationBrowseCategory');
 		$this->browseCategories = array();
 	}
 
 	public function saveMoreDetailsOptions(){
 		if (isset ($this->moreDetailsOptions) && is_array($this->moreDetailsOptions)){
-			/** @var LibraryMoreDetails $options */
-			foreach ($this->moreDetailsOptions as $options){
-				if (isset($options->deleteOnSave) && $options->deleteOnSave == true){
-					$options->delete();
-				}else{
-					if (isset($options->id) && is_numeric($options->id)){
-						$ret = $options->update();
-					}else{
-						$options->locationId = $this->locationId;
-						$options->insert();
-					}
-				}
-			}
+			$this->saveOneToManyOptions($this->moreDetailsOptions);
 			unset($this->moreDetailsOptions);
 		}
 	}
 
 	public function clearMoreDetailsOptions(){
-		$options = new LocationMoreDetails();
-		$options->locationId = $this->locationId;
-		$options->delete();
+		$this->clearOneToManyOptions('LocationMoreDetails');
 		$this->moreDetailsOptions = array();
+	}
+
+	public function saveCombinedResultSections(){
+		if (isset ($this->combinedResultSections) && is_array($this->combinedResultSections)){
+			$this->saveOneToManyOptions($this->combinedResultSections);
+			unset($this->combinedResultSections);
+		}
+	}
+
+	public function clearCombinedResultSections(){
+		$this->clearOneToManyOptions('LibraryCombinedResultSection');
+		$this->combinedResultSections = array();
 	}
 
 	public function saveFacets(){
 		if (isset ($this->facets) && is_array($this->facets)){
-			/** @var LocationFacetSetting $facet */
-			foreach ($this->facets as $facet){
-				if (isset($facet->deleteOnSave) && $facet->deleteOnSave == true){
-					$facet->delete();
-				}else{
-					if (isset($facet->id) && is_numeric($facet->id)){
-						$facet->update();
-					}else{
-						$facet->locationId = $this->locationId;
-						$facet->insert();
-					}
-				}
-			}
+			$this->saveOneToManyOptions($this->facets);
 			unset($this->facets);
 		}
 	}
 
 	public function clearFacets(){
-		$facets = new LocationFacetSetting();
-		$facets->locationId = $this->locationId;
-		$facets->delete();
+		$this->clearOneToManyOptions('LocationFacetSetting');
 		$this->facets = array();
 	}
 
 	public function saveHours(){
 		if (isset ($this->hours) && is_array($this->hours)){
-			/** @var LocationHours $hours */
-			foreach ($this->hours as $hours){
-				if (isset($hours->deleteOnSave) && $hours->deleteOnSave == true){
-					$hours->delete();
-				}else{
-					if (isset($hours->id) && is_numeric($hours->id)){
-						$hours->update();
-					}else{
-						$hours->locationId = $this->locationId;
-						$hours->insert();
-					}
-				}
-			}
+			$this->saveOneToManyOptions($this->hours);
 			unset($this->hours);
 		}
 	}
@@ -1449,6 +1458,28 @@ class Location extends DB_DataObject
 	public function setOpacStatus($opacStatus = null)
 	{
 		$this->opacStatus = $opacStatus;
+	}
+
+	private function saveOneToManyOptions($oneToManySettings) {
+		foreach ($oneToManySettings as $oneToManyDBObject){
+			if (isset($oneToManyDBObject->deleteOnSave) && $oneToManyDBObject->deleteOnSave == true){
+				$oneToManyDBObject->delete();
+			}else{
+				if (isset($oneToManyDBObject->id) && is_numeric($oneToManyDBObject->id)){ // (negative ids need processed with insert)
+					$oneToManyDBObject->update();
+				}else{
+					$oneToManyDBObject->locationId = $this->locationId;
+					$oneToManyDBObject->insert();
+				}
+			}
+		}
+	}
+
+	private function clearOneToManyOptions($oneToManyDBObjectClassName) {
+		$oneToManyDBObject = new $oneToManyDBObjectClassName();
+		$oneToManyDBObject->libraryId = $this->libraryId;
+		$oneToManyDBObject->delete();
+
 	}
 
 }
