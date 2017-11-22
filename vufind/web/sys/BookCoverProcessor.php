@@ -690,10 +690,10 @@ class BookCoverProcessor{
 	function processImageURL($url, $cache = true, $attemptRefetch = true) {
 		$this->log("Processing $url", PEAR_LOG_INFO);
 		$context = stream_context_create(array('http'=>array(
-			'header' => "User-Agent: Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:57.0) Gecko/20100101 Firefox/57.0\r\n"
+			'header' => "User-Agent: {$this->configArray['Catalog']['catalogUserAgent']}\r\n"
+//			'header' => "User-Agent: {$this->configArray['Catalog']['genericUserAgent']}\r\n"
 		)));
 
-//		if ($image = @file_get_contents($url)) {
 		if ($image = @file_get_contents($url, false, $context)) {
 			// Figure out file paths -- $tempFile will be used to store the downloaded
 			// image for analysis.  $finalFile will be used for long-term storage if

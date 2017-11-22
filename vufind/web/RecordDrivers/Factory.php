@@ -299,9 +299,6 @@ class RecordDriverFactory {
 	 */
 	public static function initIslandoraDriverFromPid($record)
 	{
-		global $configArray;
-		global $timer;
-
 		require_once ROOT_DIR . '/sys/Islandora/IslandoraObjectCache.php';
 		$islandoraObjectCache = new IslandoraObjectCache();
 		$islandoraObjectCache->pid = $record;

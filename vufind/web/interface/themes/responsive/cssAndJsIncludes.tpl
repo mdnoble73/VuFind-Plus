@@ -70,7 +70,7 @@
 		$(document).ready(function(){{/literal}
 			Globals.path = '{$path}';
 			Globals.url = '{$url}';
-			Globals.loggedIn = {$loggedIn};
+			Globals.loggedIn = {if $loggedIn}true{else}false{/if};
 			Globals.opac = {if $onInternalIP}true{else}false{/if};
 			Globals.activeModule = '{$module}';
 			Globals.activeAction = '{$action}';
