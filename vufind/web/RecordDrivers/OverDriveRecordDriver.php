@@ -1116,7 +1116,10 @@ class OverDriveRecordDriver extends RecordInterface {
 		$totalHolds = 0;
 		/** @var OverDriveAPIProductAvailability $availabilityInfo */
 		foreach ($this->getAvailability() as $availabilityInfo){
-			$totalHolds += $availabilityInfo->numberOfHolds;
+			//Holds is set once for everyone so don't add them up.
+			if ($availabilityInfo->numberOfHolds > $totalHolds){
+				$totalHolds = $availabilityInfo->numberOfHolds;
+			}
 		}
 		return $totalHolds;
 	}
