@@ -41,7 +41,7 @@
 ###############
 # On Reboot
 ###############
-@reboot cd /usr/local/vufind-plus/sites/wcpl.test; ./wcpl.test start
+@reboot cd /usr/local/vufind-plus/sites/wcpl.test; ./wcpl.test.sh start
 # restart continuous re-indexing on reboot.
 @reboot sleep 300 && /usr/local/vufind-plus/sites/wcpl.test/continuous_partial_reindex.sh
 
