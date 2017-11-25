@@ -46,7 +46,27 @@ class SearchSources{
 			$searchEbsco = $library->edsApiProfile != '';
 		}
 
+		$enableCombinedResults = false;
+		$showCombinedResultsFirst = false;
+		$combinedResultsName = 'Combined Results';
+		if ($location && !$location->useLibraryCombinedResultsSettings){
+			$enableCombinedResults = $location->enableCombinedResults;
+			$showCombinedResultsFirst = $location->defaultToCombinedResults;
+			$combinedResultsName = $location->combinedResultsLabel;
+		}else if ($library){
+			$enableCombinedResults = $library->enableCombinedResults;
+			$showCombinedResultsFirst = $library->defaultToCombinedResults;
+			$combinedResultsName = $library->combinedResultsLabel;
+		}
+
 		$marmotAdded = false;
+		if ($enableCombinedResults && $showCombinedResultsFirst){
+			$searchOptions['combinedResults'] = array(
+					'name' => $combinedResultsName,
+					'description' => "Combined results from multiple sources.",
+					'catalogType' => 'combined'
+			);
+		}
 
 		//Local search
 		if (!empty($location) && $location->useScope && $location->restrictSearchByLocation){
@@ -169,6 +189,14 @@ class SearchSources{
         'name' => 'Genealogy Records',
         'description' => 'Genealogy Records from Colorado',
 				'catalogType' => 'genealogy'
+			);
+		}
+
+		if ($enableCombinedResults && !$showCombinedResultsFirst){
+			$searchOptions['combinedResults'] = array(
+					'name' => $combinedResultsName,
+					'description' => "Combined results from multiple sources.",
+					'catalogType' => 'combined'
 			);
 		}
 
