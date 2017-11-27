@@ -46,7 +46,7 @@ class ExtractOverDriveInfo {
 	private long overDriveAPIExpiration;
 	private String overDriveProductsKey;
 	private boolean forceMetaDataUpdate;
-	private HashMap<Long, String> libToOverDriveAPIKeyMap = new HashMap<>();
+	private TreeMap<Long, String> libToOverDriveAPIKeyMap = new TreeMap<>();
 	private HashMap<String, Long> overDriveFormatMap = new HashMap<>();
 	
 	private HashMap<String, OverDriveRecordInfo> overDriveTitles = new HashMap<>();
