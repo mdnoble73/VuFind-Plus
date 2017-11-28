@@ -27,24 +27,6 @@ class LibraryCombinedResultSection extends CombinedResultSection{
 		$structure = parent::getObjectStructure();
 		$structure['libraryId'] = array('property'=>'libraryId', 'type'=>'enum', 'values'=>$libraryList, 'label'=>'Library', 'description'=>'The id of a library');
 
-		//Alter the source as well
-		global $library;
-		$validResultSources = array('pika' => 'Pika Results');
-		if ($library->edsApiProfile != ''){
-			$validResultSources['eds'] = 'EBSCO EDS';
-		}
-		if ($library->enablePospectorIntegration){
-			$validResultSources['prospector'] = 'Prospector';
-		}
-		if ($library->enableArchive){
-			$validResultSources['archive'] = 'Digital Archive';
-		}
-		global $configArray;
-		if ($configArray['DPLA']['enabled']){
-			$validResultSources['dpla'] = 'DPLA';
-		}
-		$structure['source']['values'] = $validResultSources;
-
 		return $structure;
 	}
 }

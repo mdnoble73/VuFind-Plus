@@ -1365,6 +1365,14 @@ function getLibraryLocationUpdates(){
 					),
 			),
 
+			'library_eds_search_integration' => array(
+					'title' => 'Library EDS Search Integration',
+					'description' => 'Setup information for linking to EDS',
+					'sql' => array(
+							'ALTER TABLE `library` ADD COLUMN `edsSearchProfile` VARCHAR(50)',
+					),
+			),
+
 			'library_patronNameDisplayStyle' => array(
 					'title' => 'Library Patron Display Name Style',
 					'description' => 'Setup the style for how the display name for patrons is generated',

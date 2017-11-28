@@ -43,21 +43,11 @@ class SearchSources{
 			$searchGenealogy = $library->enableGenealogy;
 			$repeatCourseReserves = $library->enableCourseReserves == 1;
 			$searchArchive = $library->enableArchive == 1;
-			$searchEbsco = $library->edsApiProfile != '';
+			//TODO: Reenable once we do full EDS integration
+			//$searchEbsco = $library->edsApiProfile != '';
 		}
 
-		$enableCombinedResults = false;
-		$showCombinedResultsFirst = false;
-		$combinedResultsName = 'Combined Results';
-		if ($location && !$location->useLibraryCombinedResultsSettings){
-			$enableCombinedResults = $location->enableCombinedResults;
-			$showCombinedResultsFirst = $location->defaultToCombinedResults;
-			$combinedResultsName = $location->combinedResultsLabel;
-		}else if ($library){
-			$enableCombinedResults = $library->enableCombinedResults;
-			$showCombinedResultsFirst = $library->defaultToCombinedResults;
-			$combinedResultsName = $library->combinedResultsLabel;
-		}
+		list($enableCombinedResults, $showCombinedResultsFirst, $combinedResultsName) = self::getCombinedSearchSetupParameters($location, $library);
 
 		$marmotAdded = false;
 		if ($enableCombinedResults && $showCombinedResultsFirst){
@@ -261,6 +251,29 @@ class SearchSources{
 		}
 
 		return $searchOptions;
+	}
+
+	/**
+	 * @param $location
+	 * @param $library
+	 * @return array
+	 */
+	static function getCombinedSearchSetupParameters($location, $library)
+	{
+		$enableCombinedResults = false;
+		$showCombinedResultsFirst = false;
+		$combinedResultsName = 'Combined Results';
+		if ($location && !$location->useLibraryCombinedResultsSettings) {
+			$enableCombinedResults = $location->enableCombinedResults;
+			$showCombinedResultsFirst = $location->defaultToCombinedResults;
+			$combinedResultsName = $location->combinedResultsLabel;
+			return array($enableCombinedResults, $showCombinedResultsFirst, $combinedResultsName);
+		} else if ($library) {
+			$enableCombinedResults = $library->enableCombinedResults;
+			$showCombinedResultsFirst = $library->defaultToCombinedResults;
+			$combinedResultsName = $library->combinedResultsLabel;
+			return array($enableCombinedResults, $showCombinedResultsFirst, $combinedResultsName);
+		}return array($enableCombinedResults, $showCombinedResultsFirst, $combinedResultsName);
 	}
 
 	public function getWorldCatSearchType($type){

@@ -188,6 +188,7 @@ class Library extends DB_DataObject
 	public $edsApiProfile;
 	public $edsApiUsername;
 	public $edsApiPassword;
+	public $edsSearchProfile;
 	protected $patronNameDisplayStyle; //Needs to be protected so __get and __set are called
 	private $patronNameDisplayStyleChanged = false; //Track changes so we can clear values for existing patrons
 	public $includeAllRecordsInShelvingFacets;
@@ -888,6 +889,7 @@ class Library extends DB_DataObject
 
 			'edsSection' => array('property'=>'edsSection', 'type' => 'section', 'label' =>'EBSCO EDS', 'hideInLists' => true, 'properties' => array(
 					'edsApiProfile' => array('property'=>'edsApiProfile', 'type'=>'text', 'label'=>'EDS API Profile', 'description'=>'The profile to use when connecting to the EBSCO API', 'hideInLists' => true),
+					'edsSearchProfile' => array('property'=>'edsSearchProfile', 'type'=>'text', 'label'=>'EDS Search Profile', 'description'=>'The profile to use when linking to EBSCO EDS', 'hideInLists' => true),
 					'edsApiUsername' => array('property'=>'edsApiUsername', 'type'=>'text', 'label'=>'EDS API Username', 'description'=>'The username to use when connecting to the EBSCO API', 'hideInLists' => true),
 					'edsApiPassword' => array('property'=>'edsApiPassword', 'type'=>'text', 'label'=>'EDS API Password', 'description'=>'The password to use when connecting to the EBSCO API', 'hideInLists' => true),
 			)),
