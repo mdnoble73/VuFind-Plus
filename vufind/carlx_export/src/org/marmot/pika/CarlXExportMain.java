@@ -685,6 +685,7 @@ public class CarlXExportMain {
 
 			} catch (Exception e) {
 				logger.error("Error Parsing SOAP Response for Fetching Changed Items", e);
+				logger.debug(SOAPResponse.getMessage());
 				return false;
 			}
 		}else{
