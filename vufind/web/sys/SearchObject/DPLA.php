@@ -2,18 +2,18 @@
 /**
  * Handles searching DPLA and returning results
  *
- * @category VuFind-Plus-2014 
+ * @category VuFind-Plus-2014
  * @author Mark Noble <mark@marmot.org>
  * Date: 2/9/15
  * Time: 3:09 PM
  */
 
 class DPLA {
-	public function getDPLAResults($searchTerm){
+	public function getDPLAResults($searchTerm, $numResults = 5){
 		global $configArray;
 		$results = array();
 		if ($configArray['DPLA']['enabled']){
-			$queryUrl = "http://api.dp.la/v2/items?api_key={$configArray['DPLA']['apiKey']}&page_size=5&q=" . urlencode($searchTerm);
+			$queryUrl = "http://api.dp.la/v2/items?api_key={$configArray['DPLA']['apiKey']}&page_size=$numResults&q=" . urlencode($searchTerm);
 
 			$responseRaw = file_get_contents($queryUrl);
 			$responseData = json_decode($responseRaw);
@@ -46,13 +46,14 @@ class DPLA {
 	}
 
 
-	public function formatResults($results) {
+	public function formatResults($results, $showDescription = true) {
 		$formattedResults = "";
 		if (count($results) > 0){
 			global $interface;
 			$interface->assign('searchResults', $results);
+			$interface->assign('showDplaDescription', $showDescription);
 			$formattedResults = $interface->fetch('Search/dplaResults.tpl');
 		}
 		return $formattedResults;
 	}
-} 
+}

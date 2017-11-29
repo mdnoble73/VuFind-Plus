@@ -20,7 +20,7 @@
 
 require_once ROOT_DIR . '/Action.php';
 
-class AJAX extends Action {
+class Union_AJAX extends Action {
 
 	function launch()
 	{
@@ -86,8 +86,99 @@ class AJAX extends Action {
 		$searchType = $_REQUEST['searchType'];
 		$hideCovers = $_REQUEST['hideCovers'];
 
-		$results = "<div>Showing $numberOfResults for $source.  Hide covers? $hideCovers</div>";
+		if ($source == 'eds') {
+			require_once ROOT_DIR . '/sys/Ebsco/EDS_API.php';
+			$edsApi = EDS_API::getInstance();
+			$searchResults = $edsApi->getSearchResults($searchTerm);
+			$summary = $edsApi->getResultSummary();
+			$records = $edsApi->getResultRecordHTML();
+			if ($summary['resultTotal'] < $numberOfResults) {
+				$results = "<div>Showing {$summary['resultTotal']} records</div>";
+			} else {
+				$results = "<div>Showing $numberOfResults of {$summary['resultTotal']} results</div>";
+			}
+
+			$numAdded = 0;
+			foreach ($records as $record) {
+				$numAdded++;
+				$results .= $record;
+				if ($numAdded >= $numberOfResults) {
+					break;
+				}
+			}
+		}elseif ($source == 'pika') {
+			/** @var SearchObject_Solr $searchObject */
+			$searchObject = SearchObjectFactory::initSearchObject();
+			$searchObject->init('local', $searchTerm);
+			$searchObject->setLimit($numberOfResults);
+			$searchObject->setSearchTerms(array(
+					'index' => $searchType,
+					'lookfor' => $searchTerm
+			));
+			$result = $searchObject->processSearch(true, false);
+			$summary = $searchObject->getResultSummary();
+			$records = $searchObject->getResultRecordHTML();
+			if ($summary['resultTotal'] < $numberOfResults) {
+				$results = "<div>Showing {$summary['resultTotal']} records</div>";
+			} else {
+				$results = "<div>Showing $numberOfResults of {$summary['resultTotal']} results</div>";
+			}
+
+			foreach ($records as $record) {
+				$results .= $record;
+			}
+		}elseif ($source == 'archive'){
+			/** @var SearchObject_Islandora $searchObject */
+			$searchObject = SearchObjectFactory::initSearchObject('Islandora');
+			$searchObject->init();
+			$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
+			$searchObject->addHiddenFilter('!mods_extension_marmotLocal_pikaOptions_showInSearchResults_ms', "no");
+			$searchObject->setLimit($numberOfResults);
+			if ($searchType == 'Title'){
+				$searchType = 'IslandoraTitle';
+			}elseif ($searchType == 'Subject'){
+				$searchType = 'IslandoraSubject';
+			}else{
+				$searchType = 'IslandoraKeyword';
+			}
+			$searchObject->setSearchTerms(array(
+					'index' => $searchType,
+					'lookfor' => $searchTerm
+			));
+			$result = $searchObject->processSearch(true, false);
+			$summary = $searchObject->getResultSummary();
+			$records = $searchObject->getResultRecordHTML();
+			if ($summary['resultTotal'] < $numberOfResults) {
+				$results = "<div>Showing {$summary['resultTotal']} records</div>";
+			} else {
+				$results = "<div>Showing $numberOfResults of {$summary['resultTotal']} results</div>";
+			}
+
+			foreach ($records as $record) {
+				$results .= $record;
+			}
+		}elseif ($source == 'dpla'){
+			require_once ROOT_DIR . '/sys/SearchObject/DPLA.php';
+			$dpla = new DPLA();
+			$dplaResults = $dpla->getDPLAResults($searchTerm, $numberOfResults);
+			$results = $dpla->formatResults($dplaResults, false);
+		}elseif ($source == 'prospector'){
+			require_once ROOT_DIR . '/Drivers/marmot_inc/Prospector.php';
+			$prospector = new Prospector();
+			$searchTerms = array(array(
+					'index' => $searchType,
+					'lookfor' => $searchTerm
+			));
+			$records = $prospector->getTopSearchResults($searchTerms, $numberOfResults);
+			global $interface;
+			$interface->assign('prospectorResults', $records);
+			$results = $interface->fetch('GroupedWork/ajax-prospector.tpl');
+		}else{
+			$results = "<div>Showing $numberOfResults for $source.  Hide covers? $hideCovers</div>";
+		}
 		$results .= "<div><a href='" . $sectionObject->getResultsLink($searchTerm, $searchType) . "'>Full Results</a></div>";
+
+
 		return array(
 				'success' => true,
 				'results' => $results
