@@ -28,7 +28,7 @@ class CarlX extends SIP2Driver{
 		global $timer;
 
 		//Remove any spaces from the barcode
-		$username = preg_replace('/[^/da-zA-Z]/', '', trim($username));
+		$username = preg_replace('/[^0-9a-zA-Z]/', '', trim($username));
 		$password = trim($password);
 
 		$request = new stdClass();
