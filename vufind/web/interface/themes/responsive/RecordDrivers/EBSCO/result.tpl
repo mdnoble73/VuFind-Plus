@@ -1,7 +1,21 @@
 {strip}
 {* //QUESTION: is this Depricated *}
 <div id="record{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" class="resultsList row">
-	<div class="col-tn-12">
+	{if $showCovers}
+		<div class="coversColumn col-xs-3 col-sm-3 col-md-3 col-lg-2 text-center">
+			{if $disableCoverArt != 1 && $bookCoverUrlMedium}
+				<a href="{$summUrl}">
+					<img src="{$bookCoverUrlMedium}" class="listResultImage img-thumbnail" alt="{translate text='Cover Image'}">
+				</a>
+			{/if}
+
+			{if $showRatings}
+				{include file="GroupedWork/title-rating.tpl" ratingClass="" id=$summId ratingData=$summRating}
+			{/if}
+		</div>
+	{/if}
+
+	<div class="{if !$showCovers}col-xs-12{else}col-xs-9 col-sm-9 col-md-9 col-lg-10{/if}">
 		<div class="row">
 			<strong>
 				<strong>{$resultIndex}) </strong>

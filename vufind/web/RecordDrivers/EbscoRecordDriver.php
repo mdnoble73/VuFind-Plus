@@ -39,7 +39,12 @@ class EbscoRecordDriver extends RecordInterface {
 	}
 
 	public function getBookcoverUrl($size = 'small') {
-		// TODO: Implement getBookcoverUrl() method.
+		if ($this->recordData->ImageInfo){
+			return (string)$this->recordData->ImageInfo->CoverArt->Target;
+		}else{
+			return null;
+		}
+
 	}
 
 	/**
@@ -217,6 +222,9 @@ class EbscoRecordDriver extends RecordInterface {
 		$interface->assign('summAuthor', $this->getAuthor());
 		$interface->assign('summSourceDatabase', $this->getSourceDatabase());
 		$interface->assign('summHasFullText', $this->hasFullText());
+
+		$interface->assign('bookCoverUrl', $this->getBookcoverUrl('small'));
+		$interface->assign('bookCoverUrlMedium', $this->getBookcoverUrl('medium'));
 
 		$interface->assign('summURLs', $this->getURLs());
 
