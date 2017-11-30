@@ -41,9 +41,9 @@ VuFind.Searches = (function(){
 			var url = Globals.path + '/Union/AJAX';
 			var params = '?method=getCombinedResults&source=' + source + '&numberOfResults=' + numberOfResults + "&id=" + fullId + "&searchTerm=" + searchTerm + "&searchType=" + searchType;
 			if ($('#hideCovers').is(':checked')){
-				params += "&hideCovers=true";
+				params += "&showCovers=off";
 			}else{
-				params += "&hideCovers=false";
+				params += "&showCovers=on";
 			}
 			$.getJSON(url+params, function(data){
 				if (data.success == false){

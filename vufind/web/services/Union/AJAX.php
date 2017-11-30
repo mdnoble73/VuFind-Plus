@@ -84,7 +84,8 @@ class Union_AJAX extends Action {
 		}
 		$searchTerm = $_REQUEST['searchTerm'];
 		$searchType = $_REQUEST['searchType'];
-		$hideCovers = $_REQUEST['hideCovers'];
+		$showCovers = $_REQUEST['showCovers'];
+		$this->setShowCovers();
 
 		if ($source == 'eds') {
 			require_once ROOT_DIR . '/sys/Ebsco/EDS_API.php';
@@ -107,26 +108,8 @@ class Union_AJAX extends Action {
 				}
 			}
 		}elseif ($source == 'pika') {
-			/** @var SearchObject_Solr $searchObject */
-			$searchObject = SearchObjectFactory::initSearchObject();
-			$searchObject->init('local', $searchTerm);
-			$searchObject->setLimit($numberOfResults);
-			$searchObject->setSearchTerms(array(
-					'index' => $searchType,
-					'lookfor' => $searchTerm
-			));
-			$result = $searchObject->processSearch(true, false);
-			$summary = $searchObject->getResultSummary();
-			$records = $searchObject->getResultRecordHTML();
-			if ($summary['resultTotal'] < $numberOfResults) {
-				$results = "<div>Showing {$summary['resultTotal']} records</div>";
-			} else {
-				$results = "<div>Showing $numberOfResults of {$summary['resultTotal']} results</div>";
-			}
+			$results = $this->getResultsFromPika($searchTerm, $numberOfResults, $searchType);
 
-			foreach ($records as $record) {
-				$results .= $record;
-			}
 		}elseif ($source == 'archive'){
 			/** @var SearchObject_Islandora $searchObject */
 			$searchObject = SearchObjectFactory::initSearchObject('Islandora');
@@ -174,7 +157,7 @@ class Union_AJAX extends Action {
 			$interface->assign('prospectorResults', $records);
 			$results = $interface->fetch('GroupedWork/ajax-prospector.tpl');
 		}else{
-			$results = "<div>Showing $numberOfResults for $source.  Hide covers? $hideCovers</div>";
+			$results = "<div>Showing $numberOfResults for $source.  Show covers? $showCovers</div>";
 		}
 		$results .= "<div><a href='" . $sectionObject->getResultsLink($searchTerm, $searchType) . "'>Full Results</a></div>";
 
@@ -183,5 +166,36 @@ class Union_AJAX extends Action {
 				'success' => true,
 				'results' => $results
 		);
+	}
+
+	/**
+	 * @param $searchTerm
+	 * @param $numberOfResults
+	 * @param $searchType
+	 * @return string
+	 */
+	private function getResultsFromPika($searchTerm, $numberOfResults, $searchType)
+	{
+		/** @var SearchObject_Solr $searchObject */
+		$searchObject = SearchObjectFactory::initSearchObject();
+		$searchObject->init('local', $searchTerm);
+		$searchObject->setLimit($numberOfResults);
+		$searchObject->setSearchTerms(array(
+				'index' => $searchType,
+				'lookfor' => $searchTerm
+		));
+		$result = $searchObject->processSearch(true, false);
+		$summary = $searchObject->getResultSummary();
+		$records = $searchObject->getResultRecordHTML();
+		if ($summary['resultTotal'] < $numberOfResults) {
+			$results = "<div>Showing {$summary['resultTotal']} records</div>";
+		} else {
+			$results = "<div>Showing $numberOfResults of {$summary['resultTotal']} results</div>";
+		}
+
+		foreach ($records as $record) {
+			$results .= $record;
+		}
+		return $results;
 	}
 }

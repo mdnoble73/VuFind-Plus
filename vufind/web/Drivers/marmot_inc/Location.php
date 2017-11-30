@@ -699,6 +699,9 @@ class Location extends DB_DataObject
 		if ($searchSource == null){
 			global $searchSource;
 		}
+		if ($searchSource = 'combinedResults'){
+			$searchSource = 'local';
+		}
 		if (!array_key_exists($searchSource, Location::$searchLocation)){
 			$scopingSetting = $searchSource;
 			if ($searchSource == null){
