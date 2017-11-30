@@ -6,12 +6,14 @@
 		{/if}
 		{foreach from=$searchResults item=result}
 			<div class="dplaResult row result">
-				<div class="col-xs-2">
-					{if $result.object}
-						<img src="{$result.object}" class="listResultImage img-thumbnail img-responsive"/>
-					{/if}
-				</div>
-				<div class="col-xs-10">
+				{if $showCovers}
+					<div class="col-xs-2">
+						{if $result.object}
+							<img src="{$result.object}" class="listResultImage img-thumbnail img-responsive"/>
+						{/if}
+					</div>
+				{/if}
+				<div class="{if $showCovers}col-xs-10{else}col-xs-12{/if}">
 					<div class="result-title"><a href="{$result.link}">{$result.title}</a></div>
 					<p>{$result.description}</p>
 				</div>

@@ -22,6 +22,7 @@ class DPLA {
 
 			foreach($responseData->docs as $curDoc){
 				$curResult = array();
+
 				$curResult['id'] = @$this->getDataForNode($curDoc->id);
 				$curResult['link'] = @$this->getDataForNode($curDoc->isShownAt);
 				$curResult['object'] = @$this->getDataForNode($curDoc->object);
