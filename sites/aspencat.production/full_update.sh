@@ -3,9 +3,9 @@
 # Should be called once per day.  Will interrupt partial reindexing.
 #
 # At the end of the index will email users with the results.
-EMAIL=root@mercury
+EMAIL=root@aspencatvm.marmot.org
 PIKASERVER=aspencat.production
-PIKADBNAME=aspencat_pika
+PIKADBNAME=pika
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
 
 MINFILE1SIZE=$((1030000000))
@@ -39,7 +39,7 @@ checkConflictingProcesses "reindexer.jar ${PIKASERVER}"
 # Back-up Solr Master Index
 mysqldump ${PIKADBNAME} grouped_work_primary_identifiers > /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
 sleep 5m
-tar -czf /data2/pika/${PIKASERVER}/solr_master_backup.tar.gz /data/vufind-plus/${PIKASERVER}/solr_master/grouped/index/ >> ${OUTPUT_FILE}
+tar -czf /data/vufind-plus/${PIKASERVER}/solr_master_backup.tar.gz /data/vufind-plus/${PIKASERVER}/solr_master/grouped/index/ >> ${OUTPUT_FILE}
 rm /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
 
 #Restart Solr
@@ -47,11 +47,14 @@ cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 
 #Extract from Hoopla
 # No Aspencat libraries use hoopla, no need to copy them
-# cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE}
+#cd /usr/local/vufind-plus/vufind/cron;./GetHooplaFromMarmot.sh >> ${OUTPUT_FILE}
 
-#Note, no need to extract from Lexile for this server since it is done by Marmot production extract
 
-#Note, no need to extract from Accelerated Reader for this server since it is done by Marmot production extract
+#Extract Lexile Data
+cd /data/vufind-plus/; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/lexileTitles.txt https://cassini.marmot.org/lexileTitles.txt
+
+#Extract AR Data
+cd /data/vufind-plus/accelerated_reader; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/accelerated_reader/RLI-ARDataTAB.txt https://cassini.marmot.org/RLI-ARDataTAB.txt
 
 #Do a full extract from OverDrive just once a week to catch anything that doesn't
 #get caught in the regular extract
@@ -72,6 +75,10 @@ if [[ -f $UPDATEFILE && -f $DELETEFILE ]]; then
 	# if the update and delete files are found, merge them into the fullexport file.
 	echo "Merging updates and deletes." >> ${OUTPUT_FILE}
 	cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar ${PIKASERVER} MergeMarcUpdatesAndDeletes >> ${OUTPUT_FILE}
+#	NUMOFADDSORDELETEFILESREMAINING=$(ls *.marc|wc -l)
+#	if [ $NUMOFADDSORDELETEFILESREMAINING -gt 0 ]; then
+#		echo "There are $NUMOFADDSORDELETEFILESREMAINING Add or Delete files left after merge process";
+#	fi
 else
 		if [ ! -f $UPDATEFILE ]; then
 		 echo "Update File $UPDATEFILE was not found." >> ${OUTPUT_FILE}
@@ -109,6 +116,9 @@ if [ -n "$FILE" ]; then
 		# Delete any exports over 7 days
 		find /data/vufind-plus/${PIKASERVER}/marc_backup/ -mindepth 1 -maxdepth 1 -name *.marc -type f -mtime +7 -delete
 
+		# Truncate Continuous Reindexing list of changed items
+		cat /dev/null >| /data/vufind-plus/${PIKASERVER}/marc/changed_items_to_process.csv
+
 	else
 		echo $FILE " size " $FILE1SIZE "is less than minimum size :" $MINFILE1SIZE "; Export was not moved to data directory, Full Regrouping & Full Reindexing skipped." >> ${OUTPUT_FILE}
 	fi
@@ -117,10 +127,9 @@ else
 	echo "The full export is delivered Saturday Mornings. The adds/deletes are delivered every night except Friday night." >> ${OUTPUT_FILE}
 fi
 
-# Only needed once on mercury
 # Clean-up Solr Logs
-#find /usr/local/vufind-plus/sites/default/solr/jetty/logs -name "solr_log_*" -mtime +7 -delete
-#find /usr/local/vufind-plus/sites/default/solr/jetty/logs -name "solr_gc_log_*" -mtime +7 -delete
+find /usr/local/vufind-plus/sites/default/solr/jetty/logs -name "solr_log_*" -mtime +7 -delete
+find /usr/local/vufind-plus/sites/default/solr/jetty/logs -name "solr_gc_log_*" -mtime +7 -delete
 
 #Restart Solr
 cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
