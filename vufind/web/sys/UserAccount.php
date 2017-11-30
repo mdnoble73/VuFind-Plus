@@ -532,19 +532,11 @@ class UserAccount {
 	 */
 	public static function logout()
 	{
-		$user = UserAccount::getLoggedInUser();
-		if ($user && isset($_SESSION['loggedInViaCAS']) && $_SESSION['loggedInViaCAS']){
-			global $logger;
-			$logger->log("Logging user out of CAS", PEAR_LOG_DEBUG);
-			require_once ROOT_DIR . '/sys/Authentication/CASAuthentication.php';
-			$casAuthentication = new CASAuthentication(null);
-			$casAuthentication->logout();
-		}
-		UserAccount::$isLoggedIn = false;
-		UserAccount::$primaryUserData = null;
-		session_destroy();
+		//global $logger;
+		//$logger->log("Logging user out", PEAR_LOG_DEBUG);
+		UserAccount::softLogout();
 		session_regenerate_id(true);
-		$_SESSION = array();
+		//$logger->log("New session id is $newId", PEAR_LOG_DEBUG);
 	}
 
 	/**
@@ -553,20 +545,25 @@ class UserAccount {
 	 */
 	public static function softLogout(){
 		if (isset($_SESSION['activeUserId'])){
+			//global $logger;
+			//$logger->log("Logging user {$_SESSION['activeUserId']} out", PEAR_LOG_DEBUG);
 			if (isset($_SESSION['guidingUserId'])){
 				// Shouldn't end up here while in Masquerade Mode, but if does happen end masquerading as well
 				unset($_SESSION['guidingUserId']);
 			}
-			unset($_SESSION['activeUserId']);
-			$user = UserAccount::getLoggedInUser();
-			if ($user && isset($_SESSION['loggedInViaCAS']) && $_SESSION['loggedInViaCAS']){
+			if (isset($_SESSION['loggedInViaCAS']) && $_SESSION['loggedInViaCAS']){
 				require_once ROOT_DIR . '/sys/Authentication/CASAuthentication.php';
 				$casAuthentication = new CASAuthentication(null);
 				$casAuthentication->logout();
 			}
+			unset($_SESSION['activeUserId']);
+			if (isset($_SESSION['lastCASCheck'])){
+				unset($_SESSION['lastCASCheck']);
+			}
 			UserAccount::$isLoggedIn = false;
 			UserAccount::$primaryUserData = null;
-			session_commit();
+			UserAccount::$primaryUserObjectFromDB = null;
+			UserAccount::$guidingUserObjectFromDB = null;
 		}
 	}
 
