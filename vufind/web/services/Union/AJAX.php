@@ -88,74 +88,16 @@ class Union_AJAX extends Action {
 		$this->setShowCovers();
 
 		if ($source == 'eds') {
-			require_once ROOT_DIR . '/sys/Ebsco/EDS_API.php';
-			$edsApi = EDS_API::getInstance();
-			$searchResults = $edsApi->getSearchResults($searchTerm);
-			$summary = $edsApi->getResultSummary();
-			$records = $edsApi->getResultRecordHTML();
-			if ($summary['resultTotal'] < $numberOfResults) {
-				$results = "<div>Showing {$summary['resultTotal']} records</div>";
-			} else {
-				$results = "<div>Showing $numberOfResults of {$summary['resultTotal']} results</div>";
-			}
-
-			$numAdded = 0;
-			foreach ($records as $record) {
-				$numAdded++;
-				$results .= $record;
-				if ($numAdded >= $numberOfResults) {
-					break;
-				}
-			}
+			$results = $this->getResultsFromEDS($searchTerm, $numberOfResults);
 		}elseif ($source == 'pika') {
 			$results = $this->getResultsFromPika($searchTerm, $numberOfResults, $searchType);
-
 		}elseif ($source == 'archive'){
-			/** @var SearchObject_Islandora $searchObject */
-			$searchObject = SearchObjectFactory::initSearchObject('Islandora');
-			$searchObject->init();
-			$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
-			$searchObject->addHiddenFilter('!mods_extension_marmotLocal_pikaOptions_showInSearchResults_ms', "no");
-			$searchObject->setLimit($numberOfResults);
-			if ($searchType == 'Title'){
-				$searchType = 'IslandoraTitle';
-			}elseif ($searchType == 'Subject'){
-				$searchType = 'IslandoraSubject';
-			}else{
-				$searchType = 'IslandoraKeyword';
-			}
-			$searchObject->setSearchTerms(array(
-					'index' => $searchType,
-					'lookfor' => $searchTerm
-			));
-			$result = $searchObject->processSearch(true, false);
-			$summary = $searchObject->getResultSummary();
-			$records = $searchObject->getResultRecordHTML();
-			if ($summary['resultTotal'] < $numberOfResults) {
-				$results = "<div>Showing {$summary['resultTotal']} records</div>";
-			} else {
-				$results = "<div>Showing $numberOfResults of {$summary['resultTotal']} results</div>";
-			}
+			$results = $this->getResultsFromArchive($numberOfResults, $searchType, $searchTerm);
 
-			foreach ($records as $record) {
-				$results .= $record;
-			}
 		}elseif ($source == 'dpla'){
-			require_once ROOT_DIR . '/sys/SearchObject/DPLA.php';
-			$dpla = new DPLA();
-			$dplaResults = $dpla->getDPLAResults($searchTerm, $numberOfResults);
-			$results = $dpla->formatResults($dplaResults, false);
+			$results = $this->getResultsFromDPLA($searchTerm, $numberOfResults);
 		}elseif ($source == 'prospector'){
-			require_once ROOT_DIR . '/Drivers/marmot_inc/Prospector.php';
-			$prospector = new Prospector();
-			$searchTerms = array(array(
-					'index' => $searchType,
-					'lookfor' => $searchTerm
-			));
-			$records = $prospector->getTopSearchResults($searchTerms, $numberOfResults);
-			global $interface;
-			$interface->assign('prospectorResults', $records);
-			$results = $interface->fetch('GroupedWork/ajax-prospector.tpl');
+			$results = $this->getResultsFromProspector($searchType, $searchTerm, $numberOfResults);
 		}else{
 			$results = "<div>Showing $numberOfResults for $source.  Show covers? $showCovers</div>";
 		}
@@ -196,6 +138,110 @@ class Union_AJAX extends Action {
 		foreach ($records as $record) {
 			$results .= $record;
 		}
+		return $results;
+	}
+
+	/**
+	 * @param $searchTerm
+	 * @param $numberOfResults
+	 * @return string
+	 */
+	private function getResultsFromEDS($searchTerm, $numberOfResults)
+	{
+		require_once ROOT_DIR . '/sys/Ebsco/EDS_API.php';
+		$edsApi = EDS_API::getInstance();
+		$searchResults = $edsApi->getSearchResults($searchTerm);
+		$summary = $edsApi->getResultSummary();
+		$records = $edsApi->getResultRecordHTML();
+		if ($summary['resultTotal'] < $numberOfResults) {
+			$results = "<div>Showing {$summary['resultTotal']} records</div>";
+		} else {
+			$results = "<div>Showing $numberOfResults of {$summary['resultTotal']} results</div>";
+		}
+
+		$numAdded = 0;
+		foreach ($records as $record) {
+			$numAdded++;
+			$results .= $record;
+			if ($numAdded >= $numberOfResults) {
+				break;
+			}
+		}
+		return $results;
+	}
+
+	/**
+	 * @param $numberOfResults
+	 * @param $searchType
+	 * @param $searchTerm
+	 * @return string
+	 */
+	private function getResultsFromArchive($numberOfResults, $searchType, $searchTerm)
+	{
+		/** @var SearchObject_Islandora $searchObject */
+		$searchObject = SearchObjectFactory::initSearchObject('Islandora');
+		$searchObject->init();
+		$searchObject->addHiddenFilter('!RELS_EXT_isViewableByRole_literal_ms', "administrator");
+		$searchObject->addHiddenFilter('!mods_extension_marmotLocal_pikaOptions_showInSearchResults_ms', "no");
+		$searchObject->setLimit($numberOfResults);
+		if ($searchType == 'Title') {
+			$searchType = 'IslandoraTitle';
+		} elseif ($searchType == 'Subject') {
+			$searchType = 'IslandoraSubject';
+		} else {
+			$searchType = 'IslandoraKeyword';
+		}
+		$searchObject->setSearchTerms(array(
+				'index' => $searchType,
+				'lookfor' => $searchTerm
+		));
+		$result = $searchObject->processSearch(true, false);
+		$summary = $searchObject->getResultSummary();
+		$records = $searchObject->getResultRecordHTML();
+		if ($summary['resultTotal'] < $numberOfResults) {
+			$results = "<div>Showing {$summary['resultTotal']} records</div>";
+		} else {
+			$results = "<div>Showing $numberOfResults of {$summary['resultTotal']} results</div>";
+		}
+
+		foreach ($records as $record) {
+			$results .= $record;
+		}
+		return $results;
+	}
+
+	/**
+	 * @param $searchTerm
+	 * @param $numberOfResults
+	 * @return string
+	 */
+	private function getResultsFromDPLA($searchTerm, $numberOfResults)
+	{
+		require_once ROOT_DIR . '/sys/SearchObject/DPLA.php';
+		$dpla = new DPLA();
+		$dplaResults = $dpla->getDPLAResults($searchTerm, $numberOfResults);
+		$results = $dpla->formatResults($dplaResults, false);
+		return $results;
+	}
+
+	/**
+	 * @param $searchType
+	 * @param $searchTerm
+	 * @param $numberOfResults
+	 * @return string
+	 */
+	private function getResultsFromProspector($searchType, $searchTerm, $numberOfResults)
+	{
+		require_once ROOT_DIR . '/Drivers/marmot_inc/Prospector.php';
+		$prospector = new Prospector();
+		$searchTerms = array(array(
+				'index' => $searchType,
+				'lookfor' => $searchTerm
+		));
+		$records = $prospector->getTopSearchResults($searchTerms, $numberOfResults);
+		global $interface;
+		$interface->assign('prospectorResults', $records);
+		$results = $interface->fetch('GroupedWork/ajax-prospector.tpl');
 		return $results;
 	}
 }
