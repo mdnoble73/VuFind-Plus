@@ -569,12 +569,6 @@ if (($isOpac || $masqueradeMode || (!empty($ipLocation) && $ipLocation->getOpacS
 			$automaticTimeoutLength = empty($library->masqueradeAutomaticTimeoutLength) ? 90 : $library->masqueradeAutomaticTimeoutLength;
 	} else {
 		// Determine Regular Time Out Lengths
-
-		// Only include auto logout code if we are not on the home page
-		if ($module == 'Search' && $action == 'Home') {
-			$includeAutoLogoutCode = false;
-		}
-
 		if (UserAccount::isLoggedIn()) {
 			if (!isset($user)){
 				$user = UserAccount::getActiveUserObj();
@@ -583,6 +577,11 @@ if (($isOpac || $masqueradeMode || (!empty($ipLocation) && $ipLocation->getOpacS
 			// User has bypass AutoLog out setting turned on
 			if ($user->bypassAutoLogout == 1) {
 				// The account setting profile template only presents this option to users that are staff
+				$includeAutoLogoutCode = false;
+			}
+		}else{
+			// Not logged in only include auto logout code if we are not on the home page
+			if ($module == 'Search' && $action == 'Home') {
 				$includeAutoLogoutCode = false;
 			}
 		}
