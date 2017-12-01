@@ -87,21 +87,22 @@ class Union_AJAX extends Action {
 		$showCovers = $_REQUEST['showCovers'];
 		$this->setShowCovers();
 
+		$fullResultsLink = $sectionObject->getResultsLink($searchTerm, $searchType);
 		if ($source == 'eds') {
-			$results = $this->getResultsFromEDS($searchTerm, $numberOfResults);
+			$results = $this->getResultsFromEDS($searchTerm, $numberOfResults, $fullResultsLink);
 		}elseif ($source == 'pika') {
-			$results = $this->getResultsFromPika($searchTerm, $numberOfResults, $searchType);
+			$results = $this->getResultsFromPika($searchTerm, $numberOfResults, $searchType, $fullResultsLink);
 		}elseif ($source == 'archive'){
-			$results = $this->getResultsFromArchive($numberOfResults, $searchType, $searchTerm);
+			$results = $this->getResultsFromArchive($numberOfResults, $searchType, $searchTerm, $fullResultsLink);
 
 		}elseif ($source == 'dpla'){
-			$results = $this->getResultsFromDPLA($searchTerm, $numberOfResults);
+			$results = $this->getResultsFromDPLA($searchTerm, $numberOfResults, $fullResultsLink);
 		}elseif ($source == 'prospector'){
-			$results = $this->getResultsFromProspector($searchType, $searchTerm, $numberOfResults);
+			$results = $this->getResultsFromProspector($searchType, $searchTerm, $numberOfResults, $fullResultsLink);
 		}else{
 			$results = "<div>Showing $numberOfResults for $source.  Show covers? $showCovers</div>";
 		}
-		$results .= "<div><a href='" . $sectionObject->getResultsLink($searchTerm, $searchType) . "'>Full Results</a></div>";
+		$results .= "<div><a href='" . $fullResultsLink . "'>Full Results</a></div>";
 
 
 		return array(
@@ -116,7 +117,7 @@ class Union_AJAX extends Action {
 	 * @param $searchType
 	 * @return string
 	 */
-	private function getResultsFromPika($searchTerm, $numberOfResults, $searchType)
+	private function getResultsFromPika($searchTerm, $numberOfResults, $searchType, $fullResultsLink)
 	{
 		/** @var SearchObject_Solr $searchObject */
 		$searchObject = SearchObjectFactory::initSearchObject();
@@ -129,14 +130,19 @@ class Union_AJAX extends Action {
 		$result = $searchObject->processSearch(true, false);
 		$summary = $searchObject->getResultSummary();
 		$records = $searchObject->getResultRecordHTML();
-		if ($summary['resultTotal'] < $numberOfResults) {
-			$results = "<div>Showing {$summary['resultTotal']} records</div>";
-		} else {
-			$results = "<div>Showing $numberOfResults of {$summary['resultTotal']} results</div>";
-		}
+		if ($summary['resultTotal'] == 0){
+			$results = '<div>No results match your search.</div>';
+		}else{
+			if ($summary['resultTotal'] < $numberOfResults) {
+				$results = "<div>Showing {$summary['resultTotal']} records</div>";
+			} else {
+				$results = "<div>Showing $numberOfResults of <a href='{$fullResultsLink}'>{$summary['resultTotal']} results</a></div>";
+			}
 
-		foreach ($records as $record) {
-			$results .= $record;
+			global $interface;
+			$interface->assign('recordSet', $records);
+			$interface->assign('showExploreMoreBar', false);
+			$results .= $interface->fetch('Search/list-list.tpl');
 		}
 		return $results;
 	}
@@ -146,27 +152,29 @@ class Union_AJAX extends Action {
 	 * @param $numberOfResults
 	 * @return string
 	 */
-	private function getResultsFromEDS($searchTerm, $numberOfResults)
+	private function getResultsFromEDS($searchTerm, $numberOfResults, $fullResultsLink)
 	{
 		require_once ROOT_DIR . '/sys/Ebsco/EDS_API.php';
 		$edsApi = EDS_API::getInstance();
 		$searchResults = $edsApi->getSearchResults($searchTerm);
 		$summary = $edsApi->getResultSummary();
 		$records = $edsApi->getResultRecordHTML();
-		if ($summary['resultTotal'] < $numberOfResults) {
-			$results = "<div>Showing {$summary['resultTotal']} records</div>";
-		} else {
-			$results = "<div>Showing $numberOfResults of {$summary['resultTotal']} results</div>";
+		if ($summary['resultTotal'] == 0){
+			$results = '<div>No results match your search.</div>';
+		}else {
+			if ($summary['resultTotal'] < $numberOfResults) {
+				$results = "<div>Showing {$summary['resultTotal']} records</div>";
+			} else {
+				$results = "<div>Showing $numberOfResults of <a href='{$fullResultsLink}'>{$summary['resultTotal']} results</a></div>";
+			}
+
+			$records = array_slice($records, 0, $numberOfResults);
+			global $interface;
+			$interface->assign('recordSet', $records);
+			$interface->assign('showExploreMoreBar', false);
+			$results .= $interface->fetch('Search/list-list.tpl');
 		}
 
-		$numAdded = 0;
-		foreach ($records as $record) {
-			$numAdded++;
-			$results .= $record;
-			if ($numAdded >= $numberOfResults) {
-				break;
-			}
-		}
 		return $results;
 	}
 
@@ -176,7 +184,7 @@ class Union_AJAX extends Action {
 	 * @param $searchTerm
 	 * @return string
 	 */
-	private function getResultsFromArchive($numberOfResults, $searchType, $searchTerm)
+	private function getResultsFromArchive($numberOfResults, $searchType, $searchTerm, $fullResultsLink)
 	{
 		/** @var SearchObject_Islandora $searchObject */
 		$searchObject = SearchObjectFactory::initSearchObject('Islandora');
@@ -198,14 +206,19 @@ class Union_AJAX extends Action {
 		$result = $searchObject->processSearch(true, false);
 		$summary = $searchObject->getResultSummary();
 		$records = $searchObject->getResultRecordHTML();
-		if ($summary['resultTotal'] < $numberOfResults) {
-			$results = "<div>Showing {$summary['resultTotal']} records</div>";
-		} else {
-			$results = "<div>Showing $numberOfResults of {$summary['resultTotal']} results</div>";
-		}
+		if ($summary['resultTotal'] == 0){
+			$results = '<div>No results match your search.</div>';
+		}else {
+			if ($summary['resultTotal'] < $numberOfResults) {
+				$results = "<div>Showing {$summary['resultTotal']} records</div>";
+			} else {
+				$results = "<div>Showing $numberOfResults of <a href='{$fullResultsLink}'>{$summary['resultTotal']} results</a></div>";
+			}
 
-		foreach ($records as $record) {
-			$results .= $record;
+			global $interface;
+			$interface->assign('recordSet', $records);
+			$interface->assign('showExploreMoreBar', false);
+			$results .= $interface->fetch('Search/list-list.tpl');
 		}
 		return $results;
 	}
@@ -215,7 +228,7 @@ class Union_AJAX extends Action {
 	 * @param $numberOfResults
 	 * @return string
 	 */
-	private function getResultsFromDPLA($searchTerm, $numberOfResults)
+	private function getResultsFromDPLA($searchTerm, $numberOfResults, $fullResultsLink)
 	{
 		require_once ROOT_DIR . '/sys/SearchObject/DPLA.php';
 		$dpla = new DPLA();
@@ -230,7 +243,7 @@ class Union_AJAX extends Action {
 	 * @param $numberOfResults
 	 * @return string
 	 */
-	private function getResultsFromProspector($searchType, $searchTerm, $numberOfResults)
+	private function getResultsFromProspector($searchType, $searchTerm, $numberOfResults, $fullResultsLink)
 	{
 		require_once ROOT_DIR . '/Drivers/marmot_inc/Prospector.php';
 		$prospector = new Prospector();
@@ -238,10 +251,19 @@ class Union_AJAX extends Action {
 				'index' => $searchType,
 				'lookfor' => $searchTerm
 		));
-		$records = $prospector->getTopSearchResults($searchTerms, $numberOfResults);
+		$prospectorResults = $prospector->getTopSearchResults($searchTerms, $numberOfResults);
 		global $interface;
-		$interface->assign('prospectorResults', $records);
-		$results = $interface->fetch('GroupedWork/ajax-prospector.tpl');
+		if ($prospectorResults['resultTotal'] == 0){
+			$results = '<div>No results match your search.</div>';
+		}else {
+			if ($prospectorResults['resultTotal'] < $numberOfResults) {
+				$results = "<div>Showing {$prospectorResults['resultTotal']} records</div>";
+			} else {
+				$results = "<div>Showing $numberOfResults of <a href='{$fullResultsLink}'>{$prospectorResults['resultTotal']} results</a></div>";
+			}
+			$interface->assign('prospectorResults', $prospectorResults['records']);
+			$results .= $interface->fetch('Union/prospector.tpl');
+		}
 		return $results;
 	}
 }

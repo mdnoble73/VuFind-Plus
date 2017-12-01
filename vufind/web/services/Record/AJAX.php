@@ -121,7 +121,7 @@ class Record_AJAX extends Action {
 			);
 		}
 		$prospectorResults = $prospector->getTopSearchResults($searchTerms, 10);
-		$interface->assign('prospectorResults', $prospectorResults);
+		$interface->assign('prospectorResults', $prospectorResults['records']);
 		return $interface->fetch('Record/ajax-prospector.tpl');
 	}
 
