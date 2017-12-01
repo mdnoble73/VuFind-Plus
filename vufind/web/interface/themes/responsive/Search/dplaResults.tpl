@@ -15,7 +15,7 @@
 				{/if}
 				<div class="{if $showCovers}col-xs-10{else}col-xs-12{/if}">
 					<div class="result-title"><a href="{$result.link}">{$result.title}</a></div>
-					<p>{$result.description}</p>
+					<p>{$result.description|truncate_html:450:"..."}</p>
 				</div>
 			</div>
 		{/foreach}

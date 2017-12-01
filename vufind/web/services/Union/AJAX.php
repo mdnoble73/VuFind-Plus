@@ -119,6 +119,8 @@ class Union_AJAX extends Action {
 	 */
 	private function getResultsFromPika($searchTerm, $numberOfResults, $searchType, $fullResultsLink)
 	{
+		global $interface;
+		$interface->assign('viewingCombinedResults', true);
 		/** @var SearchObject_Solr $searchObject */
 		$searchObject = SearchObjectFactory::initSearchObject();
 		$searchObject->init('local', $searchTerm);
@@ -139,7 +141,7 @@ class Union_AJAX extends Action {
 				$results = "<div>Showing $numberOfResults of <a href='{$fullResultsLink}'>{$summary['resultTotal']} results</a></div>";
 			}
 
-			global $interface;
+
 			$interface->assign('recordSet', $records);
 			$interface->assign('showExploreMoreBar', false);
 			$results .= $interface->fetch('Search/list-list.tpl');
