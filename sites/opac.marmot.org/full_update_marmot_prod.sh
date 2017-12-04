@@ -53,59 +53,59 @@ cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 cd /usr/local/vufind-plus/vufind/cron;./GetHooplaFromMarmot.sh >> ${OUTPUT_FILE}
 
 # Ebrary Marc Updates
-/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} ccu/ebrary ebrary/ccu >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/fetch_sideload_data.sh ${PIKASERVER} ccu/ebrary ebrary/ccu >> ${OUTPUT_FILE}
 
-/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} western/ebrary ebrary/western >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/fetch_sideload_data.sh ${PIKASERVER} western/ebrary ebrary/western >> ${OUTPUT_FILE}
 
 #Adams Ebrary DDA files
 /usr/local/vufind-plus/sites/${PIKASERVER}/moveFullExport.sh adams/ebrary/DDA ebrary/adams >> ${OUTPUT_FILE}
 #/usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh ebrary/adams/dda >> ${OUTPUT_FILE}
 
 # CCU Alexander Street Press Marc Updates
-/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} ccu/alexanderStreetPress alexanderstreetpress/ccu >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/fetch_sideload_data.sh ${PIKASERVER} ccu/alexanderStreetPress alexanderstreetpress/ccu >> ${OUTPUT_FILE}
 
 # CCU Ebsco Marc Updates
-/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} ccu/ebsco ebsco/ccu >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/fetch_sideload_data.sh ${PIKASERVER} ccu/ebsco ebsco/ccu >> ${OUTPUT_FILE}
 
 # CCU Biblioboard Marc Updates
-/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} ccu/biblioboard biblioboard/ccu >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/fetch_sideload_data.sh ${PIKASERVER} ccu/biblioboard biblioboard/ccu >> ${OUTPUT_FILE}
 
 # CMC Ebsco Academic Marc Updates
-/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} cmc/ebsco ebsco/cmc >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/fetch_sideload_data.sh ${PIKASERVER} cmc/ebsco ebsco/cmc >> ${OUTPUT_FILE}
 
 # Adams Ebsco Marc Updates
-/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} adams/ebsco ebsco/adams >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/fetch_sideload_data.sh ${PIKASERVER} adams/ebsco ebsco/adams >> ${OUTPUT_FILE}
 
 # Fort Lewis Ebsco Academic Marc Updates
-/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} fortlewis_sideload/EBSCO_Academic ebsco/fortlewis >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/fetch_sideload_data.sh ${PIKASERVER} fortlewis_sideload/EBSCO_Academic ebsco/fortlewis >> ${OUTPUT_FILE}
 
 # Englewood Axis 360 Marc Updates
-/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} englewood/axis360 axis360/englewood >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/fetch_sideload_data.sh ${PIKASERVER} englewood/axis360 axis360/englewood >> ${OUTPUT_FILE}
 
 # Western Oxford Reference Marc Updates
-/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} western/oxfordReference oxfordReference/western >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/fetch_sideload_data.sh ${PIKASERVER} western/oxfordReference oxfordReference/western >> ${OUTPUT_FILE}
 
 # Western Springer Marc Updates
-/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} western/springer springer/western >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/fetch_sideload_data.sh ${PIKASERVER} western/springer springer/western >> ${OUTPUT_FILE}
 
 # Western Kanopy Marc Updates
-/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} western/kanopy kanopy/western >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} budwerner/kanopy kanopy/budwerner >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/fetch_sideload_data.sh ${PIKASERVER} western/kanopy kanopy/western >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/fetch_sideload_data.sh ${PIKASERVER} budwerner/kanopy kanopy/budwerner >> ${OUTPUT_FILE}
 
 # CCU Gale Marc Updates
-/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} ccu/gale gale/ccu >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/fetch_sideload_data.sh ${PIKASERVER} ccu/gale gale/ccu >> ${OUTPUT_FILE}
 
 # Learning Express Marc Updates
-/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} budwerner/learning_express learning_express/steamboatsprings >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} garfield/learning_express learning_express/garfield >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} mesa/learning_express learning_express/mesa >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} vail/learning_express learning_express/vail >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/fetch_sideload_data.sh ${PIKASERVER} budwerner/learning_express learning_express/steamboatsprings >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/fetch_sideload_data.sh ${PIKASERVER} garfield/learning_express learning_express/garfield >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/fetch_sideload_data.sh ${PIKASERVER} mesa/learning_express learning_express/mesa >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/fetch_sideload_data.sh ${PIKASERVER} vail/learning_express learning_express/vail >> ${OUTPUT_FILE}
 
 #Films On Demand
-/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} cmc/filmsondemand filmsondemand/cmc >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/fetch_sideload_data.sh ${PIKASERVER} cmc/filmsondemand filmsondemand/cmc >> ${OUTPUT_FILE}
 
 #Federal Government Documents Marc Updates (Western)
-/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} western/federalGovDocs federal_gov_docs/western >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/fetch_sideload_data.sh ${PIKASERVER} western/federalGovDocs federal_gov_docs/western >> ${OUTPUT_FILE}
 
 #Colorado State Goverment Documents Updates
 curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/colorado_gov_docs/marc/fullexport.mrc https://cassini.marmot.org/colorado_state_docs.mrc
