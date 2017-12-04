@@ -104,7 +104,7 @@
 {assign var=previousPatron value=0}
 {foreach from=$reportData item=dataRow name=overdueData}
 	{if $dataRow[6] != $previousPatron}
-		{if $smarty.foreach.overdueData.index > 1}</div></div>{/if}
+		{if $smarty.foreach.overdueData.index > 0}</div></div>{/if}
 		<div class="overdueSlip">
 			<div class="patronHeader">
 				<div class="P_TYPE">{$dataRow[3]|replace:' student':''}</div>
@@ -131,7 +131,7 @@
 				<div class="CALL_NUMBER">{$dataRow[8]}</div>
 				<div class="TITLE">{$dataRow[9]|regex_replace:"/ *\/ *$/":""}</div>
 				<div class="DUE_DATE">{$dataRow[10]}</div>
-				<div class="PRICE">{$dataRow[11]|replace:"/^ *0\.00$/":"10.00"}</div>
+				<div class="PRICE">{$dataRow[11]|regex_replace:"/ *0\.00$/":"10.00"}</div>
 			</div>	
 {/foreach}
 			{/if}

@@ -82,6 +82,11 @@
 
 # Download Lexile and AR files triggered in full_update.sh
 
+###############################
+# MNPS School Overdues Report #
+###############################
+58 8,12 * * * cd /usr/local/vufind-plus/vufind/cron; /opt/rh/php55/root/usr/bin/php NashvilleAdHocOverdues.php nashville.production
+
 #################################
 # hacks to keep things afloat until Sparky increases RAM
 # RAM was increased to 32G 2015 09 11; JAMES is keeping these lines commented out here for emergencies
