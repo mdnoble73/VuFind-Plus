@@ -15,13 +15,13 @@ if [ $# = 3 ];then
   echo "Fetching for $PIKADATADIR"
 
   # Fetch Full Export
-  /usr/local/vufind-plus/sites/$PIKASERVER/moveFullExport.sh $FTPSOURCE/completeCollection $PIKADATADIR
+  /usr/local/vufind-plus/vufind/cron/moveFullExport.sh $FTPSOURCE/completeCollection $PIKADATADIR $PIKASERVER
 
   # Fetch Adds
-  /usr/local/vufind-plus/sites/$PIKASERVER/moveSideloadAdds.sh $FTPSOURCE/addsAndUpdatesOnly $PIKADATADIR/merge
+  /usr/local/vufind-plus/vufind/cron/moveSideloadAdds.sh $FTPSOURCE/addsAndUpdatesOnly $PIKADATADIR/merge $PIKASERVER
 
   # Fetch Deletes
-  /usr/local/vufind-plus/sites/$PIKASERVER/moveSideloadAdds.sh $FTPSOURCE/deletesOnly $PIKADATADIR/deletes
+  /usr/local/vufind-plus/vufind/cron/moveSideloadAdds.sh $FTPSOURCE/deletesOnly $PIKADATADIR/deletes $PIKASERVER
 
   if [ $(ls -lA /data/vufind-plus/$PIKADATADIR/marc |grep fullexport.mrc|wc -l) = 0 ];then
   # If there is no full export file in the main marc directory ....
