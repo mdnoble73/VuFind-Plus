@@ -64,7 +64,7 @@
 ############################################
 # New York Times Bestseller Lists Updating #
 ############################################
-31 7 * * 0 /usr/local/vufind-plus/vufind/cron/updateNYTLists.sh aspencat.test
+31 7 * * 0-1 /usr/local/vufind-plus/vufind/cron/updateNYTLists.sh aspencat.test
 # update on Sundays at 7:37
 
 ##########

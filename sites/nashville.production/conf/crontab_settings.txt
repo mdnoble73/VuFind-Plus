@@ -50,7 +50,7 @@
 #############################################
 # New York Times Best seller Lists Updating #
 #############################################
-07 7 * * 0 /usr/local/vufind-plus/vufind/cron/updateNYTLists.sh nashville.production
+07 7 * * 0-1 /usr/local/vufind-plus/vufind/cron/updateNYTLists.sh nashville.production
 # update on Sundays at 7:07
 
 ################
