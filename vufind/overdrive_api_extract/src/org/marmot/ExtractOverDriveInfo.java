@@ -1647,6 +1647,14 @@ class ExtractOverDriveInfo {
 				}else{
 					copiesOwned -= sharedStats.copiesOwnedByShared;
 					copiesAvailable -= sharedStats.copiesAvailableInShared;
+					if (copiesOwned < 0){
+						logger.warn("Copies owned was less than 0 (" + copiesOwned + ") for libraryId " + libraryId + " product " + curProduct.overDriveId);
+						copiesOwned = 0;
+					}
+					if (copiesAvailable < 0){
+						logger.warn("Copies available was less than 0 (" + copiesAvailable + ")for libraryId " + libraryId + " product " + curProduct.overDriveId);
+						copiesAvailable = 0;
+					}
 				}
 
 				boolean shared = false;
