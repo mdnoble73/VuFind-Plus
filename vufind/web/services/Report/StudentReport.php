@@ -50,6 +50,8 @@ class Report_StudentReport extends Admin_Admin {
 		$now = time();
 		$fileData = array();
 		if ($selectedReport){
+			$filemtime = date('Y-m-d H:i:s',filemtime($reportDir . '/' . $selectedReport));
+			$interface->assign('reportDateTime', $filemtime);
 			$fhnd = fopen($reportDir . '/' . $selectedReport, "r");
 			if ($fhnd){
 				while (($data = fgetcsv($fhnd)) !== FALSE){
