@@ -131,7 +131,7 @@
 				<div class="CALL_NUMBER">{$dataRow[8]}</div>
 				<div class="TITLE">{$dataRow[9]|regex_replace:"/ *\/ *$/":""}</div>
 				<div class="DUE_DATE">{$dataRow[10]}</div>
-				<div class="PRICE">{$dataRow[11]|regex_replace:"/ *0\.00$/":"10.00"}</div>
+				<div class="PRICE">{$dataRow[11]|regex_replace:"/^ *0\.00$/":"10.00"}</div>
 			</div>	
 {/foreach}
 			{/if}
