@@ -54,12 +54,12 @@ class Admin_OverDriveAPIData extends Admin_Admin
 			}
 
 			$contents .=  "<h2>Availability</h2>";
-			$contents .= ("<h3>Availability - {$libraryInfo->name}</h3>");
+			$contents .= ("<h3>Availability - Main collection: {$libraryInfo->name}</h3>");
 			$availability = $driver->getProductAvailability($overDriveId, $productKey);
 			if ($availability && !isset($availability->errorCode)) {
-				$contents .= ("Copies Owned {$availability->copiesOwned }<br/>");
-				$contents .= ("Available Copies {$availability->copiesAvailable }<br/>");
-				$contents .= ("Num Holds {$availability->numberOfHolds }<br/>");
+				$contents .= ("Copies Owned: {$availability->copiesOwned} <br/>");
+				$contents .= ("Available Copies: {$availability->copiesAvailable }<br/>");
+				$contents .= ("Num Holds (entire collection): {$availability->numberOfHolds }<br/>");
 				$contents .= $this->easy_printr("Availability response", "availability_{$overDriveId}_{$productKey}", $availability);
 			} else {
 				$contents .= ("Not owned<br/>");
@@ -73,9 +73,9 @@ class Admin_OverDriveAPIData extends Admin_Admin
 					$contents .= ("<h3>Availability - {$accountInfo->name}</h3>");
 					$availability = $driver->getProductAvailability($overDriveId, $accountInfo->collectionToken);
 					if ($availability && !isset($availability->errorCode)) {
-						$contents .= ("Copies Owned {$availability->copiesOwned }<br/>");
-						$contents .= ("Available Copies {$availability->copiesAvailable }<br/>");
-						$contents .= ("Num Holds {$availability->numberOfHolds }<br/>");
+						$contents .= ("Copies Owned (Shared Plus advantage): {$availability->copiesOwned }<br/>");
+						$contents .= ("Available Copies (Shared Plus advantage): {$availability->copiesAvailable }<br/>");
+						$contents .= ("Num Holds (Shared Plus advantage): {$availability->numberOfHolds }<br/>");
 						$contents .= $this->easy_printr("Availability response", "availability_{$overDriveId}_{$accountInfo->collectionToken}", $availability);
 					} else {
 						$contents .= ("Not owned<br/>");
