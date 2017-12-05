@@ -2,12 +2,13 @@ package org.vufind;
 
 import au.com.bytecode.opencsv.CSVReader;
 import org.apache.log4j.Logger;
-import org.marc4j.marc.DataField;
-import org.marc4j.marc.Record;
-import org.marc4j.marc.Subfield;
+import org.marc4j.MarcReader;
+import org.marc4j.MarcStreamReader;
+import org.marc4j.marc.*;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -24,30 +25,23 @@ import java.util.regex.Pattern;
  * Time: 11:02 AM
  */
 class AACPLRecordProcessor extends IlsRecordProcessor {
-	private HashMap<String, String> bibsWithOrders = new HashMap<>();
+	private HashSet<String> bibsWithOrders = new HashSet<>();
 	AACPLRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
 		super(indexer, vufindConn, indexingProfileRS, logger, fullReindex);
 
 		//get a list of bibs that have order records on them
-		File ordersFile = new File(marcPath + "/Pika_orders.csv");
+		File ordersFile = new File(marcPath + "/Pika_orders.mrc");
 		if (ordersFile.exists()){
 			try{
-				CSVReader ordersReader = new CSVReader(new InputStreamReader(new FileInputStream(ordersFile)));
-				String[] ordersData = ordersReader.readNext();
-				while (ordersData != null){
-					//Check to see if the bib already exists
-					if (ordersData.length >= 4){
-						String recordNumber = Util.cleanIniValue(ordersData[3]);
-						recordNumber = recordNumber.replace("XX(", "");
-						recordNumber = recordNumber.replace(".1)", "");
-						if (recordNumber.matches("^\\d+$")) {
-							//TODO see if robert can provide the shelf location again
-							//String shelfLocation = Util.cleanIniValue(ordersData[1]);
-							String shelfLocation = "A-FIC";
-							bibsWithOrders.put("a" + recordNumber, shelfLocation);
-						}
+				MarcReader ordersReader = new MarcStreamReader(new FileInputStream(ordersFile));
+				while (ordersReader.hasNext()){
+					Record marcRecord = ordersReader.next();
+					VariableField recordNumberField = marcRecord.getVariableField("001");
+					if (recordNumberField != null && recordNumberField instanceof ControlField){
+						ControlField recordNumberCtlField = (ControlField) recordNumberField;
+						bibsWithOrders.add(recordNumberCtlField.getData());
 					}
-					ordersData = ordersReader.readNext();
+
 				}
 				logger.info("Finished reading records with orders");
 			}catch (Exception e){
@@ -192,7 +186,7 @@ class AACPLRecordProcessor extends IlsRecordProcessor {
 	}
 
 	protected void loadOnOrderItems(GroupedWorkSolr groupedWork, RecordInfo recordInfo, Record record, boolean hasTangibleItems){
-		if (bibsWithOrders.containsKey(recordInfo.getRecordIdentifier())){
+		if (bibsWithOrders.contains(recordInfo.getRecordIdentifier())){
 			if (recordInfo.getNumPrintCopies() == 0 && recordInfo.getNumCopiesOnOrder() == 0) {
 				ItemInfo itemInfo = new ItemInfo();
 				itemInfo.setLocationCode("aacpl");
@@ -208,7 +202,7 @@ class AACPLRecordProcessor extends IlsRecordProcessor {
 				itemInfo.setDateAdded(tomorrow);
 				//Format and Format Category should be set at the record level, so we don't need to set them here.
 
-				String formatByShelfLocation = translateValue("shelf_location_to_format", bibsWithOrders.get(recordInfo.getRecordIdentifier()), recordInfo.getRecordIdentifier());
+				//String formatByShelfLocation = translateValue("shelf_location_to_format", bibsWithOrders.get(recordInfo.getRecordIdentifier()), recordInfo.getRecordIdentifier());
 				//itemInfo.setFormat(translateValue("format", formatByShelfLocation, recordInfo.getRecordIdentifier()));
 				//itemInfo.setFormatCategory(translateValue("format_category", formatByShelfLocation, recordInfo.getRecordIdentifier()));
 				itemInfo.setFormat("On Order");

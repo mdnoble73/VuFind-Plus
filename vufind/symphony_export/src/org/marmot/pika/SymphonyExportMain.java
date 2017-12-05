@@ -171,7 +171,7 @@ public class SymphonyExportMain {
 								lastPipePosition = line.lastIndexOf('|');
 								String author = line.substring(lastPipePosition + 1);
 								line = line.substring(0, lastPipePosition);
-								String ohohseven = line.replaceAll("|", " ");
+								String ohohseven = line.replace("|", " ");
 								//The marc record does not exist, create a temporary bib in the orders file which will get processed by record grouping
 								MarcFactory factory = MarcFactory.newInstance();
 								Record marcRecord = factory.newRecord();

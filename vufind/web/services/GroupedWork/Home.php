@@ -19,6 +19,7 @@ class GroupedWork_Home extends Action{
 		require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
 		$recordDriver = new GroupedWorkDriver($id);
 		if (!$recordDriver->isValid){
+			$interface->assign('id', $id);
 			$logger->log("Did not find a record for id {$id} in solr." , PEAR_LOG_DEBUG);
 			$this->display('../Record/invalidRecord.tpl', 'Invalid Record');
 			die();

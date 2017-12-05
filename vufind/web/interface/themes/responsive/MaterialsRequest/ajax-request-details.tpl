@@ -62,6 +62,10 @@
 									{/if}
 								{elseif $specialField == 'Article Field'}
 									<div class=" request_detail_field row">
+										<label class="request_detail_field_label col-sm-3">Magazine/Journal Title: </label>
+										<div class=" request_detail_field_value col-sm-9">{$materialsRequest->magazineTitle}</div>
+									</div>
+									<div class=" request_detail_field row">
 										<label class="request_detail_field_label col-sm-3">Date: </label>
 										<div class=" request_detail_field_value col-sm-9">{$materialsRequest->magazineDate}</div>
 									</div>
