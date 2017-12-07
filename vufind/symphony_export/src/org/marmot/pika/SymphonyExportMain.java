@@ -177,7 +177,7 @@ public class SymphonyExportMain {
 								Record marcRecord = factory.newRecord();
 								marcRecord.addVariableField(factory.newControlField("001", "a" + recordNumber));
 								if (!ohohseven.equals("-")) {
-									marcRecord.addVariableField(factory.newControlField("007", "a" + ohohseven));
+									marcRecord.addVariableField(factory.newControlField("007", ohohseven));
 								}
 								if (!author.equals("-")){
 									marcRecord.addVariableField(factory.newDataField("100", '0', '0', "a", author));
