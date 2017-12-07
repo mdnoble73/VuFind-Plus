@@ -146,7 +146,7 @@ public class SymphonyExportMain {
 			long now = new Date().getTime();
 			long ordersFileLastModified = ordersFile.lastModified();
 			if (now - ordersFileLastModified > 7 * 24 * 60 * 60 * 1000){
-				//logger.warn("Orders File was last written more than 7 days ago");
+				logger.warn("Orders File was last written more than 7 days ago");
 			}
 			//Always process since we only received one export and we are gradually removing records as they appear in the full export.
 			try{
