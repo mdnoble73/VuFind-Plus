@@ -1651,25 +1651,30 @@ class ExtractOverDriveInfo {
 				int copiesAvailable;
 				if (availability.has("copiesAvailable")) {
 					copiesAvailable = availability.getInt("copiesAvailable");
+					if (copiesAvailable < 0){
+						copiesAvailable = 0;
+					}
 				} else {
-					logger.info("copiesAvailable was not provided for library " + libraryId + " title " + curProduct.overDriveId);
+					logger.warn("copiesAvailable was not provided for library " + libraryId + " title " + curProduct.overDriveId);
 					copiesAvailable = 0;
 				}
 				if (libraryId == -1){
 					sharedStats.copiesOwnedByShared = copiesOwned;
 					sharedStats.copiesAvailableInShared = copiesAvailable;
 				}else{
-					copiesOwned -= sharedStats.copiesOwnedByShared;
-					copiesAvailable -= sharedStats.copiesAvailableInShared;
-					if (copiesOwned < 0){
-						logger.warn("Copies owned was less than 0 (" + copiesOwned + ") for libraryId " + libraryId + " product " + curProduct.overDriveId);
+					if (copiesOwned < sharedStats.copiesOwnedByShared){
+						logger.warn("Copies owned " + copiesOwned + " was less than copies owned by the shared collection " + sharedStats.copiesOwnedByShared + " for libraryId " + libraryId + " product " + curProduct.overDriveId);
 						copiesOwned = 0;
 						curProduct.hadAvailabilityErrors = true;
+					}else{
+						copiesOwned -= sharedStats.copiesOwnedByShared;
 					}
-					if (copiesAvailable < 0){
-						logger.warn("Copies available was less than 0 (" + copiesAvailable + ")for libraryId " + libraryId + " product " + curProduct.overDriveId);
+					if (copiesAvailable < sharedStats.copiesAvailableInShared){
+						logger.warn("Copies available " + copiesAvailable + " was less than copies available in shared collection " + sharedStats.copiesAvailableInShared + " for libraryId " + libraryId + " product " + curProduct.overDriveId);
 						copiesAvailable = 0;
 						curProduct.hadAvailabilityErrors = true;
+					}else{
+						copiesAvailable -= sharedStats.copiesAvailableInShared;
 					}
 				}
 
