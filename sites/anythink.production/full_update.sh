@@ -99,7 +99,6 @@ cd /usr/local/vufind-plus/vufind/cron;./GetHooplaFromMarmot.sh >> ${OUTPUT_FILE}
 cd /data/vufind-plus/; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/lexileTitles.txt https://cassini.marmot.org/lexileTitles.txt
 
 #Extract AR Data
-#cd /data/vufind-plus/accelerated_reader; wget -N --no-verbose https://cassini.marmot.org/RLI-ARDataTAB.txt
 cd /data/vufind-plus/accelerated_reader; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/accelerated_reader/RLI-ARDataTAB.txt https://cassini.marmot.org/RLI-ARDataTAB.txt
 
 #Do a full extract from OverDrive just once a week to catch anything that doesn't
@@ -117,7 +116,7 @@ fi
 # Date For Backup filename
 TODAY=$(date +"%m_%d_%Y")
 
-FILE=$(find /data/vufind-plus/anythink.production/marc -name RLDexport*.mrc -mtime -1 | sort -n | tail -1)
+FILE=$(find /data/vufind-plus/${PIKASERVER}/marc -name RLDexport*.mrc -mtime -1 | sort -n | tail -1)
 
 if [ -n "$FILE" ]
 then
@@ -131,7 +130,7 @@ then
 		echo "The export file is $PERCENTABOVE (%) larger than the minimum size check." >> ${OUTPUT_FILE}
 
 		# Move to marc_export to keep as a backup
-		cp $FILE /data/vufind-plus/anythink.production/marc_export/pika.$TODAY.mrc >> ${OUTPUT_FILE}
+		cp $FILE /data/vufind-plus/${PIKASERVER}/marc_export/pika.$TODAY.mrc >> ${OUTPUT_FILE}
 
 		#Validate the export
 		cd /usr/local/vufind-plus/vufind/cron; java -server -XX:+UseG1GC -jar cron.jar ${PIKASERVER} ValidateMarcExport >> ${OUTPUT_FILE}
@@ -145,6 +144,9 @@ then
 
 	# Delete any exports over 7 days
 	find /data/vufind-plus/anythink.production/marc_export/ -mindepth 1 -maxdepth 1 -name *.mrc -type f -mtime +7 -delete
+
+		# Truncate Continuous Reindexing list of changed items
+		cat /dev/null >| /data/vufind-plus/${PIKASERVER}/marc/changed_items_to_process.csv
 
 	else
 		echo $FILE " size " $FILE1SIZE "is less than minimum size :" $MINFILE1SIZE "; Export was not moved to data directory, Full Regrouping & Full Reindexing skipped." >> ${OUTPUT_FILE}
