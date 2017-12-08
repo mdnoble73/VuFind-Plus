@@ -89,7 +89,8 @@ rm /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
 #Restart Solr
 cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 
-#Extract from ILS is done automatically
+#Extract from ILS
+/usr/local/vufind-plus/sites/${PIKASERVER}/copyILSextract.sh >> ${OUTPUT_FILE}
 
 #Extract from Hoopla
 #cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE}
@@ -116,7 +117,7 @@ fi
 # Date For Backup filename
 TODAY=$(date +"%m_%d_%Y")
 
-FILE=$(find /data/vufind-plus/${PIKASERVER}/marc -name RLDexport*.mrc -mtime -1 | sort -n | tail -1)
+FILE=$(find /data/vufind-plus/${PIKASERVER}/marc -name "fullexport.mrc" -mtime -1 | sort -n | tail -1)
 
 if [ -n "$FILE" ]
 then
