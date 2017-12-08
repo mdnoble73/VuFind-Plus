@@ -235,7 +235,7 @@ class Union_AJAX extends Action {
 		require_once ROOT_DIR . '/sys/SearchObject/DPLA.php';
 		$dpla = new DPLA();
 		$dplaResults = $dpla->getDPLAResults($searchTerm, $numberOfResults);
-		$results = $dpla->formatResults($dplaResults, false);
+		$results = $dpla->formatCombinedResults($dplaResults, false);
 		return $results;
 	}
 

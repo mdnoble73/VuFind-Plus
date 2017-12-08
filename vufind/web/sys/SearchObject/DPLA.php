@@ -17,6 +17,8 @@ class DPLA {
 
 			$responseRaw = file_get_contents($queryUrl);
 			$responseData = json_decode($responseRaw);
+			//Uncomment to view full response
+			//echo(print_r($responseData, true));
 
 			//Extract, title, author, source, and the thumbnail
 
@@ -29,7 +31,11 @@ class DPLA {
 				$curResult['image'] = @$this->getDataForNode($curDoc->object);
 				$curResult['title'] = @$this->getDataForNode($curDoc->sourceResource->title);
 				$curResult['label'] = @$this->getDataForNode($curDoc->sourceResource->title);
+				$curResult['format'] = @$this->getDataForNode($curDoc->originalRecord->format);
+				$curResult['date'] = @$this->getDataForNode($curDoc->sourceResource->date->displayDate);
+				$curResult['publisher'] = @$this->getDataForNode($curDoc->sourceResource->publisher);
 				$curResult['description'] = @$this->getDataForNode($curDoc->sourceResource->description);
+				$curResult['dataProvider'] = @$this->getDataForNode($curDoc->dataProvider);
 				$results[] = $curResult;
 			}
 		}
@@ -54,6 +60,17 @@ class DPLA {
 			$interface->assign('searchResults', $results);
 			$interface->assign('showDplaDescription', $showDescription);
 			$formattedResults = $interface->fetch('Search/dplaResults.tpl');
+		}
+		return $formattedResults;
+	}
+
+	public function formatCombinedResults($results, $showDescription = true) {
+		$formattedResults = "";
+		if (count($results) > 0){
+			global $interface;
+			$interface->assign('searchResults', $results);
+			$interface->assign('showDplaDescription', $showDescription);
+			$formattedResults = $interface->fetch('Search/dplaCombinedResults.tpl');
 		}
 		return $formattedResults;
 	}
