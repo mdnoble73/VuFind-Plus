@@ -21,6 +21,7 @@
 require_once ROOT_DIR . '/Action.php';
 require_once ROOT_DIR . '/services/Admin/Admin.php';
 require_once ROOT_DIR . '/sys/Pager.php';
+require_once ROOT_DIR . '/sys/OverDrive/OverDriveAPIProduct.php';
 
 class OverDriveExtractLog extends Admin_Admin
 {
@@ -28,6 +29,14 @@ class OverDriveExtractLog extends Admin_Admin
 	{
 		global $interface,
 		       $configArray;
+
+		//Get the number of changes that are outstanding
+		$overdriveProduct = new OverDriveAPIProduct();
+		$overdriveProduct->needsUpdate = 1;
+		$overdriveProduct->deleted = 0;
+		$overdriveProduct->find();
+		$numOutstandingChanges = $overdriveProduct->N;
+		$interface->assign('numOutstandingChanges', $numOutstandingChanges);
 
 		$logEntries = array();
 		$logEntry = new OverDriveExtractLogEntry();

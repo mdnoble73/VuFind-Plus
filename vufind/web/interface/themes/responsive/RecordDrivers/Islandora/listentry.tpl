@@ -42,7 +42,7 @@
 				{if $listEntryNotes}
 					<div class="row">
 						<div class="result-label col-md-3">Notes: </div>
-						<div class="result-value col-md-9">
+						<div class="user-list-entry-note result-value col-md-9">
 							{$listEntryNotes}
 						</div>
 					</div>

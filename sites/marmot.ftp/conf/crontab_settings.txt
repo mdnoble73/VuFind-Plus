@@ -86,8 +86,18 @@
 ###########################
 # Export of data to EBSCO #
 ###########################
-# send marc records to ebsco at 1am daily
+#Fetch western ebrary from pika production server
+00 23 * * * scp pascal@10.1.2.11:/data/vufind-plus/ebrary/western/marc/*.mrc /data/vufind-plus/ebrary/western/marc/
+
+# send marc records to ebsco at 1am daily (for general ebsco catalog (western and cmc)
+# this script also delivers western's ebrary records to ebsco.
+# (the same script must deliver both files, or it will cause an error in ebsco's processing)
 0 1 * * * /root/cron/marc_send ebsco
+
+
+# ftp hoopla marc records to ebsco at 4.15 on the 10th (takes about 10min)
+15 4 10 * * /root/cron/hoopla.exp
+#
 
 # ftp cmu marc records to ebsco at 1.45am daily (takes about 20min)
 45 1 * * * /root/cron/cmu.exp
@@ -104,15 +114,6 @@
 # ftp adams marc records to ebsco at 2.45am daily
 45 2 * * * /root/cron/adams_ebrary.exp
 
-#Fetch western ebrary from pika production server
-53 2 * * * scp pascal@10.1.2.11:/data/vufind-plus/ebrary/western/marc/*.mrc /data/vufind-plus/ebrary/western/marc/
-#
-# ftp adams marc records to ebsco at 2.45am daily
-03 3 * * * /root/cron/western_ebrary.exp
-
-# ftp hoopla marc records to ebsco at 4.15 on the 10th (takes about 10min)
-15 4 10 * * /root/cron/hoopla.exp
-#
 
 ###############################
 # Export of data to Gold Rush #

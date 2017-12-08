@@ -28,7 +28,7 @@ class CarlX extends SIP2Driver{
 		global $timer;
 
 		//Remove any spaces from the barcode
-		$username = trim($username);
+		$username = preg_replace('/[^0-9a-zA-Z]/', '', trim($username));
 		$password = trim($password);
 
 		$request = new stdClass();
@@ -878,7 +878,7 @@ class CarlX extends SIP2Driver{
 //			if (!empty($pin) && !empty($pin1) && $pin == $pin1) {
 
 
-				// DENY REGISTRATION IF EMAIL MATCHES @LOAOA.COM 
+				// DENY REGISTRATION IF EMAIL MATCHES @LOAOA.COM
 				if (substr(strtolower($email),-10,10) == '@loaoa.com') {
 					global $logger;
 					$logger->log('Online Registration used forbidden loaoa.com. Email: ' . $email . ' IP: ' . $active_ip, PEAR_LOG_ERR);
@@ -889,7 +889,7 @@ class CarlX extends SIP2Driver{
 				}
 
 				// DENY REGISTRATION IF DUPLICATE EMAIL IS FOUND IN CARL.X
-				// searchPatron on Email appears to be case-insensitive and 
+				// searchPatron on Email appears to be case-insensitive and
 				// appears to eliminate spurious whitespace
 				$request				= new stdClass();
 				$request->Modifiers			= '';
@@ -950,14 +950,14 @@ class CarlX extends SIP2Driver{
 				$request->Patron->RegBranch			= $configArray['Catalog']['selfRegRegBranch'];
 				$request->Patron->RegisteredBy			= $configArray['Catalog']['selfRegRegisteredBy'];
 
-				// VALIDATE BIRTH DATE. 
+				// VALIDATE BIRTH DATE.
 				// DENY REGISTRATION IF REGISTRANT IS NOT 14 - 113 YEARS OLD
 				if ($library && $library->promptForBirthDateInSelfReg) {
 					$birthDate			= trim($_REQUEST['birthDate']);
 					$date				= strtotime(str_replace('-','/',$birthDate));
 					$birthDateMin			= strtotime('-113 years');
 					$birthDateMax			= strtotime('-14 years');
-					if ($date >= $birthDateMin && $date <= $birthDateMax) {					
+					if ($date >= $birthDateMin && $date <= $birthDateMax) {
 						$request->Patron->BirthDate = date('Y-m-d', $date);
 					} else {
 						global $logger;
@@ -1317,7 +1317,7 @@ class CarlX extends SIP2Driver{
 				} else {
 					$fine->System = "NPL";
 				}
-					
+
 				$myFines[] = array(
 					'reason'  => $fine->FeeNotes,
 //					'amount'  => $fine->FineAmount, // TODO: There is no corresponding amount

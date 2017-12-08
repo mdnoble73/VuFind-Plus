@@ -2,6 +2,12 @@
 	<div id="main-content" class="col-md-12">
 		<h3>OverDrive Extract Log</h3>
 
+		{if $numOutstandingChanges > 0}
+			<div class="alert {if $numOutstandingChanges > 500}alert-danger{else}alert-warning{/if}">
+				There are {$numOutstandingChanges} changes that still need to be loaded from the API.
+			</div>
+		{/if}
+
 		<div>
 			<table class="logEntryDetails table table-bordered table-striped">
 				<thead>

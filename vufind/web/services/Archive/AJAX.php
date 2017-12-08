@@ -903,6 +903,7 @@ class Archive_AJAX extends Action {
 		$id = $_REQUEST['id'];
 		$interface->assign('id', $id);
 
+		require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
 		require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
 
 		//Get a list of all lists for the user

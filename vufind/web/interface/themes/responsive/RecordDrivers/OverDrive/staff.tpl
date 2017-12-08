@@ -28,6 +28,57 @@
 	{/if}
 {/if}
 
+<div class="row">
+	<div class="result-label col-xs-3">Needs Update?: </div>
+	<div class="col-xs-9 result-value">
+		{if $overDriveProduct->needsUpdate}Yes{else}No{/if}
+	</div>
+</div>
+<div class="row">
+	<div class="result-label col-xs-3">Date Added: </div>
+	<div class="col-xs-9 result-value">
+		{$overDriveProduct->dateAdded|date_format:"%b %d, %Y %T"}
+	</div>
+</div>
+<div class="row">
+	<div class="result-label col-xs-3">Date Updated: </div>
+	<div class="col-xs-9 result-value">
+		{$overDriveProduct->dateUpdated|date_format:"%b %d, %Y %T"}
+	</div>
+</div>
+<div class="row">
+	{if $overDriveProduct->deleted}
+		<div class="result-label col-xs-3">Deleted: </div>
+		<div class="col-xs-9 result-value">
+			{$overDriveProduct->dateDeleted|date_format:"%b %d, %Y %T"}
+		</div>
+	{/if}
+</div>
+<div class="row">
+	<div class="result-label col-xs-3">Last Metadata Check: </div>
+	<div class="col-xs-9 result-value">
+		{$overDriveProduct->lastMetadataCheck|date_format:"%b %d, %Y %T"}
+	</div>
+</div>
+<div class="row">
+	<div class="result-label col-xs-3">Last Metadata Change: </div>
+	<div class="col-xs-9 result-value">
+		{$overDriveProduct->lastMetadataChange|date_format:"%b %d, %Y %T"}
+	</div>
+</div>
+<div class="row">
+	<div class="result-label col-xs-3">Last Availability Check: </div>
+	<div class="col-xs-9 result-value">
+		{$overDriveProduct->lastAvailabilityCheck|date_format:"%b %d, %Y %T"}
+	</div>
+</div>
+<div class="row">
+	<div class="result-label col-xs-3">Last Availability Change: </div>
+	<div class="col-xs-9 result-value">
+		{$overDriveProduct->lastAvailabilityChange|date_format:"%b %d, %Y %T"}
+	</div>
+</div>
+
 {if $overDriveProductRaw}
 	<div id="formattedSolrRecord">
 		<h3>OverDrive Product Record</h3>

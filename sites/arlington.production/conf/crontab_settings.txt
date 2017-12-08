@@ -58,7 +58,7 @@
 ###############################################
 # Copy Original Covers from Marmot FTP Server #
 ###############################################
-14 */2 * * * scp -i ~/.ssh/id_rsa_arlington_pika_covers arlington_pika_covers@sftp.marmot.org:/ftp/arlington_pika_covers/* /data/vufind-plus/arlington.production/covers/original/; chgrp apache /data/vufind-plus/arlington.production/covers/original/*
+14 */2 * * * scp -i ~/.ssh/id_rsa_arlington_pika_covers arlington_pika_covers@sftp.marmot.org:/ftp/arlington_pika_covers/*.* /data/vufind-plus/arlington.production/covers/original/; chgrp apache /data/vufind-plus/arlington.production/covers/original/*
 
 ################
 # Pika Cleanup #
@@ -66,12 +66,11 @@
 # Clean Up Temporary Files
 26 * * * * cd /tmp; /bin/rm -rf CURLCOOKIE*
 27 */2 * * * cd /tmp; /bin/rm -rf epb*
-0 * * * * /usr/sbin/apachectl restart > /dev/null 2>&1
 
 ############################################
 # New York Times Bestseller Lists Updating #
 ############################################
-23 7 * * 0 /usr/local/vufind-plus/vufind/cron/updateNYTLists.sh arlington.production
+23 7 * * 0-1 /usr/local/vufind-plus/vufind/cron/updateNYTLists.sh arlington.production
 # update on Sundays at 7:23
 
 ################

@@ -35,16 +35,15 @@ class MaterialsRequest_NewRequest extends Action
 		global /** @var Location $locationSingleton */
 		$configArray,
 		$interface,
-		$user,
 		$library,
 		$locationSingleton;
 
-		if (empty($user)) {
+		if (!UserAccount::isLoggedIn()) {
 			header('Location: ' . $configArray['Site']['path'] . '/MyAccount/Home?followupModule=MaterialsRequest&followupAction=NewRequest');
 			exit;
 		} else {
 			// Hold Pick-up Locations
-			$locations = $locationSingleton->getPickupBranches($user, $user->homeLocationId);
+			$locations = $locationSingleton->getPickupBranches(UserAccount::getActiveUserObj(), UserAccount::getUserHomeLocationId());
 
 			$pickupLocations = array();
 			foreach ($locations as $curLocation) {
@@ -74,6 +73,7 @@ class MaterialsRequest_NewRequest extends Action
 				}
 			}
 
+			$user = UserAccount::getActiveUserObj();
 			if ($user) {
 				$request->phone = str_replace(array('### TEXT ONLY ', '### TEXT ONLY'), '', $user->phone);
 				if ($user->email != 'notice@salidalibrary.org') {

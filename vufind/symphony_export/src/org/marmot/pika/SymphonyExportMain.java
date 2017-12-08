@@ -171,13 +171,13 @@ public class SymphonyExportMain {
 								lastPipePosition = line.lastIndexOf('|');
 								String author = line.substring(lastPipePosition + 1);
 								line = line.substring(0, lastPipePosition);
-								String ohohseven = line.replaceAll("|", " ");
+								String ohohseven = line.replace("|", " ");
 								//The marc record does not exist, create a temporary bib in the orders file which will get processed by record grouping
 								MarcFactory factory = MarcFactory.newInstance();
 								Record marcRecord = factory.newRecord();
 								marcRecord.addVariableField(factory.newControlField("001", "a" + recordNumber));
 								if (!ohohseven.equals("-")) {
-									marcRecord.addVariableField(factory.newControlField("007", "a" + ohohseven));
+									marcRecord.addVariableField(factory.newControlField("007", ohohseven));
 								}
 								if (!author.equals("-")){
 									marcRecord.addVariableField(factory.newDataField("100", '0', '0', "a", author));

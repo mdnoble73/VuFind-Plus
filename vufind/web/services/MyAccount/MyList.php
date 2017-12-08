@@ -40,6 +40,7 @@ class MyAccount_MyList extends MyAccount {
 		// Fetch List object
 		$listId = $_REQUEST['id'];
 		require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
+		require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
 		$list = new UserList();
 		$list->id = $listId;
 

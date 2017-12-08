@@ -40,4 +40,7 @@
 		</div>
 	</div>
 {/if}
+{if $numberOfHolds > 0}
+	<p>There {if $numberOfHolds > 1}are{else}is{/if} {$numberOfHolds} hold{if $numberOfHolds > 1}s{/if} on this title.</p>
+{/if}
 {/strip}
