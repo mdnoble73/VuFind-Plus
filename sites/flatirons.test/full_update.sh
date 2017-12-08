@@ -132,19 +132,19 @@ cd /data/vufind-plus/; curl --remote-name --remote-time --silent --show-error --
 cd /data/vufind-plus/accelerated_reader; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/accelerated_reader/RLI-ARDataTAB.txt https://cassini.marmot.org/RLI-ARDataTAB.txt >> ${OUTPUT_FILE}
 
 #Zinio Marc Updates
-/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} flatirons_sideload/zinio/shared zinio/shared >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/fetch_sideload_data.sh ${PIKASERVER} flatirons_sideload/zinio/shared zinio/shared >> ${OUTPUT_FILE}
 
 #OneClick Digital Marc Updates
-/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} flatirons_sideload/oneclickdigital/longmont oneclickdigital/longmont >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} flatirons_sideload/oneclickdigital/loveland oneclickdigital/loveland >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/fetch_sideload_data.sh ${PIKASERVER} flatirons_sideload/oneclickdigital/longmont oneclickdigital/longmont >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/fetch_sideload_data.sh ${PIKASERVER} flatirons_sideload/oneclickdigital/loveland oneclickdigital/loveland >> ${OUTPUT_FILE}
 
 #Ebrary Marc Updates
-/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} flatirons_sideload/ebrary/boulder ebrary/bpl >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/fetch_sideload_data.sh ${PIKASERVER} flatirons_sideload/ebrary/boulder ebrary/bpl >> ${OUTPUT_FILE}
 
-/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} flatirons_sideload/ebrary/broomfield ebrary/mde >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/fetch_sideload_data.sh ${PIKASERVER} flatirons_sideload/ebrary/broomfield ebrary/mde >> ${OUTPUT_FILE}
 
 #Kanopy Marc Updates
-/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} flatirons_sideload/kanopy/boulder kanopy/boulder >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/fetch_sideload_data.sh ${PIKASERVER} flatirons_sideload/kanopy/boulder kanopy/boulder >> ${OUTPUT_FILE}
 
 #Colorado State Goverment Documents Updates
 curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/colorado_gov_docs/marc/fullexport.mrc https://cassini.marmot.org/colorado_state_docs.mrc

@@ -56,7 +56,7 @@
 ############################################
 # New York Times Bestseller Lists Updating #
 ############################################
-13 7 * * 0 /usr/local/vufind-plus/vufind/cron/updateNYTLists.sh marmot.production
+13 7 * * 0-1 /usr/local/vufind-plus/vufind/cron/updateNYTLists.sh marmot.production
 # update on Sundays at 7:13
 
 ##########

@@ -50,7 +50,7 @@
 #############################################
 # New York Times Best seller Lists Updating #
 #############################################
-07 7 * * 0 /usr/local/vufind-plus/vufind/cron/updateNYTLists.sh nashville.production
+07 7 * * 0-1 /usr/local/vufind-plus/vufind/cron/updateNYTLists.sh nashville.production
 # update on Sundays at 7:07
 
 ################
@@ -81,6 +81,11 @@
 0 22 * * * cd /usr/local/vufind-plus/vufind/cron; ./sideload.sh nashville.production
 
 # Download Lexile and AR files triggered in full_update.sh
+
+###############################
+# MNPS School Overdues Report #
+###############################
+58 8,12 * * * cd /usr/local/vufind-plus/vufind/cron; /opt/rh/php55/root/usr/bin/php NashvilleAdHocOverdues.php nashville.production
 
 #################################
 # hacks to keep things afloat until Sparky increases RAM

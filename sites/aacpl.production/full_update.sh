@@ -120,22 +120,22 @@ rm /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
 cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 
 #Zinio
-/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} aacpl/zinio zinio/aacpl >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/fetch_sideload_data.sh ${PIKASERVER} aacpl/zinio zinio/aacpl >> ${OUTPUT_FILE}
 
 # Safari
-/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} aacpl/safari safari/aacpl >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/fetch_sideload_data.sh ${PIKASERVER} aacpl/safari safari/aacpl >> ${OUTPUT_FILE}
 
 # RBdigital (audiobooks)
-/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} aacpl/recordedbooks rbdigital/aacpl >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/fetch_sideload_data.sh ${PIKASERVER} aacpl/recordedbooks rbdigital/aacpl >> ${OUTPUT_FILE}
 
 # Cloud Library
-/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} aacpl/cloudlibrary cloudlibrary/aacpl >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/fetch_sideload_data.sh ${PIKASERVER} aacpl/cloudlibrary cloudlibrary/aacpl >> ${OUTPUT_FILE}
 
 # Gale
-/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} aacpl/gale gale/aacpl >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/fetch_sideload_data.sh ${PIKASERVER} aacpl/gale gale/aacpl >> ${OUTPUT_FILE}
 
 # Kanopy
-/usr/local/vufind-plus/vufind/fetch_sideload_data.sh ${PIKASERVER} aacpl/kanopy kanopy/aacpl >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/fetch_sideload_data.sh ${PIKASERVER} aacpl/kanopy kanopy/aacpl >> ${OUTPUT_FILE}
 
 #Extract from Hoopla
 #cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE}
