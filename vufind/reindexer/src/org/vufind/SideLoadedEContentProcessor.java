@@ -155,7 +155,7 @@ class SideLoadedEContentProcessor extends IlsRecordProcessor{
 						econtentItem.setFormat("eMagazine");
 						econtentItem.setFormatCategory("eBook");
 						econtentRecord.setFormatBoost(3);
-					} else if (format.equalsIgnoreCase("SoundRecording") || format.equalsIgnoreCase("SoundDisc") || format.equalsIgnoreCase("Playaway") || format.equalsIgnoreCase("CDROM") || format.equalsIgnoreCase("SoundCassette") || format.equalsIgnoreCase("CompactDisc")) {
+					} else if (format.equalsIgnoreCase("SoundRecording") || format.equalsIgnoreCase("SoundDisc") || format.equalsIgnoreCase("Playaway") || format.equalsIgnoreCase("CDROM") || format.equalsIgnoreCase("SoundCassette") || format.equalsIgnoreCase("CompactDisc") || format.equalsIgnoreCase("eAudio")) {
 						econtentItem.setFormat("eAudiobook");
 						econtentItem.setFormatCategory("Audio Books");
 						econtentRecord.setFormatBoost(8);
