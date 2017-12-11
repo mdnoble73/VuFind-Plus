@@ -988,7 +988,7 @@ class GroupedWork_AJAX {
 		}
 
 		$prospectorResults = $prospector->getTopSearchResults($searchTerms, 10);
-		$interface->assign('prospectorResults', $prospectorResults);
+		$interface->assign('prospectorResults', $prospectorResults['records']);
 
 		$result = array(
 			'numTitles' => count($prospectorResults),

@@ -7,6 +7,7 @@ require_once 'DB/DataObject/Cast.php';
 require_once ROOT_DIR . '/Drivers/marmot_inc/Holiday.php';
 require_once ROOT_DIR . '/Drivers/marmot_inc/LibraryFacetSetting.php';
 require_once ROOT_DIR . '/Drivers/marmot_inc/LibraryArchiveSearchFacetSetting.php';
+require_once ROOT_DIR . '/Drivers/marmot_inc/LibraryCombinedResultSection.php';
 require_once ROOT_DIR . '/sys/Indexing/LibraryRecordOwned.php';
 require_once ROOT_DIR . '/sys/Indexing/LibraryRecordToInclude.php';
 require_once ROOT_DIR . '/sys/Browse/LibraryBrowseCategory.php';
@@ -187,6 +188,7 @@ class Library extends DB_DataObject
 	public $edsApiProfile;
 	public $edsApiUsername;
 	public $edsApiPassword;
+	public $edsSearchProfile;
 	protected $patronNameDisplayStyle; //Needs to be protected so __get and __set are called
 	private $patronNameDisplayStyleChanged = false; //Track changes so we can clear values for existing patrons
 	public $includeAllRecordsInShelvingFacets;
@@ -206,6 +208,11 @@ class Library extends DB_DataObject
 	public $interLibraryLoanUrl;
 	public $expiredMessage;
 	public $expirationNearMessage;
+
+	//Combined Results (Bento Box)
+	public $enableCombinedResults;
+	public $combinedResultsLabel;
+	public $defaultToCombinedResults;
 
 	// Archive Request Form Field Settings
 	public $archiveRequestFieldName;
@@ -331,6 +338,10 @@ class Library extends DB_DataObject
 		$materialsRequestFormFieldsStructure = MaterialsRequestFormFields::getObjectStructure();
 		unset($materialsRequestFormFieldsStructure['libraryId']); //needed?
 		unset($materialsRequestFormFieldsStructure['weight']);
+
+		$combinedResultsStructure = LibraryCombinedResultSection::getObjectStructure();
+		unset($combinedResultsStructure['libraryId']);
+		unset($combinedResultsStructure['weight']);
 
 		require_once ROOT_DIR . '/sys/ListWidget.php';
 		$widget = new ListWidget();
@@ -478,7 +489,6 @@ class Library extends DB_DataObject
 			'searchingSection' => array('property'=>'searchingSection', 'type' => 'section', 'label' =>'Searching', 'hideInLists' => true,
 					'helpLink'=>'https://docs.google.com/document/d/1QQ7bNfGx75ImTguxEOmf7eCtdrVN9vi8FpWtWY_O3OU', 'properties' => array(
 				'restrictSearchByLibrary'                  => array('property' => 'restrictSearchByLibrary', 'type'=>'checkbox', 'label'=>'Restrict Search By Library', 'description'=>'Whether or not search results should only include titles from this library', 'hideInLists' => true),
-//				'econtentLocationsToInclude'               => array('property' => 'econtentLocationsToInclude', 'type'=>'text', 'label'=>'eContent Locations To Include', 'description'=>'A list of eContent Locations to include within the scope.', 'size'=>'40', 'hideInLists' => true,),
 				'includeOutOfSystemExternalLinks'          => array('property' => 'includeOutOfSystemExternalLinks', 'type'=>'checkbox', 'label'=>'Include Out Of System External Links', 'description'=>'Whether or not to include external links from other library systems.  Should only be enabled for global scope.', 'hideInLists' => true, 'default'=>0),
 				'publicListsToInclude'                     => array('property' => 'publicListsToInclude', 'type'=>'enum', 'values' => array(0 => 'No Lists', '1' => 'Lists from this library', '3'=>'Lists from library list publishers Only', '4'=>'Lists from all list publishers', '2' => 'All Lists'), 'label'=>'Public Lists To Include', 'description'=>'Which lists should be included in this scope'),
 				'boostByLibrary'                           => array('property' => 'boostByLibrary', 'type'=>'checkbox', 'label'=>'Boost By Library', 'description'=>'Whether or not boosting of titles owned by this library should be applied', 'hideInLists' => true),
@@ -538,8 +548,31 @@ class Library extends DB_DataObject
 					),
 				)),
 
-
+				'combinedResultsSection' => array('property' => 'combinedResultsSection', 'type' => 'section', 'label' => 'Combined Results', 'hideInLists' => true, 'properties' => array(
+						'enableCombinedResults' => array('property' => 'enableCombinedResults', 'type'=>'checkbox', 'label'=>'Enable Combined Results', 'description'=>'Whether or not combined results should be shown ', 'hideInLists' => true, 'default' => false),
+						'combinedResultsLabel' => array('property' => 'combinedResultsLabel', 'type' => 'text', 'label' => 'Combined Results Label', 'description' => 'The label to use in the search source box when combined results is active.', 'size'=>'20', 'hideInLists' => true, 'default' => 'Combined Results'),
+						'defaultToCombinedResults' => array('property' => 'defaultToCombinedResults', 'type'=>'checkbox', 'label'=>'Default To Combined Results', 'description'=>'Whether or not combined results should be the default search source when active ', 'hideInLists' => true, 'default' => true),
+						'combinedResultSections' => array(
+								'property' => 'combinedResultSections',
+								'type' => 'oneToMany',
+								'label' => 'Combined Results Sections',
+								'description' => 'Which sections should be shown in the combined results search display',
+								'helpLink' => '',
+								'keyThis' => 'libraryId',
+								'keyOther' => 'libraryId',
+								'subObjectType' => 'LibraryCombinedResultSection',
+								'structure' => $combinedResultsStructure,
+								'sortable' => true,
+								'storeDb' => true,
+								'allowEdit' => true,
+								'canEdit' => false,
+								'additionalOneToManyActions' => array(
+								)
+						),
 				)),
+
+
+			)),
 
 			// Catalog Enrichment //
 			'enrichmentSection' => array('property'=>'enrichmentSection', 'type' => 'section', 'label' =>'Catalog Enrichment', 'hideInLists' => true,
@@ -856,6 +889,7 @@ class Library extends DB_DataObject
 
 			'edsSection' => array('property'=>'edsSection', 'type' => 'section', 'label' =>'EBSCO EDS', 'hideInLists' => true, 'properties' => array(
 					'edsApiProfile' => array('property'=>'edsApiProfile', 'type'=>'text', 'label'=>'EDS API Profile', 'description'=>'The profile to use when connecting to the EBSCO API', 'hideInLists' => true),
+					'edsSearchProfile' => array('property'=>'edsSearchProfile', 'type'=>'text', 'label'=>'EDS Search Profile', 'description'=>'The profile to use when linking to EBSCO EDS', 'hideInLists' => true),
 					'edsApiUsername' => array('property'=>'edsApiUsername', 'type'=>'text', 'label'=>'EDS API Username', 'description'=>'The username to use when connecting to the EBSCO API', 'hideInLists' => true),
 					'edsApiPassword' => array('property'=>'edsApiPassword', 'type'=>'text', 'label'=>'EDS API Password', 'description'=>'The password to use when connecting to the EBSCO API', 'hideInLists' => true),
 			)),
@@ -979,6 +1013,9 @@ class Library extends DB_DataObject
 	static function getSearchLibrary($searchSource = null){
 		if ($searchSource == null){
 			global $searchSource;
+		}
+		if ($searchSource = 'combinedResults'){
+			$searchSource = 'local';
 		}
 		if (!array_key_exists($searchSource, Library::$searchLibrary)){
 			$scopingSetting = $searchSource;
@@ -1244,6 +1281,19 @@ class Library extends DB_DataObject
 				}
 				return $this->exploreMoreBar;
 			}
+		}elseif ($name == 'combinedResultSections') {
+			if (!isset($this->combinedResultSections) && $this->libraryId){
+				$this->combinedResultSections = array();
+				$combinedResultSection = new LibraryCombinedResultSection();
+				$combinedResultSection->libraryId = $this->libraryId;
+				$combinedResultSection->orderBy('weight');
+				if ($combinedResultSection->find()) {
+					while ($combinedResultSection->fetch()) {
+						$this->combinedResultSections[$combinedResultSection->id] = clone $combinedResultSection;
+					}
+				}
+				return $this->combinedResultSections;
+			}
 		}elseif ($name == 'patronNameDisplayStyle'){
 			return $this->patronNameDisplayStyle;
 		}else{
@@ -1280,6 +1330,8 @@ class Library extends DB_DataObject
 			$this->materialsRequestFormFields = $value;
 		}elseif ($name == 'exploreMoreBar') {
 			$this->exploreMoreBar = $value;
+		}elseif ($name == 'combinedResultSections') {
+			$this->combinedResultSections = $value;
 		}elseif ($name == 'patronNameDisplayStyle'){
 			if ($this->patronNameDisplayStyle != $value){
 				$this->patronNameDisplayStyle = $value;
@@ -1347,6 +1399,7 @@ class Library extends DB_DataObject
 			$this->saveMoreDetailsOptions();
 			$this->saveArchiveMoreDetailsOptions();
 			$this->saveExploreMoreBar();
+			$this->saveCombinedResultSections();
 		}
 		if ($this->patronNameDisplayStyleChanged){
 			$libraryLocations = new Location();
@@ -1396,6 +1449,7 @@ class Library extends DB_DataObject
 			$this->saveBrowseCategories();
 			$this->saveMoreDetailsOptions();
 			$this->saveExploreMoreBar();
+			$this->saveCombinedResultSections();
 		}
 		return $ret;
 	}
@@ -1592,6 +1646,18 @@ class Library extends DB_DataObject
 	public function clearArchiveSearchFacets(){
 		$this->clearOneToManyOptions('LibraryArchiveSearchFacetSetting');
 		$this->archiveSearchfacets = array();
+	}
+
+	public function saveCombinedResultSections(){
+		if (isset ($this->combinedResultSections) && is_array($this->combinedResultSections)){
+			$this->saveOneToManyOptions($this->combinedResultSections);
+			unset($this->combinedResultSections);
+		}
+	}
+
+	public function clearCombinedResultSections(){
+		$this->clearOneToManyOptions('LibraryCombinedResultSection');
+		$this->combinedResultSections = array();
 	}
 
 	public function saveHolidays(){

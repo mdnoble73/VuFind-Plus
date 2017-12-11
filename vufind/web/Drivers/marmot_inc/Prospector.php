@@ -18,13 +18,25 @@ class Prospector{
 		}
 		$prospectorInfo = $req->getResponseBody();
 
+		//Get the total number of results
+		preg_match('/<span class="noResultsHideMessage">.*?(\d+) - (\d+) of (\d+).*?<\/span>/s', $prospectorInfo, $summaryInfo);
+		$firstResult = $summaryInfo[1];
+		$lastResult = $summaryInfo[2];
+		$numberOfResults = $summaryInfo[3];
+
 		//Parse the information to get the titles from the page
-		preg_match_all('/dpBibTitle(.*?)bibLocations/si', $prospectorInfo, $titleInfo, PREG_SET_ORDER);
+		preg_match_all('/gridBrowseCol2(.*?)bibLocations/si', $prospectorInfo, $titleInfo, PREG_SET_ORDER);
 		$prospectorTitles = array();
 		for ($matchi = 0; $matchi < count($titleInfo); $matchi++) {
 			$curTitleInfo = array();
 			//Extract the title and bid from the titleTitleInfo
 			$titleTitleInfo = $titleInfo[$matchi][1];
+
+			//Get the cover
+			if (preg_match('/<div class="itemBookCover">.*?<img.*?src="(.*?)".*<\/div>/s', $titleTitleInfo, $imageMatches)) {
+				$curTitleInfo['cover'] = $imageMatches[1];
+				//echo "Found book cover " . $curTitleInfo['cover'];
+			}
 
 			if (preg_match('/<span class="title">.*?<a.*?href.*?__R(.*?)__.*?>\\s*(.*?)\\s*<\/a>.*?<\/span>/s', $titleTitleInfo, $titleMatches)) {
 				$curTitleInfo['id'] = $titleMatches[1];
@@ -71,7 +83,12 @@ class Prospector{
 		}
 
 		$prospectorTitles = array_slice($prospectorTitles, 0, $maxResults, true);
-		return $prospectorTitles;
+		return array(
+				'firstRecord' => $firstResult,
+				'lastRecord' => $lastResult,
+				'resultTotal' => $numberOfResults,
+				'records' => $prospectorTitles,
+		);
 	}
 
 	function getSearchLink($searchTerms){

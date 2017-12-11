@@ -37,6 +37,25 @@ VuFind.Searches = (function(){
 			list:''
 		},
 
+		getCombinedResults: function(fullId, shortId, source, searchTerm, searchType, numberOfResults){
+			var url = Globals.path + '/Union/AJAX';
+			var params = '?method=getCombinedResults&source=' + source + '&numberOfResults=' + numberOfResults + "&id=" + fullId + "&searchTerm=" + searchTerm + "&searchType=" + searchType;
+			if ($('#hideCovers').is(':checked')){
+				params += "&showCovers=off";
+			}else{
+				params += "&showCovers=on";
+			}
+			$.getJSON(url+params, function(data){
+				if (data.success == false){
+					VuFind.showMessage("Error loading results", data.error);
+				}else{
+					$('#combined-results-section-results-' + shortId).html(data.results);
+				}
+			}).fail(VuFind.ajaxFail);
+			return false;
+
+		},
+
 		getPreferredDisplayMode: function(){
 			if (!Globals.opac && VuFind.hasLocalStorage()){
 				temp = window.localStorage.getItem('searchResultsDisplayMode');

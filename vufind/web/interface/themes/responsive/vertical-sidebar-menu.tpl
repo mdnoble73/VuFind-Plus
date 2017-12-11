@@ -53,7 +53,9 @@
 						{if ($module == "Search" && $action != 'History') || $module == "Series" || $module == "Author" || $module == "Genealogy" || $module == "Library"
 							|| ($module == 'MyAccount' && $action == 'MyList' && !$listEditAllowed)
 							|| ($module == 'EBSCO' && $action == 'Results')
-							|| ($module == 'Archive' && $action == 'Results')|| ($module == 'Archive' && $action == 'RelatedEntities')}
+							|| ($module == 'Union' && $action == 'CombinedResults')
+							|| ($module == 'Archive' && ($action == 'Results' || $action == 'RelatedEntities'))
+					    }
 								{* Treat Public Lists not owned by user as a Search Page rather than an MyAccount Page *}
 								{* Click Search Menu Bar Button *}
 							$('.menu-bar-option:nth-child(1)>a', '#vertical-menu-bar').filter(':visible').click();
