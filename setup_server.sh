@@ -94,7 +94,7 @@ if [ $# = 1 ];then
   cp $WD/install/.my.cnf ~/.my.cnf
   #-----------------
   echo "Installing Solr Files for $HOST"
-  $WD/data_dir_setup/update_solr_files.sh $HOST
+  $WD/data_dir_setup/; ./update_solr_files.sh $HOST
   #-----------------
   echo "Creating pika system service for $HOST"
 #  cat $WD/sites/default/pika_startup.sh |sed -r 's/\{servername\}/$HOST/' > /etc/init.d/pika.sh
