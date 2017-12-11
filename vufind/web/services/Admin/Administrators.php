@@ -34,10 +34,26 @@ class Admin_Administrators extends ObjectEditor
 		return 'Administrators';
 	}
 	function getAllObjects(){
+		/** @var User $admin */
 		$admin = new User();
 		$admin->query('SELECT * FROM user INNER JOIN user_roles on user.id = user_roles.userId ORDER BY cat_password');
 		$adminList = array();
 		while ($admin->fetch()){
+			$homeLibrary = Library::getLibraryForLocation($admin->homeLocationId);
+			if ($homeLibrary != null){
+				$admin->homeLibraryName = $homeLibrary->displayName;
+			}else{
+				$admin->homeLibraryName = 'Unknown';
+			}
+
+			$location = new Location();
+			$location->locationId = $admin->homeLocationId;
+			if ($location->find(true)) {
+				$admin->homeLocation = $location->displayName;
+			}else{
+				$admin->homeLocation = 'Unknown';
+			}
+
 			$adminList[$admin->id] = clone $admin;
 		}
 		return $adminList;
