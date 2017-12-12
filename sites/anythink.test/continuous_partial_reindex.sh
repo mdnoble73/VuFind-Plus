@@ -88,9 +88,9 @@ do
 
 	#Process extract from Horizon
 	#Copy partial extracts from ftp server
-	mount 10.1.2.7:/ftp /mnt/ftp
-	mv /mnt/ftp/anythink/partial*.mrc /data/vufind-plus/${PIKASERVER}/marc_changes
-	umount /mnt/ftp
+#	mount 10.1.2.7:/ftp /mnt/ftp
+#	mv /mnt/ftp/anythink/partial*.mrc /data/vufind-plus/${PIKASERVER}/marc_changes
+#	umount /mnt/ftp
 
 	#merge the changes with the full extract
 	cd /usr/local/vufind-plus/vufind/horizon_export/
