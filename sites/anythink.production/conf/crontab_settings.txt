@@ -53,6 +53,7 @@
 ###############################################
 # Copy Original Covers from Marmot FTP Server #
 ###############################################
+23 */2 * * * /usr/local/vufind-plus/sites/anythink.production/copyCovers.sh
 
 ################
 # Pika Cleanup #
