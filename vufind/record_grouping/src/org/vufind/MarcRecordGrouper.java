@@ -84,10 +84,6 @@ class MarcRecordGrouper extends RecordGroupingProcessor{
 			//Get data for the grouped record
 			GroupedWorkBase workForTitle = setupBasicWorkForIlsRecord(marcRecord, profile.formatSource, profile.format, profile.specifiedFormatCategory);
 
-			//Identifiers
-			HashSet<RecordIdentifier> identifiers = getIdentifiersFromMarcRecord(marcRecord);
-			workForTitle.setIdentifiers(identifiers);
-
 			addGroupedWorkToDatabase(primaryIdentifier, workForTitle, primaryDataChanged);
 			return true;
 		}else{

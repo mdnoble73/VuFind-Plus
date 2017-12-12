@@ -124,7 +124,7 @@ class RecordGroupingProcessor {
 		return subfield;
 	}
 
-	private Pattern overdrivePattern = Pattern.compile("(?i)^http://.*?lib\\.overdrive\\.com/ContentDetails\\.htm\\?id=[\\da-f]{8}-[\\da-f]{4}-[\\da-f]{4}-[\\da-f]{4}-[\\da-f]{12}$");
+	private static Pattern overdrivePattern = Pattern.compile("(?i)^http://.*?lib\\.overdrive\\.com/ContentDetails\\.htm\\?id=[\\da-f]{8}-[\\da-f]{4}-[\\da-f]{4}-[\\da-f]{4}-[\\da-f]{12}$");
 	RecordIdentifier getPrimaryIdentifierFromMarcRecord(Record marcRecord, String recordType, boolean doAutomaticEcontentSuppression){
 		RecordIdentifier identifier = null;
 		List<VariableField> recordNumberFields = marcRecord.getVariableFields(recordNumberTag);
@@ -426,8 +426,6 @@ class RecordGroupingProcessor {
 
 			//Update identifiers
 			addPrimaryIdentifierForWorkToDB(groupedWorkId, primaryIdentifier);
-			//We no longer utilize secondary identifiers for works. We can skip calling this now
-			//addIdentifiersForRecordToDB(groupedWorkId, groupedWork.getIdentifiers(), primaryIdentifier);
 		}catch (Exception e){
 			logger.error("Error adding grouped record to grouped work ", e);
 		}
@@ -497,7 +495,7 @@ class RecordGroupingProcessor {
 		}
 	}
 
-	void processRecord(RecordIdentifier primaryIdentifier, String title, String subtitle, String author, String format, HashSet<RecordIdentifier>identifiers, boolean primaryDataChanged){
+	void processRecord(RecordIdentifier primaryIdentifier, String title, String subtitle, String author, String format, boolean primaryDataChanged){
 		GroupedWorkBase groupedWork = GroupedWorkFactory.getInstance(-1);
 
 		//Replace & with and for better matching
@@ -516,8 +514,6 @@ class RecordGroupingProcessor {
 		}else if (format.equalsIgnoreCase("video")){
 			groupedWork.setGroupingCategory("movie");
 		}
-
-		groupedWork.setIdentifiers(identifiers);
 
 		addGroupedWorkToDatabase(primaryIdentifier, groupedWork, primaryDataChanged);
 	}

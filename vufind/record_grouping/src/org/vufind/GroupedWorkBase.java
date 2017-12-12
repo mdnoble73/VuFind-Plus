@@ -24,24 +24,23 @@ public abstract class GroupedWorkBase {
 	private static Logger logger	= Logger.getLogger(GroupedWorkBase.class);
 
 	//The id of the work within the database.
-	protected String permanentId;
+	String permanentId;
 
-	protected String fullTitle = "";              //Up to 100 chars
-	protected String originalAuthorName = "";
+	String fullTitle = "";              //Up to 100 chars
+	String originalAuthorName = "";
 	protected String author = "";             //Up to 50  chars
-	protected String groupingCategory = "";   //Up to 25  chars
-	protected String uniqueIdentifier = null;
-	protected HashSet<RecordIdentifier> identifiers = new HashSet<RecordIdentifier>();
+	String groupingCategory = "";   //Up to 25  chars
+	private String uniqueIdentifier = null;
 
 	//Load authorities
-	protected static HashMap<String, String> authorAuthorities = new HashMap<String, String>();
-	protected static HashMap<String, String> titleAuthorities = new HashMap<String, String>();
+	private static HashMap<String, String> authorAuthorities = new HashMap<>();
+	private static HashMap<String, String> titleAuthorities = new HashMap<>();
 
 	static {
 		loadAuthorities();
 	}
 
-	public String getPermanentId() {
+	String getPermanentId() {
 		if (this.permanentId == null){
 			String permanentId;
 			try {
@@ -84,12 +83,12 @@ public abstract class GroupedWorkBase {
 	abstract String getTitle();
 
 	private String authoritativeTitle;
-	public String getAuthoritativeTitle() {
+	String getAuthoritativeTitle() {
 		if (authoritativeTitle == null) {
 			if (titleAuthorities.containsKey(fullTitle)) {
-				return titleAuthorities.get(fullTitle);
+				authoritativeTitle = titleAuthorities.get(fullTitle);
 			} else {
-				return fullTitle;
+				authoritativeTitle = fullTitle;
 			}
 		}
 		return authoritativeTitle;
@@ -100,7 +99,7 @@ public abstract class GroupedWorkBase {
 	abstract String getAuthor();
 
 	private String authoritativeAuthor = null;
-	public String getAuthoritativeAuthor() {
+	String getAuthoritativeAuthor() {
 		if (authoritativeAuthor == null) {
 			if (authorAuthorities.containsKey(author)) {
 				authoritativeAuthor = authorAuthorities.get(author);
@@ -119,12 +118,8 @@ public abstract class GroupedWorkBase {
 
 	abstract String getGroupingCategory();
 
-	abstract void setIdentifiers(HashSet<RecordIdentifier> identifiers);
-
-	abstract HashSet<RecordIdentifier> getIdentifiers();
-
-	public HashSet<String> getAlternateAuthorNames() {
-		HashSet<String> alternateNames = new HashSet<String>();
+	HashSet<String> getAlternateAuthorNames() {
+		HashSet<String> alternateNames = new HashSet<>();
 		String displayName = AuthorNormalizer.getDisplayName(originalAuthorName);
 		if (displayName != null && displayName.length() > 0){
 			alternateNames.add(AuthorNormalizer.getNormalizedName(displayName));
@@ -169,11 +164,11 @@ public abstract class GroupedWorkBase {
 		}
 	}
 
-	public String getOriginalAuthor() {
+	String getOriginalAuthor() {
 		return originalAuthorName;
 	}
 
-	public void makeUnique(String primaryIdentifier) {
+	void makeUnique(String primaryIdentifier) {
 		uniqueIdentifier = primaryIdentifier;
 	}
 }

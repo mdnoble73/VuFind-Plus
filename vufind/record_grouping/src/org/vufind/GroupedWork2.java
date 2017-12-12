@@ -282,16 +282,7 @@ public class GroupedWork2 extends GroupedWorkBase implements Cloneable {
 		}
 	}
 
-	@Override
-	public void setIdentifiers(HashSet<RecordIdentifier> identifiers) {
-		this.identifiers = identifiers;
-	}
-
 	public String getGroupingCategory(){
 		return groupingCategory;
-	}
-
-	public HashSet<RecordIdentifier> getIdentifiers(){
-		return identifiers;
 	}
 }

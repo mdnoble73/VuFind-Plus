@@ -3,7 +3,6 @@ package org.vufind;
 import org.apache.log4j.Logger;
 
 import java.text.Normalizer;
-import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -19,23 +18,22 @@ import java.util.regex.Pattern;
  * Date: 11/15/13
  * Time: 9:02 AM
  */
-public class GroupedWork4 extends GroupedWorkBase implements Cloneable {
+class GroupedWork4 extends GroupedWorkBase implements Cloneable {
 
 
-	static Pattern initialsFix = Pattern.compile("(?<=[A-Z])\\.(?=(\\s|[A-Z]|$))");
-	static Pattern apostropheStrip = Pattern.compile("'s");
-	static Pattern specialCharacterStrip = Pattern.compile("[^\\p{L}\\d\\s]");
-	static Pattern consecutiveSpaceStrip = Pattern.compile("\\s{2,}");
-	static Pattern bracketedCharacterStrip = Pattern.compile("\\[(.*?)\\]");
+	private static Pattern initialsFix = Pattern.compile("(?<=[A-Z])\\.(?=(\\s|[A-Z]|$))");
+	private static Pattern apostropheStrip = Pattern.compile("'s");
+	private static Pattern specialCharacterStrip = Pattern.compile("[^\\p{L}\\d\\s]");
+	private static Pattern consecutiveSpaceStrip = Pattern.compile("\\s{2,}");
+	private static Pattern bracketedCharacterStrip = Pattern.compile("\\[(.*?)\\]");
 
 	static Logger logger = Logger.getLogger(GroupedWork4.class);
-	private String normalizeAuthor(String author) {
-		String groupingAuthor = AuthorNormalizer.getNormalizedName(author);
 
-		return groupingAuthor;
+	private String normalizeAuthor(String author) {
+		return AuthorNormalizer.getNormalizedName(author);
 	}
 
-	static Pattern editionRemovalPattern = Pattern.compile("(first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|revised|\\d+\\S*)\\s+(edition|ed|ed\\.|update)");
+	private static Pattern editionRemovalPattern = Pattern.compile("(first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|revised|\\d+\\S*)\\s+(edition|ed|ed\\.|update)");
 
 	private String normalizeTitle(String fullTitle, int numNonFilingCharacters) {
 		String groupingTitle;
@@ -108,8 +106,8 @@ public class GroupedWork4 extends GroupedWorkBase implements Cloneable {
 		return groupingTitle;
 	}
 
-	static Pattern commonSubtitlesSimplePattern = Pattern.compile("(by\\s\\w+\\s\\w+|a novel of .*|stories|an autobiography|a biography|a memoir in books|poems|the movie|large print|graphic novel|magazine|audio cd|book club kit|with illustrations|book \\d+|the original classic edition|classic edition|a novel)$");
-	static Pattern commonSubtitlesComplexPattern = Pattern.compile("((a|una)\\s(.*)novel(a|la)?|a(.*)memoir|a(.*)mystery|a(.*)thriller|by\\s\\w+\\s\\w+|an? .* story|a .*\\s?book|[\\w\\s]+series book \\d+|the[\\w\\s]+chronicles book \\d+|[\\w\\s]+trilogy book \\d+)$");
+	private static Pattern commonSubtitlesSimplePattern = Pattern.compile("(by\\s\\w+\\s\\w+|a novel of .*|stories|an autobiography|a biography|a memoir in books|poems|the movie|large print|graphic novel|magazine|audio cd|book club kit|with illustrations|book \\d+|the original classic edition|classic edition|a novel)$");
+	private static Pattern commonSubtitlesComplexPattern = Pattern.compile("((a|una)\\s(.*)novel(a|la)?|a(.*)memoir|a(.*)mystery|a(.*)thriller|by\\s\\w+\\s\\w+|an? .* story|a .*\\s?book|[\\w\\s]+series book \\d+|the[\\w\\s]+chronicles book \\d+|[\\w\\s]+trilogy book \\d+)$");
 	private String removeCommonSubtitles(String groupingTitle) {
 		boolean changeMade = true;
 		while (changeMade){
@@ -142,7 +140,7 @@ public class GroupedWork4 extends GroupedWorkBase implements Cloneable {
 		return groupingTitle;
 	}
 
-	public static String normalizeDiacritics(String textToNormalize){
+	private static String normalizeDiacritics(String textToNormalize){
 		return Normalizer.normalize(textToNormalize, Normalizer.Form.NFKC);
 	}
 
@@ -175,7 +173,7 @@ public class GroupedWork4 extends GroupedWorkBase implements Cloneable {
 		this.fullTitle = title.trim();
 	}
 
-	public String normalizePassedInSubtitle(String title, String subtitle) {
+	private String normalizePassedInSubtitle(String title, String subtitle) {
 		if (!title.endsWith(subtitle)){
 			//Remove any complex subtitles since we know the beginning of the string
 			String newSubtitle = cleanTitleCharacters(subtitle);
@@ -193,12 +191,12 @@ public class GroupedWork4 extends GroupedWorkBase implements Cloneable {
 		return title;
 	}
 
-	public String removeComplexSubtitles(String newSubtitle) {
+	private String removeComplexSubtitles(String newSubtitle) {
 		newSubtitle = commonSubtitlesComplexPattern.matcher(newSubtitle).replaceAll("");
 		return newSubtitle;
 	}
 
-	public String normalizeSubtitleWithinMainTitle(String title) {
+	private String normalizeSubtitleWithinMainTitle(String title) {
 		if (title.endsWith(":")){
 			title = title.substring(0, title.length() -1);
 		}
@@ -256,18 +254,8 @@ public class GroupedWork4 extends GroupedWorkBase implements Cloneable {
 		}
 	}
 
-	@Override
-	public void setIdentifiers(HashSet<RecordIdentifier> identifiers) {
-		this.identifiers = identifiers;
-	}
-
 	public String getGroupingCategory(){
 		return groupingCategory;
 	}
-
-	public HashSet<RecordIdentifier> getIdentifiers(){
-		return identifiers;
-	}
-
 
 }

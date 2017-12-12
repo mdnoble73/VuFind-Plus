@@ -1,7 +1,5 @@
 package org.vufind;
 
-import org.apache.log4j.Logger;
-
 import java.text.Normalizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -14,17 +12,17 @@ import java.util.regex.Pattern;
  * Date: 1/29/2015
  * Time: 9:36 AM
  */
-public class AuthorNormalizer {
-	static Pattern authorExtract1 = Pattern.compile("^(.+?)\\spresents.*$");
-	static Pattern authorExtract2 = Pattern.compile("^(?:(?:a|an)\\s)?(.+?)\\spresentation.*$");
-	static Pattern distributedByRemoval = Pattern.compile("^distributed (?:in.*\\s)?by\\s(.+)$");
-	static Pattern initialsFix = Pattern.compile("(?<=[A-Z])\\.(?=(\\s|[A-Z]|$))");
-	static Pattern apostropheStrip = Pattern.compile("'s");
-	static Pattern specialCharacterWhitespace = Pattern.compile("'");
-	static Pattern specialCharacterStrip = Pattern.compile("[^\\p{L}\\d\\s]");
-	static Pattern consecutiveCharacterStrip = Pattern.compile("\\s{2,}");
+class AuthorNormalizer {
+	private static Pattern authorExtract1 = Pattern.compile("^(.+?)\\spresents.*$");
+	private static Pattern authorExtract2 = Pattern.compile("^(?:(?:a|an)\\s)?(.+?)\\spresentation.*$");
+	private static Pattern distributedByRemoval = Pattern.compile("^distributed (?:in.*\\s)?by\\s(.+)$");
+	private static Pattern initialsFix = Pattern.compile("(?<=[A-Z])\\.(?=(\\s|[A-Z]|$))");
+	private static Pattern apostropheStrip = Pattern.compile("'s");
+	private static Pattern specialCharacterWhitespace = Pattern.compile("'");
+	private static Pattern specialCharacterStrip = Pattern.compile("[^\\p{L}\\d\\s]");
+	private static Pattern consecutiveCharacterStrip = Pattern.compile("\\s{2,}");
 
-	public static String getNormalizedName(String rawName) {
+	static String getNormalizedName(String rawName) {
 		String groupingAuthor = normalizeDiacritics(rawName);
 		groupingAuthor = removeParentheticalInformation(groupingAuthor);
 		groupingAuthor = removeDates(groupingAuthor);
@@ -64,25 +62,24 @@ public class AuthorNormalizer {
 			groupingAuthor = groupingAuthor.substring(0, 50);
 		}
 		groupingAuthor = groupingAuthor.trim();
-		groupingAuthor = groupingAuthor;
 
 		return groupingAuthor;
 	}
 
-	public static String normalizeDiacritics(String textToNormalize){
+	private static String normalizeDiacritics(String textToNormalize){
 		return Normalizer.normalize(textToNormalize, Normalizer.Form.NFKC);
 	}
 
-	static Pattern companyIdentifierPattern = Pattern.compile("(?i)[\\s,](pty ltd|llc|co|company|inc|ltd|lp)$");
-	static Pattern multipleNamePattern = Pattern.compile("(?i)[\\s,](and|or|with)\\s");
+	private static Pattern companyIdentifierPattern = Pattern.compile("(?i)[\\s,](pty ltd|llc|co|company|inc|ltd|lp)$");
+	private static Pattern multipleNamePattern = Pattern.compile("(?i)[\\s,](and|or|with)\\s");
 	/**
 	 * Try to swap First Name and Last Name for titles that are entered as last name, first name
 	 * Will return null if the name should not be reversed.
 	 *
 	 * @param authorName The Name to be converted
-	 * @return
+	 * @return String
 	 */
-	public static String getDisplayName(String authorName) {
+	static String getDisplayName(String authorName) {
 		//Don't bother with long names
 		if (authorName.length() > 50){
 			return null;
@@ -116,10 +113,8 @@ public class AuthorNormalizer {
 
 			String lastName = authorName.substring(0, firstCommaIndex);
 			String firstName = removeTrailingPunctuation(authorName.substring(firstCommaIndex + 1));
-			String displayName = firstName.trim() + " " + lastName.trim();
-			//logger.debug("displayName for " + authorName + " is " + displayName);
 
-			return displayName;
+			return firstName.trim() + " " + lastName.trim();
 		}
 
 		return null;
@@ -127,7 +122,7 @@ public class AuthorNormalizer {
 
 
 
-	static Pattern trailingPunctuationPattern = Pattern.compile("[\\\\,./:-]+$");
+	private static Pattern trailingPunctuationPattern = Pattern.compile("[\\\\,./:-]+$");
 	/**
 	 * Remove commonPunctuation ,./\:
 	 * @param stringToUpdate The string to update
@@ -137,7 +132,7 @@ public class AuthorNormalizer {
 		return trailingPunctuationPattern.matcher(stringToUpdate).replaceAll("").trim();
 	}
 
-	static Pattern parenRemoval = Pattern.compile("\\(.*?\\)");
+	private static Pattern parenRemoval = Pattern.compile("\\(.*?\\)");
 
 	/**
 	 * Remove information contained within parenthesis
@@ -145,12 +140,12 @@ public class AuthorNormalizer {
  	 * @param authorName the author name to modify
 	 * @return the author name without information in the parenthesis if any
 	 */
-	public static String removeParentheticalInformation(String authorName) {
+	private static String removeParentheticalInformation(String authorName) {
 		return parenRemoval.matcher(authorName).replaceAll("");
 	}
 
-	static Pattern commonAuthorPrefixPattern = Pattern.compile("(?i)^(consultant|publisher & editor-in-chief|edited by|by the editors of|editor in chief||editor-in-chief|general editor|editors|editor|by|chosen by|translated by|prepared by|translated and edited by|completely rev by|pictures by|selected and adapted by|with a foreword by|with a new foreword by|introd by|introduction by|intro by|retold by|concept),?\\s");
-	static Pattern commonAuthorSuffixPattern = Pattern.compile("(?i),?\\s(presents|general editor|editor in chief|editor-in-chief|editors|editor|etc|inc|inc\\setc|co|corporation|llc|partners|company|home entertainment|musical group|et al|concept|consultant|\\.\\.\\.\\set al)\\.?$");
+	private static Pattern commonAuthorPrefixPattern = Pattern.compile("(?i)^(consultant|publisher & editor-in-chief|edited by|by the editors of|editor in chief||editor-in-chief|general editor|editors|editor|by|chosen by|translated by|prepared by|translated and edited by|completely rev by|pictures by|selected and adapted by|with a foreword by|with a new foreword by|introd by|introduction by|intro by|retold by|concept),?\\s");
+	private static Pattern commonAuthorSuffixPattern = Pattern.compile("(?i),?\\s(presents|general editor|editor in chief|editor-in-chief|editors|editor|etc|inc|inc\\setc|co|corporation|llc|partners|company|home entertainment|musical group|et al|concept|consultant|\\.\\.\\.\\set al)\\.?$");
 	private static String removeCommonPrefixesAndSuffixes(String authorName) {
 		boolean changeMade = true;
 		while (changeMade){
@@ -172,7 +167,7 @@ public class AuthorNormalizer {
 		}
 		return authorName;
 	}
-	static Pattern datePattern = Pattern.compile("(,\\s)?(\\d{4}\\sor\\s)?(\\d{4}\\??-?|\\d{4}\\??-\\d{4}|-\\d{4}|\\d{4} (Jan|January|Feb|February|Mar|March|Apr|April|May|Jun|June|Jul|July|Aug|August|Sep|September|Oct|October|Nov|November|Dec|December)(\\s\\d+-?))\\??(\\sor\\s)?(\\d{4})?(\\.+)?$");
+	private static Pattern datePattern = Pattern.compile("(,\\s)?(\\d{4}\\sor\\s)?(\\d{4}\\??-?|\\d{4}\\??-\\d{4}|-\\d{4}|\\d{4} (Jan|January|Feb|February|Mar|March|Apr|April|May|Jun|June|Jul|July|Aug|August|Sep|September|Oct|October|Nov|November|Dec|December)(\\s\\d+-?))\\??(\\sor\\s)?(\\d{4})?(\\.+)?$");
 	/**
 	 * Remove dates from the end of an author name. Currently handles the following formats.
 	 *   Gordon, Maxwell, 1910-1983
@@ -188,12 +183,12 @@ public class AuthorNormalizer {
 	 * @param authorName The author name to strip dates from
 	 * @return the name without dates.
 	 */
-	public static String removeDates(String authorName) {
+	private static String removeDates(String authorName) {
 		return datePattern.matcher(authorName).replaceAll("");
 	}
 
-	static Pattern hasParentheticalPattern = Pattern.compile(",.*?\\([^,]*?\\)");
-	static Pattern parentheticalPattern = Pattern.compile(".*?\\((.*?)\\)", Pattern.CANON_EQ);
+	private static Pattern hasParentheticalPattern = Pattern.compile(",.*?\\([^,]*?\\)");
+	private static Pattern parentheticalPattern = Pattern.compile(".*?\\((.*?)\\)", Pattern.CANON_EQ);
 	/**
 	 * Replace information outside of a parenthesis with the information in the parenthesis.
 	 * I.e. Hogarth, D. G. (David George) becomes Hogarth, David George
@@ -201,7 +196,7 @@ public class AuthorNormalizer {
 	 * @param originalAuthorName  the name to be converted
 	 * @return null if the name can't be converted, or the new name with parenthetical information converted
 	 */
-	public static String getParentheticalName(String originalAuthorName) {
+	static String getParentheticalName(String originalAuthorName) {
 		//Don't bother with long names
 		if (originalAuthorName.length() > 50){
 			return null;
@@ -211,7 +206,7 @@ public class AuthorNormalizer {
 		originalAuthorName = removeCommonParentheticals(originalAuthorName);
 		if (hasParentheticalPattern.matcher(originalAuthorName).find()){
 			String[] nameParts = originalAuthorName.split(",");
-			StringBuffer parentheticalName = new StringBuffer();
+			StringBuilder parentheticalName = new StringBuilder();
 			int numReplacements = 0;
 			for (int i = 0; i < nameParts.length; i++){
 				Matcher parentheticalMatcher = parentheticalPattern.matcher(nameParts[i]);
@@ -231,8 +226,8 @@ public class AuthorNormalizer {
 		return null;
 	}
 
-	static Pattern commonParentheticalsPattern = Pattern.compile("(?i)\\((cor|edt|inc|eds\\.?|ed\\.?|editor|comedy troupe|comedy group|rap group|firm|musical group.*?|muiscal group|rock group.*?|vocal quartet|translated from.*?|monographs|[\\d-]+|u\\.s\\.|canada)\\)");
-	public static String removeCommonParentheticals(String authorName){
+	private static Pattern commonParentheticalsPattern = Pattern.compile("(?i)\\((cor|edt|inc|eds\\.?|ed\\.?|editor|comedy troupe|comedy group|rap group|firm|musical group.*?|muiscal group|rock group.*?|vocal quartet|translated from.*?|monographs|[\\d-]+|u\\.s\\.|canada)\\)");
+	private static String removeCommonParentheticals(String authorName){
 		return commonParentheticalsPattern.matcher(authorName).replaceAll("");
 	}
 }

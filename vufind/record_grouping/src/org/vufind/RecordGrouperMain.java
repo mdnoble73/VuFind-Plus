@@ -1347,19 +1347,10 @@ public class RecordGrouperMain {
 				}
 
 				overDriveIdentifiersStmt.setLong(1, id);
-				ResultSet overDriveIdentifierRS = overDriveIdentifiersStmt.executeQuery();
-				HashSet<RecordIdentifier> overDriveIdentifiers = new HashSet<>();
 				RecordIdentifier primaryIdentifier = new RecordIdentifier();
 				primaryIdentifier.setValue("overdrive", overdriveId);
-				while (overDriveIdentifierRS.next()){
-					RecordIdentifier identifier = new RecordIdentifier();
-					identifier.setValue(overDriveIdentifierRS.getString("type"), overDriveIdentifierRS.getString("value"));
-					if (identifier.isValid()){
-						overDriveIdentifiers.add(identifier);
-					}
-				}
 
-				recordGroupingProcessor.processRecord(primaryIdentifier, title, subtitle, author, mediaType, overDriveIdentifiers, true);
+				recordGroupingProcessor.processRecord(primaryIdentifier, title, subtitle, author, mediaType, true);
 				primaryIdentifiersInDatabase.remove(primaryIdentifier.toString().toLowerCase());
 				numRecordsProcessed++;
 			}
