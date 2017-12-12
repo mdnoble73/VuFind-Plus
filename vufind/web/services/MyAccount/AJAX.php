@@ -1025,7 +1025,7 @@ class MyAccount_AJAX
 
 
 	function sendMyListEmail(){
-		global $interface, $user;
+		global $interface;
 
 		// Get data from AJAX request
 		if (isset($_REQUEST['listId']) && ctype_digit($_REQUEST['listId'])) { // validly formatted List Id
@@ -1044,10 +1044,10 @@ class MyAccount_AJAX
 				$interface->assign('listEntries', $listEntries);
 
 				// Load the User object for the owner of the list (if necessary):
-				if ($list->public == true || ($user && $user->id == $list->user_id)) {
+				if ($list->public == true || (UserAccount::isLoggedIn() && UserAccount::getActiveUserId() == $list->user_id)) {
 					//The user can access the list
 					require_once ROOT_DIR . '/services/MyResearch/lib/FavoriteHandler.php';
-					$favoriteHandler = new FavoriteHandler($list, $user, false);
+					$favoriteHandler = new FavoriteHandler($list, UserAccount::getActiveUserObj(), false);
 					$titleDetails = $favoriteHandler->getTitles(count($listEntries));
 					// get all titles for email list, not just a page's worth
 					$interface->assign('titles', $titleDetails);
