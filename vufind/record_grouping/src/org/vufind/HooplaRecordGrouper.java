@@ -15,7 +15,7 @@ import java.util.List;
  * Date: 7/6/2016
  * Time: 10:26 AM
  */
-public class HooplaRecordGrouper extends MarcRecordGrouper {
+class HooplaRecordGrouper extends MarcRecordGrouper {
 	/**
 	 * Creates a record grouping processor that saves results to the database.
 	 *
@@ -24,7 +24,7 @@ public class HooplaRecordGrouper extends MarcRecordGrouper {
 	 * @param logger         - A logger to store debug and error messages to.
 	 * @param fullRegrouping - Whether or not we are doing full regrouping or if we are only grouping changes.
 	 */
-	public HooplaRecordGrouper(Connection dbConnection, IndexingProfile profile, Logger logger, boolean fullRegrouping) {
+	HooplaRecordGrouper(Connection dbConnection, IndexingProfile profile, Logger logger, boolean fullRegrouping) {
 		super(dbConnection, profile, logger, fullRegrouping);
 	}
 
@@ -51,7 +51,4 @@ public class HooplaRecordGrouper extends MarcRecordGrouper {
 		return groupingFormat;
 	}
 
-	public int getNumCharsInPrefix() {
-		return 7;
-	}
 }

@@ -131,6 +131,7 @@ public class ValidateMarcExport implements IProcessHandler{
 				profile.setItemTag(indexingProfilesRS.getString("itemTag"));
 				profile.setRecordNumberPrefix(indexingProfilesRS.getString("recordNumberPrefix"));
 				profile.setRecordNumberTag(indexingProfilesRS.getString("recordNumberTag"));
+				profile.setDoAutomaticEcontentSuppression(indexingProfilesRS.getBoolean("doAutomaticEcontentSuppression"));
 				String eContentDescriptorStr = indexingProfilesRS.getString("eContentDescriptor");
 				char eContentDescriptor = (eContentDescriptorStr == null || eContentDescriptorStr.trim().length() == 0) ? ' ' : eContentDescriptorStr.charAt(0);
 				profile.setEContentDescriptor(eContentDescriptor);
@@ -144,7 +145,7 @@ public class ValidateMarcExport implements IProcessHandler{
 		return indexingProfiles;
 	}
 
-	protected RecordIdentifier getPrimaryIdentifierFromMarcRecord(Record marcRecord, IndexingProfile profile){
+	private RecordIdentifier getPrimaryIdentifierFromMarcRecord(Record marcRecord, IndexingProfile profile){
 		RecordIdentifier identifier = null;
 		List<VariableField> recordNumberFields = marcRecord.getVariableFields(profile.getRecordNumberTag());
 		//Make sure we only get one ils identifier
@@ -174,48 +175,48 @@ public class ValidateMarcExport implements IProcessHandler{
 		}
 
 		//Check to see if the record is an overdrive record
-		if (profile.useEContentSubfield()){
-			boolean allItemsSuppressed = true;
+		if (profile.isDoAutomaticEcontentSuppression()) {
+			if (profile.useEContentSubfield()) {
+				boolean allItemsSuppressed = true;
 
-			List<DataField> itemFields = getDataFields(marcRecord, profile.getItemTag());
-			int numItems = itemFields.size();
-			for (DataField itemField : itemFields){
-				if (itemField.getSubfield(profile.getEContentDescriptor()) != null){
-					//Check the protection types and sources
-					String eContentData = itemField.getSubfield(profile.getEContentDescriptor()).getData();
-					if (eContentData.indexOf(':') >= 0){
-						String[] eContentFields = eContentData.split(":");
-						String sourceType = eContentFields[0].toLowerCase().trim();
-						if (!sourceType.equals("overdrive") && !sourceType.equals("hoopla")){
+				List<DataField> itemFields = getDataFields(marcRecord, profile.getItemTag());
+				int numItems = itemFields.size();
+				for (DataField itemField : itemFields) {
+					if (itemField.getSubfield(profile.getEContentDescriptor()) != null) {
+						//Check the protection types and sources
+						String eContentData = itemField.getSubfield(profile.getEContentDescriptor()).getData();
+						if (eContentData.indexOf(':') >= 0) {
+							String[] eContentFields = eContentData.split(":");
+							String sourceType = eContentFields[0].toLowerCase().trim();
+							if (!sourceType.equals("overdrive") && !sourceType.equals("hoopla")) {
+								allItemsSuppressed = false;
+							}
+						} else {
 							allItemsSuppressed = false;
 						}
-					}else{
+					} else {
 						allItemsSuppressed = false;
 					}
-				}else{
+				}
+				if (numItems == 0) {
 					allItemsSuppressed = false;
 				}
-			}
-			if (numItems == 0){
-				allItemsSuppressed = false;
-			}
-			if (allItemsSuppressed){
-				//Don't return a primary identifier for this record (we will suppress the bib and just use OverDrive APIs)
-				identifier.setSuppressed(true);
-				identifier.setSuppressionReason("All Items suppressed");
-			}
-		}else{
-			//Check the 856 for an overdrive url
-			List<DataField> linkFields = getDataFields(marcRecord, "856");
-			for (DataField linkField : linkFields){
-				if (linkField.getSubfield('u') != null){
-					//Check the url to see if it is from OverDrive or Hoopla
-					String linkData = linkField.getSubfield('u').getData().trim();
-					if (linkData.matches("(?i)^http://.*?lib\\.overdrive\\.com/ContentDetails\\.htm\\?id=[\\da-f]{8}-[\\da-f]{4}-[\\da-f]{4}-[\\da-f]{4}-[\\da-f]{12}$")){
-						identifier.setSuppressed(true);
-						identifier.setSuppressionReason("OverDrive Title");
-					}else if (linkData.matches("(?i)^https://www\\.hoopladigital\\.com/title/\\d+$") && !profile.name.equals("hoopla")){
-						identifier.setSuppressionReason("Hoopla Title");
+				if (allItemsSuppressed) {
+					//Don't return a primary identifier for this record (we will suppress the bib and just use OverDrive APIs)
+					identifier.setSuppressed(true);
+					identifier.setSuppressionReason("All Items suppressed");
+				}
+			} else {
+				//Check the 856 for an overdrive url
+				List<DataField> linkFields = getDataFields(marcRecord, "856");
+				for (DataField linkField : linkFields) {
+					if (linkField.getSubfield('u') != null) {
+						//Check the url to see if it is from OverDrive or Hoopla
+						String linkData = linkField.getSubfield('u').getData().trim();
+						if (linkData.matches("(?i)^http://.*?lib\\.overdrive\\.com/ContentDetails\\.htm\\?id=[\\da-f]{8}-[\\da-f]{4}-[\\da-f]{4}-[\\da-f]{4}-[\\da-f]{12}$")) {
+							identifier.setSuppressed(true);
+							identifier.setSuppressionReason("OverDrive Title");
+						}
 					}
 				}
 			}
