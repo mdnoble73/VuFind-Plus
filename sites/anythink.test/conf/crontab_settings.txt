@@ -5,7 +5,6 @@
 ##
 ## to set the current crontab from a file : crontab < crontab_settings.txt
 ##
-## added by pascal. 12-22-2014
 ##################
 
 # !! Please make all changes to the crontab within the git repository system and apply through the above method.
@@ -14,29 +13,64 @@
 # git pull origin {current branch}
 # crontab < /usr/local/vufind-plus/sites/anythink.test/conf/crontab_settings.txt
 
-###################################
-# Data Extract from other systems #
-###################################
-# OverDrive Data - every 15 minutes throughout the day for near runtime availability
-2-59/15 0,3-23 * * * cd /usr/local/vufind-plus/vufind/overdrive_api_extract/; nice -n -10 java -jar overdrive_extract.jar anythink.test
+###################
+# * * * * *  command to execute
+# │ │ │ │ │
+# │ │ │ │ └───── day of week (0 - 6)
+# │ │ │ │        (0 to 6 are Sunday to Saturday, or use names (Sun,Mon,Tue,Wed,Thu,Fri,Sat); 7 is Sunday, the same as 0)
+# │ │ │ └────────── month (1 - 12)
+# │ │ └─────────────── day of month (1 - 31)
+# │ └──────────────────── hour (0 - 23)
+# └───────────────────────── min (0 - 59)
+## taken from https://en.wikipedia.org/wiki/Cron
+##############
 
-# Hoopla extract - once a week for the entire server
-5 23 * * 0 cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh anythink.test
+#############
+# On Reboot #
+#############
+@reboot cd /usr/local/vufind-plus/sites/anythink.test; ./anythink.test.sh start
+# restart continuous re-indexing on reboot.
+@reboot sleep 300 && /usr/local/vufind-plus/sites/anythink.test/continuous_partial_reindex.sh
 
-########################
-# Update Grouped Works #
-########################
-# Do a full regrouping once a day in the middle the night, but not during the day
-10 0 * * * cd /usr/local/vufind-plus/vufind/record_grouping; java -server -Xmx6G -XX:+UseParallelGC -XX:ParallelGCThreads=2 -jar record_grouping.jar anythink.test fullRegroupingNoClear
+######################
+# MySQL Nightly Dump #
+######################
+# backup important bits at 12:10am daily
+10 0 * * * /usr/local/vufind-plus/vufind/cron/nightly_mysql_dump.sh anythink.test 2>&1 >/dev/null
 
-###########
-# Reindex #
-###########
-# Do a full reindex at night after the works have been updated
-10 1 * * * cd /usr/local/vufind-plus/vufind/reindexer; nice -n -3 java -jar reindexer.jar anythink.test fullReindex
-# Do a partial reindex every 15 minutes during the day after extract for near runtime availability
-# Skip doing updates from 1-3 though since we are doing a full reindex
-7-59/15 0,3-23 * * * cd /usr/local/vufind-plus/vufind/reindexer; nice -n -5 java -jar reindexer.jar anythink.test
+#####################
+# Daily full update #
+#####################
+# Set the start for 1:30 am
+30 01 * * * cd /usr/local/vufind-plus/sites/anythink.test; ./full_update.sh
+
+###################
+# Pika Cron Jobs  #
+###################
+4 20 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar anythink.test
+20 0 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar anythink.test DatabaseCleanup
+
+###############################################
+# Copy Original Covers from Marmot FTP Server #
+###############################################
+
+################
+# Pika Cleanup #
+################
+# Clean Up Temporary Files
+26 * * * * cd /tmp; /bin/rm -rf CURLCOOKIE*
+27 */2 * * * cd /tmp; /bin/rm -rf epb*
+
+############################################
+# New York Times Bestseller Lists Updating #
+############################################
+#37 7 * * 0-1 /usr/local/vufind-plus/vufind/cron/updateNYTLists.sh anythink.test
+# update on Sundays & Mondays at 7:37
+#Not implemented for anythink
 
 # Check Apache Solr process and website that it has not stalled.
 */3 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./solrTest.sh
+
+# Restart apache
+0 * * * * /usr/sbin/apachectl graceful > /dev/null 2>&1
+2 0-7 * * * /usr/sbin/apachectl restart > /dev/null 2>&1

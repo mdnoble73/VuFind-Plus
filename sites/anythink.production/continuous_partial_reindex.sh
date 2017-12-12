@@ -86,6 +86,12 @@ do
 	#echo "Starting new extract and index - `date`" > ${OUTPUT_FILE}
 	# reset the output file each round
 
+	#Process extract from Horizon
+	#Copy partial extracts from ftp server
+	#mount 10.1.2.7:/ftp /mnt/ftp
+	#mv /mnt/ftp/anythink/partial*.mrc /data/vufind-plus/${PIKASERVER}/marc_changes
+	#umount /mnt/ftp
+
 	#merge the changes with the full extract
 	cd /usr/local/vufind-plus/vufind/horizon_export/
 	java -server -XX:+UseG1GC -jar horizon_export.jar ${PIKASERVER} >> ${OUTPUT_FILE}

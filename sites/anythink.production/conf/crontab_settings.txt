@@ -25,15 +25,12 @@
 ## taken from https://en.wikipedia.org/wiki/Cron
 ##############
 
-# Below are common cron tasks used in Pika setups.
-# Uncomment (& adjust timing/settings) to implement the cron tasks your installation needs
-#
-
 #############
 # On Reboot #
 #############
-# Continuous Re-Indexing
-@reboot cd /usr/local/vufind-plus/sites/anythink.production; ./continuous_partial_reindex.sh
+@reboot cd /usr/local/vufind-plus/sites/anythink.production; ./anythink.production.sh start
+# restart continuous re-indexing on reboot.
+@reboot sleep 300 && /usr/local/vufind-plus/sites/anythink.production/continuous_partial_reindex.sh
 
 ######################
 # MySQL Nightly Dump #
@@ -53,12 +50,23 @@
 4 20 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar anythink.production
 20 0 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar anythink.production DatabaseCleanup
 
+###############################################
+# Copy Original Covers from Marmot FTP Server #
+###############################################
+
 ################
 # Pika Cleanup #
 ################
 # Clean Up Temporary Files
 26 * * * * cd /tmp; /bin/rm -rf CURLCOOKIE*
 27 */2 * * * cd /tmp; /bin/rm -rf epb*
+
+############################################
+# New York Times Bestseller Lists Updating #
+############################################
+#37 7 * * 0-1 /usr/local/vufind-plus/vufind/cron/updateNYTLists.sh anythink.production
+# update on Sundays & Mondays at 7:37
+#Not implemented for anythink
 
 # Check Apache Solr process and website that it has not stalled.
 */3 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./solrTest.sh

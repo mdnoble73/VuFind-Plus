@@ -70,7 +70,7 @@ do
 	#####
 
 	# Make sure we are not running a Full Record Group/Reindex process
-	hasConflicts=$(checkConflictingProcesses "full_update_anythink_test.sh")
+	hasConflicts=$(checkConflictingProcesses "full_update.sh")
 	#If we did get a conflict, restart the loop to make sure that all tests run
 	if (($? != 0)); then
 		continue
@@ -89,7 +89,7 @@ do
 	#Process extract from Horizon
 	#Copy partial extracts from ftp server
 	mount 10.1.2.7:/ftp /mnt/ftp
-	mv /mnt/ftp/anythink/partial*.mrc /data/vufind-plus/anythink.test/marc_changes
+	mv /mnt/ftp/anythink/partial*.mrc /data/vufind-plus/${PIKASERVER}/marc_changes
 	umount /mnt/ftp
 
 	#merge the changes with the full extract

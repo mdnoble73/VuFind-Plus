@@ -10,7 +10,7 @@
 
 # this version emails script output as a round finishes
 EMAIL=mark@marmot.org,pascal@marmot.org
-PIKASERVER=anythink.production
+PIKASERVER=anythink.test
 PIKADBNAME=pika
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
 
