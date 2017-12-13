@@ -190,8 +190,9 @@ class Browse_AJAX extends Action {
 		$browseMode = $this->setBrowseMode();
 		if (!isset($_REQUEST['reload'])) {
 			/** @var Memcache $memCache */
-			global $memCache, $solrScope, $user;
-			$key = 'browse_category_' . $this->textId . '_' . $user->id. '_' . $solrScope . '_' . $browseMode;
+			global $memCache, $solrScope;
+			$activeUserId = UserAccount::getActiveUserId();
+			$key = 'browse_category_' . $this->textId . '_' . $activeUserId . '_' . $solrScope . '_' . $browseMode;
 			$browseCategoryInfo = $memCache->get($key);
 			if ($browseCategoryInfo != false){
 				return $browseCategoryInfo;
@@ -230,8 +231,9 @@ class Browse_AJAX extends Action {
 		$result['records']    = implode('',$records);
 		$result['numRecords'] = count($records);
 
-		global $memCache, $configArray, $solrScope, $user;
-		$key = 'browse_category_' . $this->textId . '_' . $user->id. '_' . $solrScope . '_' . $browseMode;
+		global $memCache, $configArray, $solrScope;
+		$activeUserId = UserAccount::getActiveUserId();
+		$key = 'browse_category_' . $this->textId . '_' . $activeUserId . '_' . $solrScope . '_' . $browseMode;
 		$memCache->add($key, $result, 0, $configArray['Caching']['browse_category_info']);
 
 		return $result;
