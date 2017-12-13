@@ -3,6 +3,7 @@ package org.vufind;
 import org.apache.log4j.Logger;
 import org.marc4j.marc.*;
 
+import javax.xml.crypto.Data;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -18,8 +19,9 @@ import java.util.regex.PatternSyntaxException;
 abstract class MarcRecordProcessor {
 	protected Logger logger;
 	protected GroupedWorkIndexer indexer;
-	private Pattern mpaaRatingRegex1 = null;
-	private Pattern mpaaRatingRegex2 = null;
+	private static Pattern mpaaRatingRegex1 = Pattern.compile("(?:.*?)Rated\\s(G|PG-13|PG|R|NC-17|NR|X)(?:.*)", Pattern.CANON_EQ);
+	private static Pattern mpaaRatingRegex2 = Pattern.compile("(?:.*?)(G|PG-13|PG|R|NC-17|NR|X)\\sRated(?:.*)", Pattern.CANON_EQ);
+	private static Pattern mpaaNotRatedRegex = Pattern.compile("Rated\\sNR\\.?|Not Rated\\.?|NR");
 	private HashSet<String> unknownSubjectForms = new HashSet<>();
 
 	MarcRecordProcessor(GroupedWorkIndexer indexer, Logger logger) {
@@ -37,18 +39,234 @@ abstract class MarcRecordProcessor {
 	public abstract void processRecord(GroupedWorkSolr groupedWork, String identifier);
 
 	protected void loadSubjects(GroupedWorkSolr groupedWork, Record record){
-		groupedWork.addSubjects(MarcUtil.getAllSubfields(record, "600[abcdefghjklmnopqrstuvxyz]:610[abcdefghjklmnopqrstuvxyz]:611[acdefghklnpqstuvxyz]:630[abfghklmnoprstvxyz]:650[abcdevxyz]:651[abcdevxyz]:655[abcvxyz]:690[axyz]", " -- "));
-		groupedWork.addTopic(MarcUtil.getFieldList(record, "600abcdefghjklmnopqrstuvxyz:610abcdefghjklmnopqrstuvxyz:611acdefghklnpqstuvxyz:630abfghklmnoprstvxyz:650abcdevxyz:651abcdevxyz:690axyz"));
-		groupedWork.addTopicFacet(MarcUtil.getFieldList(record, "600a:600x:610x:611x:630a:630x:648x:650a:650x:651x:655x"));
-		//Add lc subjects
-		groupedWork.addLCSubjects(getLCSubjects(record));
-		//Add bisac subjects
-		groupedWork.addBisacSubjects(getBisacSubjects(record));
-		groupedWork.addGenre(MarcUtil.getFieldList(record, "655abcvxyz"));
-		groupedWork.addGenreFacet(MarcUtil.getFieldList(record, "600v:610v:611v:630v:648v:650v:651v:655a:655v"));
-		groupedWork.addGeographic(MarcUtil.getFieldList(record, "651avxyz"));
-		groupedWork.addGeographicFacet(MarcUtil.getFieldList(record, "600z:610z:611z:630z:648z:650z:651a:651z:655z"));
-		groupedWork.addEra(MarcUtil.getFieldList(record, "600d:610y:611y:630y:648a:648y:650y:651y:655y"));
+		List<DataField> subjectFields = MarcUtil.getDataFields(record, new String[]{"600", "610", "611", "630", "648", "650", "651", "655", "690"});
+
+		HashSet<String> subjects = new HashSet<>();
+		for (DataField curSubjectField : subjectFields){
+			if (curSubjectField.getTag().equals("600")){
+				String curSubject = "";
+				for (Subfield curSubfield : curSubjectField.getSubfields()){
+					if ((curSubfield.getCode() >= 'a' && curSubfield.getCode() <= 'h') ||
+									(curSubfield.getCode() >= 'j' && curSubfield.getCode() <= 'v') ||
+									(curSubfield.getCode() >= 'x' && curSubfield.getCode() <= 'z')){
+						if (curSubject.length() > 0) curSubject += " -- ";
+						curSubject += curSubfield.getData();
+
+						groupedWork.addTopic(curSubfield.getData());
+					}
+					if (curSubfield.getCode() == 'a' || curSubfield.getCode() == 'x'){
+						groupedWork.addTopicFacet(curSubfield.getData());
+					}else if (curSubfield.getCode() == 'v'){
+						groupedWork.addGenreFacet(curSubfield.getData());
+					}else if (curSubfield.getCode() == 'z'){
+						groupedWork.addGeographicFacet(curSubfield.getData());
+					}else if (curSubfield.getCode() == 'd'){
+						groupedWork.addEra(curSubfield.getData());
+					}
+				}
+				subjects.add(curSubject);
+			}else if (curSubjectField.getTag().equals("610")){
+				String curSubject = "";
+				for (Subfield curSubfield : curSubjectField.getSubfields()){
+					if ((curSubfield.getCode() >= 'a' && curSubfield.getCode() <= 'h') ||
+									(curSubfield.getCode() >= 'j' && curSubfield.getCode() <= 'v') ||
+									(curSubfield.getCode() >= 'x' && curSubfield.getCode() <= 'z')){
+						if (curSubject.length() > 0) curSubject += " -- ";
+						curSubject += curSubfield.getData();
+
+						groupedWork.addTopic(curSubfield.getData());
+					}
+					if (curSubfield.getCode() == 'x'){
+						groupedWork.addTopicFacet(curSubfield.getData());
+					}else if (curSubfield.getCode() == 'v'){
+						groupedWork.addGenreFacet(curSubfield.getData());
+					}else if (curSubfield.getCode() == 'z'){
+						groupedWork.addGeographicFacet(curSubfield.getData());
+					}else if (curSubfield.getCode() == 'y'){
+						groupedWork.addEra(curSubfield.getData());
+					}
+				}
+				subjects.add(curSubject);
+			}else if (curSubjectField.getTag().equals("611")){
+				String curSubject = "";
+				for (Subfield curSubfield : curSubjectField.getSubfields()){
+					if (curSubfield.getCode() == 'a' ||
+									(curSubfield.getCode() >= 'c' && curSubfield.getCode() <= 'h') ||
+									(curSubfield.getCode() >= 'k' && curSubfield.getCode() <= 'l') ||
+									curSubfield.getCode() == 'n' ||
+									curSubfield.getCode() == 'p' ||
+									curSubfield.getCode() == 's' ||
+									(curSubfield.getCode() >= 'p' && curSubfield.getCode() <= 'v') ||
+									(curSubfield.getCode() >= 'x' && curSubfield.getCode() <= 'z')){
+						if (curSubject.length() > 0) curSubject += " -- ";
+						curSubject += curSubfield.getData();
+
+						groupedWork.addTopic(curSubfield.getData());
+					}
+					if (curSubfield.getCode() == 'x'){
+						groupedWork.addTopicFacet(curSubfield.getData());
+					}else if (curSubfield.getCode() == 'v'){
+						groupedWork.addGenreFacet(curSubfield.getData());
+					}else if (curSubfield.getCode() == 'z'){
+						groupedWork.addGeographicFacet(curSubfield.getData());
+					}else if (curSubfield.getCode() == 'y'){
+						groupedWork.addEra(curSubfield.getData());
+					}
+				}
+				subjects.add(curSubject);
+			}else if (curSubjectField.getTag().equals("630")){
+				String curSubject = "";
+				for (Subfield curSubfield : curSubjectField.getSubfields()){
+					if (curSubfield.getCode() == 'a' ||
+									curSubfield.getCode() == 'b' ||
+									(curSubfield.getCode() >= 'f' && curSubfield.getCode() <= 'h') ||
+									(curSubfield.getCode() >= 'k' && curSubfield.getCode() <= 'p') ||
+									(curSubfield.getCode() >= 'r' && curSubfield.getCode() <= 't') ||
+									curSubfield.getCode() >= 'v' ||
+									(curSubfield.getCode() >= 'x' && curSubfield.getCode() <= 'z')){
+						if (curSubject.length() > 0) curSubject += " -- ";
+						curSubject += curSubfield.getData();
+
+						groupedWork.addTopic(curSubfield.getData());
+					}
+					if (curSubfield.getCode() == 'x'){
+						groupedWork.addTopicFacet(curSubfield.getData());
+					}else if (curSubfield.getCode() == 'v'){
+						groupedWork.addGenreFacet(curSubfield.getData());
+					}else if (curSubfield.getCode() == 'z'){
+						groupedWork.addGeographicFacet(curSubfield.getData());
+					}else if (curSubfield.getCode() == 'y'){
+						groupedWork.addEra(curSubfield.getData());
+					}
+				}
+				subjects.add(curSubject);
+			}else if (curSubjectField.getTag().equals("648")){
+				String curSubject = "";
+				for (Subfield curSubfield : curSubjectField.getSubfields()){
+					if (curSubfield.getCode() == 'x'){
+						groupedWork.addTopicFacet(curSubfield.getData());
+					}else if (curSubfield.getCode() == 'v'){
+						groupedWork.addGenreFacet(curSubfield.getData());
+					}else if (curSubfield.getCode() == 'z'){
+						groupedWork.addGeographicFacet(curSubfield.getData());
+					}else if (curSubfield.getCode() == 'a' || curSubfield.getCode() == 'y'){
+						groupedWork.addEra(curSubfield.getData());
+					}
+				}
+				subjects.add(curSubject);
+			}else if (curSubjectField.getTag().equals("650")){
+				boolean isLCSubject = true;
+				boolean isBisacSubject = false;
+				if (curSubjectField.getIndicator2() == '0' || curSubjectField.getIndicator2() == '1'){
+					if (curSubjectField.getSubfield('2') != null){
+						if (curSubjectField.getSubfield('2').getData().equals("bisacsh") ||
+										curSubjectField.getSubfield('2').getData().equals("bisacmt") ||
+										curSubjectField.getSubfield('2').getData().equals("bisacrt")){
+							isLCSubject = false;
+						}
+					}
+				}else{
+					if (curSubjectField.getSubfield('2') != null){
+						if (curSubjectField.getSubfield('2').getData().equals("bisacsh") ||
+										curSubjectField.getSubfield('2').getData().equals("bisacmt") ||
+										curSubjectField.getSubfield('2').getData().equals("bisacrt")){
+							isBisacSubject = true;
+						}
+					}
+				}
+				String curSubject = "";
+				for (Subfield curSubfield : curSubjectField.getSubfields()){
+					if ((curSubfield.getCode() >= 'a' && curSubfield.getCode() <= 'e') ||
+									curSubfield.getCode() >= 'v' ||
+									(curSubfield.getCode() >= 'x' && curSubfield.getCode() <= 'z')){
+						if (curSubject.length() > 0) curSubject += " -- ";
+						curSubject += curSubfield.getData();
+
+						groupedWork.addTopic(curSubfield.getData());
+					}
+					if (curSubfield.getCode() == 'a' || curSubfield.getCode() == 'x'){
+						groupedWork.addTopicFacet(curSubfield.getData());
+						if (isLCSubject){
+							groupedWork.addLCSubject(curSubfield.getData());
+						}else if (isBisacSubject){
+							groupedWork.addBisacSubject(curSubfield.getData());
+						}
+					}else if (curSubfield.getCode() == 'v'){
+						groupedWork.addGenreFacet(curSubfield.getData());
+					}else if (curSubfield.getCode() == 'z'){
+						groupedWork.addGeographicFacet(curSubfield.getData());
+					}else if (curSubfield.getCode() == 'y'){
+						groupedWork.addEra(curSubfield.getData());
+					}
+				}
+				subjects.add(curSubject);
+			}else if (curSubjectField.getTag().equals("651")){
+				String curSubject = "";
+				for (Subfield curSubfield : curSubjectField.getSubfields()){
+					if ((curSubfield.getCode() >= 'a' && curSubfield.getCode() <= 'e') ||
+									curSubfield.getCode() >= 'v' ||
+									(curSubfield.getCode() >= 'x' && curSubfield.getCode() <= 'z')){
+						if (curSubject.length() > 0) curSubject += " -- ";
+						curSubject += curSubfield.getData();
+
+						groupedWork.addTopic(curSubfield.getData());
+					}
+					if (curSubfield.getCode() == 'x'){
+						groupedWork.addTopicFacet(curSubfield.getData());
+						groupedWork.addGeographic(curSubfield.getData());
+					}else if (curSubfield.getCode() == 'v'){
+						groupedWork.addGenreFacet(curSubfield.getData());
+						groupedWork.addGeographic(curSubfield.getData());
+					}else if (curSubfield.getCode() == 'a' || curSubfield.getCode() == 'z'){
+						groupedWork.addGeographicFacet(curSubfield.getData());
+						groupedWork.addGeographic(curSubfield.getData());
+					}else if (curSubfield.getCode() == 'y'){
+						groupedWork.addEra(curSubfield.getData());
+						groupedWork.addGeographic(curSubfield.getData());
+					}
+				}
+				subjects.add(curSubject);
+			}else if (curSubjectField.getTag().equals("655")){
+				String curSubject = "";
+				for (Subfield curSubfield : curSubjectField.getSubfields()){
+					if ((curSubfield.getCode() >= 'a' && curSubfield.getCode() <= 'c') ||
+									curSubfield.getCode() >= 'v' ||
+									(curSubfield.getCode() >= 'x' && curSubfield.getCode() <= 'z')){
+						if (curSubject.length() > 0) curSubject += " -- ";
+						curSubject += curSubfield.getData();
+					}
+					if (curSubfield.getCode() == 'x'){
+						groupedWork.addTopicFacet(curSubfield.getData());
+						groupedWork.addGenre(curSubfield.getData());
+					}else if (curSubfield.getCode() == 'a' || curSubfield.getCode() == 'v'){
+						groupedWork.addGenreFacet(curSubfield.getData());
+						groupedWork.addGenre(curSubfield.getData());
+					}else if (curSubfield.getCode() == 'z'){
+						groupedWork.addGeographicFacet(curSubfield.getData());
+						groupedWork.addGenre(curSubfield.getData());
+					}else if (curSubfield.getCode() == 'y'){
+						groupedWork.addEra(curSubfield.getData());
+						groupedWork.addGenre(curSubfield.getData());
+					}else if (curSubfield.getCode() == 'b' || curSubfield.getCode() == 'x'){
+						groupedWork.addGenre(curSubfield.getData());
+					}
+				}
+				subjects.add(curSubject);
+			}else if (curSubjectField.getTag().equals("690")){
+				String curSubject = "";
+				for (Subfield curSubfield : curSubjectField.getSubfields()){
+					if (curSubfield.getCode() == 'a' ||
+									(curSubfield.getCode() >= 'x' && curSubfield.getCode() <= 'z')){
+						if (curSubject.length() > 0) curSubject += " -- ";
+						curSubject += curSubfield.getData();
+						groupedWork.addTopic(curSubfield.getData());
+					}
+				}
+				subjects.add(curSubject);
+			}
+		}
+		groupedWork.addSubjects(subjects);
+
 	}
 
 	void updateGroupedWorkSolrDataBasedOnStandardMarcData(GroupedWorkSolr groupedWork, Record record, HashSet<ItemInfo> printItems, String identifier, String format) {
@@ -163,53 +381,6 @@ abstract class MarcRecordProcessor {
 	}
 
 
-	protected Set<String> getBisacSubjects(Record record){
-		HashSet<String> bisacSubjects = new HashSet<>();
-		List<DataField> fields = MarcUtil.getDataFields(record, "650");
-		for (DataField field : fields){
-			if (field.getIndicator2() == '0' || field.getIndicator2() == '1') {
-				continue;
-			}
-			if (field.getSubfield('2') != null){
-				if (field.getSubfield('2').getData().equals("bisacsh") ||
-						field.getSubfield('2').getData().equals("bisacmt") ||
-						field.getSubfield('2').getData().equals("bisacrt")){
-					if (field.getSubfield('a') != null){
-						bisacSubjects.add(field.getSubfield('a').getData());
-					}
-					if (field.getSubfield('x') != null){
-						bisacSubjects.add(field.getSubfield('x').getData());
-					}
-				}
-			}
-		}
-		return bisacSubjects;
-	}
-
-
-	private Set<String> getLCSubjects(Record record) {
-		HashSet<String> lcSubjects = new HashSet<>();
-		List<DataField> fields = MarcUtil.getDataFields(record, "650");
-		for (DataField field : fields){
-			if (field.getIndicator2() == '0' || field.getIndicator2() == '1'){
-				if (field.getSubfield('2') != null){
-					if (field.getSubfield('2').getData().equals("bisacsh") ||
-							field.getSubfield('2').getData().equals("bisacmt") ||
-							field.getSubfield('2').getData().equals("bisacrt")){
-						continue;
-					}
-				}
-				if (field.getSubfield('a') != null){
-					lcSubjects.add(field.getSubfield('a').getData());
-				}
-				if (field.getSubfield('x') != null){
-					lcSubjects.add(field.getSubfield('x').getData());
-				}
-			}
-		}
-		return lcSubjects;
-	}
-
 	protected abstract void updateGroupedWorkSolrDataBasedOnMarc(GroupedWorkSolr groupedWork, Record record, String identifier);
 
 	void loadEditions(GroupedWorkSolr groupedWork, Record record, HashSet<RecordInfo> ilsRecords) {
@@ -247,18 +418,10 @@ abstract class MarcRecordProcessor {
 	}
 
 	private String getMpaaRating(Record record) {
-		if (mpaaRatingRegex1 == null) {
-			mpaaRatingRegex1 = Pattern.compile(
-					"(?:.*?)Rated\\s(G|PG-13|PG|R|NC-17|NR|X)(?:.*)", Pattern.CANON_EQ);
-		}
-		if (mpaaRatingRegex2 == null) {
-			mpaaRatingRegex2 = Pattern.compile(
-					"(?:.*?)(G|PG-13|PG|R|NC-17|NR|X)\\sRated(?:.*)", Pattern.CANON_EQ);
-		}
 		String val = MarcUtil.getFirstFieldVal(record, "521a");
 
 		if (val != null) {
-			if (val.matches("Rated\\sNR\\.?|Not Rated\\.?|NR")) {
+			if (mpaaNotRatedRegex.matcher(val).matches()) {
 				return "Not Rated";
 			}
 			try {

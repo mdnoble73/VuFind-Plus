@@ -82,31 +82,55 @@ class InclusionRule {
 		this.urlReplacement = urlReplacement;
 	}
 
-	private HashMap<String, Boolean> inclusionCache = new HashMap<>();
+	private HashMap<String, HashMap<String, HashMap<String, HashMap<String, HashMap<String, Boolean>>>>> locationCodeCache = new HashMap<>();
 	boolean isItemIncluded(String recordType, String locationCode, String subLocationCode, String iType, HashSet<String> audiences, String format, boolean isHoldable, boolean isOnOrder, boolean isEContent, Record marcRecord){
-		String key = recordType +
-				locationCode +
-				subLocationCode +
-				iType +
-				Util.getCsvSeparatedString(audiences) +
-				format +
-				isHoldable +
-				isOnOrder +
-				isHoldable +
-				isEContent;
+		//Do the quick checks first
+		if (!isEContent && (includeHoldableOnly && !isHoldable)){
+			return false;
+		}else if (!includeItemsOnOrder && isOnOrder){
+			return  false;
+		}else if (!includeEContent && isEContent){
+			return  false;
+		}else if (!this.recordType.equals(recordType)){
+			return  false;
+		}
+
+		//Determine if we have already determined this already
+		boolean hasCachedValue = true;
+		HashMap<String, HashMap<String, HashMap<String, HashMap<String, Boolean>>>> subLocationCodeIncludeCache = locationCodeCache.get(locationCode);
+		if (subLocationCodeIncludeCache == null){
+			hasCachedValue = false;
+			subLocationCodeIncludeCache = new HashMap<>();
+			locationCodeCache.put(locationCode, subLocationCodeIncludeCache);
+		}
+		HashMap<String, HashMap<String, HashMap<String, Boolean>>> iTypeCache = subLocationCodeIncludeCache.get(subLocationCode);
+		if (iTypeCache == null){
+			hasCachedValue = false;
+			iTypeCache = new HashMap<>();
+			subLocationCodeIncludeCache.put(subLocationCode, iTypeCache);
+		}
+		HashMap<String, HashMap<String, Boolean>> audiencesCache = iTypeCache.get(iType);
+		if (audiencesCache == null){
+			hasCachedValue = false;
+			audiencesCache = new HashMap<>();
+			iTypeCache.put(iType, audiencesCache);
+		}
+		String audiencesKey = Util.getCsvSeparatedString(audiences);
+		HashMap<String, Boolean> formatCache = audiencesCache.get(audiencesKey);
+		if (formatCache == null){
+			hasCachedValue = false;
+			formatCache = new HashMap<>();
+			audiencesCache.put(audiencesKey, formatCache);
+		}
+		Boolean cachedInclusion = formatCache.get(format);
+		if (cachedInclusion == null){
+			hasCachedValue = false;
+		}
+
 		boolean isIncluded;
 
-		if (!inclusionCache.containsKey(key)){
-			//Do the quick checks first
-			if (!isEContent && (includeHoldableOnly && !isHoldable)){
-				isIncluded = false;
-			}else if (!includeItemsOnOrder && isOnOrder){
-				isIncluded =  false;
-			}else if (!includeEContent && isEContent){
-				isIncluded =  false;
-			}else if (!this.recordType.equals(recordType)){
-				isIncluded =  false;
-			}else if ((locationCode == null || locationCodePattern.matcher(locationCode).lookingAt()) &&
+		if (!hasCachedValue){
+			if ((locationCode == null || locationCodePattern.matcher(locationCode).lookingAt()) &&
 					(subLocationCode == null || subLocationCodePattern.matcher(subLocationCode).lookingAt()) &&
 					(format == null || formatPattern.matcher(format).lookingAt())
 					){
@@ -132,9 +156,9 @@ class InclusionRule {
 				isIncluded = false;
 			}
 			//Make sure not to cache marc tag determination
-			inclusionCache.put(key, isIncluded);
+			formatCache.put(format, isIncluded);
 		}else{
-			isIncluded = inclusionCache.get(key);
+			isIncluded = cachedInclusion;
 		}
 		//Make sure not to cache marc tag determination
 		if (isIncluded && marcTagToMatch.length() > 0) {

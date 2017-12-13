@@ -3,10 +3,7 @@ package org.vufind;
 import org.marc4j.marc.*;
 import org.solrmarc.tools.Utils;
 
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -116,7 +113,7 @@ class MarcUtil {
 	 * @return the result set of strings
 	 */
 	@SuppressWarnings("unchecked")
-	static Set<String> getSubfieldDataAsSet(Record record, String fldTag, String subfield, int beginIx, int endIx) {
+	private static Set<String> getSubfieldDataAsSet(Record record, String fldTag, String subfield, int beginIx, int endIx) {
 		Set<String> resultSet = new LinkedHashSet<>();
 
 		// Process Leader
@@ -230,11 +227,12 @@ class MarcUtil {
 		return resultSet;
 	}
 
-	static boolean isControlField(String fieldTag) {
-		return fieldTag.matches("00[0-9]");
+	private static Pattern controlFieldPattern = Pattern.compile("00[0-9]");
+	private static boolean isControlField(String fieldTag) {
+		return controlFieldPattern.matcher(fieldTag).matches();
 	}
 
-
+	private static HashMap<String, Pattern> subfieldPatterns = new HashMap<>();
 	/**
 	 * Given a tag for a field, and a list (or regex) of one or more subfields get
 	 * any linked 880 fields and include the appropriate subfields as a String
@@ -262,7 +260,11 @@ class MarcUtil {
 		Set<String> result = new LinkedHashSet<>();
 		Pattern subfieldPattern = null;
 		if (subfield.indexOf('[') != -1) {
-			subfieldPattern = Pattern.compile(subfield);
+			subfieldPattern = subfieldPatterns.get(subfield);
+			if (subfieldPattern == null){
+				subfieldPattern = Pattern.compile(subfield);
+				subfieldPatterns.put(subfield, subfieldPattern);
+			}
 		}
 		List<VariableField> fields = record.getVariableFields("880");
 		for (VariableField vf : fields) {
@@ -277,21 +279,25 @@ class MarcUtil {
 						Matcher matcher = subfieldPattern.matcher("" + subF.getCode());
 						// matcher needs a string, hence concat with empty
 						// string
-						if (matcher.matches())
+						if (matcher.matches()) {
 							addIt = true;
+						}
 					} else {
 						// a list a subfields
-						if (subfield.indexOf(subF.getCode()) != -1)
+						if (subfield.indexOf(subF.getCode()) != -1) {
 							addIt = true;
+						}
 					}
 					if (addIt) {
-						if (buf.length() > 0)
+						if (buf.length() > 0) {
 							buf.append(separator != null ? separator : " ");
+						}
 						buf.append(subF.getData().trim());
 					}
 				}
-				if (buf.length() > 0)
+				if (buf.length() > 0) {
 					result.add(Utils.cleanData(buf.toString()));
+				}
 			}
 		}
 		return (result);

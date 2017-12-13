@@ -37,7 +37,8 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	char formatSubfield;
 	char barcodeSubfield;
 	char statusSubfieldIndicator;
-	String statusesToSuppress;
+	private String statusesToSuppress;
+	Pattern statusesToSuppressPattern = null;
 	private Pattern nonHoldableStatuses;
 	char shelvingLocationSubfield;
 	char collectionSubfield;
@@ -50,7 +51,9 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	char locationSubfieldIndicator;
 	private Pattern nonHoldableLocations;
 	String locationsToSuppress;
+	Pattern locationsToSuppressPattern = null;
 	String collectionsToSuppress;
+	Pattern collectionsToSuppressPattern = null;
 	char subLocationSubfield;
 	char iTypeSubfield;
 	private Pattern nonHoldableITypes;
@@ -122,7 +125,14 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			shelvingLocationSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "shelvingLocation");
 			collectionSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "collection");
 			locationsToSuppress = indexingProfileRS.getString("locationsToSuppress");
+			if (locationsToSuppress.length() > 0){
+				locationsToSuppressPattern = Pattern.compile(locationsToSuppress);
+			}
+
 			collectionsToSuppress = indexingProfileRS.getString("collectionsToSuppress");
+			if (collectionsToSuppress.length() > 0){
+				collectionsToSuppressPattern = Pattern.compile(collectionsToSuppress);
+			}
 
 			itemUrlSubfieldIndicator = getSubfieldIndicatorFromConfig(indexingProfileRS, "itemUrl");
 
@@ -134,6 +144,10 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			barcodeSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "barcode");
 			statusSubfieldIndicator = getSubfieldIndicatorFromConfig(indexingProfileRS, "status");
 			statusesToSuppress = indexingProfileRS.getString("statusesToSuppress");
+			if (statusesToSuppress.length() > 0){
+				statusesToSuppressPattern = Pattern.compile(statusesToSuppress);
+			}
+
 			try {
 				String pattern = indexingProfileRS.getString("nonHoldableStatuses");
 				if (pattern != null && pattern.length() > 0) {
@@ -1266,7 +1280,7 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			if (statusSubfield == null) {
 				return true;
 			} else {
-				if (statusSubfield.getData().matches(statusesToSuppress)) {
+				if (statusesToSuppressPattern != null && statusesToSuppressPattern.matcher(statusSubfield.getData()).matches()) {
 					return true;
 				}
 			}
@@ -1275,7 +1289,7 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		if (locationSubfield == null){
 			return true;
 		}else{
-			if (locationSubfield.getData().trim().matches(locationsToSuppress)){
+			if (locationsToSuppressPattern != null && locationsToSuppressPattern.matcher(locationSubfield.getData().trim()).matches()){
 				return true;
 			}
 		}
@@ -1284,7 +1298,7 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			if (collectionSubfieldValue == null){
 				return true;
 			}else{
-				if (collectionSubfieldValue.getData().trim().matches(collectionsToSuppress)){
+				if (collectionsToSuppressPattern != null && collectionsToSuppressPattern.matcher(collectionSubfieldValue.getData().trim()).matches()){
 					return true;
 				}
 			}

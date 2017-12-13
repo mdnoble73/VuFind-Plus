@@ -19,7 +19,7 @@ public class OwnershipRule {
 	private Pattern locationCodePattern;
 	private Pattern subLocationCodePattern;
 
-	public OwnershipRule(String recordType, @NotNull String locationCode, @NotNull String subLocationCode){
+	OwnershipRule(String recordType, @NotNull String locationCode, @NotNull String subLocationCode){
 		this.recordType = recordType;
 
 		if (locationCode.length() == 0){
@@ -32,17 +32,18 @@ public class OwnershipRule {
 		this.subLocationCodePattern = Pattern.compile(subLocationCode, Pattern.CASE_INSENSITIVE);
 	}
 
-	HashMap<String, Boolean> ownershipResults = new HashMap<>();
-	public boolean isItemOwned(@NotNull String recordType, @NotNull String locationCode, @NotNull String subLocationCode){
-		String key = recordType + "-" + locationCode + "-" + subLocationCode;
-		if (ownershipResults.containsKey(key)){
-			return ownershipResults.get(key);
-		}
+	private HashMap<String, Boolean> ownershipResults = new HashMap<>();
+	boolean isItemOwned(@NotNull String recordType, @NotNull String locationCode, @NotNull String subLocationCode){
 		boolean isOwned = false;
 		if (this.recordType.equals(recordType)){
+			String key = locationCode + "-" + subLocationCode;
+			if (ownershipResults.containsKey(key)){
+				return ownershipResults.get(key);
+			}
+
 			isOwned = locationCodePattern.matcher(locationCode).lookingAt() && (subLocationCode == null || subLocationCodePattern.matcher(subLocationCode).lookingAt());
+			ownershipResults.put(key, isOwned);
 		}
-		ownershipResults.put(key, isOwned);
 		return  isOwned;
 	}
 }
