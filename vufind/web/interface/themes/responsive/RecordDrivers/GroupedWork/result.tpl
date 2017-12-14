@@ -7,7 +7,7 @@
 
 		<div class="row">
 			{if $showCovers}
-				<div class="coversColumn col-xs-3 col-sm-3 col-md-3 col-lg-2 text-center">
+				<div class="coversColumn col-xs-3 col-sm-3{if !$viewingCombinedResults} col-md-3 col-lg-2{/if} text-center">
 					{if $disableCoverArt != 1}
 						<a href="{$summUrl}">
 							<img src="{$bookCoverUrlMedium}" class="listResultImage img-thumbnail" alt="{translate text='Cover Image'}">
@@ -20,7 +20,7 @@
 				</div>
 			{/if}
 
-			<div class="{if !$showCovers}col-xs-12{else}col-xs-9 col-sm-9 col-md-9 col-lg-10{/if}">{* May turn out to be more than one situation to consider here *}
+			<div class="{if !$showCovers}col-xs-12{else}col-xs-9 col-sm-9{if !$viewingCombinedResults} col-md-9 col-lg-10{/if}{/if}">{* May turn out to be more than one situation to consider here *}
 				{* Title Row *}
 				<div class="row">
 					<div class="col-xs-12">

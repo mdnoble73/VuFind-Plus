@@ -10,7 +10,7 @@
 	</div>
 
 	{foreach from=$combinedResultSections item=combinedResultSection}
-		<div class="combined-results-section col col-xs-12 col-sm-6">
+		<div class="combined-results-section col-tn-12 col-md-6">
 			<h3 class="combined-results-section-title">
 				<a href="{$combinedResultSection->getResultsLink($lookfor, $basicSearchType)}">{$combinedResultSection->displayName}</a>
 			</h3>
