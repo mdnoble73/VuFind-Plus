@@ -51,6 +51,12 @@ public class RecordGrouperMain {
 	private static boolean fullRegroupingNoClear = false;
 	private static boolean validateChecksumsFromDisk = false;
 
+	//Reporting information
+	private static long groupingLogId;
+	private static long startTime;
+	private static long endTime;
+	private static PreparedStatement addNoteToGroupingLogStmt;
+
 	public static void main(String[] args) {
 		// Get the configuration filename
 		if (args.length == 0) {
@@ -1602,6 +1608,32 @@ public class RecordGrouperMain {
 		marcRecordContents = marcRecordContents.replaceAll("\\p{C}", "?");
 		crc32.update(marcRecordContents.getBytes());
 		return crc32.getValue();
+	}
+
+	private static StringBuffer reindexNotes = new StringBuffer();
+	private static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	static void addNoteToGroupingLog(String note) {
+		try {
+			Date date = new Date();
+			reindexNotes.append("<br>").append(dateFormat.format(date)).append(note);
+			addNoteToGroupingLogStmt.setString(1, trimTo(65535, reindexNotes.toString()));
+			addNoteToGroupingLogStmt.setLong(2, new Date().getTime() / 1000);
+			addNoteToGroupingLogStmt.setLong(3, groupingLogId);
+			addNoteToGroupingLogStmt.executeUpdate();
+			logger.info(note);
+		} catch (SQLException e) {
+			logger.error("Error adding note to Reindex Log", e);
+		}
+	}
+
+	static String trimTo(int maxCharacters, String stringToTrim) {
+		if (stringToTrim == null) {
+			return null;
+		}
+		if (stringToTrim.length() > maxCharacters) {
+			stringToTrim = stringToTrim.substring(0, maxCharacters);
+		}
+		return stringToTrim.trim();
 	}
 
 }
