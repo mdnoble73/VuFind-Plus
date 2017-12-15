@@ -9,10 +9,11 @@
 		<div class="clearer"></div>
 	</div>
 
-	{foreach from=$combinedResultSections item=combinedResultSection}
-		<div class="combined-results-section col-tn-12 col-md-6">
+	<div class="combined-results-container">
+	{foreach from=$combinedResultSections item=combinedResultSection name=searchSection}
+		<div class="combined-results-section {*col-tn-12 col-md-6*}{*{if ($smarty.foreach.searchSection.iteration%2)!=0} col-md-pull-6{else} col-md-push-6{/if}*}">
 			<h3 class="combined-results-section-title">
-				<a href="{$combinedResultSection->getResultsLink($lookfor, $basicSearchType)}">{$combinedResultSection->displayName}</a>
+				{*{$smarty.foreach.searchSection.iteration} *}<a href="{$combinedResultSection->getResultsLink($lookfor, $basicSearchType)}">{$combinedResultSection->displayName}</a>
 			</h3>
 			<div class="combined-results-section-results" id="combined-results-section-results-{$combinedResultSection->id}">
 				<img src="{$path}/images/loading.gif" alt="loading">
@@ -22,6 +23,7 @@
 			</script>
 		</div>
 	{/foreach}
+	</div>
 
 	<script type="text/javascript">
 		function reloadCombinedResults(){ldelim}
@@ -31,3 +33,8 @@
 		{rdelim}
 	</script>
 {/strip}
+
+{literal}
+	<style type="text/css">
+	</style>
+{/literal}

@@ -329,6 +329,20 @@
 }
 
 // Combined Results/Bento Box Search
-.combined-results-section .related-manifestation {
-  border-bottom: none;
+.combined-results-section {
+  .related-manifestation {
+    border-bottom: none;
+  }
+  width: 100%;
+  display: inline-block;
+  padding-bottom: 20px;
+}
+@media (min-width: @screen-md-min) {
+  .combined-results-container {
+    column-count: 2;
+    column-gap: 15px;
+  }
+  .combined-results-section {
+    page-break-inside: avoid;
+  }
 }
