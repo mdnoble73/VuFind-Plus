@@ -1,8 +1,7 @@
 {strip}
-{* //QUESTION: is this Depricated *}
 <div id="record{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" class="resultsList row">
 	{if $showCovers}
-		<div class="coversColumn col-xs-3 col-sm-3 col-md-3 col-lg-2 text-center">
+		<div class="coversColumn col-xs-3 col-sm-3{if !$viewingCombinedResults} col-md-3 col-lg-2{/if} text-center">
 			{if $disableCoverArt != 1 && $bookCoverUrlMedium}
 				<a href="{$summUrl}">
 					<img src="{$bookCoverUrlMedium}" class="listResultImage img-thumbnail" alt="{translate text='Cover Image'}">
@@ -15,7 +14,7 @@
 		</div>
 	{/if}
 
-	<div class="{if !$showCovers}col-xs-12{else}col-xs-9 col-sm-9 col-md-9 col-lg-10{/if}">
+	<div class="{if !$showCovers}col-xs-12{else}col-tn-9 col-sm-9{if !$viewingCombinedResults} col-md-9 col-lg-10{/if}{/if}">
 		<div class="row">
 			<div class="col-xs-12">
 				<span class="result-index">{$resultIndex})</span>&nbsp;

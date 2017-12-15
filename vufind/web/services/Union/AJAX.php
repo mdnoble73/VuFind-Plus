@@ -156,6 +156,8 @@ class Union_AJAX extends Action {
 	 */
 	private function getResultsFromEDS($searchTerm, $numberOfResults, $fullResultsLink)
 	{
+		global $interface;
+		$interface->assign('viewingCombinedResults', true);
 		require_once ROOT_DIR . '/sys/Ebsco/EDS_API.php';
 		$edsApi = EDS_API::getInstance();
 		$searchResults = $edsApi->getSearchResults($searchTerm);
@@ -188,6 +190,8 @@ class Union_AJAX extends Action {
 	 */
 	private function getResultsFromArchive($numberOfResults, $searchType, $searchTerm, $fullResultsLink)
 	{
+		global $interface;
+		$interface->assign('viewingCombinedResults', true);
 		/** @var SearchObject_Islandora $searchObject */
 		$searchObject = SearchObjectFactory::initSearchObject('Islandora');
 		$searchObject->init();
@@ -232,6 +236,8 @@ class Union_AJAX extends Action {
 	 */
 	private function getResultsFromDPLA($searchTerm, $numberOfResults, $fullResultsLink)
 	{
+		global $interface;
+		$interface->assign('viewingCombinedResults', true);
 		require_once ROOT_DIR . '/sys/SearchObject/DPLA.php';
 		$dpla = new DPLA();
 		$dplaResults = $dpla->getDPLAResults($searchTerm, $numberOfResults);
@@ -247,6 +253,8 @@ class Union_AJAX extends Action {
 	 */
 	private function getResultsFromProspector($searchType, $searchTerm, $numberOfResults, $fullResultsLink)
 	{
+		global $interface;
+		$interface->assign('viewingCombinedResults', true);
 		require_once ROOT_DIR . '/Drivers/marmot_inc/Prospector.php';
 		$prospector = new Prospector();
 		$searchTerms = array(array(
