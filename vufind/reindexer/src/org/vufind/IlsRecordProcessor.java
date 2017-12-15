@@ -2,6 +2,8 @@ package org.vufind;
 
 import org.apache.log4j.Logger;
 import org.marc4j.MarcPermissiveStreamReader;
+import org.marc4j.MarcReader;
+import org.marc4j.MarcStreamReader;
 import org.marc4j.marc.*;
 
 import java.io.*;
@@ -37,7 +39,6 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	char formatSubfield;
 	char barcodeSubfield;
 	char statusSubfieldIndicator;
-	private String statusesToSuppress;
 	Pattern statusesToSuppressPattern = null;
 	private Pattern nonHoldableStatuses;
 	char shelvingLocationSubfield;
@@ -50,9 +51,7 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	private String dateAddedFormat;
 	char locationSubfieldIndicator;
 	private Pattern nonHoldableLocations;
-	String locationsToSuppress;
 	Pattern locationsToSuppressPattern = null;
-	String collectionsToSuppress;
 	Pattern collectionsToSuppressPattern = null;
 	char subLocationSubfield;
 	char iTypeSubfield;
@@ -124,12 +123,12 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			subLocationSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "subLocation");
 			shelvingLocationSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "shelvingLocation");
 			collectionSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "collection");
-			locationsToSuppress = indexingProfileRS.getString("locationsToSuppress");
+			String locationsToSuppress = indexingProfileRS.getString("locationsToSuppress");
 			if (locationsToSuppress.length() > 0){
 				locationsToSuppressPattern = Pattern.compile(locationsToSuppress);
 			}
 
-			collectionsToSuppress = indexingProfileRS.getString("collectionsToSuppress");
+			String collectionsToSuppress = indexingProfileRS.getString("collectionsToSuppress");
 			if (collectionsToSuppress.length() > 0){
 				collectionsToSuppressPattern = Pattern.compile(collectionsToSuppress);
 			}
@@ -143,7 +142,7 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			formatSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "format");
 			barcodeSubfield = getSubfieldIndicatorFromConfig(indexingProfileRS, "barcode");
 			statusSubfieldIndicator = getSubfieldIndicatorFromConfig(indexingProfileRS, "status");
-			statusesToSuppress = indexingProfileRS.getString("statusesToSuppress");
+			String statusesToSuppress = indexingProfileRS.getString("statusesToSuppress");
 			if (statusesToSuppress.length() > 0){
 				statusesToSuppressPattern = Pattern.compile(statusesToSuppress);
 			}
@@ -281,7 +280,8 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			byte[] fileContents = Util.readFileBytes(individualFilename);
 			//FileInputStream inputStream = new FileInputStream(individualFile);
 			InputStream inputStream = new ByteArrayInputStream(fileContents);
-			MarcPermissiveStreamReader marcReader = new MarcPermissiveStreamReader(inputStream, true, true, "UTF-8");
+			//Don't need to use a permissive reader here since we've written good individual MARCs as part of record grouping
+			MarcReader marcReader = new MarcStreamReader(inputStream, "UTF-8");
 			if (marcReader.hasNext()) {
 				record = marcReader.next();
 			}

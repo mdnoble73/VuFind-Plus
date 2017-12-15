@@ -711,20 +711,17 @@ abstract class MarcRecordProcessor {
 
 	Set<String> getPublicationDates(Record record) {
 		@SuppressWarnings("unchecked")
-		List<VariableField> rdaFields = record.getVariableFields("264");
+		List<DataField> rdaFields = record.getDataFields("264");
 		HashSet<String> publicationDates = new HashSet<>();
 		String date;
 		//Try to get from RDA data
 		if (rdaFields.size() > 0){
-			for (VariableField curField : rdaFields){
-				if (curField instanceof DataField){
-					DataField dataField = (DataField)curField;
-					if (dataField.getIndicator2() == '1'){
-						Subfield subFieldC = dataField.getSubfield('c');
-						if (subFieldC != null){
-							date = subFieldC.getData();
-							publicationDates.add(date);
-						}
+			for (DataField dataField : rdaFields){
+				if (dataField.getIndicator2() == '1'){
+					Subfield subFieldC = dataField.getSubfield('c');
+					if (subFieldC != null){
+						date = subFieldC.getData();
+						publicationDates.add(date);
 					}
 				}
 			}

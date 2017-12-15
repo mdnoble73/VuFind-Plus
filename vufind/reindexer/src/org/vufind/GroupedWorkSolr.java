@@ -1252,24 +1252,12 @@ public class GroupedWorkSolr implements Cloneable {
 		this.genreFacets.add(Util.trimTrailingPunctuation(fieldValue));
 	}
 
-	void addGeographic(Set<String> fieldList) {
-		this.geographic.addAll(Util.trimTrailingPunctuation(fieldList));
-	}
-
 	void addGeographic(String fieldValue) {
 		this.geographic.add(Util.trimTrailingPunctuation(fieldValue));
 	}
 
-	void addGeographicFacet(Set<String> fieldList) {
-		this.geographicFacets.addAll(Util.trimTrailingPunctuation(fieldList));
-	}
-
 	void addGeographicFacet(String fieldValue) {
 		this.geographicFacets.add(Util.trimTrailingPunctuation(fieldValue));
-	}
-
-	void addEra(Set<String> fieldList) {
-		this.eras.addAll(Util.trimTrailingPunctuation(fieldList));
 	}
 
 	void addEra(String fieldValue) {
@@ -1538,16 +1526,8 @@ public class GroupedWorkSolr implements Cloneable {
 		}
 	}
 
-	void addLCSubjects(Set<String> lcSubjects) {
-		this.lcSubjects.addAll(Util.trimTrailingPunctuation(lcSubjects));
-	}
-
 	void addLCSubject(String lcSubject) {
 		this.lcSubjects.add(Util.trimTrailingPunctuation(lcSubject));
-	}
-
-	void addBisacSubjects(Set<String> bisacSubjects) {
-		this.bisacSubjects.addAll(Util.trimTrailingPunctuation(bisacSubjects));
 	}
 
 	void addBisacSubject(String bisacSubject) {

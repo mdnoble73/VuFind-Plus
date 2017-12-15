@@ -127,27 +127,25 @@ class RecordGroupingProcessor {
 	private static Pattern overdrivePattern = Pattern.compile("(?i)^http://.*?lib\\.overdrive\\.com/ContentDetails\\.htm\\?id=[\\da-f]{8}-[\\da-f]{4}-[\\da-f]{4}-[\\da-f]{4}-[\\da-f]{12}$");
 	RecordIdentifier getPrimaryIdentifierFromMarcRecord(Record marcRecord, String recordType, boolean doAutomaticEcontentSuppression){
 		RecordIdentifier identifier = null;
-		List<VariableField> recordNumberFields = marcRecord.getVariableFields(recordNumberTag);
+		VariableField recordNumberField = marcRecord.getVariableField(recordNumberTag);
 		//Make sure we only get one ils identifier
-		for (VariableField curVariableField : recordNumberFields){
-			if (curVariableField instanceof DataField) {
-				DataField curRecordNumberField = (DataField)curVariableField;
+		if (recordNumberField != null){
+			if (recordNumberField instanceof DataField) {
+				DataField curRecordNumberField = (DataField)recordNumberField;
 				Subfield subfieldA = curRecordNumberField.getSubfield('a');
 				if (subfieldA != null && (recordNumberPrefix.length() == 0 || subfieldA.getData().length() > recordNumberPrefix.length())) {
 					if (curRecordNumberField.getSubfield('a').getData().substring(0, recordNumberPrefix.length()).equals(recordNumberPrefix)) {
 						String recordNumber = curRecordNumberField.getSubfield('a').getData().trim();
 						identifier = new RecordIdentifier();
 						identifier.setValue(recordType, recordNumber);
-						break;
 					}
 				}
 			}else{
 				//It's a control field
-				ControlField curRecordNumberField = (ControlField)curVariableField;
+				ControlField curRecordNumberField = (ControlField)recordNumberField;
 				String recordNumber = curRecordNumberField.getData().trim();
 				identifier = new RecordIdentifier();
 				identifier.setValue(recordType, recordNumber);
-				break;
 			}
 		}
 
@@ -244,25 +242,11 @@ class RecordGroupingProcessor {
 	}
 
 	List<DataField> getDataFields(Record marcRecord, String tag) {
-		List variableFields = marcRecord.getVariableFields(tag);
-		List<DataField> variableFieldsReturn = new ArrayList<>();
-		for (Object variableField : variableFields){
-			if (variableField instanceof DataField){
-				variableFieldsReturn.add((DataField)variableField);
-			}
-		}
-		return variableFieldsReturn;
+		return marcRecord.getDataFields(tag);
 	}
 
 	private List<DataField> getDataFields(Record marcRecord, String[] tags) {
-		List variableFields = marcRecord.getVariableFields(tags);
-		List<DataField> variableFieldsReturn = new ArrayList<>();
-		for (Object variableField : variableFields){
-			if (variableField instanceof DataField){
-				variableFieldsReturn.add((DataField)variableField);
-			}
-		}
-		return variableFieldsReturn;
+		return marcRecord.getDataFields(tags);
 	}
 
 	GroupedWorkBase setupBasicWorkForIlsRecord(Record marcRecord, String loadFormatFrom, char formatSubfield, String specifiedFormatCategory) {
