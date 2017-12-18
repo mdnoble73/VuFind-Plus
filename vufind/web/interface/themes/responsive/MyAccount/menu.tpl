@@ -208,7 +208,7 @@
 			{/if}
 
 			{if $loggedIn && (array_key_exists('libraryAdmin', $userRoles) || array_key_exists('opacAdmin', $userRoles) || array_key_exists('cataloging', $userRoles))}
-				{if in_array($action, array('ReindexLog', 'OverDriveExtractLog', 'IndexingStats', 'IndexingProfiles', 'TranslationMaps'))}
+				{if in_array($action, array('RecordGroupingLog', 'ReindexLog', 'OverDriveExtractLog', 'IndexingStats', 'IndexingProfiles', 'TranslationMaps'))}
 					{assign var="curSection" value=true}
 				{else}
 					{assign var="curSection" value=false}
@@ -224,6 +224,7 @@
 					<div id="indexingMenuGroup" class="panel-collapse collapse {if $curSection}in{/if}">
 						<div class="panel-body">
 							<div class="adminMenuLink{if $action == "IndexingStats"} active{/if}"><a href="{$path}/Admin/IndexingStats">Indexing Statistics</a></div>
+							<div class="adminMenuLink{if $action == "RecordGroupingLog"} active{/if}"><a href="{$path}/Admin/RecordGroupingLog">Record Grouping Log</a></div>
 							<div class="adminMenuLink{if $action == "ReindexLog"} active{/if}"><a href="{$path}/Admin/ReindexLog">Reindex Log</a></div>
 							<div class="adminMenuLink{if $action == "OverDriveExtractLog"} active{/if}"><a href="{$path}/Admin/OverDriveExtractLog">OverDrive Extract Log</a></div>
 							<div class="adminMenuLink{if $action == "IndexingProfiles"} active{/if}"><a href="{$path}/Admin/IndexingProfiles">Indexing Profiles</a></div>
