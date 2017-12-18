@@ -1187,7 +1187,6 @@ public class RecordGrouperMain {
 					continue;
 			}
 
-			logger.debug("Processing profile " + curProfile.name);
 			addNoteToGroupingLog("Processing profile " + curProfile.name);
 
 			String marcPath = curProfile.marcPath;
@@ -1403,7 +1402,6 @@ public class RecordGrouperMain {
 				writeExistingRecordsFile(configIni, recordNumbersInExport, "record_grouping_overdrive_records_in_export");
 			}
 			removeDeletedRecords("overdrive");
-			logger.info("Finished grouping " + numRecordsProcessed + " records from overdrive ");
 			addNoteToGroupingLog("Finished grouping " + numRecordsProcessed + " records from overdrive ");
 		}catch (Exception e){
 			System.out.println("Error loading OverDrive records: " + e.toString());
