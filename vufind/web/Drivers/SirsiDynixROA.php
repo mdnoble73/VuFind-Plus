@@ -14,11 +14,21 @@ abstract class SirsiDynixROA extends HorizonAPI
 	//TODO: Additional caching of sessionIds by patron
 	private static $sessionIdsForUsers = array();
 
+	private function staffOrPatronSessionTokenSwitch(){
+		$useStaffAccountForWebServices = true;
+		global $configArray;
+		if (isset($configArray['Catalog']['useStaffSessionTokens'])) {
+			$useStaffAccountForWebServices = $configArray['Catalog']['useStaffSessionTokens'];
+		}
+		return $useStaffAccountForWebServices;
+
+	}
 	// $customRequest is for curl, can be 'PUT', 'DELETE', 'POST'
 	public function getWebServiceResponse($url, $params = null, $sessionToken = null, $customRequest = null, $additionalHeaders = null)
 	{
 		global $configArray;
 		global $logger;
+		$logger->log('WebServiceURL :' .$url, PEAR_LOG_INFO);
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $url);
 		$clientId = $configArray['Catalog']['clientId'];
@@ -46,7 +56,7 @@ abstract class SirsiDynixROA extends HorizonAPI
 		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 		curl_setopt($ch, CURLOPT_HEADER, false);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // TODO: debugging only: comment out for production
+//		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // TODO: debugging only: comment out for production
 		if ($params != null) {
 			curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($params));
 		}
@@ -1124,7 +1134,7 @@ abstract class SirsiDynixROA extends HorizonAPI
 
 		//Get the session token for the user
 //		$sessionToken = $this->getSessionToken($patron);
-		$sessionToken = $this->getStaffSessionToken();
+		$sessionToken = $this->staffOrPatronSessionTokenSwitch() ? $this->getStaffSessionToken() : $this->getSessionToken($patron);
 		if (!$sessionToken) {
 			return array(
 				'success' => false,
@@ -1256,7 +1266,8 @@ abstract class SirsiDynixROA extends HorizonAPI
 
 	function cancelHold($patron, $recordId, $cancelId)
 	{
-		$sessionToken = $this->getStaffSessionToken();
+//		$sessionToken = $this->getStaffSessionToken();
+		$sessionToken = $this->staffOrPatronSessionTokenSwitch() ? $this->getStaffSessionToken() : $this->getSessionToken($patron);
 		if (!$sessionToken) {
 			return array(
 				'success' => false,
@@ -1290,7 +1301,7 @@ abstract class SirsiDynixROA extends HorizonAPI
 
 	function changeHoldPickupLocation($patron, $recordId, $holdId, $newPickupLocation)
 	{
-		$sessionToken = $this->getStaffSessionToken();
+		$sessionToken = $this->staffOrPatronSessionTokenSwitch() ? $this->getStaffSessionToken() : $this->getSessionToken($patron);
 		if (!$sessionToken) {
 			return array(
 				'success' => false,
@@ -1444,7 +1455,7 @@ abstract class SirsiDynixROA extends HorizonAPI
 	 */
 	public function renewItem($patron, $recordId, $itemId, $itemIndex)
 	{
-		$sessionToken = $this->getStaffSessionToken();
+		$sessionToken = $this->staffOrPatronSessionTokenSwitch() ? $this->getStaffSessionToken() : $this->getSessionToken($patron);
 		if (!$sessionToken) {
 			return array(
 				'success' => false,
