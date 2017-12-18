@@ -57,6 +57,7 @@ abstract class SirsiDynixROA extends HorizonAPI
 		curl_setopt($ch, CURLOPT_HEADER, false);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 //		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // TODO: debugging only: comment out for production
+		//TODO: need switch to set this option when using on local machine
 		if ($params != null) {
 			curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($params));
 		}
@@ -602,7 +603,7 @@ abstract class SirsiDynixROA extends HorizonAPI
 		if (!empty($configArray['Catalog']['selfRegStaffUser']) && !empty( $configArray['Catalog']['selfRegStaffPassword'])) {
 			$selfRegStaffUser     = $configArray['Catalog']['selfRegStaffUser'];
 			$selfRegStaffPassword = $configArray['Catalog']['selfRegStaffPassword'];
-			list(, $staffSessionToken) = $this->loginViaWebService($selfRegStaffUser, $selfRegStaffPassword);
+			list(, $staffSessionToken) = $this->staffLoginViaWebService($selfRegStaffUser, $selfRegStaffPassword);
 		}
 		return $staffSessionToken;
 		}
@@ -801,6 +802,47 @@ abstract class SirsiDynixROA extends HorizonAPI
 				//We got at valid user (A bad call will have isset($loginUserResponse->messageList) )
 
 					$sirsiRoaUserID                                     = $loginUserResponse->patronKey;
+					$sessionToken                                       = $loginUserResponse->sessionToken;
+					SirsiDynixROA::$sessionIdsForUsers[$sirsiRoaUserID] = $sessionToken;
+					$session = array(true, $sessionToken, $sirsiRoaUserID);
+					global $configArray;
+					$memCache->set($memCacheKey, $session, 0, $configArray['Caching']['sirsi_roa_session_token']);
+			} elseif (isset($loginUserResponse->messageList)) {
+				global $logger;
+				$errorMessage = 'Sirsi ROA Webservice Login Error: ';
+				foreach ($loginUserResponse->messageList as $error){
+					$errorMessage .= $error->message.'; ';
+				}
+				$logger->log($errorMessage, PEAR_LOG_ERR);
+			}
+		}
+		return $session;
+	}
+
+	protected function staffLoginViaWebService($username, $password)
+	{
+		/** @var Memcache $memCache */
+		global $memCache;
+		$memCacheKey = "sirsiROA_session_token_info_$username";
+		$session = $memCache->get($memCacheKey);
+		if ($session) {
+			list(, $sessionToken, $sirsiRoaUserID) = $session;
+			SirsiDynixROA::$sessionIdsForUsers[$sirsiRoaUserID] = $sessionToken;
+		} else {
+			$session = array(false, false, false);
+			$webServiceURL = $this->getWebServiceURL();
+//		$loginDescribeResponse = $this->getWebServiceResponse($webServiceURL . '/user/patron/login/describe');
+			$loginUserUrl      = $webServiceURL . '/user/staff/login';
+			$params            = array(
+				'login' => $username,
+				'password' => $password,
+			);
+			$loginUserResponse = $this->getWebServiceResponse($loginUserUrl, $params);
+			if ($loginUserResponse && isset($loginUserResponse->sessionToken)) {
+				//We got at valid user (A bad call will have isset($loginUserResponse->messageList) )
+
+					$sirsiRoaUserID                                     = $loginUserResponse->staffKey;
+					//this is the same value as patron Key, if user is logged in with that call.
 					$sessionToken                                       = $loginUserResponse->sessionToken;
 					SirsiDynixROA::$sessionIdsForUsers[$sirsiRoaUserID] = $sessionToken;
 					$session = array(true, $sessionToken, $sirsiRoaUserID);
