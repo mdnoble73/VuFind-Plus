@@ -53,8 +53,6 @@ public class RecordGrouperMain {
 
 	//Reporting information
 	private static long groupingLogId;
-	private static long startTime;
-	private static long endTime;
 	private static PreparedStatement addNoteToGroupingLogStmt;
 
 	public static void main(String[] args) {
@@ -587,6 +585,25 @@ public class RecordGrouperMain {
 			System.exit(1);
 		}
 
+		//Start a reindex log entry
+		try {
+			logger.info("Creating log entry for index");
+			PreparedStatement createLogEntryStatement = vufindConn.prepareStatement("INSERT INTO record_grouping_log (startTime, lastUpdate, notes) VALUES (?, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
+			createLogEntryStatement.setLong(1, processStartTime / 1000);
+			createLogEntryStatement.setLong(2, processStartTime / 1000);
+			createLogEntryStatement.setString(3, "Initialization complete");
+			createLogEntryStatement.executeUpdate();
+			ResultSet generatedKeys = createLogEntryStatement.getGeneratedKeys();
+			if (generatedKeys.next()){
+				groupingLogId = generatedKeys.getLong(1);
+			}
+
+			addNoteToGroupingLogStmt = vufindConn.prepareStatement("UPDATE record_grouping_log SET notes = ?, lastUpdate = ? WHERE id = ?");
+		} catch (SQLException e) {
+			logger.error("Unable to create log entry for record grouping process", e);
+			System.exit(0);
+		}
+
 		//Make sure that our export is valid
 		try{
 			PreparedStatement bypassValidationStmt = vufindConn.prepareStatement("SELECT * from variables WHERE name = 'bypass_export_validation'");
@@ -620,6 +637,7 @@ public class RecordGrouperMain {
 			}
 		} catch (Exception e){
 			logger.error("Error loading whether or not the last export was valid", e);
+			addNoteToGroupingLog("Error loading whether or not the last export was valid " + e.toString());
 			System.exit(1);
 		}
 
@@ -635,6 +653,7 @@ public class RecordGrouperMain {
 			loadLastGroupingTime.close();
 		} catch (Exception e){
 			logger.error("Error loading last grouping time", e);
+			addNoteToGroupingLog("Error loading last grouping time " + e.toString());
 			System.exit(1);
 		}
 
@@ -752,14 +771,6 @@ public class RecordGrouperMain {
 			markRecordGroupingRunning(vufindConn, false);
 		}
 
-		try{
-			vufindConn.close();
-			econtentConnection.close();
-		}catch (Exception e){
-			logger.error("Error closing database ", e);
-			System.exit(1);
-		}
-
 		if (recordGroupingProcessor != null) {
 			recordGroupingProcessor.dumpStats();
 		}
@@ -768,11 +779,29 @@ public class RecordGrouperMain {
 		long endTime = new Date().getTime();
 		long elapsedTime = endTime - processStartTime;
 		logger.info("Elapsed Minutes " + (elapsedTime / 60000));
+
+		try {
+			PreparedStatement finishedStatement = vufindConn.prepareStatement("UPDATE record_grouping_log SET endTime = ? WHERE id = ?");
+			finishedStatement.setLong(1, endTime / 1000);
+			finishedStatement.setLong(2, groupingLogId);
+			finishedStatement.executeUpdate();
+		} catch (SQLException e) {
+			logger.error("Unable to update reindex log with completion time.", e);
+		}
+
+		try{
+			vufindConn.close();
+			econtentConnection.close();
+		}catch (Exception e){
+			logger.error("Error closing database ", e);
+			System.exit(1);
+		}
 	}
 
 	private static void removeDeletedRecords(String curProfile) {
 		if (marcRecordIdsInDatabase.size() > 0) {
 			logger.info("Deleting " + marcRecordIdsInDatabase.size() + " record ids for profile " + curProfile + " from the database since they are no longer in the export.");
+			addNoteToGroupingLog("Deleting " + marcRecordIdsInDatabase.size() + " record ids for profile " + curProfile + " from the database since they are no longer in the export.");
 			for (String recordNumber : marcRecordIdsInDatabase.keySet()) {
 				//Remove the record from the ils_marc_checksums table
 				try {
@@ -1158,10 +1187,8 @@ public class RecordGrouperMain {
 					continue;
 			}
 
-			logger.debug("Processing profile " + curProfile.name);
+			addNoteToGroupingLog("Processing profile " + curProfile.name);
 
-			int numRecordsProcessed = 0;
-			int numRecordsRead = 0;
 			String marcPath = curProfile.marcPath;
 
 			String marcEncoding = curProfile.marcEncoding;
@@ -1188,6 +1215,8 @@ public class RecordGrouperMain {
 				String lastRecordProcessed = "";
 				for (File curBibFile : catalogBibFiles) {
 					if (filesToMatchPattern.matcher(curBibFile.getName()).matches()) {
+						int numRecordsProcessed = 0;
+						int numRecordsRead = 0;
 						try {
 							FileInputStream marcFileStream = new FileInputStream(curBibFile);
 							MarcReader catalogReader = new MarcPermissiveStreamReader(marcFileStream, true, true, marcEncoding);
@@ -1247,9 +1276,14 @@ public class RecordGrouperMain {
 							logger.error("Error loading catalog bibs on record " + numRecordsRead + " in profile " +  curProfile.name + " the last record processed was " + lastRecordProcessed, e);
 						}
 						logger.info("Finished grouping " + numRecordsRead + " records with " + numRecordsProcessed + " actual changes from the ils file " + curBibFile.getName() + " in profile " + curProfile.name);
+						addNoteToGroupingLog("&nbsp;&nbsp; - Finished grouping " + numRecordsRead + " records from the ils file " + curBibFile.getName());
 					}
 				}
 			}
+			addNoteToGroupingLog("&nbsp;&nbsp; - Records Processed:" + recordNumbersInExport.size());
+			addNoteToGroupingLog("&nbsp;&nbsp; - Records Suppressed:" + suppressedRecordNumbersInExport.size());
+			addNoteToGroupingLog("&nbsp;&nbsp; - Records Written:" + marcRecordsWritten.size());
+			addNoteToGroupingLog("&nbsp;&nbsp; - Records Overwritten:" + marcRecordsOverwritten.size());
 
 			removeDeletedRecords(curProfile.name);
 
@@ -1294,6 +1328,7 @@ public class RecordGrouperMain {
 			//Nothing to do since we don't have marc records to process
 			return 0;
 		}
+		addNoteToGroupingLog("Starting to group overdrive records");
 		loadIlsChecksums(vufindConn, "overdrive");
 		loadExistingPrimaryIdentifiers(vufindConn, "overdrive");
 
@@ -1367,7 +1402,7 @@ public class RecordGrouperMain {
 				writeExistingRecordsFile(configIni, recordNumbersInExport, "record_grouping_overdrive_records_in_export");
 			}
 			removeDeletedRecords("overdrive");
-			logger.info("Finished grouping " + numRecordsProcessed + " records from overdrive ");
+			addNoteToGroupingLog("Finished grouping " + numRecordsProcessed + " records from overdrive ");
 		}catch (Exception e){
 			System.out.println("Error loading OverDrive records: " + e.toString());
 			e.printStackTrace();
@@ -1612,10 +1647,10 @@ public class RecordGrouperMain {
 
 	private static StringBuffer reindexNotes = new StringBuffer();
 	private static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-	static void addNoteToGroupingLog(String note) {
+	private static void addNoteToGroupingLog(String note) {
 		try {
 			Date date = new Date();
-			reindexNotes.append("<br>").append(dateFormat.format(date)).append(note);
+			reindexNotes.append("<br>").append(dateFormat.format(date)).append(": ").append(note);
 			addNoteToGroupingLogStmt.setString(1, trimTo(65535, reindexNotes.toString()));
 			addNoteToGroupingLogStmt.setLong(2, new Date().getTime() / 1000);
 			addNoteToGroupingLogStmt.setLong(3, groupingLogId);
@@ -1626,7 +1661,7 @@ public class RecordGrouperMain {
 		}
 	}
 
-	static String trimTo(int maxCharacters, String stringToTrim) {
+	private static String trimTo(int maxCharacters, String stringToTrim) {
 		if (stringToTrim == null) {
 			return null;
 		}
