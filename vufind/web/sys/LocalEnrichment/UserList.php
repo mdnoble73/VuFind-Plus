@@ -340,7 +340,9 @@ class UserList extends DB_DataObject
 		//Properly sort items
 		$browseRecordsSorted = array();
 		foreach ($listEntries as $listItemId) {
-			$browseRecordsSorted[] = $browseRecords[$listItemId];
+			if (array_key_exists($listItemId, $browseRecords)){
+				$browseRecordsSorted[] = $browseRecords[$listItemId];
+			}
 		}
 
 		return $browseRecordsSorted;
