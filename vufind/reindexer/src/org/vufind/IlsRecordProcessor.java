@@ -281,7 +281,8 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			//FileInputStream inputStream = new FileInputStream(individualFile);
 			InputStream inputStream = new ByteArrayInputStream(fileContents);
 			//Don't need to use a permissive reader here since we've written good individual MARCs as part of record grouping
-			MarcReader marcReader = new MarcStreamReader(inputStream, "UTF-8");
+			//Actually we do need to since we can still get MARC records over the max length.
+			MarcReader marcReader = new MarcPermissiveStreamReader(inputStream, true, false, "UTF-8");
 			if (marcReader.hasNext()) {
 				record = marcReader.next();
 			}
