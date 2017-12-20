@@ -10180,6 +10180,9 @@ a.browse-thumbnail-sorted.active {
 .combined-results-section .related-manifestation {
   border-bottom: none;
 }
+.combined-results-section-title {
+  font-weight: bold;
+}
 @media (min-width: 992px) {
   .combined-results-container {
     -webkit-column-count: 2;
