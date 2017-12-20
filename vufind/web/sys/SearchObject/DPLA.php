@@ -32,8 +32,14 @@ class DPLA {
 				$curResult['title'] = @$this->getDataForNode($curDoc->sourceResource->title);
 				$curResult['label'] = @$this->getDataForNode($curDoc->sourceResource->title);
 				$curResult['format'] = @$this->getDataForNode($curDoc->originalRecord->format);
+				if ($curResult['format'] == "" ){
+					$curResult['format'] = @$this->getDataForNode($curDoc->originalRecord->type);
+				}
 				$curResult['date'] = @$this->getDataForNode($curDoc->sourceResource->date->displayDate);
 				$curResult['publisher'] = @$this->getDataForNode($curDoc->sourceResource->publisher);
+				if ($curResult['publisher'] == "" ){
+					$curResult['publisher'] = @$this->getDataForNode($curDoc->originalRecord->publisher);
+				}
 				$curResult['description'] = @$this->getDataForNode($curDoc->sourceResource->description);
 				$curResult['dataProvider'] = @$this->getDataForNode($curDoc->dataProvider);
 				$results[] = $curResult;

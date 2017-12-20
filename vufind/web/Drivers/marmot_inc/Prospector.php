@@ -48,6 +48,14 @@ class Prospector{
 				continue;
 			}
 
+			//Extract the format from the itemMediaDescription
+			if (preg_match('/<span class="itemMediaDescription" id="mediaTypeInsertComponent">(.*?)<\/span>/s', $titleTitleInfo, $formatMatches)) {
+				$formatInfo = trim(strip_tags($formatMatches[1]));
+				if (strlen($formatInfo) > 0){
+					$curTitleInfo['format'] = $formatInfo;
+				}
+			}
+
 			//Extract the author from the titleAuthorInfo
 			$titleAuthorInfo = $titleInfo[$matchi][1];
 			if (preg_match('/<div class="dpBibAuthor">(.*?)<\/div>/s', $titleAuthorInfo, $authorMatches)) {

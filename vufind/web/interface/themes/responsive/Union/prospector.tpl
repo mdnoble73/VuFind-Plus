@@ -3,8 +3,8 @@
 		{if $showCovers}
 			<div class="coversColumn col-xs-3 col-sm-3{if !$viewingCombinedResults} col-md-3 col-lg-2{/if} text-center">
 				{if $disableCoverArt != 1 && $prospectorResult.cover}
-					<a href="{$prospectorResult.link}">
-						<img src="{$prospectorResult.cover}" class="listResultImage img-thumbnail" alt="{translate text='Cover Image'}">
+					<a id="prospectorImg{$smarty.foreach.recordLoop.iteration}" href="{$prospectorResult.link}">
+						<img onerror="VuFind.Prospector.removeBlankThumbnail(this, '#prospectorImg{$smarty.foreach.recordLoop.iteration}', true);" onload="VuFind.Prospector.removeBlankThumbnail(this, '#prospectorImg{$smarty.foreach.recordLoop.iteration}');" src="{$prospectorResult.cover}" class="listResultImage img-thumbnail" alt="{translate text='Cover Image'}">
 					</a>
 				{/if}
 			</div>
@@ -24,6 +24,13 @@
 				<div class="row">
 					<div class="result-label col-tn-3">{translate text='Author'}:</div>
 					<div class="col-tn-9 result-value">{$prospectorResult.author|escape}</div>
+				</div>
+			{/if}
+
+			{if $prospectorResult.format}
+				<div class="row">
+					<div class="result-label col-tn-3">{translate text='Format'}:</div>
+					<div class="col-tn-9 result-value">{$prospectorResult.format|escape}</div>
 				</div>
 			{/if}
 

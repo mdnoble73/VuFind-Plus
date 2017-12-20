@@ -102,7 +102,7 @@ class Union_AJAX extends Action {
 		}else{
 			$results = "<div>Showing $numberOfResults for $source.  Show covers? $showCovers</div>";
 		}
-		$results .= "<div><a href='" . $fullResultsLink . "'>Full Results</a></div>";
+		$results .= "<div><a href='" . $fullResultsLink . "' target='_blank'>Full Results from {$sectionObject->displayName}</a></div>";
 
 
 		return array(
@@ -138,7 +138,7 @@ class Union_AJAX extends Action {
 			if ($summary['resultTotal'] < $numberOfResults) {
 				$results = "<div>Showing {$summary['resultTotal']} records</div>";
 			} else {
-				$results = "<div>Showing $numberOfResults of <a href='{$fullResultsLink}'>{$summary['resultTotal']} results</a></div>";
+				$results = "<div>Showing $numberOfResults of <a href='{$fullResultsLink}' target='_blank'>{$summary['resultTotal']} results</a></div>";
 			}
 
 
@@ -169,7 +169,7 @@ class Union_AJAX extends Action {
 			if ($summary['resultTotal'] < $numberOfResults) {
 				$results = "<div>Showing {$summary['resultTotal']} records</div>";
 			} else {
-				$results = "<div>Showing $numberOfResults of <a href='{$fullResultsLink}'>{$summary['resultTotal']} results</a></div>";
+				$results = "<div>Showing $numberOfResults of <a href='{$fullResultsLink}' target='_blank'>{$summary['resultTotal']} results</a></div>";
 			}
 
 			$records = array_slice($records, 0, $numberOfResults);
@@ -218,7 +218,7 @@ class Union_AJAX extends Action {
 			if ($summary['resultTotal'] < $numberOfResults) {
 				$results = "<div>Showing {$summary['resultTotal']} records</div>";
 			} else {
-				$results = "<div>Showing $numberOfResults of <a href='{$fullResultsLink}'>{$summary['resultTotal']} results</a></div>";
+				$results = "<div>Showing $numberOfResults of <a href='{$fullResultsLink}' target='_blank'>{$summary['resultTotal']} results</a></div>";
 			}
 
 			global $interface;
@@ -269,7 +269,7 @@ class Union_AJAX extends Action {
 			if ($prospectorResults['resultTotal'] < $numberOfResults) {
 				$results = "<div>Showing {$prospectorResults['resultTotal']} records</div>";
 			} else {
-				$results = "<div>Showing $numberOfResults of <a href='{$fullResultsLink}'>{$prospectorResults['resultTotal']} results</a></div>";
+				$results = "<div>Showing $numberOfResults of <a href='{$fullResultsLink}' target='_blank'>{$prospectorResults['resultTotal']} results</a></div>";
 			}
 			$interface->assign('prospectorResults', $prospectorResults['records']);
 			$results .= $interface->fetch('Union/prospector.tpl');
