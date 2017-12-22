@@ -449,12 +449,8 @@ if ($searchSource == 'genealogy') {
 }else{
 	if (isset($_REQUEST['basicType'])){
 		$_REQUEST['type'] =  $_REQUEST['basicType'];
-	}else{
-		if ($enableCombinedResults && $showCombinedResultsFirst){
-			$_REQUEST['type'] = 'Keyword';
-		}else{
-			$_REQUEST['type'] = 'local';
-		}
+	}else if (!isset($_REQUEST['type'])){
+		$_REQUEST['type'] = 'Keyword';
 	}
 }
 $interface->assign('searchSource', $searchSource);
