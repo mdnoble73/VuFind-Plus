@@ -58,6 +58,7 @@ VuFind.Searches = (function(){
 		combinedResultsDefinedOrder: [],
 		reorderCombinedResults: function () {
 			if ($('#combined-results-column-0').is(':visible')) {
+				if ($('.combined-results-column-0', '#combined-results-column-0').length == 0){
 					$('.combined-results-column-0').detach().appendTo('#combined-results-column-0');
 					$('.combined-results-column-1').detach().appendTo('#combined-results-column-1');
 				}
@@ -70,6 +71,7 @@ VuFind.Searches = (function(){
 			}
 			return false;
 		},
+
 		getPreferredDisplayMode: function(){
 			if (!Globals.opac && VuFind.hasLocalStorage()){
 				temp = window.localStorage.getItem('searchResultsDisplayMode');
