@@ -53,9 +53,23 @@ VuFind.Searches = (function(){
 				}
 			}).fail(VuFind.ajaxFail);
 			return false;
-
 		},
 
+		combinedResultsDefinedOrder: [],
+		reorderCombinedResults: function () {
+			if ($('#combined-results-column-0').is(':visible')) {
+					$('.combined-results-column-0').detach().appendTo('#combined-results-column-0');
+					$('.combined-results-column-1').detach().appendTo('#combined-results-column-1');
+				}
+			} else {
+				if ($('.combined-results-section', '#combined-results-all-column').length == 0) {
+					$.each(VuFind.Searches.combinedResultsDefinedOrder, function (i, id) {
+						el = $(id).parents('.combined-results-section').detach().appendTo('#combined-results-all-column');
+					});
+				}
+			}
+			return false;
+		},
 		getPreferredDisplayMode: function(){
 			if (!Globals.opac && VuFind.hasLocalStorage()){
 				temp = window.localStorage.getItem('searchResultsDisplayMode');
