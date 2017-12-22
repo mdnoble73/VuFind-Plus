@@ -9,32 +9,47 @@
 		<div class="clearer"></div>
 	</div>
 
-	<div class="combined-results-container">
-	{foreach from=$combinedResultSections item=combinedResultSection name=searchSection}
-		<div class="combined-results-section {*col-tn-12 col-md-6*}{*{if ($smarty.foreach.searchSection.iteration%2)!=0} col-md-pull-6{else} col-md-push-6{/if}*}">
-			<h3 class="combined-results-section-title">
-				{*{$smarty.foreach.searchSection.iteration} *}<a href="{$combinedResultSection->getResultsLink($lookfor, $basicSearchType)}" target='_blank'>{$combinedResultSection->displayName}</a>
-			</h3>
-			<div class="combined-results-section-results" id="combined-results-section-results-{$combinedResultSection->id}">
-				<img src="{$path}/images/loading.gif" alt="loading">
-			</div>
-			<script type="text/javascript">
-				VuFind.Searches.getCombinedResults('{$combinedResultSection|get_class}:{$combinedResultSection->id}', '{$combinedResultSection->id}', '{$combinedResultSection->source}', '{$lookfor}', '{$basicSearchType}', {$combinedResultSection->numberOfResultsToShow});
-			</script>
-		</div>
-	{/foreach}
-	</div>
-
-	<script type="text/javascript">
-		function reloadCombinedResults(){ldelim}
-			{foreach from=$combinedResultSections item=combinedResultSection}
-				VuFind.Searches.getCombinedResults('{$combinedResultSection|get_class}:{$combinedResultSection->id}', '{$combinedResultSection->id}', '{$combinedResultSection->source}', '{$lookfor}', '{$basicSearchType}', {$combinedResultSection->numberOfResultsToShow});
+	<div id="combined-results-container">
+	{section name=column loop=2}
+		<div id="combined-results-column-{$smarty.section.column.index}" class="hidden-tn hidden-xs hidden-sm col-md-6">
+			{foreach from=$combinedResultSections item=combinedResultSection name=searchSection}
+				{if ($smarty.foreach.searchSection.index%2 == $smarty.section.column.index)}
+					<div class="combined-results-section combined-results-column-{$smarty.section.column.index}">
+						<h3 class="combined-results-section-title">
+							<a href="{$combinedResultSection->getResultsLink($lookfor, $basicSearchType)}" target='_blank'>{$combinedResultSection->displayName}</a>
+						</h3>
+						<div class="combined-results-section-results" id="combined-results-section-results-{$combinedResultSection->id}">
+							<img src="{$path}/images/loading.gif" alt="loading">
+						</div>
+					</div>
+				{/if}
 			{/foreach}
-		{rdelim}
-	</script>
+		</div>
+	{/section}
+		<div id="combined-results-all-column"></div>{* For small width views *}
+	</div>
 {/strip}
 
-{literal}
-	<style type="text/css">
-	</style>
-{/literal}
+<script type="text/javascript">
+	VuFind.Searches.combinedResultsDefinedOrder = [
+		{foreach from=$combinedResultSections item=combinedResultSection}
+		"#combined-results-section-results-{$combinedResultSection->id}",
+		{/foreach}
+	];
+function reloadCombinedResults(){ldelim}
+	{foreach from=$combinedResultSections item=combinedResultSection}
+	VuFind.Searches.getCombinedResults('{$combinedResultSection|get_class}:{$combinedResultSection->id}', '{$combinedResultSection->id}', '{$combinedResultSection->source}', '{$lookfor}', '{$basicSearchType}', {$combinedResultSection->numberOfResultsToShow});
+	{/foreach}
+{rdelim};
+
+$(function(){ldelim}
+		VuFind.Searches.reorderCombinedResults();
+		reloadCombinedResults();
+
+		$(window).resize(function(){ldelim}
+			VuFind.Searches.reorderCombinedResults();
+		{rdelim});
+
+{rdelim});
+</script>
+
