@@ -135,7 +135,7 @@ class Union_AJAX extends Action {
 		if ($summary['resultTotal'] == 0){
 			$results = '<div class="clearfix"></div><div>No results match your search.</div>';
 		}else{
-			$results = "<a href='{$fullResultsLink}' class='btn btn-info combined-results-button'>&gt; See all {$summary['resultTotal']} results</a><div class='clearfix'></div>";
+			$results = "<a href='{$fullResultsLink}' class='btn btn-info combined-results-button' target='_blank'>&gt; See all {$summary['resultTotal']} results</a><div class='clearfix'></div>";
 
 
 			$interface->assign('recordSet', $records);
@@ -165,7 +165,7 @@ class Union_AJAX extends Action {
 			if ($summary['resultTotal'] == 0) {
 				$results = '<div class="clearfix"></div><div>No results match your search.</div>';
 			} else {
-				$results = "<a href='{$fullResultsLink}' class='btn btn-info combined-results-button'>&gt; See all {$summary['resultTotal']} results</a><div class='clearfix'></div>";
+				$results = "<a href='{$fullResultsLink}' class='btn btn-info combined-results-button' target='_blank'>&gt; See all {$summary['resultTotal']} results</a><div class='clearfix'></div>";
 
 				$records = array_slice($records, 0, $numberOfResults);
 				global $interface;
@@ -211,7 +211,7 @@ class Union_AJAX extends Action {
 		if ($summary['resultTotal'] == 0){
 			$results = '<div class="clearfix"></div><div>No results match your search.</div>';
 		}else {
-			$results = "<a href='{$fullResultsLink}' class='btn btn-info combined-results-button'>&gt; See all {$summary['resultTotal']} results</a><div class='clearfix'></div>";
+			$results = "<a href='{$fullResultsLink}' class='btn btn-info combined-results-button' target='_blank'>&gt; See all {$summary['resultTotal']} results</a><div class='clearfix'></div>";
 
 			global $interface;
 			$interface->assign('recordSet', $records);
@@ -236,7 +236,7 @@ class Union_AJAX extends Action {
 		if ($dplaResults['resultTotal'] == 0){
 			$results = '<div class="clearfix"></div><div>No results match your search.</div>';
 		}else {
-			$results = "<a href='{$fullResultsLink}' class='btn btn-info combined-results-button'>&gt; See all {$dplaResults['resultTotal']} results</a><div class='clearfix'></div>";
+			$results = "<a href='{$fullResultsLink}' class='btn btn-info combined-results-button' target='_blank'>&gt; See all {$dplaResults['resultTotal']} results</a><div class='clearfix'></div>";
 		}
 		$results .= $dpla->formatCombinedResults($dplaResults['records'], false);
 		return $results;
@@ -266,7 +266,7 @@ class Union_AJAX extends Action {
 			if ($prospectorResults['resultTotal'] == 0) {
 				$results = '<div class="clearfix"></div><div>No results match your search.</div>';
 			} else {
-				$results = "<a href='{$fullResultsLink}' class='btn btn-info combined-results-button'>&gt; See all {$prospectorResults['resultTotal']} results</a><div class='clearfix'></div>";
+				$results = "<a href='{$fullResultsLink}' class='btn btn-info combined-results-button' target='_blank'>&gt; See all {$prospectorResults['resultTotal']} results</a><div class='clearfix'></div>";
 				$interface->assign('prospectorResults', $prospectorResults['records']);
 				$results .= $interface->fetch('Union/prospector.tpl');
 			}
