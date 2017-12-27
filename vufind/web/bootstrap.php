@@ -268,7 +268,16 @@ function loadSearchInformation(){
 			}elseif ($module == 'EBSCO'){
 				$searchSource = 'ebsco';
 			}else{
-				$searchSource = 'local';
+				require_once(ROOT_DIR . '/Drivers/marmot_inc/SearchSources.php');
+				$searchSources = new SearchSources();
+				global $locationSingleton;
+				$location = $locationSingleton->getActiveLocation();
+				list($enableCombinedResults, $showCombinedResultsFirst, $combinedResultsName) = $searchSources::getCombinedSearchSetupParameters($location, $library);
+				if ($enableCombinedResults && $showCombinedResultsFirst){
+					$searchSource = 'combinedResults';
+				}else{
+					$searchSource = 'local';
+				}
 			}
 			$_REQUEST['searchSource'] = $searchSource;
 		}

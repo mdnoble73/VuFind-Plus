@@ -37,6 +37,41 @@ VuFind.Searches = (function(){
 			list:''
 		},
 
+		getCombinedResults: function(fullId, shortId, source, searchTerm, searchType, numberOfResults){
+			var url = Globals.path + '/Union/AJAX';
+			var params = '?method=getCombinedResults&source=' + source + '&numberOfResults=' + numberOfResults + "&id=" + fullId + "&searchTerm=" + searchTerm + "&searchType=" + searchType;
+			if ($('#hideCovers').is(':checked')){
+				params += "&showCovers=off";
+			}else{
+				params += "&showCovers=on";
+			}
+			$.getJSON(url+params, function(data){
+				if (data.success == false){
+					VuFind.showMessage("Error loading results", data.error);
+				}else{
+					$('#combined-results-section-results-' + shortId).html(data.results);
+				}
+			}).fail(VuFind.ajaxFail);
+			return false;
+		},
+
+		combinedResultsDefinedOrder: [],
+		reorderCombinedResults: function () {
+			if ($('#combined-results-column-0').is(':visible')) {
+				if ($('.combined-results-column-0', '#combined-results-column-0').length == 0){
+					$('.combined-results-column-0').detach().appendTo('#combined-results-column-0');
+					$('.combined-results-column-1').detach().appendTo('#combined-results-column-1');
+				}
+			} else {
+				if ($('.combined-results-section', '#combined-results-all-column').length == 0) {
+					$.each(VuFind.Searches.combinedResultsDefinedOrder, function (i, id) {
+						el = $(id).parents('.combined-results-section').detach().appendTo('#combined-results-all-column');
+					});
+				}
+			}
+			return false;
+		},
+
 		getPreferredDisplayMode: function(){
 			if (!Globals.opac && VuFind.hasLocalStorage()){
 				temp = window.localStorage.getItem('searchResultsDisplayMode');

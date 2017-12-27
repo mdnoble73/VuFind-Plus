@@ -34,10 +34,26 @@ class Admin_Administrators extends ObjectEditor
 		return 'Administrators';
 	}
 	function getAllObjects(){
+		/** @var User $admin */
 		$admin = new User();
 		$admin->query('SELECT * FROM user INNER JOIN user_roles on user.id = user_roles.userId ORDER BY cat_password');
 		$adminList = array();
 		while ($admin->fetch()){
+			$homeLibrary = Library::getLibraryForLocation($admin->homeLocationId);
+			if ($homeLibrary != null){
+				$admin->homeLibraryName = $homeLibrary->displayName;
+			}else{
+				$admin->homeLibraryName = 'Unknown';
+			}
+
+			$location = new Location();
+			$location->locationId = $admin->homeLocationId;
+			if ($location->find(true)) {
+				$admin->homeLocation = $location->displayName;
+			}else{
+				$admin->homeLocation = 'Unknown';
+			}
+
 			$adminList[$admin->id] = clone $admin;
 		}
 		return $adminList;
@@ -92,7 +108,12 @@ class Admin_Administrators extends ObjectEditor
 			header("Location: {$configArray['Site']['path']}/Admin/{$this->getToolName()}");
 			die();
 		}else{
-			$interface->assign('error', 'Could not find a user with that barcode. (The user needs to have logged in at least once.)');
+			if ($newAdmin->N == 0){
+				$interface->assign('error', 'Could not find a user with that barcode. (The user needs to have logged in at least once.)');
+			}else{
+				$interface->assign('error', "Found multiple users with that barcode {$newAdmin->N}. (The database needs to be cleaned up.)");
+			}
+
 			$interface->setTemplate('addAdministrator.tpl');
 		}
 	}

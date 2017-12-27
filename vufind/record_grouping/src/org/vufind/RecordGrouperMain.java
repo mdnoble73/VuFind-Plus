@@ -36,8 +36,6 @@ public class RecordGrouperMain {
 	private static String serverName;
 
 	static String groupedWorkTableName = "grouped_work";
-	static String groupedWorkIdentifiersTableName = "grouped_work_identifiers";
-	static String groupedWorkIdentifiersRefTableName = "grouped_work_identifiers_ref";
 
 	private static HashMap<String, Long> marcRecordChecksums = new HashMap<>();
 	private static HashMap<String, Long> marcRecordFirstDetectionDates = new HashMap<>();
@@ -52,6 +50,10 @@ public class RecordGrouperMain {
 	private static boolean fullRegrouping = false;
 	private static boolean fullRegroupingNoClear = false;
 	private static boolean validateChecksumsFromDisk = false;
+
+	//Reporting information
+	private static long groupingLogId;
+	private static PreparedStatement addNoteToGroupingLogStmt;
 
 	public static void main(String[] args) {
 		// Get the configuration filename
@@ -82,7 +84,9 @@ public class RecordGrouperMain {
 					"5) Only run record grouping cleanup\n" +
 					"   record_grouping.jar <pika_site_name> runPostGroupingCleanup\n" +
 					"6) Only explode records into individual records (no grouping)\n" +
-					"   record_grouping.jar <pika_site_name> explodeMarcs");
+					"   record_grouping.jar <pika_site_name> explodeMarcs\n" +
+					"7) Record Group a specific indexing profile\n" +
+					"   record_grouping.jar <pika_site_name> \"<profile name>\"");
 			System.exit(1);
 		}
 
@@ -581,6 +585,25 @@ public class RecordGrouperMain {
 			System.exit(1);
 		}
 
+		//Start a reindex log entry
+		try {
+			logger.info("Creating log entry for index");
+			PreparedStatement createLogEntryStatement = vufindConn.prepareStatement("INSERT INTO record_grouping_log (startTime, lastUpdate, notes) VALUES (?, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
+			createLogEntryStatement.setLong(1, processStartTime / 1000);
+			createLogEntryStatement.setLong(2, processStartTime / 1000);
+			createLogEntryStatement.setString(3, "Initialization complete");
+			createLogEntryStatement.executeUpdate();
+			ResultSet generatedKeys = createLogEntryStatement.getGeneratedKeys();
+			if (generatedKeys.next()){
+				groupingLogId = generatedKeys.getLong(1);
+			}
+
+			addNoteToGroupingLogStmt = vufindConn.prepareStatement("UPDATE record_grouping_log SET notes = ?, lastUpdate = ? WHERE id = ?");
+		} catch (SQLException e) {
+			logger.error("Unable to create log entry for record grouping process", e);
+			System.exit(0);
+		}
+
 		//Make sure that our export is valid
 		try{
 			PreparedStatement bypassValidationStmt = vufindConn.prepareStatement("SELECT * from variables WHERE name = 'bypass_export_validation'");
@@ -614,6 +637,7 @@ public class RecordGrouperMain {
 			}
 		} catch (Exception e){
 			logger.error("Error loading whether or not the last export was valid", e);
+			addNoteToGroupingLog("Error loading whether or not the last export was valid " + e.toString());
 			System.exit(1);
 		}
 
@@ -629,6 +653,7 @@ public class RecordGrouperMain {
 			loadLastGroupingTime.close();
 		} catch (Exception e){
 			logger.error("Error loading last grouping time", e);
+			addNoteToGroupingLog("Error loading last grouping time " + e.toString());
 			System.exit(1);
 		}
 
@@ -667,9 +692,6 @@ public class RecordGrouperMain {
 				clearDatabase(vufindConn, clearDatabasePriorToGrouping);
 			}
 
-			loadIlsChecksums(vufindConn, indexingProfileToRun);
-			loadExistingPrimaryIdentifiers(vufindConn, indexingProfileToRun);
-
 			//Determine if we want to validateChecksumsFromDisk
 			try{
 				PreparedStatement getValidateChecksumsFromDiskVariableStmt = vufindConn.prepareStatement("SELECT * FROM variables where name = 'validateChecksumsFromDisk'");
@@ -707,6 +729,7 @@ public class RecordGrouperMain {
 					profile.format = getCharFromRecordSet(indexingProfilesRS, "format");
 					profile.itemTag = indexingProfilesRS.getString("itemTag");
 					profile.eContentDescriptor = getCharFromRecordSet(indexingProfilesRS, "eContentDescriptor");
+					profile.doAutomaticEcontentSuppression = indexingProfilesRS.getBoolean("doAutomaticEcontentSuppression");
 
 					indexingProfiles.add(profile);
 				}
@@ -716,16 +739,12 @@ public class RecordGrouperMain {
 			}
 
 			if (indexingProfileToRun == null || indexingProfileToRun.equalsIgnoreCase("overdrive")) {
-				groupOverDriveRecords(configIni, econtentConnection, recordGroupingProcessor, explodeMarcsOnly);
+				groupOverDriveRecords(configIni, vufindConn, econtentConnection, recordGroupingProcessor, explodeMarcsOnly);
 			}
 			if (indexingProfiles.size() > 0) {
 				groupIlsRecords(configIni, vufindConn, indexingProfiles, explodeMarcsOnly);
 			}
 
-			//Remove deleted records now that we have processed all records that currently exist
-			if (!explodeMarcsOnly) {
-				removeDeletedRecords();
-			}
 		}
 
 		if (!explodeMarcsOnly) {
@@ -752,14 +771,6 @@ public class RecordGrouperMain {
 			markRecordGroupingRunning(vufindConn, false);
 		}
 
-		try{
-			vufindConn.close();
-			econtentConnection.close();
-		}catch (Exception e){
-			logger.error("Error closing database ", e);
-			System.exit(1);
-		}
-
 		if (recordGroupingProcessor != null) {
 			recordGroupingProcessor.dumpStats();
 		}
@@ -768,35 +779,59 @@ public class RecordGrouperMain {
 		long endTime = new Date().getTime();
 		long elapsedTime = endTime - processStartTime;
 		logger.info("Elapsed Minutes " + (elapsedTime / 60000));
-	}
 
-	private static void removeDeletedRecords() {
-		logger.info("Deleting " + marcRecordIdsInDatabase.size() + " record ids from the database since they are no longer in the export.");
-		for (String recordNumber : marcRecordIdsInDatabase.keySet()) {
-			//Remove the record from the ils_marc_checksums table
-			try {
-				removeMarcRecordChecksum.setLong(1, marcRecordIdsInDatabase.get(recordNumber));
-				int numRemoved = removeMarcRecordChecksum.executeUpdate();
-				if (numRemoved != 1){
-					logger.warn("Could not delete " + recordNumber +  " from ils_marc_checksums table");
-				}
-			} catch (SQLException e) {
-				logger.error("Error removing ILS id " + recordNumber + " from ils_marc_checksums table", e);
-			}
+		try {
+			PreparedStatement finishedStatement = vufindConn.prepareStatement("UPDATE record_grouping_log SET endTime = ? WHERE id = ?");
+			finishedStatement.setLong(1, endTime / 1000);
+			finishedStatement.setLong(2, groupingLogId);
+			finishedStatement.executeUpdate();
+		} catch (SQLException e) {
+			logger.error("Unable to update reindex log with completion time.", e);
 		}
 
-		logger.info("Deleting " + primaryIdentifiersInDatabase.size() + " primary identifiers from the database since they are no longer in the export.");
-		for (String recordNumber : primaryIdentifiersInDatabase.keySet()) {
-			//Remove the record from the grouped_work_primary_identifiers table
-			try {
-				removePrimaryIdentifier.setLong(1, primaryIdentifiersInDatabase.get(recordNumber));
-				int numRemoved = removePrimaryIdentifier.executeUpdate();
-				if (numRemoved != 1){
-					logger.warn("Could not delete " + recordNumber +  " from grouped_work_primary_identifiers table");
+		try{
+			vufindConn.close();
+			econtentConnection.close();
+		}catch (Exception e){
+			logger.error("Error closing database ", e);
+			System.exit(1);
+		}
+	}
+
+	private static void removeDeletedRecords(String curProfile) {
+		if (marcRecordIdsInDatabase.size() > 0) {
+			logger.info("Deleting " + marcRecordIdsInDatabase.size() + " record ids for profile " + curProfile + " from the database since they are no longer in the export.");
+			addNoteToGroupingLog("Deleting " + marcRecordIdsInDatabase.size() + " record ids for profile " + curProfile + " from the database since they are no longer in the export.");
+			for (String recordNumber : marcRecordIdsInDatabase.keySet()) {
+				//Remove the record from the ils_marc_checksums table
+				try {
+					removeMarcRecordChecksum.setLong(1, marcRecordIdsInDatabase.get(recordNumber));
+					int numRemoved = removeMarcRecordChecksum.executeUpdate();
+					if (numRemoved != 1) {
+						logger.warn("Could not delete " + recordNumber + " from ils_marc_checksums table");
+					}
+				} catch (SQLException e) {
+					logger.error("Error removing ILS id " + recordNumber + " from ils_marc_checksums table", e);
 				}
-			} catch (SQLException e) {
-				logger.error("Error removing " + recordNumber + " from grouped_work_primary_identifiers table", e);
 			}
+			marcRecordIdsInDatabase.clear();
+		}
+
+		if (primaryIdentifiersInDatabase.size() > 0) {
+			logger.info("Deleting " + primaryIdentifiersInDatabase.size() + " primary identifiers for profile " + curProfile + " from the database since they are no longer in the export.");
+			for (String recordNumber : primaryIdentifiersInDatabase.keySet()) {
+				//Remove the record from the grouped_work_primary_identifiers table
+				try {
+					removePrimaryIdentifier.setLong(1, primaryIdentifiersInDatabase.get(recordNumber));
+					int numRemoved = removePrimaryIdentifier.executeUpdate();
+					if (numRemoved != 1) {
+						logger.warn("Could not delete " + recordNumber + " from grouped_work_primary_identifiers table");
+					}
+				} catch (SQLException e) {
+					logger.error("Error removing " + recordNumber + " from grouped_work_primary_identifiers table", e);
+				}
+			}
+			primaryIdentifiersInDatabase.clear();
 		}
 	}
 
@@ -1040,8 +1075,10 @@ public class RecordGrouperMain {
 	private static void loadExistingPrimaryIdentifiers(Connection vufindConn, String indexingProfileToRun) {
 		//Load MARC Existing MARC Record checksums from VuFind
 		try{
-			insertMarcRecordChecksum = vufindConn.prepareStatement("INSERT INTO ils_marc_checksums (ilsId, source, checksum, dateFirstDetected) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE checksum = VALUES(checksum), dateFirstDetected=VALUES(dateFirstDetected), source=VALUES(source)");
-			removeMarcRecordChecksum = vufindConn.prepareStatement("DELETE FROM ils_marc_checksums WHERE id = ?");
+			if (insertMarcRecordChecksum == null) {
+				insertMarcRecordChecksum = vufindConn.prepareStatement("INSERT INTO ils_marc_checksums (ilsId, source, checksum, dateFirstDetected) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE checksum = VALUES(checksum), dateFirstDetected=VALUES(dateFirstDetected), source=VALUES(source)");
+				removeMarcRecordChecksum = vufindConn.prepareStatement("DELETE FROM ils_marc_checksums WHERE id = ?");
+			}
 
 			//MDN 2/23/2015 - Always load checksums so we can optimize writing to the database
 			PreparedStatement loadIlsMarcChecksums;
@@ -1052,9 +1089,10 @@ public class RecordGrouperMain {
 				loadIlsMarcChecksums.setString(1, indexingProfileToRun);
 			}
 			ResultSet ilsMarcChecksumRS = loadIlsMarcChecksums.executeQuery();
+			Long zero = 0L;
 			while (ilsMarcChecksumRS.next()){
 				Long checksum = ilsMarcChecksumRS.getLong("checksum");
-				if (checksum == 0){
+				if (checksum.equals(zero)){
 					checksum = null;
 				}
 				String fullIdentifier = ilsMarcChecksumRS.getString("source") + ":" + ilsMarcChecksumRS.getString("ilsId").trim();
@@ -1079,8 +1117,10 @@ public class RecordGrouperMain {
 
 	private static void loadIlsChecksums(Connection vufindConn, String indexingProfileToRun) {
 		//Load Existing Primary Identifiers so we can clean up
-		try{
-			removePrimaryIdentifier = vufindConn.prepareStatement("DELETE FROM grouped_work_primary_identifiers WHERE id = ?");
+		try {
+			if (removePrimaryIdentifier == null){
+				removePrimaryIdentifier = vufindConn.prepareStatement("DELETE FROM grouped_work_primary_identifiers WHERE id = ?");
+			}
 
 			PreparedStatement loadPrimaryIdentifiers;
 			if (indexingProfileToRun == null) {
@@ -1111,7 +1151,9 @@ public class RecordGrouperMain {
 			try{
 				vufindConn.prepareStatement("TRUNCATE ils_marc_checksums").executeUpdate();
 				vufindConn.prepareStatement("TRUNCATE " + groupedWorkTableName).executeUpdate();
+				String groupedWorkIdentifiersTableName = "grouped_work_identifiers";
 				vufindConn.prepareStatement("TRUNCATE " + groupedWorkIdentifiersTableName).executeUpdate();
+				String groupedWorkIdentifiersRefTableName = "grouped_work_identifiers_ref";
 				vufindConn.prepareStatement("TRUNCATE " + groupedWorkIdentifiersRefTableName).executeUpdate();
 				String groupedWorkPrimaryIdentifiersTableName = "grouped_work_primary_identifiers";
 				vufindConn.prepareStatement("TRUNCATE " + groupedWorkPrimaryIdentifiersTableName).executeUpdate();
@@ -1126,34 +1168,39 @@ public class RecordGrouperMain {
 	private static void groupIlsRecords(Ini configIni, Connection dbConnection, ArrayList<IndexingProfile> indexingProfiles, boolean explodeMarcsOnly) {
 		//Get indexing profiles
 		for (IndexingProfile curProfile : indexingProfiles) {
+			loadIlsChecksums(dbConnection, curProfile.name);
+			loadExistingPrimaryIdentifiers(dbConnection, curProfile.name);
+
 			MarcRecordGrouper recordGroupingProcessor;
-			if (curProfile.groupingClass.equals("MarcRecordGrouper")) {
-				recordGroupingProcessor = new MarcRecordGrouper(dbConnection, curProfile, logger, fullRegrouping);
-			}else if (curProfile.groupingClass.equals("SideLoadedRecordGrouper")){
-				recordGroupingProcessor = new SideLoadedRecordGrouper(dbConnection, curProfile, logger, fullRegrouping);
-			}else if (curProfile.groupingClass.equals("HooplaRecordGrouper")){
-				recordGroupingProcessor = new HooplaRecordGrouper(dbConnection, curProfile, logger, fullRegrouping);
-			}else{
-				logger.error("Unknown class for record grouping " + curProfile.groupingClass);
-				continue;
+			switch (curProfile.groupingClass) {
+				case "MarcRecordGrouper":
+					recordGroupingProcessor = new MarcRecordGrouper(dbConnection, curProfile, logger, fullRegrouping);
+					break;
+				case "SideLoadedRecordGrouper":
+					recordGroupingProcessor = new SideLoadedRecordGrouper(dbConnection, curProfile, logger, fullRegrouping);
+					break;
+				case "HooplaRecordGrouper":
+					recordGroupingProcessor = new HooplaRecordGrouper(dbConnection, curProfile, logger, fullRegrouping);
+					break;
+				default:
+					logger.error("Unknown class for record grouping " + curProfile.groupingClass);
+					continue;
 			}
 
-			logger.debug("Processing profile " + curProfile.name);
+			addNoteToGroupingLog("Processing profile " + curProfile.name);
 
-			int numRecordsProcessed = 0;
-			int numRecordsRead = 0;
-			String individualMarcPath = curProfile.individualMarcPath;
 			String marcPath = curProfile.marcPath;
 
 			String marcEncoding = curProfile.marcEncoding;
 
 			//Load all files in the individual marc path.  This allows us to list directories rather than doing millions of
 			//individual look ups
+			/*String individualMarcPath = curProfile.individualMarcPath;
 			HashSet<String> existingMarcFiles = new HashSet<>();
 			File individualMarcFile = new File(individualMarcPath);
 			logger.debug("Starting to read existing marc files for ILS from disc");
 			loadExistingMarcFiles(individualMarcFile, existingMarcFiles);
-			logger.debug("Finished reading existing marc files for ILS from disc");
+			logger.debug("Finished reading existing marc files for ILS from disc");*/
 
 			TreeSet<String> recordNumbersInExport = new TreeSet<>();
 			TreeSet<String> suppressedRecordNumbersInExport = new TreeSet<>();
@@ -1168,13 +1215,15 @@ public class RecordGrouperMain {
 				String lastRecordProcessed = "";
 				for (File curBibFile : catalogBibFiles) {
 					if (filesToMatchPattern.matcher(curBibFile.getName()).matches()) {
+						int numRecordsProcessed = 0;
+						int numRecordsRead = 0;
 						try {
 							FileInputStream marcFileStream = new FileInputStream(curBibFile);
 							MarcReader catalogReader = new MarcPermissiveStreamReader(marcFileStream, true, true, marcEncoding);
 							while (catalogReader.hasNext()) {
 								try{
 									Record curBib = catalogReader.next();
-									RecordIdentifier recordIdentifier = recordGroupingProcessor.getPrimaryIdentifierFromMarcRecord(curBib, curProfile.name);
+									RecordIdentifier recordIdentifier = recordGroupingProcessor.getPrimaryIdentifierFromMarcRecord(curBib, curProfile.name, curProfile.doAutomaticEcontentSuppression);
 									if (recordIdentifier == null) {
 										//logger.debug("Record with control number " + curBib.getControlNumber() + " was suppressed or is eContent");
 										String controlNumber = curBib.getControlNumber();
@@ -1189,7 +1238,7 @@ public class RecordGrouperMain {
 									}else{
 										String recordNumber = recordIdentifier.getIdentifier();
 
-										boolean marcUpToDate = writeIndividualMarc(existingMarcFiles, curProfile, curBib, recordNumber, marcRecordsWritten, marcRecordsOverwritten);
+										boolean marcUpToDate = writeIndividualMarc(curProfile, curBib, recordNumber, marcRecordsWritten, marcRecordsOverwritten);
 										recordNumbersInExport.add(recordIdentifier.toString());
 										if (!explodeMarcsOnly) {
 											if (!marcUpToDate || fullRegroupingNoClear) {
@@ -1227,21 +1276,38 @@ public class RecordGrouperMain {
 							logger.error("Error loading catalog bibs on record " + numRecordsRead + " in profile " +  curProfile.name + " the last record processed was " + lastRecordProcessed, e);
 						}
 						logger.info("Finished grouping " + numRecordsRead + " records with " + numRecordsProcessed + " actual changes from the ils file " + curBibFile.getName() + " in profile " + curProfile.name);
+						addNoteToGroupingLog("&nbsp;&nbsp; - Finished grouping " + numRecordsRead + " records from the ils file " + curBibFile.getName());
 					}
 				}
 			}
+			addNoteToGroupingLog("&nbsp;&nbsp; - Records Processed:" + recordNumbersInExport.size());
+			addNoteToGroupingLog("&nbsp;&nbsp; - Records Suppressed:" + suppressedRecordNumbersInExport.size());
+			addNoteToGroupingLog("&nbsp;&nbsp; - Records Written:" + marcRecordsWritten.size());
+			addNoteToGroupingLog("&nbsp;&nbsp; - Records Overwritten:" + marcRecordsOverwritten.size());
+
+			removeDeletedRecords(curProfile.name);
 
 			String profileName = curProfile.name.replaceAll(" ", "_");
 			writeExistingRecordsFile(configIni, recordNumbersInExport, "record_grouping_" + profileName + "_bibs_in_export");
-			writeExistingRecordsFile(configIni, suppressedRecordNumbersInExport, "record_grouping_" + profileName + "_bibs_to_ignore");
-			writeExistingRecordsFile(configIni, suppressedRecordNumbersInExport, "record_grouping_" + profileName + "_ccontrol_numbers_to_ignore");
-			writeExistingRecordsFile(configIni, recordNumbersToIndex, "record_grouping_" + profileName + "_bibs_to_index");
-			writeExistingRecordsFile(configIni, marcRecordsWritten, "record_grouping_" + profileName + "_new_bibs_written");
-			writeExistingRecordsFile(configIni, marcRecordsOverwritten, "record_grouping_" + profileName + "_changed_bibs_written");
+			if (suppressedRecordNumbersInExport.size() > 0) {
+				writeExistingRecordsFile(configIni, suppressedRecordNumbersInExport, "record_grouping_" + profileName + "_bibs_to_ignore");
+			}
+			if (suppressedControlNumbersInExport.size() > 0) {
+				writeExistingRecordsFile(configIni, suppressedControlNumbersInExport, "record_grouping_" + profileName + "_ccontrol_numbers_to_ignore");
+			}
+			if (recordNumbersToIndex.size() > 0) {
+				writeExistingRecordsFile(configIni, recordNumbersToIndex, "record_grouping_" + profileName + "_bibs_to_index");
+			}
+			if (marcRecordsWritten.size() > 0) {
+				writeExistingRecordsFile(configIni, marcRecordsWritten, "record_grouping_" + profileName + "_new_bibs_written");
+			}
+			if (marcRecordsOverwritten.size() > 0) {
+				writeExistingRecordsFile(configIni, marcRecordsOverwritten, "record_grouping_" + profileName + "_changed_bibs_written");
+			}
 		}
 	}
 
-	private static void loadExistingMarcFiles(File individualMarcPath, HashSet<String> existingFiles) {
+	/*private static void loadExistingMarcFiles(File individualMarcPath, HashSet<String> existingFiles) {
 		File[] subFiles = individualMarcPath.listFiles();
 		if (subFiles != null){
 			for (File curFile : subFiles){
@@ -1255,13 +1321,17 @@ public class RecordGrouperMain {
 				}
 			}
 		}
-	}
+	}*/
 
-	private static int groupOverDriveRecords(Ini configIni, Connection econtentConnection, RecordGroupingProcessor recordGroupingProcessor, boolean explodeMarcsOnly) {
+	private static int groupOverDriveRecords(Ini configIni, Connection vufindConn, Connection econtentConnection, RecordGroupingProcessor recordGroupingProcessor, boolean explodeMarcsOnly) {
 		if (explodeMarcsOnly){
 			//Nothing to do since we don't have marc records to process
 			return 0;
 		}
+		addNoteToGroupingLog("Starting to group overdrive records");
+		loadIlsChecksums(vufindConn, "overdrive");
+		loadExistingPrimaryIdentifiers(vufindConn, "overdrive");
+
 		int numRecordsProcessed = 0;
 		try{
 			PreparedStatement overDriveRecordsStmt;
@@ -1318,44 +1388,21 @@ public class RecordGrouperMain {
 				}
 
 				overDriveIdentifiersStmt.setLong(1, id);
-				ResultSet overDriveIdentifierRS = overDriveIdentifiersStmt.executeQuery();
-				HashSet<RecordIdentifier> overDriveIdentifiers = new HashSet<>();
 				RecordIdentifier primaryIdentifier = new RecordIdentifier();
 				primaryIdentifier.setValue("overdrive", overdriveId);
-				while (overDriveIdentifierRS.next()){
-					RecordIdentifier identifier = new RecordIdentifier();
-					identifier.setValue(overDriveIdentifierRS.getString("type"), overDriveIdentifierRS.getString("value"));
-					if (identifier.isValid()){
-						overDriveIdentifiers.add(identifier);
-					}
-				}
 
-				recordGroupingProcessor.processRecord(primaryIdentifier, title, subtitle, author, mediaType, overDriveIdentifiers, true);
+				recordGroupingProcessor.processRecord(primaryIdentifier, title, subtitle, author, mediaType, true);
 				primaryIdentifiersInDatabase.remove(primaryIdentifier.toString().toLowerCase());
 				numRecordsProcessed++;
 			}
 			overDriveRecordRS.close();
 
 			//This is no longer needed because we do cleanup differently now (get a list of everything in the database and then cleanup anything that isn't in the API anymore
-			if (!fullRegrouping){
-				/*PreparedStatement deletedRecordStmt;
-				if (lastGroupingTime == null || fullRegroupingNoClear){
-					deletedRecordStmt = econtentConnection.prepareStatement("SELECT overdriveId FROM overdrive_api_products WHERE deleted = 1",  ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-				}else{
-					deletedRecordStmt = econtentConnection.prepareStatement("SELECT overdriveId FROM overdrive_api_products WHERE deleted = 1 and dateDeleted >= ?",  ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-					deletedRecordStmt.setLong(1, lastGroupingTime);
-				}
-				ResultSet recordsToDelete = deletedRecordStmt.executeQuery();
-				while (recordsToDelete.next()){
-					RecordIdentifier primaryIdentifier = new RecordIdentifier();
-					String overdriveId = recordsToDelete.getString("overdriveId");
-					primaryIdentifier.setValue("overdrive", overdriveId);
-					recordGroupingProcessor.deletePrimaryIdentifier(primaryIdentifier);
-				}*/
-			}else{
+			if (fullRegrouping){
 				writeExistingRecordsFile(configIni, recordNumbersInExport, "record_grouping_overdrive_records_in_export");
 			}
-			logger.info("Finished grouping " + numRecordsProcessed + " records from overdrive ");
+			removeDeletedRecords("overdrive");
+			addNoteToGroupingLog("Finished grouping " + numRecordsProcessed + " records from overdrive ");
 		}catch (Exception e){
 			System.out.println("Error loading OverDrive records: " + e.toString());
 			e.printStackTrace();
@@ -1365,7 +1412,7 @@ public class RecordGrouperMain {
 
 	private static SimpleDateFormat oo8DateFormat = new SimpleDateFormat("yyMMdd");
 	private static SimpleDateFormat oo5DateFormat = new SimpleDateFormat("yyyyMMdd");
-	private static boolean writeIndividualMarc(HashSet<String> existingMarcFiles, IndexingProfile indexingProfile, Record marcRecord, String recordNumber, TreeSet<String> marcRecordsWritten, TreeSet<String> marcRecordsOverwritten) {
+	private static boolean writeIndividualMarc(IndexingProfile indexingProfile, Record marcRecord, String recordNumber, TreeSet<String> marcRecordsWritten, TreeSet<String> marcRecordsOverwritten) {
 		boolean marcRecordUpToDate = false;
 		//Copy the record to the individual marc path
 		if (recordNumber != null){
@@ -1378,7 +1425,7 @@ public class RecordGrouperMain {
 			//Check to see if the record needs to be written before writing it.
 			if (!fullRegrouping){
 				boolean checksumUpToDate = existingChecksum != null && existingChecksum.equals(checksum);
-				boolean fileExists = checkIfIndividualMarcFileExists(existingMarcFiles, true, individualFile);
+				boolean fileExists = checkIfIndividualMarcFileExists(true, individualFile);
 				marcRecordUpToDate = fileExists && checksumUpToDate;
 				if (!fileExists){
 					marcRecordsWritten.add(recordNumber);
@@ -1474,12 +1521,10 @@ public class RecordGrouperMain {
 		}
 	}
 
-	private static boolean checkIfIndividualMarcFileExists(HashSet<String> existingMarcFiles, Boolean marcRecordUpToDate, File individualFile) {
-		String filename = individualFile.getName();
-		if (!existingMarcFiles.contains(filename)){
+	private static boolean checkIfIndividualMarcFileExists(Boolean marcRecordUpToDate, File individualFile) {
+		if (!individualFile.exists()){
 			marcRecordUpToDate = false;
 		}
-		existingMarcFiles.remove(filename);
 		return marcRecordUpToDate;
 	}
 
@@ -1598,6 +1643,32 @@ public class RecordGrouperMain {
 		marcRecordContents = marcRecordContents.replaceAll("\\p{C}", "?");
 		crc32.update(marcRecordContents.getBytes());
 		return crc32.getValue();
+	}
+
+	private static StringBuffer reindexNotes = new StringBuffer();
+	private static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	private static void addNoteToGroupingLog(String note) {
+		try {
+			Date date = new Date();
+			reindexNotes.append("<br>").append(dateFormat.format(date)).append(": ").append(note);
+			addNoteToGroupingLogStmt.setString(1, trimTo(65535, reindexNotes.toString()));
+			addNoteToGroupingLogStmt.setLong(2, new Date().getTime() / 1000);
+			addNoteToGroupingLogStmt.setLong(3, groupingLogId);
+			addNoteToGroupingLogStmt.executeUpdate();
+			logger.info(note);
+		} catch (SQLException e) {
+			logger.error("Error adding note to Reindex Log", e);
+		}
+	}
+
+	private static String trimTo(int maxCharacters, String stringToTrim) {
+		if (stringToTrim == null) {
+			return null;
+		}
+		if (stringToTrim.length() > maxCharacters) {
+			stringToTrim = stringToTrim.substring(0, maxCharacters);
+		}
+		return stringToTrim.trim();
 	}
 
 }

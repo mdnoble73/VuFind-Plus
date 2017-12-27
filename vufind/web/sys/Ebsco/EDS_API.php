@@ -13,7 +13,7 @@ require_once ROOT_DIR . '/sys/Pager.php';
 class EDS_API {
 	static $instance;
 
-	private $edsBaseApi = 'http://eds-api.ebscohost.com/edsapi/rest';
+	private $edsBaseApi = 'https://eds-api.ebscohost.com/edsapi/rest';
 	private $curl_connection;
 	private $sessionId;
 	private $authenticationToken;
@@ -301,6 +301,8 @@ BODY;
 	{
 		global $interface;
 		$html = array();
+		//global $logger;
+		//$logger->log(print_r($this->lastSearchResults, true), PEAR_LOG_WARNING);
 		if (isset($this->lastSearchResults->Data->Records)) {
 			for ($x = 0; $x < count($this->lastSearchResults->Data->Records->Record); $x++) {
 				$current = &$this->lastSearchResults->Data->Records->Record[$x];

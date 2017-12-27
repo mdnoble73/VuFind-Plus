@@ -415,6 +415,10 @@ $interface->assign('module', $module);
 $interface->assign('action', $action);
 $timer->logTime('Assign module and action');
 
+require_once(ROOT_DIR . '/Drivers/marmot_inc/SearchSources.php');
+$searchSources = new SearchSources();
+list($enableCombinedResults, $showCombinedResultsFirst, $combinedResultsName) = $searchSources::getCombinedSearchSetupParameters($location, $library);
+
 if (isset($_REQUEST['basicType'])){
 	$interface->assign('basicSearchIndex', $_REQUEST['basicType']);
 }else{
@@ -443,7 +447,11 @@ if ($searchSource == 'genealogy') {
 }elseif ($searchSource == 'ebsco'){
 	$_REQUEST['type'] = isset($_REQUEST['ebscoType']) ? $_REQUEST['ebscoType']:  'TX';
 }else{
-	$_REQUEST['type'] = isset($_REQUEST['basicType']) ? $_REQUEST['basicType'] : 'Keyword';
+	if (isset($_REQUEST['basicType'])){
+		$_REQUEST['type'] =  $_REQUEST['basicType'];
+	}else if (!isset($_REQUEST['type'])){
+		$_REQUEST['type'] = 'Keyword';
+	}
 }
 $interface->assign('searchSource', $searchSource);
 
@@ -471,8 +479,6 @@ if ($action == "AJAX" || $action == "JSON"){
 	if ($searchObject->getView()) $interface->assign('displayMode', $searchObject->getView());
 
 	//Load repeat search options
-	require_once(ROOT_DIR . '/Drivers/marmot_inc/SearchSources.php');
-	$searchSources = new SearchSources();
 	$interface->assign('searchSources', $searchSources->getSearchSources());
 
 	if (isset($configArray['Genealogy']) && $library->enableGenealogy){
@@ -485,11 +491,12 @@ if ($action == "AJAX" || $action == "JSON"){
 		$interface->assign('islandoraSearchTypes', is_object($islandoraSearchObject) ? $islandoraSearchObject->getBasicTypes() : array());
 	}
 
-	if ($library->edsApiProfile){
+	//TODO: Reenable once we do full EDS integration
+	/*if ($library->edsApiProfile){
 		require_once ROOT_DIR . '/sys/Ebsco/EDS_API.php';
 		$ebscoSearchObject = new EDS_API();
 		$interface->assign('ebscoSearchTypes', $ebscoSearchObject->getSearchTypes());
-	}
+	}*/
 
 	if (!($module == 'Search' && $action == 'Home')){
 		/** @var SearchObject_Base $savedSearch */

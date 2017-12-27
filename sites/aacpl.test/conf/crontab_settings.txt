@@ -67,7 +67,7 @@
 # Clean Up Temporary Files
 26 * * * * cd /tmp; /bin/rm -rf CURLCOOKIE*
 27 */2 * * * cd /tmp; /bin/rm -rf epb*
-0 * * * * /usr/sbin/apachectl restart > /dev/null 2>&1
+0 0-7 * * * /usr/sbin/apachectl restart > /dev/null 2>&1
 
 ############################################
 # New York Times Bestseller Lists Updating #

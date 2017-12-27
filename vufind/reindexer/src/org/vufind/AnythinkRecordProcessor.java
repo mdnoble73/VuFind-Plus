@@ -3,11 +3,13 @@ package org.vufind;
 import org.apache.log4j.Logger;
 import org.marc4j.marc.DataField;
 import org.marc4j.marc.Record;
+import org.marc4j.marc.Subfield;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * ILS Indexing with customizations specific to Anythink
@@ -53,10 +55,12 @@ class AnythinkRecordProcessor extends IlsRecordProcessor {
 		recordInfo.setFormatBoost(formatBoost);
 	}
 
+	private static Pattern suppressedItemPattern = Pattern.compile("eqx|ill|laptop|u|vf");
 	protected boolean isItemSuppressed(DataField curItem) {
 		//Suppressed if |c is w
-		if (curItem.getSubfield('c') != null){
-			if (curItem.getSubfield('c').getData().matches("eqx|ill|laptop|u|vf")){
+		Subfield subfieldC = curItem.getSubfield('c');
+		if (subfieldC != null){
+			if (suppressedItemPattern.matcher(subfieldC.getData()).matches()){
 				return true;
 			}
 		}

@@ -1,7 +1,7 @@
 package org.vufind;
 
-public class CopyNoOverwriteResult {
-	public enum CopyResult {
+class CopyNoOverwriteResult {
+	enum CopyResult {
 		FILE_ALREADY_EXISTS, FILE_COPIED
 	}
 
@@ -12,7 +12,7 @@ public class CopyNoOverwriteResult {
 		return copyResult;
 	}
 
-	public void setCopyResult(CopyResult copyResult) {
+	void setCopyResult(CopyResult copyResult) {
 		this.copyResult = copyResult;
 	}
 
@@ -20,7 +20,7 @@ public class CopyNoOverwriteResult {
 		return newFilename;
 	}
 
-	public void setNewFilename(String newFilename) {
+	void setNewFilename(String newFilename) {
 		this.newFilename = newFilename;
 	}
 

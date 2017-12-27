@@ -12,7 +12,7 @@ import java.sql.Connection;
  * Date: 12/15/2015
  * Time: 5:29 PM
  */
-public class SideLoadedRecordGrouper extends MarcRecordGrouper {
+class SideLoadedRecordGrouper extends MarcRecordGrouper {
 
 	/**
 	 * Creates a record grouping processor that saves results to the database.
@@ -22,7 +22,7 @@ public class SideLoadedRecordGrouper extends MarcRecordGrouper {
 	 * @param logger         - A logger to store debug and error messages to.
 	 * @param fullRegrouping - Whether or not we are doing full regrouping or if we are only grouping changes.
 	 */
-	public SideLoadedRecordGrouper(Connection dbConnection, IndexingProfile profile, Logger logger, boolean fullRegrouping) {
+	SideLoadedRecordGrouper(Connection dbConnection, IndexingProfile profile, Logger logger, boolean fullRegrouping) {
 		super(dbConnection, profile, logger, fullRegrouping);
 	}
 

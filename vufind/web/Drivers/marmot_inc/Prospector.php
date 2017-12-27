@@ -18,60 +18,94 @@ class Prospector{
 		}
 		$prospectorInfo = $req->getResponseBody();
 
-		//Parse the information to get the titles from the page
-		preg_match_all('/dpBibTitle(.*?)bibLocations/si', $prospectorInfo, $titleInfo, PREG_SET_ORDER);
-		$prospectorTitles = array();
-		for ($matchi = 0; $matchi < count($titleInfo); $matchi++) {
-			$curTitleInfo = array();
-			//Extract the title and bid from the titleTitleInfo
-			$titleTitleInfo = $titleInfo[$matchi][1];
+		//Get the total number of results
+		if (preg_match('/<span class="noResultsHideMessage">.*?(\d+) - (\d+) of (\d+).*?<\/span>/s', $prospectorInfo, $summaryInfo)){
+			$firstResult = $summaryInfo[1];
+			$lastResult = $summaryInfo[2];
+			$numberOfResults = $summaryInfo[3];
 
-			if (preg_match('/<span class="title">.*?<a.*?href.*?__R(.*?)__.*?>\\s*(.*?)\\s*<\/a>.*?<\/span>/s', $titleTitleInfo, $titleMatches)) {
-				$curTitleInfo['id'] = $titleMatches[1];
-				//Create the link to the title in Encore
-				$curTitleInfo['link'] = "http://encore.coalliance.org/iii/encore/record/C__R" . urlencode($curTitleInfo['id']) ."__Orightresult?lang=eng&amp;suite=def";
-				$curTitleInfo['title'] = strip_tags($titleMatches[2]);
-			} else {
-				//Couldn't load information, skip to the next one.
-				continue;
-			}
+			//Parse the information to get the titles from the page
+			preg_match_all('/gridBrowseCol2(.*?)bibLocations/si', $prospectorInfo, $titleInfo, PREG_SET_ORDER);
+			$prospectorTitles = array();
+			for ($matchi = 0; $matchi < count($titleInfo); $matchi++) {
+				$curTitleInfo = array();
+				//Extract the title and bid from the titleTitleInfo
+				$titleTitleInfo = $titleInfo[$matchi][1];
 
-			//Extract the author from the titleAuthorInfo
-			$titleAuthorInfo = $titleInfo[$matchi][1];
-			if (preg_match('/<div class="dpBibAuthor">(.*?)<\/div>/s', $titleAuthorInfo, $authorMatches)) {
-				$authorInfo = trim(strip_tags($authorMatches[1]));
-				if (strlen($authorInfo) > 0){
-					$curTitleInfo['author'] = $authorInfo;
+				//Get the cover
+				if (preg_match('/<div class="itemBookCover">.*?<img.*?src="(.*?)".*<\/div>/s', $titleTitleInfo, $imageMatches)) {
+					$curTitleInfo['cover'] = $imageMatches[1];
+					//echo "Found book cover " . $curTitleInfo['cover'];
 				}
-			}
 
-			//Extract the publication date from the titlePubDateInfo
-			$titlePubDateInfo = $titleInfo[$matchi][1];
-			if (preg_match('/"itemMediaYear".*?>(.*?)<\/span>/s', $titlePubDateInfo, $pubMatches)) {
-				//Make sure we are not getting scripts and copy counts
-				if (!preg_match('/img/', $pubMatches[1]) && !preg_match('/script/', $pubMatches[1])){
-					$publicationInfo = trim(strip_tags($pubMatches[1]));
-					if (strlen($publicationInfo) > 0){
-						$curTitleInfo['pubDate'] =$publicationInfo;
+				if (preg_match('/<span class="title">.*?<a.*?href.*?__R(.*?)__.*?>\\s*(.*?)\\s*<\/a>.*?<\/span>/s', $titleTitleInfo, $titleMatches)) {
+					$curTitleInfo['id'] = $titleMatches[1];
+					//Create the link to the title in Encore
+					$curTitleInfo['link'] = "http://encore.coalliance.org/iii/encore/record/C__R" . urlencode($curTitleInfo['id']) ."__Orightresult?lang=eng&amp;suite=def";
+					$curTitleInfo['title'] = strip_tags($titleMatches[2]);
+				} else {
+					//Couldn't load information, skip to the next one.
+					continue;
+				}
+
+				//Extract the format from the itemMediaDescription
+				if (preg_match('/<span class="itemMediaDescription" id="mediaTypeInsertComponent">(.*?)<\/span>/s', $titleTitleInfo, $formatMatches)) {
+					$formatInfo = trim(strip_tags($formatMatches[1]));
+					if (strlen($formatInfo) > 0){
+						$curTitleInfo['format'] = $formatInfo;
 					}
 				}
-			}
 
-			//Extract format titlePubDateInfo
-			$titleFormatInfo = $titleInfo[$matchi][1];
-			if (preg_match('/"itemMediaDescription".*?>(.*?)<\/span>/s', $titleFormatInfo, $formatMatches)) {
-				//Make sure we are not getting scripts and copy counts
-				$formatInfo = trim(strip_tags($formatMatches[1]));
-				if (strlen($formatInfo) > 0){
-					$curTitleInfo['format'] =$formatInfo;
+				//Extract the author from the titleAuthorInfo
+				$titleAuthorInfo = $titleInfo[$matchi][1];
+				if (preg_match('/<div class="dpBibAuthor">(.*?)<\/div>/s', $titleAuthorInfo, $authorMatches)) {
+					$authorInfo = trim(strip_tags($authorMatches[1]));
+					if (strlen($authorInfo) > 0){
+						$curTitleInfo['author'] = $authorInfo;
+					}
 				}
+
+				//Extract the publication date from the titlePubDateInfo
+				$titlePubDateInfo = $titleInfo[$matchi][1];
+				if (preg_match('/"itemMediaYear".*?>(.*?)<\/span>/s', $titlePubDateInfo, $pubMatches)) {
+					//Make sure we are not getting scripts and copy counts
+					if (!preg_match('/img/', $pubMatches[1]) && !preg_match('/script/', $pubMatches[1])){
+						$publicationInfo = trim(strip_tags($pubMatches[1]));
+						if (strlen($publicationInfo) > 0){
+							$curTitleInfo['pubDate'] =$publicationInfo;
+						}
+					}
+				}
+
+				//Extract format titlePubDateInfo
+				$titleFormatInfo = $titleInfo[$matchi][1];
+				if (preg_match('/"itemMediaDescription".*?>(.*?)<\/span>/s', $titleFormatInfo, $formatMatches)) {
+					//Make sure we are not getting scripts and copy counts
+					$formatInfo = trim(strip_tags($formatMatches[1]));
+					if (strlen($formatInfo) > 0){
+						$curTitleInfo['format'] =$formatInfo;
+					}
+				}
+
+				$prospectorTitles[] = $curTitleInfo;
 			}
 
-			$prospectorTitles[] = $curTitleInfo;
+			$prospectorTitles = array_slice($prospectorTitles, 0, $maxResults, true);
+			return array(
+					'firstRecord' => $firstResult,
+					'lastRecord' => $lastResult,
+					'resultTotal' => $numberOfResults,
+					'records' => $prospectorTitles,
+			);
+		}else{
+			return array(
+					'firstRecord' => 0,
+					'lastRecord' => 0,
+					'resultTotal' => 0,
+					'records' => array(),
+			);
 		}
 
-		$prospectorTitles = array_slice($prospectorTitles, 0, $maxResults, true);
-		return $prospectorTitles;
 	}
 
 	function getSearchLink($searchTerms){

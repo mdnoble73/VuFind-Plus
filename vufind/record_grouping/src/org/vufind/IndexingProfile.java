@@ -12,22 +12,23 @@ import java.util.HashSet;
  * Time: 10:38 PM
  */
 public class IndexingProfile {
-	public Long id;
+	Long id;
 	public String name;
-	public String marcPath;
-	public String filenamesToInclude;
-	public String marcEncoding;
-	public String individualMarcPath;
-	public int numCharsToCreateFolderFrom;
-	public boolean createFolderFromLeadingCharacters;
-	public String groupingClass;
-	public String recordNumberTag;
-	public String recordNumberPrefix;
-	public String itemTag ;
-	public String formatSource;
-	public char format;
-	public char eContentDescriptor;
-	public String specifiedFormatCategory;
+	String marcPath;
+	String filenamesToInclude;
+	String marcEncoding;
+	String individualMarcPath;
+	int numCharsToCreateFolderFrom;
+	boolean createFolderFromLeadingCharacters;
+	String groupingClass;
+	String recordNumberTag;
+	String recordNumberPrefix;
+	String itemTag ;
+	String formatSource;
+	char format;
+	char eContentDescriptor;
+	String specifiedFormatCategory;
+	boolean doAutomaticEcontentSuppression;
 
 	File getFileForIlsRecord(String recordNumber) {
 		String shortId = recordNumber.replace(".", "");

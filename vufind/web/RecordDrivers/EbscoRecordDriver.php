@@ -39,7 +39,12 @@ class EbscoRecordDriver extends RecordInterface {
 	}
 
 	public function getBookcoverUrl($size = 'small') {
-		// TODO: Implement getBookcoverUrl() method.
+		if ($this->recordData->ImageInfo){
+			return (string)$this->recordData->ImageInfo->CoverArt->Target;
+		}else{
+			return null;
+		}
+
 	}
 
 	/**
@@ -159,9 +164,10 @@ class EbscoRecordDriver extends RecordInterface {
 	}
 
 	public function getRecordUrl() {
-		global $configArray;
-		return $configArray['Site']['path'] . '/EBSCO/Home?id=' . urlencode($this->getUniqueID());
-		//return $this->recordData->PLink;
+		//TODO: Switch back to an internal link once we do a full EBSCO implementation
+		//global $configArray;
+		//return $configArray['Site']['path'] . '/EBSCO/Home?id=' . urlencode($this->getUniqueID());
+		return $this->recordData->PLink;
 	}
 
 	public function getEbscoUrl() {
@@ -217,6 +223,9 @@ class EbscoRecordDriver extends RecordInterface {
 		$interface->assign('summAuthor', $this->getAuthor());
 		$interface->assign('summSourceDatabase', $this->getSourceDatabase());
 		$interface->assign('summHasFullText', $this->hasFullText());
+
+		$interface->assign('bookCoverUrl', $this->getBookcoverUrl('small'));
+		$interface->assign('bookCoverUrlMedium', $this->getBookcoverUrl('medium'));
 
 		$interface->assign('summURLs', $this->getURLs());
 

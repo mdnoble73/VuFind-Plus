@@ -195,7 +195,7 @@ class AJAX extends Action {
 		// Only show prospector results within search results if enabled
 		if ($library && $library->enablePospectorIntegration && $library->showProspectorResultsAtEndOfSearch){
 			$prospectorResults = $prospector->getTopSearchResults($searchObject->getSearchTerms(), 5);
-			$interface->assign('prospectorResults', $prospectorResults);
+			$interface->assign('prospectorResults', $prospectorResults['records']);
 		}
 
 		$prospectorLink = $prospector->getSearchLink($searchObject->getSearchTerms());

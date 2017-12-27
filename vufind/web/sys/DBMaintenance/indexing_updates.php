@@ -235,14 +235,23 @@ function getIndexingUpdates() {
 				)
 		),
 
-			'indexing_profile_extendLocationsToSuppress' => array(
-					'title' => 'Indexing Profiles - Extend Locations To Suppress Size',
-					'description' => 'Extend Locations To Suppress Size for an indexing profile',
-					'continueOnError' => true,
-					'sql' => array(
-							"ALTER TABLE indexing_profiles CHANGE `locationsToSuppress` `locationsToSuppress` varchar(255)",
-					)
-			),
+		'indexing_profile_extendLocationsToSuppress' => array(
+				'title' => 'Indexing Profiles - Extend Locations To Suppress Size',
+				'description' => 'Extend Locations To Suppress Size for an indexing profile',
+				'continueOnError' => true,
+				'sql' => array(
+						"ALTER TABLE indexing_profiles CHANGE `locationsToSuppress` `locationsToSuppress` varchar(255)",
+				)
+		),
+
+		'indexing_profile_doAutomaticEcontentSuppression' => array(
+				'title' => 'Indexing Profiles - Do Automatic EContent Suppression',
+				'description' => 'Allow logic for whether or not automatic econtent suppression is enabled or disabled in an indexing profile',
+				'continueOnError' => true,
+				'sql' => array(
+						"ALTER TABLE indexing_profiles ADD COLUMN `doAutomaticEcontentSuppression` tinyint(1) DEFAULT 1",
+				)
+		),
 
 		'translation_map_regex' => array(
 			'title' => 'Translation Maps Regex',
