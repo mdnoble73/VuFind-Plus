@@ -313,10 +313,10 @@ class AJAX extends Action {
 		$dpla = new DPLA();
 		$searchTerm = $_REQUEST['searchTerm'];
 		$results = $dpla->getDPLAResults($searchTerm);
-		$formattedResults = $dpla->formatResults($results);
+		$formattedResults = $dpla->formatResults($results['records']);
 
 		$returnVal = array(
-			'rawResults' => $results,
+			'rawResults' => $results['records'],
 			'formattedResults' => $formattedResults,
 		);
 

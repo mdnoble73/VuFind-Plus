@@ -419,6 +419,31 @@ abstract class IslandoraDriver extends RecordInterface {
 
 	/**
 	 * Assign necessary Smarty variables and return a template name to
+	 * load in order to display a summary of the item suitable for use in
+	 * search results.
+	 *
+	 * @access  public
+	 * @return  string              Name of Smarty template file to display.
+	 */
+	public function getCombinedResult($view = 'list') {
+		global $interface;
+		$id = $this->getUniqueID();
+		$interface->assign('summId', $id);
+		$interface->assign('summTitle', $this->getTitle());
+		$interface->assign('module', $this->getModule());
+
+		$linkUrl = $this->getLinkUrl();
+
+		$interface->assign('summUrl', $linkUrl);
+//		$interface->assign('summUrl', $this->getLinkUrl());
+		$interface->assign('summDescription', $this->getDescription());
+		$interface->assign('summFormat', $this->getFormat());
+
+		return 'RecordDrivers/Islandora/combinedResult.tpl';
+	}
+
+	/**
+	 * Assign necessary Smarty variables and return a template name to
 	 * load in order to display the full record information on the Staff
 	 * View tab of the record view page.
 	 *

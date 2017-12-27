@@ -35,6 +35,9 @@ class DPLA {
 				if ($curResult['format'] == "" ){
 					$curResult['format'] = @$this->getDataForNode($curDoc->originalRecord->type);
 				}
+				if ($curResult['format'] == "" ){
+					$curResult['format'] = 'Not Provided';
+				}
 				$curResult['date'] = @$this->getDataForNode($curDoc->sourceResource->date->displayDate);
 				$curResult['publisher'] = @$this->getDataForNode($curDoc->sourceResource->publisher);
 				if ($curResult['publisher'] == "" ){
@@ -45,7 +48,12 @@ class DPLA {
 				$results[] = $curResult;
 			}
 		}
-		return $results;
+
+		return array(
+				'firstRecord' => 0,
+				'lastRecord' => count($results),
+				'resultTotal' => $responseData->count,
+				'records' => $results);
 	}
 
 	public function getDataForNode($node){

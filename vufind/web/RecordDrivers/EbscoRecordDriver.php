@@ -234,6 +234,39 @@ class EbscoRecordDriver extends RecordInterface {
 
 	/**
 	 * Assign necessary Smarty variables and return a template name to
+	 * load in order to display a summary of the item suitable for use in
+	 * search results.
+	 *
+	 * @access  public
+	 * @return  string              Name of Smarty template file to display.
+	 */
+	public function getCombinedResult() {
+		global $interface;
+
+		$id = $this->getUniqueID();
+		$interface->assign('summId', $id);
+		$interface->assign('summShortId', $id);
+		$interface->assign('module', $this->getModule());
+
+		$formats = $this->getFormats();
+		$interface->assign('summFormats', $formats);
+
+		$interface->assign('summUrl', $this->getLinkUrl());
+		$interface->assign('summTitle', $this->getTitle());
+		$interface->assign('summAuthor', $this->getAuthor());
+		$interface->assign('summSourceDatabase', $this->getSourceDatabase());
+		$interface->assign('summHasFullText', $this->hasFullText());
+
+		$interface->assign('bookCoverUrl', $this->getBookcoverUrl('small'));
+		$interface->assign('bookCoverUrlMedium', $this->getBookcoverUrl('medium'));
+
+		$interface->assign('summURLs', $this->getURLs());
+
+		return 'RecordDrivers/EBSCO/combinedResult.tpl';
+	}
+
+	/**
+	 * Assign necessary Smarty variables and return a template name to
 	 * load in order to display the full record information on the Staff
 	 * View tab of the record view page.
 	 *

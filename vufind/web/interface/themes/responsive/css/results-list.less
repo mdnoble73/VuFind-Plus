@@ -8,7 +8,9 @@
 
 .result{
   border-bottom: 2px solid #d5d6da;
-  padding: 10px 5px 15px;
+  padding: 10px 0 15px;
+  margin-left: 5px;
+  margin-right: 5px;
   font-size: 12px;
 }
 .result-value-bold{
@@ -335,10 +337,23 @@
   }
   width: 100%;
   display: inline-block;
+  padding: 2px;
   padding-bottom: 20px;
+  border-top: 5px solid @menu-bar-background-color;
+  margin-top: 15px;
+
 }
 .combined-results-section-title {
   font-weight: bold;
+  margin-top: 10px;
+  margin-bottom: 15px;
+  float:left;
+}
+.combined-results-button{
+  float:right;
+  margin-top: 4px;
+  background-color: @menu-bar-background-color;
+	border-color: @menu-bar-background-color;
 }
 //@media (min-width: @screen-md-min) {
 //  //#combined-results-container {

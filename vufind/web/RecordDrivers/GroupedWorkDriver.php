@@ -660,6 +660,160 @@ class GroupedWorkDriver extends RecordInterface{
 		return 'RecordDrivers/GroupedWork/result.tpl';
 	}
 
+	/**
+	 * Assign necessary Smarty variables and return a template name to
+	 * load in order to display a summary of the item suitable for use in
+	 * search results.
+	 *
+	 * @access  public
+
+	 * @param string $view The current view.
+	 * @param boolean $useUnscopedHoldingsSummary Whether or not the result should show an unscoped holdings summary.
+	 *
+	 * @return  string              Name of Smarty template file to display.
+	 */
+	public function getCombinedResult($view = 'list', $useUnscopedHoldingsSummary = false) {
+		if ($view == 'covers') { // Displaying Results as bookcover tiles
+			return $this->getBrowseResult();
+		}
+
+		// Displaying results as the default list
+		global $configArray;
+		global $interface;
+		global $timer;
+		global $memoryWatcher;
+
+		$interface->assign('displayingSearchResults', true);
+		$interface->assign('useUnscopedHoldingsSummary', $useUnscopedHoldingsSummary);
+
+		$id = $this->getUniqueID();
+		$timer->logTime("Starting to load search result for grouped work $id");
+		$interface->assign('summId', $id);
+		if (substr($id, 0, 1) == '.'){
+			$interface->assign('summShortId', substr($id, 1));
+		}else{
+			$interface->assign('summShortId', $id);
+		}
+		$relatedManifestations = $this->getRelatedManifestations();
+		$interface->assign('relatedManifestations', $relatedManifestations);
+		$timer->logTime("Loaded related manifestations");
+		$memoryWatcher->logMemory("Loaded related manifestations for {$this->getUniqueID()}");
+
+		//Build the link URL.
+		//If there is only one record for the work we will link straight to that.
+		$relatedRecords = $this->getRelatedRecords();
+		$timer->logTime("Loaded related records");
+		$memoryWatcher->logMemory("Loaded related records");
+		if (count($relatedRecords) == 1){
+			$firstRecord = reset($relatedRecords);
+			$linkUrl = $firstRecord['url'];
+			$linkUrl .=  '?searchId=' . $interface->get_template_vars('searchId') . '&amp;recordIndex=' . $interface->get_template_vars('recordIndex') . '&amp;page='  . $interface->get_template_vars('page');
+		}else{
+			$linkUrl = '/GroupedWork/' . $id . '/Home?searchId=' . $interface->get_template_vars('searchId') . '&amp;recordIndex=' . $interface->get_template_vars('recordIndex') . '&amp;page='  . $interface->get_template_vars('page');
+			if ($useUnscopedHoldingsSummary){
+				$linkUrl .= '&amp;searchSource=marmot';
+			}else{
+				$linkUrl .= '&amp;searchSource=' . $interface->get_template_vars('searchSource');
+			}
+		}
+
+		$interface->assign('summUrl', $linkUrl);
+		$interface->assign('summTitle', $this->getTitleShort(true));
+		$interface->assign('summSubTitle', $this->getSubtitle(true));
+		$interface->assign('summAuthor', rtrim($this->getPrimaryAuthor(true), ','));
+		$isbn = $this->getCleanISBN();
+		$interface->assign('summISBN', $isbn);
+		$interface->assign('summFormats', $this->getFormats());
+		$interface->assign('numRelatedRecords', count($relatedRecords));
+		$acceleratedReaderInfo = $this->getAcceleratedReaderDisplayString();
+		$interface->assign('summArInfo', $acceleratedReaderInfo);
+		$lexileInfo = $this->getLexileDisplayString();
+		$interface->assign('summLexileInfo', $lexileInfo);
+		$interface->assign('summFountasPinnell', $this->getFountasPinnellLevel());
+		$timer->logTime("Finished assignment of main data");
+		$memoryWatcher->logMemory("Finished assignment of main data");
+
+		//Generate COinS URL for Zotero support
+		$interface->assign('summCOinS', $this->getOpenURL());
+
+		$summPublisher    = null;
+		$summPubDate      = null;
+		$summPhysicalDesc = null;
+		$summEdition      = null;
+		$summLanguage     = null;
+		$isFirst = true;
+		global $library;
+		$alwaysShowMainDetails = $library ? $library->alwaysShowSearchResultsMainDetails : false;
+		foreach ($relatedRecords as $relatedRecord){
+			if ($isFirst){
+				$summPublisher    = $relatedRecord['publisher'];
+				$summPubDate      = $relatedRecord['publicationDate'];
+				$summPhysicalDesc = $relatedRecord['physical'];
+				$summEdition      = $relatedRecord['edition'];
+				$summLanguage     = $relatedRecord['language'];
+			}else{
+				if ($summPublisher != $relatedRecord['publisher']){
+					$summPublisher = $alwaysShowMainDetails ? translate('Varies, see individual formats and editions') : null;
+				}
+				if ($summPubDate != $relatedRecord['publicationDate']){
+					$summPubDate = $alwaysShowMainDetails ? translate('Varies, see individual formats and editions') : null;
+				}
+				if ($summPhysicalDesc != $relatedRecord['physical']){
+					$summPhysicalDesc = $alwaysShowMainDetails ? translate('Varies, see individual formats and editions') : null;
+				}
+				if ($summEdition != $relatedRecord['edition']){
+					$summEdition = $alwaysShowMainDetails ? translate('Varies, see individual formats and editions') : null;
+				}
+				if ($summLanguage != $relatedRecord['language']){
+					$summLanguage = $alwaysShowMainDetails ? translate('Varies, see individual formats and editions') : null;
+				}
+			}
+			$isFirst = false;
+		}
+		$interface->assign('summPublisher', rtrim($summPublisher, ','));
+		$interface->assign('summPubDate', $summPubDate);
+		$interface->assign('summPhysicalDesc', $summPhysicalDesc);
+		$interface->assign('summEdition', $summEdition);
+		$interface->assign('summLanguage', $summLanguage);
+		$timer->logTime("Finished assignment of data based on related records");
+
+		if ($configArray['System']['debugSolr']){
+			$interface->assign('summScore', $this->getScore());
+			$interface->assign('summExplain', $this->getExplain());
+		}
+		$timer->logTime("Finished assignment of data based on solr debug info");
+
+		//Get Rating
+		$interface->assign('summRating', $this->getRatingData());
+		$timer->logTime("Finished loading rating data");
+
+		//Description
+		$interface->assign('summDescription', $this->getDescriptionFast(true));
+		$timer->logTime('Finished Loading Description');
+		$memoryWatcher->logMemory("Finished Loading Description");
+		if ($this->hasCachedSeries()){
+			$interface->assign('ajaxSeries', false);
+			$interface->assign('summSeries', $this->getSeries(false));
+		}else{
+			$interface->assign('ajaxSeries', true);
+			$interface->assign('summSeries', null);
+		}
+		$timer->logTime('Finished Loading Series');
+		$memoryWatcher->logMemory("Finished Loading Series");
+
+		$interface->assign('bookCoverUrl', $this->getBookcoverUrl('small'));
+		$interface->assign('bookCoverUrlMedium', $this->getBookcoverUrl('medium'));
+
+		// By default, do not display AJAX status; we won't assume that all
+		// records exist in the ILS.  Child classes can override this setting
+		// to turn on AJAX as needed:
+		$interface->assign('summAjaxStatus', false);
+
+		$interface->assign('recordDriver', $this);
+
+		return 'RecordDrivers/GroupedWork/combinedResult.tpl';
+	}
+
 	public function getBrowseResult(){
 		global $interface;
 		$id = $this->getUniqueID();

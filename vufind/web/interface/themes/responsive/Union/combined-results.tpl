@@ -1,11 +1,13 @@
 {strip}
-	<h2>
+	{*<h2>
 		{$pageTitleShort}
-	</h2>
+	</h2>*}
 	<div class="result-head">
 		{* User's viewing mode toggle switch *}
+		{*
 		{include file="Union/results-displayMode-toggle.tpl"}
-
+		*}
+		<br/>
 		<div class="clearer"></div>
 	</div>
 
@@ -16,7 +18,7 @@
 				{if ($smarty.foreach.searchSection.index%2 == $smarty.section.column.index)}
 					<div class="combined-results-section combined-results-column-{$smarty.section.column.index}">
 						<h3 class="combined-results-section-title">
-							<a href="{$combinedResultSection->getResultsLink($lookfor, $basicSearchType)}" target='_blank'>{$combinedResultSection->displayName}</a>
+							{$combinedResultSection->displayName}
 						</h3>
 						<div class="combined-results-section-results" id="combined-results-section-results-{$combinedResultSection->id}">
 							<img src="{$path}/images/loading.gif" alt="loading">

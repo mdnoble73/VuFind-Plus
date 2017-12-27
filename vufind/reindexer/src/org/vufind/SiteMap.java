@@ -10,6 +10,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -114,13 +115,14 @@ class SiteMap {
 			resetSiteMapDefaults();
 			String fileName = buildSiteMapFileName("_unique_", fileID);
 			writeToFile(fileName, "_unique_", true, maxUniqueTitles, scopedUrl);
-			siteMapIndex.addSiteMapLocation(buildLocationURL(siteMapFileName("_unique_", 1), scopedUrl), date.toString());
+			SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+			siteMapIndex.addSiteMapLocation(buildLocationURL(siteMapFileName("_unique_", 1), scopedUrl), simpleDateFormat.format(date));
 
 			uniqueItemsToWrite = new ArrayList<>(popular);
 			resetSiteMapDefaults();
 			fileName = buildSiteMapFileName("_popular_", fileID);
 			writeToFile(fileName, "_popular_", false, maxPopularTitles, scopedUrl);
-			siteMapIndex.addSiteMapLocation(buildLocationURL(siteMapFileName("_popular_", 1), scopedUrl), date.toString());
+			siteMapIndex.addSiteMapLocation(buildLocationURL(siteMapFileName("_popular_", 1), scopedUrl), simpleDateFormat.format(date));
 
 			File siteMapindexFile = getSiteMapIndexFile();
 			siteMapIndex.saveFile(siteMapindexFile);

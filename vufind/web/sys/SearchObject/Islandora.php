@@ -452,6 +452,35 @@ class SearchObject_Islandora extends SearchObject_Base
 	}
 
 	/**
+	 * Use the record driver to build an array of HTML displays from the search
+	 * results.
+	 *
+	 * @access  public
+	 * @return  array   Array of HTML chunks for individual records.
+	 */
+	public function getCombinedResultHTML()
+	{
+		global $interface;
+
+		$html = array();
+		for ($x = 0; $x < count($this->indexResult['response']['docs']); $x++) {
+			$current = & $this->indexResult['response']['docs'][$x];
+
+			$interface->assign('recordIndex', $x + 1);
+			$interface->assign('resultIndex', $x + 1 + (($this->page - 1) * $this->limit));
+			/** @var IslandoraDriver $record */
+			$record = RecordDriverFactory::initRecordDriver($current);
+			if (!PEAR_Singleton::isError($record)) {
+				$interface->assign('recordDriver', $record);
+				$html[] = $interface->fetch($record->getCombinedResult($this->view));
+			} else {
+				$html[] = "Unable to find record";
+			}
+		}
+		return $html;
+	}
+
+	/**
 	 * Set an overriding array of archive PIDs.
 	 *
 	 * @access  public
