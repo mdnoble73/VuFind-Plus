@@ -259,7 +259,7 @@ class ExploreMore {
 					$exploreMoreSectionsToShow['dpla'] = array(
 //							'title' => 'Digital Public Library of America',
 							'format' => 'scrollerWithLink',
-							'values' => $dplaResults,
+							'values' => $dplaResults['records'],
 							'link' => 'http://dp.la/search?q=' . urlencode('"' . $archiveDriver->getTitle() . '"'),
 							'openInNewWindow' => true,
 					);

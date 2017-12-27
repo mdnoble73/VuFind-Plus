@@ -131,15 +131,11 @@ class Union_AJAX extends Action {
 		));
 		$result = $searchObject->processSearch(true, false);
 		$summary = $searchObject->getResultSummary();
-		$records = $searchObject->getResultRecordHTML();
+		$records = $searchObject->getCombinedResultsHTML();
 		if ($summary['resultTotal'] == 0){
-			$results = '<div>No results match your search.</div>';
+			$results = '<div class="clearer"></div><div>No results match your search.</div>';
 		}else{
-			if ($summary['resultTotal'] < $numberOfResults) {
-				$results = "<div>Showing {$summary['resultTotal']} records</div>";
-			} else {
-				$results = "<div>Showing $numberOfResults of <a href='{$fullResultsLink}' target='_blank'>{$summary['resultTotal']} results</a></div>";
-			}
+			$results = "<a href='{$fullResultsLink}' class='btn btn-info combined-results-button'>&gt; See all {$summary['resultTotal']} results</a><div class='clearer'></div>";
 
 
 			$interface->assign('recordSet', $records);
@@ -162,15 +158,11 @@ class Union_AJAX extends Action {
 		$edsApi = EDS_API::getInstance();
 		$searchResults = $edsApi->getSearchResults($searchTerm);
 		$summary = $edsApi->getResultSummary();
-		$records = $edsApi->getResultRecordHTML();
+		$records = $edsApi->getCombinedResultHTML();
 		if ($summary['resultTotal'] == 0){
-			$results = '<div>No results match your search.</div>';
+			$results = '<div class="clearer"></div><div>No results match your search.</div>';
 		}else {
-			if ($summary['resultTotal'] < $numberOfResults) {
-				$results = "<div>Showing {$summary['resultTotal']} records</div>";
-			} else {
-				$results = "<div>Showing $numberOfResults of <a href='{$fullResultsLink}' target='_blank'>{$summary['resultTotal']} results</a></div>";
-			}
+			$results = "<a href='{$fullResultsLink}' class='btn btn-info combined-results-button'>&gt; See all {$summary['resultTotal']} results</a><div class='clearer'></div>";
 
 			$records = array_slice($records, 0, $numberOfResults);
 			global $interface;
@@ -211,15 +203,11 @@ class Union_AJAX extends Action {
 		));
 		$result = $searchObject->processSearch(true, false);
 		$summary = $searchObject->getResultSummary();
-		$records = $searchObject->getResultRecordHTML();
+		$records = $searchObject->getCombinedResultHTML();
 		if ($summary['resultTotal'] == 0){
-			$results = '<div>No results match your search.</div>';
+			$results = '<div class="clearer"></div><div>No results match your search.</div>';
 		}else {
-			if ($summary['resultTotal'] < $numberOfResults) {
-				$results = "<div>Showing {$summary['resultTotal']} records</div>";
-			} else {
-				$results = "<div>Showing $numberOfResults of <a href='{$fullResultsLink}' target='_blank'>{$summary['resultTotal']} results</a></div>";
-			}
+			$results = "<a href='{$fullResultsLink}' class='btn btn-info combined-results-button'>&gt; See all {$summary['resultTotal']} results</a><div class='clearer'></div>";
 
 			global $interface;
 			$interface->assign('recordSet', $records);
@@ -241,7 +229,12 @@ class Union_AJAX extends Action {
 		require_once ROOT_DIR . '/sys/SearchObject/DPLA.php';
 		$dpla = new DPLA();
 		$dplaResults = $dpla->getDPLAResults($searchTerm, $numberOfResults);
-		$results = $dpla->formatCombinedResults($dplaResults, false);
+		if ($dplaResults['resultTotal'] == 0){
+			$results = '<div class="clearer"></div><div>No results match your search.</div>';
+		}else {
+			$results = "<a href='{$fullResultsLink}' class='btn btn-info combined-results-button'>&gt; See all {$dplaResults['resultTotal']} results</a><div class='clearer'></div>";
+		}
+		$results .= $dpla->formatCombinedResults($dplaResults['records'], false);
 		return $results;
 	}
 
@@ -264,13 +257,9 @@ class Union_AJAX extends Action {
 		$prospectorResults = $prospector->getTopSearchResults($searchTerms, $numberOfResults);
 		global $interface;
 		if ($prospectorResults['resultTotal'] == 0){
-			$results = '<div>No results match your search.</div>';
+			$results = '<div class="clearer"></div><div>No results match your search.</div>';
 		}else {
-			if ($prospectorResults['resultTotal'] < $numberOfResults) {
-				$results = "<div>Showing {$prospectorResults['resultTotal']} records</div>";
-			} else {
-				$results = "<div>Showing $numberOfResults of <a href='{$fullResultsLink}' target='_blank'>{$prospectorResults['resultTotal']} results</a></div>";
-			}
+			$results = "<a href='{$fullResultsLink}' class='btn btn-info combined-results-button'>&gt; See all {$prospectorResults['resultTotal']} results</a><div class='clearer'></div>";
 			$interface->assign('prospectorResults', $prospectorResults['records']);
 			$results .= $interface->fetch('Union/prospector.tpl');
 		}
