@@ -13,7 +13,7 @@ require_once ROOT_DIR . '/sys/Pager.php';
 class EDS_API {
 	static $instance;
 
-	private $edsBaseApi = 'http://eds-api.ebscohost.com/edsapi/rest';
+	private $edsBaseApi = 'https://eds-api.ebscohost.com/edsapi/rest';
 	private $curl_connection;
 	private $sessionId;
 	private $authenticationToken;

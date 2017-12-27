@@ -50,7 +50,7 @@ abstract class CombinedResultSection extends DB_DataObject{
 			return "https://dp.la/search?q=$searchTerm";
 		}elseif ($this->source == 'eds'){
 			global $library;
-			return "http://search.ebscohost.com/login.aspx?direct=true&site=eds-live&scope=site&type=1&custid={$library->edsApiUsername}&groupid=main&profid={$library->edsSearchProfile}&mode=bool&lang=en&authtype=cookie,ip,guest&bquery=$searchTerm";
+			return "https://search.ebscohost.com/login.aspx?direct=true&site=eds-live&scope=site&type=1&custid={$library->edsApiUsername}&groupid=main&profid={$library->edsSearchProfile}&mode=bool&lang=en&authtype=cookie,ip,guest&bquery=$searchTerm";
 		}elseif ($this->source == 'archive'){
 			return "/Archive/Results?lookfor=$searchTerm&basicType=$searchType";
 		}else{
