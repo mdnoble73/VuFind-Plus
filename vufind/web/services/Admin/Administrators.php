@@ -108,7 +108,12 @@ class Admin_Administrators extends ObjectEditor
 			header("Location: {$configArray['Site']['path']}/Admin/{$this->getToolName()}");
 			die();
 		}else{
-			$interface->assign('error', 'Could not find a user with that barcode. (The user needs to have logged in at least once.)');
+			if ($newAdmin->N == 0){
+				$interface->assign('error', 'Could not find a user with that barcode. (The user needs to have logged in at least once.)');
+			}else{
+				$interface->assign('error', "Found multiple users with that barcode {$newAdmin->N}. (The database needs to be cleaned up.)");
+			}
+
 			$interface->setTemplate('addAdministrator.tpl');
 		}
 	}
