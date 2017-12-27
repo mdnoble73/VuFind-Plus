@@ -46,11 +46,12 @@
 @reboot sleep 300 && /usr/local/vufind-plus/sites/wcpl.production/continuous_partial_reindex.sh
 
 #######################
-# VuFind-Plus Cleanup #
+# Pika Cleanup #
 #######################
 27 0 * * * cd /tmp; rm -rf CURLCOOKIE*
 28 0 * * * cd /tmp; rm -rf epb*
 0 0-7 * * * /usr/sbin/apachectl restart > /dev/null 2>&1
+0 8-23 * * * /usr/sbin/apachectl graceful > /dev/null 2>&1
 
 ########################
 # Full Update #

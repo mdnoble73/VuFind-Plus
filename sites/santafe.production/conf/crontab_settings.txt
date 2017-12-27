@@ -52,6 +52,7 @@
 26 * * * * cd /tmp; /bin/rm -rf CURLCOOKIE*
 27 */2 * * * cd /tmp; /bin/rm -rf epb*
 0 0-7 * * * /usr/sbin/apachectl restart > /dev/null 2>&1
+0 8-23 * * * /usr/sbin/apachectl graceful > /dev/null 2>&1
 
 ###################################
 # Data Extract from other systems #
