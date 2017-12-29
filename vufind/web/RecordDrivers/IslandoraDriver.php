@@ -667,6 +667,14 @@ abstract class IslandoraDriver extends RecordInterface {
 			);
 		}
 
+		if ($this->loadMusicInformation()) {
+			$moreDetailsOptions['musicDetails'] = array(
+					'label' => 'Music Information',
+					'body' => $interface->fetch('Archive/musicDetailsSection.tpl'),
+					'hideByDefault' => false
+			);
+		}
+
 		$directlyRelatedObjects = $this->getDirectlyRelatedArchiveObjects();
 		$existingValue = $interface->getVariable('directlyRelatedObjects');
 		if ($existingValue != null){
@@ -3191,6 +3199,98 @@ abstract class IslandoraDriver extends RecordInterface {
 		return $this->showClaimAuthorship;
 	}
 
+	private function loadMusicInformation() {
+		global $interface;
+		require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
+		$fedoraUtils = FedoraUtils::getInstance();
+		$hasMusicInformation = false;
+		$musicSection = $this->getModsValue('music', 'marmot');
+		if ($musicSection){
+			require_once ROOT_DIR . '/sys/Utils/FedoraUtils.php';
+			$musicGenreSections = $this->getModsValues('musicGenre', 'marmot', $musicSection);
+			$genres = array();
+			foreach ($musicGenreSections as $musicGenreSection){
+				$musicTerm = $this->getModsValue('musicGenreTerm', 'marmot', $musicGenreSection);
+				$relatedMusicGenreLCCN = $this->getModsValue('relatedMusicGenreLCCN', 'marmot', $musicGenreSection);
+				if ($relatedMusicGenreLCCN){
+					$link = "/Archive/Results?lookfor=$relatedMusicGenreLCCN";
+				}else{
+					$link = null;
+				}
+				if ($musicTerm){
+					$genres[] = array(
+							'label' => $musicTerm,
+							'lccn' => $relatedMusicGenreLCCN,
+							'link' => $link
+					);
+				}
+
+			}
+			if (count($genres) > 0){
+				$interface->assign('musicGenres', $genres);
+				$hasMusicInformation = true;
+			}
+
+			$albumSections = $this->getModsValues('albumInfo', 'marmot', $musicSection);
+			$albums = array();
+			foreach ($albumSections as $albumSection){
+				$albumTitle = $this->getModsValue('albumTitle', 'marmot', $albumSection);
+				$albumTrackNumber = $this->getModsValue('albumTrackNumber', 'marmot', $albumSection);
+				$albumTotalTracks = $this->getModsValue('albumTotalTracks', 'marmot', $albumSection);
+				$trackDiscNumber = $this->getModsValue('trackDiscNumber', 'marmot', $albumSection);
+				$albumTotalDiscs = $this->getModsValue('albumTotalDiscs', 'marmot', $albumSection);
+				$recordLabelName = $this->getModsValue('recordLabelName', 'marmot', $albumSection);
+				$recordLabelPid = $this->getModsValue('recordLabelPid', 'marmot', $albumSection);
+				$validAlbum = false;
+				$album = array();
+				if ($albumTitle != ''){
+					$album['title'] = $albumTitle;
+					$validAlbum = true;
+				}
+				if ($albumTrackNumber != ''){
+					$album['track'] = $albumTrackNumber;
+					if ($albumTotalTracks != '' && $albumTotalTracks != '0'){
+						$album['track'] .= ' of ' . $albumTotalTracks;
+					}
+					$validAlbum = true;
+				}
+				if ($trackDiscNumber != ''){
+					$album['disc'] = $trackDiscNumber;
+					if ($albumTotalDiscs != '' && $albumTotalDiscs != '0'){
+						$album['disc'] .= ' of ' . $albumTotalDiscs;
+					}
+					$validAlbum = true;
+				}
+				$validRecordLabel = false;
+				$recordLabel = '';
+				if ($recordLabelPid){
+					$recordLabelObject = $fedoraUtils->getObject($recordLabelPid);
+					if ($recordLabelObject){
+						$placeDriver = RecordDriverFactory::initRecordDriver($recordLabelObject);
+						$recordLabel = "<a href='{$placeDriver->getRecordUrl()}'>{$recordLabelName}</a>";
+						$validRecordLabel = true;
+					}
+				}
+				if (!$validRecordLabel && $recordLabelName != ''){
+					$recordLabel = $recordLabelName;
+					$validRecordLabel = true;
+				}
+				if ($validRecordLabel){
+					$album['recordLabel'] = $recordLabel;
+					$validAlbum = true;
+				}
+				if ($validAlbum){
+					$albums[] = $album;
+				}
+			}
+			if (count($albums) > 0){
+				$interface->assign('albums', $albums);
+				$hasMusicInformation = true;
+			}
+		}
+
+		return $hasMusicInformation;
+	}
 	private function loadArtInformation() {
 		global $interface;
 		$hasArtInformation = false;
