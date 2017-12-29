@@ -12,6 +12,7 @@
 #
 # ie :
 # git pull origin {current branch}
+# /usr/local/vufind-plus/vufind/cron/check_crontab.sh nashville.production
 # crontab < /usr/local/vufind-plus/sites/nashville.production/conf/crontab_settings.txt
 
 ###################
