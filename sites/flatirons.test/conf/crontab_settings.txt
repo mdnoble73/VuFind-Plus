@@ -36,12 +36,12 @@
 # MySQL Nightly Dump #
 ######################
 # backup important bits at 2:10am daily
-10 2 * * * /usr/local/vufind-plus/vufind/cron/nightly_mysql_dump.sh flatirons.test 2>&1 >/dev/null
+10 0 * * * /usr/local/vufind-plus/vufind/cron/nightly_mysql_dump.sh flatirons.test 2>&1 >/dev/null
 
 #####################
 # Daily full update #
 #####################
-00 18 * * * cd /usr/local/vufind-plus/sites/flatirons.test; ./full_update.sh
+00 2 * * * cd /usr/local/vufind-plus/sites/flatirons.test; ./full_update.sh
 
 ################
 # Pika Cleanup #
