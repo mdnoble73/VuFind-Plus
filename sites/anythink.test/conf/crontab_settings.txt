@@ -11,6 +11,7 @@
 #
 # ie :
 # git pull origin {current branch}
+# /usr/local/vufind-plus/vufind/cron/check_crontab.sh anythink.test
 # crontab < /usr/local/vufind-plus/sites/anythink.test/conf/crontab_settings.txt
 
 ###################
