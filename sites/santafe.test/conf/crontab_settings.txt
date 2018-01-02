@@ -11,6 +11,7 @@
 #
 # ie :
 # git pull origin {current branch}
+# /usr/local/vufind-plus/vufind/cron/check_crontab.sh santafe.test
 # crontab < /usr/local/vufind-plus/sites/santafe.test/conf/crontab_settings.txt
 
 ###################

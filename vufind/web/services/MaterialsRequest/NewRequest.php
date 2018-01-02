@@ -84,7 +84,7 @@ class MaterialsRequest_NewRequest extends Action
 			$interface->assign('materialsRequest', $request);
 
 			$interface->assign('showEbookFormatField', $configArray['MaterialsRequest']['showEbookFormatField']);
-			$interface->assign('showEaudioFormatField', $configArray['MaterialsRequest']['showEaudioFormatField']);
+//			$interface->assign('showEaudioFormatField', $configArray['MaterialsRequest']['showEaudioFormatField']);
 			$interface->assign('requireAboutField', $configArray['MaterialsRequest']['requireAboutField']);
 
 			$useWorldCat = false;

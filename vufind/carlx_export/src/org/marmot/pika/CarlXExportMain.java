@@ -1532,11 +1532,6 @@ public class CarlXExportMain {
 		try {
 			logger.info("Starting export of holds");
 
-			//Start a transaction so we can rebuild an entire table
-			startOfHolds = vufindConn.setSavepoint();
-			vufindConn.setAutoCommit(false);
-			vufindConn.prepareCall("TRUNCATE TABLE ils_hold_summary").executeQuery();
-
 			PreparedStatement addIlsHoldSummary = vufindConn.prepareStatement("INSERT INTO ils_hold_summary (ilsId, numHolds) VALUES (?, ?)");
 
 			HashMap<String, Long> numHoldsByBib = new HashMap<>();
@@ -1563,6 +1558,11 @@ public class CarlXExportMain {
 			}
 			bibHoldsRS.close();
 
+			//Start a transaction so we can rebuild an entire table
+			startOfHolds = vufindConn.setSavepoint();
+			vufindConn.setAutoCommit(false);
+			//Delete existing holds closer to the time that holds are re-added.  This shouldn't matter since auto commit is off though
+			vufindConn.prepareCall("TRUNCATE TABLE ils_hold_summary").executeQuery();
 			logger.debug("Found " + numHoldsByBib.size() + " bibs that have title or item level holds");
 
 			for (String bibId : numHoldsByBib.keySet()){
@@ -1577,6 +1577,7 @@ public class CarlXExportMain {
 			}catch (Exception e){
 				logger.warn("error committing hold updates rolling back", e);
 				vufindConn.rollback(startOfHolds);
+				startOfHolds = null;
 			}
 
 		} catch (Exception e) {

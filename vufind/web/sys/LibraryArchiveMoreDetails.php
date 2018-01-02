@@ -28,6 +28,7 @@ class LibraryArchiveMoreDetails extends DB_DataObject{
   'correspondence' => 'Correspondence Information',
   'academicResearch' => 'Academic Research Information',
 	'artworkDetails' => 'Art Information',
+	'musicDetails' => 'Music Information',
 	'relatedObjects' => 'Related Objects',
   'obituaries' => 'Obituaries',
   'burialDetails' => 'Burial Details',
@@ -151,6 +152,13 @@ class LibraryArchiveMoreDetails extends DB_DataObject{
 		$defaultOption = new LibraryArchiveMoreDetails();
 		$defaultOption->libraryId = $libraryId;
 		$defaultOption->section = 'artworkDetails';
+		$defaultOption->collapseByDefault = false;
+		$defaultOption->weight = count($defaultOptions) + 101;
+		$defaultOptions[] = $defaultOption;
+
+		$defaultOption = new LibraryArchiveMoreDetails();
+		$defaultOption->libraryId = $libraryId;
+		$defaultOption->section = 'musicDetails';
 		$defaultOption->collapseByDefault = false;
 		$defaultOption->weight = count($defaultOptions) + 101;
 		$defaultOptions[] = $defaultOption;

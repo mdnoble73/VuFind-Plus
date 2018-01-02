@@ -133,9 +133,9 @@ class Union_AJAX extends Action {
 		$summary = $searchObject->getResultSummary();
 		$records = $searchObject->getCombinedResultsHTML();
 		if ($summary['resultTotal'] == 0){
-			$results = '<div class="clearer"></div><div>No results match your search.</div>';
+			$results = '<div class="clearfix"></div><div>No results match your search.</div>';
 		}else{
-			$results = "<a href='{$fullResultsLink}' class='btn btn-info combined-results-button'>&gt; See all {$summary['resultTotal']} results</a><div class='clearer'></div>";
+			$results = "<a href='{$fullResultsLink}' class='btn btn-info combined-results-button' target='_blank'>&gt; See all {$summary['resultTotal']} results</a><div class='clearfix'></div>";
 
 
 			$interface->assign('recordSet', $records);
@@ -154,21 +154,25 @@ class Union_AJAX extends Action {
 	{
 		global $interface;
 		$interface->assign('viewingCombinedResults', true);
-		require_once ROOT_DIR . '/sys/Ebsco/EDS_API.php';
-		$edsApi = EDS_API::getInstance();
-		$searchResults = $edsApi->getSearchResults($searchTerm);
-		$summary = $edsApi->getResultSummary();
-		$records = $edsApi->getCombinedResultHTML();
-		if ($summary['resultTotal'] == 0){
-			$results = '<div class="clearer"></div><div>No results match your search.</div>';
+		if ($searchTerm == ''){
+			$results = '<div class="clearfix"></div><div>Enter search terms to see results.</div>';
 		}else {
-			$results = "<a href='{$fullResultsLink}' class='btn btn-info combined-results-button'>&gt; See all {$summary['resultTotal']} results</a><div class='clearer'></div>";
+			require_once ROOT_DIR . '/sys/Ebsco/EDS_API.php';
+			$edsApi = EDS_API::getInstance();
+			$searchResults = $edsApi->getSearchResults($searchTerm);
+			$summary = $edsApi->getResultSummary();
+			$records = $edsApi->getCombinedResultHTML();
+			if ($summary['resultTotal'] == 0) {
+				$results = '<div class="clearfix"></div><div>No results match your search.</div>';
+			} else {
+				$results = "<a href='{$fullResultsLink}' class='btn btn-info combined-results-button' target='_blank'>&gt; See all {$summary['resultTotal']} results</a><div class='clearfix'></div>";
 
-			$records = array_slice($records, 0, $numberOfResults);
-			global $interface;
-			$interface->assign('recordSet', $records);
-			$interface->assign('showExploreMoreBar', false);
-			$results .= $interface->fetch('Search/list-list.tpl');
+				$records = array_slice($records, 0, $numberOfResults);
+				global $interface;
+				$interface->assign('recordSet', $records);
+				$interface->assign('showExploreMoreBar', false);
+				$results .= $interface->fetch('Search/list-list.tpl');
+			}
 		}
 
 		return $results;
@@ -205,9 +209,9 @@ class Union_AJAX extends Action {
 		$summary = $searchObject->getResultSummary();
 		$records = $searchObject->getCombinedResultHTML();
 		if ($summary['resultTotal'] == 0){
-			$results = '<div class="clearer"></div><div>No results match your search.</div>';
+			$results = '<div class="clearfix"></div><div>No results match your search.</div>';
 		}else {
-			$results = "<a href='{$fullResultsLink}' class='btn btn-info combined-results-button'>&gt; See all {$summary['resultTotal']} results</a><div class='clearer'></div>";
+			$results = "<a href='{$fullResultsLink}' class='btn btn-info combined-results-button' target='_blank'>&gt; See all {$summary['resultTotal']} results</a><div class='clearfix'></div>";
 
 			global $interface;
 			$interface->assign('recordSet', $records);
@@ -230,9 +234,9 @@ class Union_AJAX extends Action {
 		$dpla = new DPLA();
 		$dplaResults = $dpla->getDPLAResults($searchTerm, $numberOfResults);
 		if ($dplaResults['resultTotal'] == 0){
-			$results = '<div class="clearer"></div><div>No results match your search.</div>';
+			$results = '<div class="clearfix"></div><div>No results match your search.</div>';
 		}else {
-			$results = "<a href='{$fullResultsLink}' class='btn btn-info combined-results-button'>&gt; See all {$dplaResults['resultTotal']} results</a><div class='clearer'></div>";
+			$results = "<a href='{$fullResultsLink}' class='btn btn-info combined-results-button' target='_blank'>&gt; See all {$dplaResults['resultTotal']} results</a><div class='clearfix'></div>";
 		}
 		$results .= $dpla->formatCombinedResults($dplaResults['records'], false);
 		return $results;
@@ -249,19 +253,23 @@ class Union_AJAX extends Action {
 		global $interface;
 		$interface->assign('viewingCombinedResults', true);
 		require_once ROOT_DIR . '/Drivers/marmot_inc/Prospector.php';
-		$prospector = new Prospector();
-		$searchTerms = array(array(
-				'index' => $searchType,
-				'lookfor' => $searchTerm
-		));
-		$prospectorResults = $prospector->getTopSearchResults($searchTerms, $numberOfResults);
-		global $interface;
-		if ($prospectorResults['resultTotal'] == 0){
-			$results = '<div class="clearer"></div><div>No results match your search.</div>';
+		if ($searchTerm == ''){
+			$results = '<div class="clearfix"></div><div>Enter search terms to see results.</div>';
 		}else {
-			$results = "<a href='{$fullResultsLink}' class='btn btn-info combined-results-button'>&gt; See all {$prospectorResults['resultTotal']} results</a><div class='clearer'></div>";
-			$interface->assign('prospectorResults', $prospectorResults['records']);
-			$results .= $interface->fetch('Union/prospector.tpl');
+			$prospector = new Prospector();
+			$searchTerms = array(array(
+					'index' => $searchType,
+					'lookfor' => $searchTerm
+			));
+			$prospectorResults = $prospector->getTopSearchResults($searchTerms, $numberOfResults);
+			global $interface;
+			if ($prospectorResults['resultTotal'] == 0) {
+				$results = '<div class="clearfix"></div><div>No results match your search.</div>';
+			} else {
+				$results = "<a href='{$fullResultsLink}' class='btn btn-info combined-results-button' target='_blank'>&gt; See all {$prospectorResults['resultTotal']} results</a><div class='clearfix'></div>";
+				$interface->assign('prospectorResults', $prospectorResults['records']);
+				$results .= $interface->fetch('Union/prospector.tpl');
+			}
 		}
 		return $results;
 	}

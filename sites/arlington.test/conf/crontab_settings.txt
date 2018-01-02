@@ -11,6 +11,7 @@
 #
 # ie :
 # git pull origin {current branch}
+# /usr/local/vufind-plus/vufind/cron/check_crontab.sh arlington.test
 # crontab < /usr/local/vufind-plus/sites/arlington.test/conf/crontab_settings.txt
 
 ###################
@@ -35,7 +36,7 @@
 #####################
 # Daily full update #
 #####################
-00 04 3-30/3 * * cd /usr/local/vufind-plus/sites/arlington.test; ./full_update.sh
+00 04 * * * cd /usr/local/vufind-plus/sites/arlington.test; ./full_update.sh
 
 ######################
 # MySQL Nightly Dump #

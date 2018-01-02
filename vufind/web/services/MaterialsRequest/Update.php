@@ -142,7 +142,7 @@ class MaterialsRequest_Update extends Action {
 		$availableFormats = MaterialsRequest::getFormats();
 		$interface->assign('availableFormats', $availableFormats);
 		$interface->assign('showEbookFormatField', $configArray['MaterialsRequest']['showEbookFormatField']);
-		$interface->assign('showEaudioFormatField', $configArray['MaterialsRequest']['showEaudioFormatField']);
+//		$interface->assign('showEaudioFormatField', $configArray['MaterialsRequest']['showEaudioFormatField']);
 
 		$this->display('update-result.tpl', 'Update Result');
 	}

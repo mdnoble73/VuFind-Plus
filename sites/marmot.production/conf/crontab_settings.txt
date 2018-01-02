@@ -11,6 +11,7 @@
 #
 # ie :
 # git pull origin {current branch}
+# /usr/local/vufind-plus/vufind/cron/check_crontab.sh marmot.production
 # crontab < /usr/local/vufind-plus/sites/marmot.production/conf/crontab_settings.txt
 
 ###################

@@ -36,6 +36,7 @@
 #
 # ie :
 # git pull origin {current branch}
+# /usr/local/vufind-plus/vufind/cron/check_crontab.sh wcpl.production
 # crontab < /usr/local/vufind-plus/sites/wcpl.production/conf/crontab_settings.txt
 
 ###############
