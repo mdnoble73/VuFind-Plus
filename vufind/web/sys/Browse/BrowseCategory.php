@@ -193,7 +193,7 @@ class BrowseCategory extends DB_DataObject{
 			'label' => array('property'=>'label', 'type'=>'text', 'label'=>'Label', 'description'=>'The label to show to the user', 'maxLength'=>50, 'required' => true),
 			'textId' => array('property'=>'textId', 'type'=>'text', 'label'=>'textId', 'description'=>'A textual id to identify the category', 'serverValidation'=>'validateTextId', 'maxLength'=>50),
 			'userId' => array('property'=>'userId', 'type'=>'label', 'label'=>'userId', 'description'=>'The User Id who created this category', 'default'=> UserAccount::getActiveUserId()),
-			'sharing' => array('property'=>'sharing', 'type'=>'enum', 'values' => array('private' => 'Just Me', 'location' => 'My Home Branch', 'library' => 'My Home Library', 'everyone' => 'Everyone'), 'label'=>'Share With', 'description'=>'Who the category should be shared with', 'default' =>'everyone'),
+//			'sharing' => array('property'=>'sharing', 'type'=>'enum', 'values' => array('private' => 'Just Me', 'location' => 'My Home Branch', 'library' => 'My Home Library', 'everyone' => 'Everyone'), 'label'=>'Share With', 'description'=>'Who the category should be shared with', 'default' =>'everyone'),
 			'description' => array('property'=>'description', 'type'=>'html', 'label'=>'Description', 'description'=>'A description of the category.', 'hideInLists' => true),
 
 			// Define oneToMany interface for choosing and arranging sub-categories
