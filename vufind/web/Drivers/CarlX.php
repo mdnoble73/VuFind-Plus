@@ -427,7 +427,7 @@ class CarlX extends SIP2Driver{
 					$curHold['sortTitle']          = $hold->Title;
 					$curHold['author']             = $hold->Author;
 					$curHold['location']           = empty($pickUpBranch->BranchName) ? '' : $pickUpBranch->BranchName;
-					$curHold['locationUpdateable'] = true; //TODO: unless status is in transit?
+					$curHold['locationUpdateable'] = false; //TODO: unless status is in transit?
 					$curHold['currentPickupName']  = empty($pickUpBranch->BranchName) ? '' : $pickUpBranch->BranchName;
 					$curHold['status']             = $this->holdStatusCodes[$hold->ItemStatus];
 					$curHold['expire']             = strtotime($expireDate); // give a time stamp  // use this for available holds
@@ -482,7 +482,7 @@ class CarlX extends SIP2Driver{
 					$curHold['sortTitle']          = $hold->Title;
 					$curHold['author']             = $hold->Author;
 					$curHold['location']           = empty($pickUpBranch->BranchName) ? '' : $pickUpBranch->BranchName;
-					$curHold['locationUpdateable'] = true; //TODO: unless status is in transit?
+					$curHold['locationUpdateable'] = false; //TODO: unless status is in transit?
 					$curHold['currentPickupName']  = empty($pickUpBranch->BranchName) ? '' : $pickUpBranch->BranchName;
 					$curHold['frozen']             = $hold->Suspended;
 					$curHold['status']             = $this->holdStatusCodes[$hold->ItemStatus];
