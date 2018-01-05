@@ -29,6 +29,15 @@ VuFind.Prospector = (function(){
 					$("#inProspectorPlaceholder").html(data.formattedData);
 				}
 			});
+		},
+
+		removeBlankThumbnail: function(imgElem, elemToHide, isForceRemove) {
+			var $img = $(imgElem);
+			//when the content providers cannot find a bookjacket, they return a 1x1 pixel
+			//remove the wrapping div, for consistent spacing with other results
+			if ($img.height() == 1 && $img.width() == 1 || isForceRemove) {
+				$(elemToHide).remove();
+			}
 		}
 	}
 }(VuFind.Prospector || {}));

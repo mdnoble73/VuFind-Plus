@@ -13,7 +13,7 @@ require_once ROOT_DIR . '/sys/Pager.php';
 class EDS_API {
 	static $instance;
 
-	private $edsBaseApi = 'http://eds-api.ebscohost.com/edsapi/rest';
+	private $edsBaseApi = 'https://eds-api.ebscohost.com/edsapi/rest';
 	private $curl_connection;
 	private $sessionId;
 	private $authenticationToken;
@@ -301,6 +301,8 @@ BODY;
 	{
 		global $interface;
 		$html = array();
+		//global $logger;
+		//$logger->log(print_r($this->lastSearchResults, true), PEAR_LOG_WARNING);
 		if (isset($this->lastSearchResults->Data->Records)) {
 			for ($x = 0; $x < count($this->lastSearchResults->Data->Records->Record); $x++) {
 				$current = &$this->lastSearchResults->Data->Records->Record[$x];
@@ -312,6 +314,38 @@ BODY;
 				if ($record->isValid()) {
 					$interface->assign('recordDriver', $record);
 					$html[] = $interface->fetch($record->getSearchResult());
+				} else {
+					$html[] = "Unable to find record";
+				}
+			}
+		}
+		return $html;
+	}
+
+	/**
+	 * Use the record driver to build an array of HTML displays from the search
+	 * results.
+	 *
+	 * @access  public
+	 * @return  array   Array of HTML chunks for individual records.
+	 */
+	public function getCombinedResultHTML()
+	{
+		global $interface;
+		$html = array();
+		//global $logger;
+		//$logger->log(print_r($this->lastSearchResults, true), PEAR_LOG_WARNING);
+		if (isset($this->lastSearchResults->Data->Records)) {
+			for ($x = 0; $x < count($this->lastSearchResults->Data->Records->Record); $x++) {
+				$current = &$this->lastSearchResults->Data->Records->Record[$x];
+				$interface->assign('recordIndex', $x + 1);
+				$interface->assign('resultIndex', $x + 1 + (($this->page - 1) * $this->limit));
+
+				require_once ROOT_DIR . '/RecordDrivers/EbscoRecordDriver.php';
+				$record = new EbscoRecordDriver($current);
+				if ($record->isValid()) {
+					$interface->assign('recordDriver', $record);
+					$html[] = $interface->fetch($record->getCombinedResult());
 				} else {
 					$html[] = "Unable to find record";
 				}

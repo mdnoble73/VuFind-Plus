@@ -19,7 +19,7 @@ import java.util.HashSet;
  * Date: 7/1/2015
  * Time: 2:05 PM
  */
-public class MarcRecordGrouper extends RecordGroupingProcessor{
+class MarcRecordGrouper extends RecordGroupingProcessor{
 
 	private IndexingProfile profile;
 	/**
@@ -31,7 +31,7 @@ public class MarcRecordGrouper extends RecordGroupingProcessor{
 	 * @param fullRegrouping - Whether or not we are doing full regrouping or if we are only grouping changes.
 	 *                         Determines if old works are loaded at the beginning.
 	 */
-	public MarcRecordGrouper(Connection dbConnection, IndexingProfile profile, Logger logger, boolean fullRegrouping) {
+	MarcRecordGrouper(Connection dbConnection, IndexingProfile profile, Logger logger, boolean fullRegrouping) {
 		super(logger, fullRegrouping);
 		this.profile = profile;
 
@@ -55,7 +55,7 @@ public class MarcRecordGrouper extends RecordGroupingProcessor{
 			loadMapsStmt.setLong(1, profile.id);
 			ResultSet translationMapsRS = loadMapsStmt.executeQuery();
 			while (translationMapsRS.next()){
-				HashMap<String, String> translationMap = new HashMap<String, String>();
+				HashMap<String, String> translationMap = new HashMap<>();
 				String mapName = translationMapsRS.getString("name");
 				Long translationMapId = translationMapsRS.getLong("id");
 
@@ -77,16 +77,12 @@ public class MarcRecordGrouper extends RecordGroupingProcessor{
 
 	}
 
-	public boolean processMarcRecord(Record marcRecord, boolean primaryDataChanged) {
-		RecordIdentifier primaryIdentifier = getPrimaryIdentifierFromMarcRecord(marcRecord, profile.name);
+	boolean processMarcRecord(Record marcRecord, boolean primaryDataChanged) {
+		RecordIdentifier primaryIdentifier = getPrimaryIdentifierFromMarcRecord(marcRecord, profile.name, profile.doAutomaticEcontentSuppression);
 
 		if (primaryIdentifier != null){
 			//Get data for the grouped record
 			GroupedWorkBase workForTitle = setupBasicWorkForIlsRecord(marcRecord, profile.formatSource, profile.format, profile.specifiedFormatCategory);
-
-			//Identifiers
-			HashSet<RecordIdentifier> identifiers = getIdentifiersFromMarcRecord(marcRecord);
-			workForTitle.setIdentifiers(identifiers);
 
 			addGroupedWorkToDatabase(primaryIdentifier, workForTitle, primaryDataChanged);
 			return true;
@@ -94,9 +90,5 @@ public class MarcRecordGrouper extends RecordGroupingProcessor{
 			//The record is suppressed
 			return false;
 		}
-	}
-
-	public int getNumCharsInPrefix() {
-		return 4;
 	}
 }

@@ -1,5 +1,9 @@
 VuFind.Admin = (function(){
 	return {
+		showRecordGroupingNotes: function (id){
+			VuFind.Account.ajaxLightbox("/Admin/AJAX?method=getRecordGroupingNotes&id=" + id, true);
+			return false;
+		},
 		showReindexNotes: function (id){
 			VuFind.Account.ajaxLightbox("/Admin/AJAX?method=getReindexNotes&id=" + id, true);
 			return false;

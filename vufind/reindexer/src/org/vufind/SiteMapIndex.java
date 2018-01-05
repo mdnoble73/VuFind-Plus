@@ -53,6 +53,7 @@ class SiteMapIndex {
 
 	void addSiteMapLocation(String location, String dateModified) {
 		Element sitemap = doc.createElement("sitemap");
+		sitemap.setAttribute("xmlns", "http://www.sitemaps.org/schemas/sitemap/0.9");
 		rootElement.appendChild(sitemap);
 		Element loc = doc.createElement("loc");
 		loc.appendChild(doc.createTextNode(location));

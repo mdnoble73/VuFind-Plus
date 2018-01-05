@@ -7,9 +7,9 @@ package org.vufind;
  * Date: 1/26/2015
  * Time: 8:57 AM
  */
-public class GroupedWorkFactory {
-	static int defaultVersion = 4;
-	public static GroupedWorkBase getInstance(int version){
+class GroupedWorkFactory {
+	private static int defaultVersion = 4;
+	static GroupedWorkBase getInstance(int version){
 		if (version == -1){
 			version = defaultVersion;
 		}

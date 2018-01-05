@@ -11,6 +11,7 @@
 #
 # ie :
 # git pull origin {current branch}
+# /usr/local/vufind-plus/vufind/cron/check_crontab.sh aspencat.production
 # crontab < /usr/local/vufind-plus/sites/aspencat.production/conf/crontab_settings.txt
 
 ###################
@@ -55,6 +56,7 @@
 27 */2 * * * cd /tmp; /bin/rm -rf epb*
 # Restart apache
 0 * * * * /usr/sbin/apachectl restart > /dev/null 2>&1
+0 8-23 * * * /usr/sbin/apachectl graceful > /dev/null 2>&1
 
 ############################################
 # New York Times Bestseller Lists Updating #

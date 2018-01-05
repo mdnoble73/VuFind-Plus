@@ -27,7 +27,7 @@ class Admin_AJAX extends Action {
 		global $timer;
 		$method = $_GET['method'];
 		$timer->logTime("Starting method $method");
-		if (in_array($method, array('getReindexNotes', 'getReindexProcessNotes', 'getCronNotes', 'getCronProcessNotes', 'getAddToWidgetForm'))){
+		if (in_array($method, array('getReindexNotes', 'getReindexProcessNotes', 'getCronNotes', 'getCronProcessNotes', 'getAddToWidgetForm', 'getRecordGroupingNotes'))){
 			//JSON Responses
 			header('Content-type: application/json');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
@@ -79,6 +79,30 @@ class Admin_AJAX extends Action {
 		}
 		return json_encode($results);
 	}
+
+	function getRecordGroupingNotes(){
+		$id = $_REQUEST['id'];
+		$recordGroupingProcess = new RecordGroupingLogEntry();
+		$recordGroupingProcess->id = $id;
+		$results = array(
+				'title' => '',
+				'modalBody' => '',
+				'modalButtons' => ''
+		);
+		if ($recordGroupingProcess->find(true)){
+			$results['title'] = "Record Grouping Notes";
+			if (strlen(trim($recordGroupingProcess->notes)) == 0){
+				$results['modalBody'] = "No notes have been entered yet";
+			}else{
+				$results['modalBody'] = "<div class='helpText'>{$recordGroupingProcess->notes}</div>";
+			}
+		}else{
+			$results['title'] = "Error";
+			$results['modalBody'] = "We could not find a record grouping log entry with that id.  No notes available.";
+		}
+		return json_encode($results);
+	}
+
 
 	function getCronProcessNotes(){
 		$id = $_REQUEST['id'];

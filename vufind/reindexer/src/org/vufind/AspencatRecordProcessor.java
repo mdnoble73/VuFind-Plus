@@ -302,9 +302,8 @@ class AspencatRecordProcessor extends IlsRecordProcessor {
 				if (field037 != null && field037.getSubfield('b') != null){
 					sourceType = field037.getSubfield('b').getData();
 				}else{
-					List<VariableField> urlFields = record.getVariableFields("856");
-					for (VariableField urlField : urlFields){
-						DataField urlDataField = (DataField)urlField;
+					List<DataField> urlFields = record.getDataFields("856");
+					for (DataField urlDataField : urlFields){
 						if (urlDataField.getSubfield('3') != null) {
 							if (urlDataField.getIndicator1() == '4' || urlDataField.getIndicator1() == ' ') {
 								//Technically, should not include indicator 2 of 2, but AspenCat has lots of records with an indicator 2 of 2 that are valid.

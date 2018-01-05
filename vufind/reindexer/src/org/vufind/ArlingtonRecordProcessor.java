@@ -8,6 +8,7 @@ import org.marc4j.marc.Subfield;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * Custom Record Processing for Arlington
@@ -286,13 +287,14 @@ class ArlingtonRecordProcessor extends IIIRecordProcessor {
 		return unsuppressedEcontentRecords;
 	}
 
+	private static Pattern suppressedBCode3Pattern = Pattern.compile("^[xnopwhd]$");
 	protected boolean isBibSuppressed(Record record) {
 		DataField field998 = (DataField)record.getVariableField("998");
 		if (field998 != null){
 			Subfield suppressionSubfield = field998.getSubfield('e');
 			if (suppressionSubfield != null){
 				String bCode3 = suppressionSubfield.getData().toLowerCase().trim();
-				if (bCode3.matches("^[xnopwhd]$")){
+				if (suppressedBCode3Pattern.matcher(bCode3).matches()){
 					logger.debug("Bib record is suppressed due to bcode3 " + bCode3);
 					return true;
 				}
@@ -301,13 +303,14 @@ class ArlingtonRecordProcessor extends IIIRecordProcessor {
 		return false;
 	}
 
+	private static Pattern suppressedICode2Pattern = Pattern.compile("^(d|e|h|n|p|y|4|5|6)$");
 	protected boolean isItemSuppressed(DataField curItem) {
 		Subfield icode2Subfield = curItem.getSubfield(iCode2Subfield);
 		if (icode2Subfield != null && useICode2Suppression) {
 			String icode2 = icode2Subfield.getData().toLowerCase().trim();
 
 			//Suppress icode2 codes
-			if (icode2.matches("^(d|e|h|n|p|y|4|5|6)$")) {
+			if (suppressedICode2Pattern.matcher(icode2).matches()) {
 				logger.debug("Item record is suppressed due to icode2 " + icode2);
 				return true;
 			}

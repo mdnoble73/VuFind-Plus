@@ -57,7 +57,7 @@ class AACPLRecordProcessor extends IlsRecordProcessor {
 			Subfield statusSubfield = curItem.getSubfield(statusSubfieldIndicator);
 			//For Anne Arundel, the status is blank if the item is on shelf
 			if (statusSubfield != null) {
-				if (statusSubfield.getData().matches(statusesToSuppress)) {
+				if (statusesToSuppressPattern != null && statusesToSuppressPattern.matcher(statusSubfield.getData()).matches()) {
 					return true;
 				}
 			}
@@ -66,14 +66,14 @@ class AACPLRecordProcessor extends IlsRecordProcessor {
 		if (locationSubfield == null){
 			return true;
 		}else{
-			if (locationSubfield.getData().trim().matches(locationsToSuppress)){
+			if (locationsToSuppressPattern != null && locationsToSuppressPattern.matcher(locationSubfield.getData().trim()).matches()){
 				return true;
 			}
 		}
 		if (collectionSubfield != ' '){
 			Subfield collectionSubfieldValue = curItem.getSubfield(collectionSubfield);
 			if (collectionSubfieldValue != null){
-				if (collectionSubfieldValue.getData().trim().matches(collectionsToSuppress)){
+				if (collectionsToSuppressPattern != null && collectionsToSuppressPattern.matcher(collectionSubfieldValue.getData().trim()).matches()){
 					return true;
 				}
 			}

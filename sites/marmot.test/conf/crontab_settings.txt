@@ -15,6 +15,7 @@
 #
 # ie :
 # git pull origin {current branch}
+# /usr/local/vufind-plus/vufind/cron/check_crontab.sh marmot.test
 # crontab < /usr/local/vufind-plus/sites/marmot.test/conf/crontab_settings.txt
 
 ###################
@@ -59,6 +60,7 @@
 27 */2 * * * cd /tmp; /bin/rm -rf epb*
 # Cleanup Apache Sessions hourly (to test that it doesn't cause errors)
 0 * * * * /usr/sbin/apachectl restart > /dev/null 2>&1
+0 8-23 * * * /usr/sbin/apachectl graceful > /dev/null 2>&1
 
 ###################################
 # Data Extract from other systems #

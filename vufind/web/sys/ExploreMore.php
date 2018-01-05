@@ -259,7 +259,7 @@ class ExploreMore {
 					$exploreMoreSectionsToShow['dpla'] = array(
 //							'title' => 'Digital Public Library of America',
 							'format' => 'scrollerWithLink',
-							'values' => $dplaResults,
+							'values' => $dplaResults['records'],
 							'link' => 'http://dp.la/search?q=' . urlencode('"' . $archiveDriver->getTitle() . '"'),
 							'openInNewWindow' => true,
 					);
@@ -635,7 +635,8 @@ class ExploreMore {
 	public function loadEbscoOptions($activeSection, $exploreMoreOptions, $searchTerm) {
 		global $library;
 		global $configArray;
-		if ($library->edsApiProfile && $activeSection != 'ebsco') {
+		//TODO: Reenable once we do full EDS integration
+		if (false && $library->edsApiProfile && $activeSection != 'ebsco') {
 			//Load EDS options
 			require_once ROOT_DIR . '/sys/Ebsco/EDS_API.php';
 			$edsApi = EDS_API::getInstance();

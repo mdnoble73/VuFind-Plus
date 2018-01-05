@@ -22,6 +22,7 @@ public class IndexingProfile {
 	private String recordNumberPrefix;
 	private char eContentDescriptor = ' ';
 	private String itemTag;
+	private boolean doAutomaticEcontentSuppression;
 
 	public String getRecordNumberTag() {
 		return recordNumberTag;
@@ -58,5 +59,13 @@ public class IndexingProfile {
 
 	public void setEContentDescriptor(char eContentDescriptor) {
 		this.eContentDescriptor = eContentDescriptor;
+	}
+
+	public boolean isDoAutomaticEcontentSuppression() {
+		return doAutomaticEcontentSuppression;
+	}
+
+	public void setDoAutomaticEcontentSuppression(boolean doAutomaticEcontentSuppression) {
+		this.doAutomaticEcontentSuppression = doAutomaticEcontentSuppression;
 	}
 }

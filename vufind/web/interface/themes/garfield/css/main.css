@@ -9857,7 +9857,9 @@ a.browse-thumbnail-sorted.active {
 }
 .result {
   border-bottom: 2px solid #d5d6da;
-  padding: 10px 5px 15px;
+  padding: 10px 0 15px;
+  margin-left: 5px;
+  margin-right: 5px;
   font-size: 12px;
 }
 .result-value-bold {
@@ -10158,6 +10160,29 @@ a.browse-thumbnail-sorted.active {
 }
 .yearbox {
   padding: 3px 6px;
+}
+.combined-results-section {
+  width: 100%;
+  display: inline-block;
+  padding: 2px;
+  padding-bottom: 20px;
+  border-top: 5px solid #0078AE;
+  margin-top: 15px;
+}
+.combined-results-section .related-manifestation {
+  border-bottom: none;
+}
+.combined-results-section-title {
+  font-weight: bold;
+  margin-top: 10px;
+  margin-bottom: 15px;
+  float: left;
+}
+.combined-results-button {
+  float: right;
+  margin-top: 4px;
+  background-color: #0078AE;
+  border-color: #0078AE;
 }
 .graph-bar {
   background-color: #088ec6;

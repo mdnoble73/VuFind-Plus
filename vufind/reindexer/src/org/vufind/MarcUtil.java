@@ -3,10 +3,7 @@ package org.vufind;
 import org.marc4j.marc.*;
 import org.solrmarc.tools.Utils;
 
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -116,7 +113,7 @@ class MarcUtil {
 	 * @return the result set of strings
 	 */
 	@SuppressWarnings("unchecked")
-	static Set<String> getSubfieldDataAsSet(Record record, String fldTag, String subfield, int beginIx, int endIx) {
+	private static Set<String> getSubfieldDataAsSet(Record record, String fldTag, String subfield, int beginIx, int endIx) {
 		Set<String> resultSet = new LinkedHashSet<>();
 
 		// Process Leader
@@ -230,11 +227,12 @@ class MarcUtil {
 		return resultSet;
 	}
 
-	static boolean isControlField(String fieldTag) {
-		return fieldTag.matches("00[0-9]");
+	private static Pattern controlFieldPattern = Pattern.compile("00[0-9]");
+	private static boolean isControlField(String fieldTag) {
+		return controlFieldPattern.matcher(fieldTag).matches();
 	}
 
-
+	private static HashMap<String, Pattern> subfieldPatterns = new HashMap<>();
 	/**
 	 * Given a tag for a field, and a list (or regex) of one or more subfields get
 	 * any linked 880 fields and include the appropriate subfields as a String
@@ -257,16 +255,19 @@ class MarcUtil {
 	 *         field(s)/subfield(s)
 	 */
 	@SuppressWarnings("unchecked")
-	static Set<String> getLinkedFieldValue(Record record, String tag, String subfield, String separator) {
+	private static Set<String> getLinkedFieldValue(Record record, String tag, String subfield, String separator) {
 		// assume brackets expression is a pattern such as [a-z]
 		Set<String> result = new LinkedHashSet<>();
 		Pattern subfieldPattern = null;
 		if (subfield.indexOf('[') != -1) {
-			subfieldPattern = Pattern.compile(subfield);
+			subfieldPattern = subfieldPatterns.get(subfield);
+			if (subfieldPattern == null){
+				subfieldPattern = Pattern.compile(subfield);
+				subfieldPatterns.put(subfield, subfieldPattern);
+			}
 		}
-		List<VariableField> fields = record.getVariableFields("880");
-		for (VariableField vf : fields) {
-			DataField dfield = (DataField) vf;
+		List<DataField> fields = record.getDataFields("880");
+		for (DataField dfield : fields) {
 			Subfield link = dfield.getSubfield('6');
 			if (link != null && link.getData().startsWith(tag)) {
 				List<Subfield> subList = dfield.getSubfields();
@@ -277,21 +278,25 @@ class MarcUtil {
 						Matcher matcher = subfieldPattern.matcher("" + subF.getCode());
 						// matcher needs a string, hence concat with empty
 						// string
-						if (matcher.matches())
+						if (matcher.matches()) {
 							addIt = true;
+						}
 					} else {
 						// a list a subfields
-						if (subfield.indexOf(subF.getCode()) != -1)
+						if (subfield.indexOf(subF.getCode()) != -1) {
 							addIt = true;
+						}
 					}
 					if (addIt) {
-						if (buf.length() > 0)
+						if (buf.length() > 0) {
 							buf.append(separator != null ? separator : " ");
+						}
 						buf.append(subF.getData().trim());
 					}
 				}
-				if (buf.length() > 0)
+				if (buf.length() > 0) {
 					result.add(Utils.cleanData(buf.toString()));
+				}
 			}
 		}
 		return (result);
@@ -326,12 +331,11 @@ class MarcUtil {
 
 			String subfldTags = fldTag1.substring(3);
 
-			List<VariableField> marcFieldList = record.getVariableFields(fldTag);
+			List<DataField> marcFieldList = record.getDataFields(fldTag);
 			if (!marcFieldList.isEmpty()) {
 				Pattern subfieldPattern = Pattern
 						.compile(subfldTags.length() == 0 ? "." : subfldTags);
-				for (VariableField vf : marcFieldList) {
-					DataField marcField = (DataField) vf;
+				for (DataField marcField : marcFieldList) {
 
 					StringBuilder buffer = getSpecifiedSubfieldsAsString(marcField, subfieldPattern, separator);
 					if (buffer.length() > 0)
@@ -358,29 +362,15 @@ class MarcUtil {
 	}
 
 	static List<DataField> getDataFields(Record marcRecord, String tag) {
-		List variableFields = marcRecord.getVariableFields(tag);
-		List<DataField> variableFieldsReturn = new ArrayList<>();
-		for (Object variableField : variableFields){
-			if (variableField instanceof DataField){
-				variableFieldsReturn.add((DataField)variableField);
-			}
-		}
-		return variableFieldsReturn;
+		return marcRecord.getDataFields(tag);
 	}
 
 	static List<DataField> getDataFields(Record marcRecord, String[] tags) {
-		List variableFields = marcRecord.getVariableFields(tags);
-		List<DataField> variableFieldsReturn = new ArrayList<>();
-		for (Object variableField : variableFields){
-			if (variableField instanceof DataField){
-				variableFieldsReturn.add((DataField)variableField);
-			}
-		}
-		return variableFieldsReturn;
+		return marcRecord.getDataFields();
 	}
 
 	static ControlField getControlField(Record marcRecord, String tag){
-		List variableFields = marcRecord.getVariableFields(tag);
+		List variableFields = marcRecord.getControlFields(tag);
 		ControlField variableFieldReturn = null;
 		for (Object variableField : variableFields){
 			if (variableField instanceof ControlField){

@@ -195,7 +195,7 @@ class AJAX extends Action {
 		// Only show prospector results within search results if enabled
 		if ($library && $library->enablePospectorIntegration && $library->showProspectorResultsAtEndOfSearch){
 			$prospectorResults = $prospector->getTopSearchResults($searchObject->getSearchTerms(), 5);
-			$interface->assign('prospectorResults', $prospectorResults);
+			$interface->assign('prospectorResults', $prospectorResults['records']);
 		}
 
 		$prospectorLink = $prospector->getSearchLink($searchObject->getSearchTerms());
@@ -313,10 +313,10 @@ class AJAX extends Action {
 		$dpla = new DPLA();
 		$searchTerm = $_REQUEST['searchTerm'];
 		$results = $dpla->getDPLAResults($searchTerm);
-		$formattedResults = $dpla->formatResults($results);
+		$formattedResults = $dpla->formatResults($results['records']);
 
 		$returnVal = array(
-			'rawResults' => $results,
+			'rawResults' => $results['records'],
 			'formattedResults' => $formattedResults,
 		);
 

@@ -427,7 +427,7 @@ class CarlX extends SIP2Driver{
 					$curHold['sortTitle']          = $hold->Title;
 					$curHold['author']             = $hold->Author;
 					$curHold['location']           = empty($pickUpBranch->BranchName) ? '' : $pickUpBranch->BranchName;
-					$curHold['locationUpdateable'] = true; //TODO: unless status is in transit?
+					$curHold['locationUpdateable'] = false; //TODO: unless status is in transit?
 					$curHold['currentPickupName']  = empty($pickUpBranch->BranchName) ? '' : $pickUpBranch->BranchName;
 					$curHold['status']             = $this->holdStatusCodes[$hold->ItemStatus];
 					$curHold['expire']             = strtotime($expireDate); // give a time stamp  // use this for available holds
@@ -482,7 +482,7 @@ class CarlX extends SIP2Driver{
 					$curHold['sortTitle']          = $hold->Title;
 					$curHold['author']             = $hold->Author;
 					$curHold['location']           = empty($pickUpBranch->BranchName) ? '' : $pickUpBranch->BranchName;
-					$curHold['locationUpdateable'] = true; //TODO: unless status is in transit?
+					$curHold['locationUpdateable'] = false; //TODO: unless status is in transit?
 					$curHold['currentPickupName']  = empty($pickUpBranch->BranchName) ? '' : $pickUpBranch->BranchName;
 					$curHold['frozen']             = $hold->Suspended;
 					$curHold['status']             = $this->holdStatusCodes[$hold->ItemStatus];
@@ -1738,38 +1738,18 @@ class CarlX extends SIP2Driver{
 				if (preg_match("/^30/", $msg_result)) {
 					$result = $mysip->parseRenewResponse($msg_result);
 
-					$title = $result['variable']['AJ'][0];
+//					$title = $result['variable']['AJ'][0];
 
 					$success = ($result['fixed']['Ok'] == 1);
 					$message = $result['variable']['AF'][0];
 
-					//Looks like a holds process, rather than a renewal process. pascal 7-12-2016
-//					//If the renew fails, check to see if we need to override the SIP port
-//					$alternatePortSet = false;
-//					if (isset($configArray['SIP2']['alternate_port']) && strlen($configArray['SIP2']['alternate_port']) > 0 && $configArray['SIP2']['alternate_port'] != $configArray['SIP2']['port']){
-//						$alternatePortSet = true;
-//					}
-//					if ($alternatePortSet && $success == false && $useAlternateSIP == false){
-//						//Can override the SIP port if there are sufficient copies on the shelf to cover any holds
-//
-//						//Get the id for the item
-//						$searchObject = SearchObjectFactory::initSearchObject();
-//						$class = $configArray['Index']['engine'];
-//						$url = $configArray['Index']['url'];
-//						$index = new $class($url);
-//
-//						$record = $index->getRecordByBarcode($itemId);
-//
-//						if ($record){
-//							//Get holdings summary
-//							$statusSummary = $this->getStatusSummary($record['id'], $record, $mysip);
-//
-//							//If # of available copies >= waitlist change sip port and renew
-//							if ($statusSummary['availableCopies'] >= $statusSummary['holdQueueLength']){  // this looks like a hold test, rather than renewal. plb 7-12-2016
-//								$renew_result = $this->renewItemViaSIP($patron, $itemId, true);
-//							}
-//						}
-//					}
+					if (!$success) {
+						$title = $result['variable']['AJ'][0];
+
+						$message = empty($title) ? $message : "<p style=\"font-style:italic\">$title</p><p>$message.</p>";
+					}
+
+
 				}
 			}
 		}else{

@@ -38,7 +38,8 @@ class Help_AJAX extends Action {
 	}
 
 	function getSupportForm(){
-		global $interface, $user;
+		global $interface;
+		$user = UserAccount::getActiveUserObj();
 
 	// Presets for the form to be filled out with
 		$interface->assign('lightbox', true);

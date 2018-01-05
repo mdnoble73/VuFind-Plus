@@ -80,8 +80,9 @@
 				{/if}
 
 				{*E-audio Format Fields *}
+		{* Hiding this option.
 				{if $showEaudioFormatField}
-					<div class="form-group eaudioField specialFormatField">{* eaudioField class used for both special field handling and the older format controlling *}
+					<div class="form-group eaudioField specialFormatField">{* eaudioField class used for both special field handling and the older format controlling * }
 						<label for="eaudioFormat" class="col-sm-3 control-label">E-audio format: </label>
 						<div class="col-sm-9">
 							<select name="eaudioFormat" id="eaudioFormat" class="form-control">
@@ -91,7 +92,7 @@
 							</select>
 						</div>
 					</div>
-				{/if}
+				{/if}*}
 
 				{* Abridged Fields *}
 				<div class="form-group abridgedField specialFormatField">

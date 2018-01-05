@@ -11,6 +11,7 @@
 #
 # ie :
 # git pull origin {current branch}
+# /usr/local/vufind-plus/vufind/cron/check_crontab.sh aacpl.test
 # crontab < /usr/local/vufind-plus/sites/aacpl.test/conf/crontab_settings.txt
 
 ###################
@@ -67,7 +68,8 @@
 # Clean Up Temporary Files
 26 * * * * cd /tmp; /bin/rm -rf CURLCOOKIE*
 27 */2 * * * cd /tmp; /bin/rm -rf epb*
-0 * * * * /usr/sbin/apachectl restart > /dev/null 2>&1
+0 0-7 * * * /usr/sbin/apachectl restart > /dev/null 2>&1
+0 8-23 * * * /usr/sbin/apachectl graceful > /dev/null 2>&1
 
 ############################################
 # New York Times Bestseller Lists Updating #

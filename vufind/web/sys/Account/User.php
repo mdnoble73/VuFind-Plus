@@ -63,6 +63,8 @@ class User extends DB_DataObject
 	public $expireClose;
 	public $fines;
 	public $finesVal;
+	public $homeLibrary;
+	public $homeLibraryName; //Only populated as part of loading administrators
 	public $homeLocationCode;
 	public $homeLocation;
 	public $myLocation1;
@@ -569,9 +571,11 @@ class User extends DB_DataObject
 		$roleList = Role::getLookup();
 
 		$structure = array(
-					'id' => array('property'=>'id', 'type'=>'label', 'label'=>'Administrator Id', 'description'=>'The unique id of the in the system'),
-					'firstname' => array('property'=>'firstname', 'type'=>'label', 'label'=>'First Name', 'description'=>'The first name for the user.'),
-					'lastname' => array('property'=>'lastname', 'type'=>'label', 'label'=>'Last Name', 'description'=>'The last name of the user.'),
+				'id' => array('property'=>'id', 'type'=>'label', 'label'=>'Administrator Id', 'description'=>'The unique id of the in the system'),
+				'firstname' => array('property'=>'firstname', 'type'=>'label', 'label'=>'First Name', 'description'=>'The first name for the user.'),
+				'lastname' => array('property'=>'lastname', 'type'=>'label', 'label'=>'Last Name', 'description'=>'The last name of the user.'),
+				'homeLibraryName' => array('property'=>'homeLibraryName', 'type'=>'label', 'label'=>'Home Library', 'description'=>'The library the user belongs to.'),
+				'homeLocation' => array('property'=>'homeLocation', 'type'=>'label', 'label'=>'Home Location', 'description'=>'The branch the user belongs to.'),
 		);
 
 		global $configArray;
@@ -722,8 +726,6 @@ class User extends DB_DataObject
 		}
 		return false;
 	}
-
-	private $homeLibrary = null;
 
 	/**
 	 * @return Library|null

@@ -20,7 +20,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Util {
-	public static byte[] readFileBytes(String filename) throws IOException {
+	static byte[] readFileBytes(String filename) throws IOException {
 		FileInputStream f = new FileInputStream( filename );
 		FileChannel fileChannel = f.getChannel();
 		long fileSize = fileChannel.size();
@@ -32,7 +32,7 @@ public class Util {
 		return fileBytes;
 	}
 
-	public static String getCRSeparatedString(Object values) {
+	static String getCRSeparatedString(Object values) {
 		StringBuilder crSeparatedString = new StringBuilder();
 		if (values instanceof String){
 			crSeparatedString.append((String)values);
@@ -49,7 +49,12 @@ public class Util {
 		return crSeparatedString.toString();
 	}
 	
-	public static String getCRSeparatedStringFromSet(Set<String> values) {
+	static String getCRSeparatedStringFromSet(Set<String> values) {
+		if (values.size() == 0){
+			return "";
+		}else if (values.size() == 1){
+			return values.iterator().next();
+		}
 		StringBuilder crSeparatedString = new StringBuilder();
 		for (String curValue : values) {
 			if (crSeparatedString.length() > 0) {
@@ -60,7 +65,12 @@ public class Util {
 		return crSeparatedString.toString();
 	}
 
-	public static String getCRSeparatedString(HashSet<String> values) {
+	static String getCRSeparatedString(HashSet<String> values) {
+		if (values.size() == 0){
+			return "";
+		}else if (values.size() == 1){
+			return values.iterator().next();
+		}
 		StringBuilder crSeparatedString = new StringBuilder();
 		for (String curValue : values) {
 			if (crSeparatedString.length() > 0) {
@@ -71,18 +81,23 @@ public class Util {
 		return crSeparatedString.toString();
 	}
 
-	public static String getCsvSeparatedString(HashSet<String> values) {
+	static String getCsvSeparatedString(HashSet<String> values) {
+		if (values.size() == 0){
+			return "";
+		}else if (values.size() == 1){
+			return values.iterator().next();
+		}
 		StringBuilder crSeparatedString = new StringBuilder();
 		for (String curValue : values) {
 			if (crSeparatedString.length() > 0) {
 				crSeparatedString.append(",");
 			}
-			crSeparatedString.append(curValue.toString());
+			crSeparatedString.append(curValue);
 		}
 		return crSeparatedString.toString();
 	}
 
-	public static String getCsvSeparatedStringFromLongs(HashSet<Long> values) {
+	static String getCsvSeparatedStringFromLongs(HashSet<Long> values) {
 		StringBuilder crSeparatedString = new StringBuilder();
 		for (Long curValue : values) {
 			if (crSeparatedString.length() > 0) {
@@ -93,7 +108,7 @@ public class Util {
 		return crSeparatedString.toString();
 	}
 
-	public static boolean copyFile(File sourceFile, File destFile) throws IOException {
+	static boolean copyFile(File sourceFile, File destFile) throws IOException {
 		if (!sourceFile.exists()){
 			return false;
 		}
@@ -123,7 +138,7 @@ public class Util {
 		return true;
 	}
 
-	public static String cleanIniValue(String value) {
+	static String cleanIniValue(String value) {
 		if (value == null) {
 			return null;
 		}
@@ -137,7 +152,7 @@ public class Util {
 		return value;
 	}
 
-	public static String trimTo(int maxCharacters, String stringToTrim) {
+	static String trimTo(int maxCharacters, String stringToTrim) {
 		if (stringToTrim == null) {
 			return null;
 		}
@@ -147,7 +162,7 @@ public class Util {
 		return stringToTrim.trim();
 	}
 
-	public static URLPostResponse getURL(String url, Logger logger) {
+	static URLPostResponse getURL(String url, Logger logger) {
 		URLPostResponse retVal;
 		HttpURLConnection conn;
 		try {
@@ -205,8 +220,8 @@ public class Util {
 		return retVal;
 	}
 
-	static Pattern trimPunctuationPattern = Pattern.compile("^(.*?)[\\s/,\\.;]+$");
-	public static String trimTrailingPunctuation(String format) {
+	private static Pattern trimPunctuationPattern = Pattern.compile("^(.*?)[\\s/,\\.;]+$");
+	static String trimTrailingPunctuation(String format) {
 		if (format == null){
 			return "";
 		}
@@ -218,7 +233,7 @@ public class Util {
 		}
 	}
 
-	public static StringBuilder trimTrailingPunctuation(StringBuilder format) {
+	static StringBuilder trimTrailingPunctuation(StringBuilder format) {
 		if (format == null){
 			return new StringBuilder();
 		}
@@ -230,7 +245,7 @@ public class Util {
 		}
 	}
 
-	public static Collection<String> trimTrailingPunctuation(Set<String> fieldList) {
+	static Collection<String> trimTrailingPunctuation(Set<String> fieldList) {
 		HashSet<String> trimmedCollection = new HashSet<>();
 		for (String field : fieldList){
 			trimmedCollection.add(trimTrailingPunctuation(field));
@@ -239,7 +254,7 @@ public class Util {
 	}
 
 	private static Pattern sortTrimmingPattern = Pattern.compile("(?i)^(?:(?:a|an|the|el|la|\"|')\\s)(.*)$");
-	public static String makeValueSortable(String curTitle) {
+	static String makeValueSortable(String curTitle) {
 		if (curTitle == null) return "";
 		String sortTitle = curTitle.toLowerCase();
 		Matcher sortMatcher = sortTrimmingPattern.matcher(sortTitle);
@@ -252,17 +267,17 @@ public class Util {
 		return sortTitle;
 	}
 	
-	public static Long getDaysSinceAddedForDate(Date curDate){
+	static Long getDaysSinceAddedForDate(Date curDate){
 		if (curDate == null){
 			return null;
 		}
 		return (indexDate.getTime() - curDate.getTime()) / (1000 * 60 * 60 * 24);
 	}
 	private static Date indexDate = new Date();
-	public static Date getIndexDate(){
+	static Date getIndexDate(){
 		return indexDate;
 	}
-	public static LinkedHashSet<String> getTimeSinceAddedForDate(Date curDate) {
+	static LinkedHashSet<String> getTimeSinceAddedForDate(Date curDate) {
 		if (curDate == null) {
 			return null;
 		}
@@ -270,7 +285,7 @@ public class Util {
 				/ (1000 * 60 * 60 * 24);
 		return getTimeSinceAdded(timeDifferenceDays);
 	}
-	public static LinkedHashSet<String> getTimeSinceAdded(long timeDifferenceDays){
+	static LinkedHashSet<String> getTimeSinceAdded(long timeDifferenceDays){
 		// System.out.println("Time Difference Days: " + timeDifferenceDays);
 		LinkedHashSet<String> result = new LinkedHashSet<>();
 		if (timeDifferenceDays < 0) {
@@ -301,7 +316,7 @@ public class Util {
 	}
 
 
-	public static boolean isNumeric(String stringToTest) {
+	static boolean isNumeric(String stringToTest) {
 		if (stringToTest == null){
 			return false;
 		}
@@ -316,13 +331,10 @@ public class Util {
 				numDecimals++;
 			}
 		}
-		if (numDecimals > 1){
-			return false;
-		}
-		return true;
+		return numDecimals <= 1;
 	}
 
-	public static boolean compareFiles(File file1, File file2, Logger logger){
+	static boolean compareFiles(File file1, File file2, Logger logger){
 		try {
 			BufferedReader reader1 = new BufferedReader(new FileReader(file1));
 			BufferedReader reader2 = new BufferedReader(new FileReader(file2));
@@ -361,7 +373,7 @@ public class Util {
 	 *          String to parse
 	 * @return Numeric part of date String (or null)
 	 */
-	public static String cleanDate(final String date) {
+	static String cleanDate(final String date) {
 		if (date == null || date.length() == 0){
 			return null;
 		}
@@ -427,7 +439,7 @@ public class Util {
 	 * chars (matched or unmatched) and are the only square bracket chars in the
 	 * string.
 	 */
-	public static String removeOuterBrackets(String origStr) {
+	private static String removeOuterBrackets(String origStr) {
 		if (origStr == null || origStr.length() == 0) return origStr;
 
 		String result = origStr.trim();
@@ -449,11 +461,11 @@ public class Util {
 		return result.trim();
 	}
 
-	public static String getCleanDetailValue(String value) {
+	static String getCleanDetailValue(String value) {
 		return value == null ? "" : value;
 	}
 
-	public static String convertISBN10to13(String isbn10) {
+	static String convertISBN10to13(String isbn10) {
 		if (isbn10.length() != 10){
 			return null;
 		}

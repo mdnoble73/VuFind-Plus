@@ -1365,6 +1365,14 @@ function getLibraryLocationUpdates(){
 					),
 			),
 
+			'library_eds_search_integration' => array(
+					'title' => 'Library EDS Search Integration',
+					'description' => 'Setup information for linking to EDS',
+					'sql' => array(
+							'ALTER TABLE `library` ADD COLUMN `edsSearchProfile` VARCHAR(50)',
+					),
+			),
+
 			'library_patronNameDisplayStyle' => array(
 					'title' => 'Library Patron Display Name Style',
 					'description' => 'Setup the style for how the display name for patrons is generated',
@@ -1623,6 +1631,42 @@ function getLibraryLocationUpdates(){
 							"UPDATE `library_facet_setting`  SET `displayName` = 'Lexile code'    WHERE `facetName` = 'lexile_code'  AND `displayName` = 'Lexile Code';",
 							"UPDATE `location_facet_setting` SET `displayName` = 'Lexile code'    WHERE `facetName` = 'lexile_code'  AND `displayName` = 'Lexile Code';"
 					),
+			),
+
+			'combined_results' => array(
+					'title' => 'Combined Results Setup',
+					'description' => 'Initial setup of combined results for libraries and locations',
+					'continueOnError' => false,
+					'sql' => array(
+							"CREATE table library_combined_results_section (
+								id INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+								libraryId INT(11) NOT NULL,
+ 				  			displayName VARCHAR(255) DEFAULT NULL,
+ 				  			source VARCHAR(45) DEFAULT NULL,
+								numberOfResultsToShow INT(11) NOT NULL DEFAULT '5',
+								weight INT(11) NOT NULL DEFAULT '0',
+								PRIMARY KEY (id),
+								KEY LibraryIdIndex (libraryId)
+							) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;",
+							"CREATE table location_combined_results_section (
+								id INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+								locationId INT(11) NOT NULL,
+								displayName VARCHAR(255) DEFAULT NULL,
+ 				  			source VARCHAR(45) DEFAULT NULL,
+								numberOfResultsToShow INT(11) NOT NULL DEFAULT '5',
+								weight INT(11) NOT NULL DEFAULT '0',
+								PRIMARY KEY (id),
+								KEY LocationIdIndex (locationId)
+							) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;",
+							"ALTER TABLE library ADD COLUMN enableCombinedResults TINYINT(1) DEFAULT 0",
+							"ALTER TABLE library ADD COLUMN combinedResultsLabel VARCHAR(255) DEFAULT 'Combined Results'",
+							"ALTER TABLE library ADD COLUMN defaultToCombinedResults TINYINT(1) DEFAULT 0",
+							"ALTER TABLE location ADD COLUMN useLibraryCombinedResultsSettings TINYINT(1) DEFAULT 1",
+							"ALTER TABLE location ADD COLUMN enableCombinedResults TINYINT(1) DEFAULT 0",
+							"ALTER TABLE location ADD COLUMN combinedResultsLabel VARCHAR(255) DEFAULT 'Combined Results'",
+							"ALTER TABLE location ADD COLUMN defaultToCombinedResults TINYINT(1) DEFAULT 0",
+
+					)
 			),
 	);
 }

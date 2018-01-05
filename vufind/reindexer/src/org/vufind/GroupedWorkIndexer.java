@@ -59,7 +59,6 @@ public class GroupedWorkIndexer {
 	private TreeSet<Scope> scopes = new TreeSet<>();
 
 	private PreparedStatement getGroupedWorkPrimaryIdentifiers;
-	//private PreparedStatement getGroupedWorkIdentifiers;
 	private PreparedStatement getDateFirstDetectedStmt;
 
 
@@ -253,7 +252,8 @@ public class GroupedWorkIndexer {
 
 		//Setup prepared statements to load local enrichment
 		try {
-			getRatingStmt = vufindConn.prepareStatement("SELECT AVG(rating) as averageRating from user_work_review where groupedRecordPermanentId = ? and rating > 0");
+			//No need to filter for ratings greater than 0 because the user has to rate from 1-5
+			getRatingStmt = vufindConn.prepareStatement("SELECT AVG(rating) as averageRating, groupedRecordPermanentId from user_work_review where groupedRecordPermanentId = ?");
 		} catch (SQLException e) {
 			logger.error("Could not prepare statements to load local enrichment", e);
 		}

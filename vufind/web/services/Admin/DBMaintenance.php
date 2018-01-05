@@ -2355,6 +2355,22 @@ class DBMaintenance extends Admin_Admin {
 									ADD COLUMN `searchSource` VARCHAR(30) NOT NULL DEFAULT 'local' AFTER `search_object`;",
 							)
 					),
+
+					'record_grouping_log' => array(
+							'title' => 'Record Grouping Log',
+							'description' => 'Create Log for record grouping',
+							'continueOnError' => false,
+							'sql' => array(
+									"CREATE TABLE IF NOT EXISTS record_grouping_log(
+									`id` INT NOT NULL AUTO_INCREMENT COMMENT 'The id of log', 
+									`startTime` INT(11) NOT NULL COMMENT 'The timestamp when the run started', 
+									`endTime` INT(11) NULL COMMENT 'The timestamp when the run ended', 
+									`lastUpdate` INT(11) NULL COMMENT 'The timestamp when the run last updated (to check for stuck processes)', 
+									`notes` TEXT COMMENT 'Additional information about the run includes stats per source', 
+									PRIMARY KEY ( `id` )
+									) ENGINE = MYISAM;",
+							)
+					),
 			)
 		);
 	}

@@ -2,11 +2,6 @@ package org.vufind;
 
 import org.apache.log4j.Logger;
 
-import java.math.BigInteger;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -250,18 +245,7 @@ public class GroupedWork1 extends GroupedWorkBase implements Cloneable {
 		}
 	}
 
-	@Override
-	public void setIdentifiers(HashSet<RecordIdentifier> identifiers) {
-		this.identifiers = identifiers;
-	}
-
 	public String getGroupingCategory(){
 		return groupingCategory;
 	}
-
-	public HashSet<RecordIdentifier> getIdentifiers(){
-		return identifiers;
-	}
-
-
 }

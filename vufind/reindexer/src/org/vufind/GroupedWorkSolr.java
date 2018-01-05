@@ -1170,8 +1170,15 @@ public class GroupedWorkSolr implements Cloneable {
 		this.topics.addAll(Util.trimTrailingPunctuation(fieldList));
 	}
 
+	void addTopic(String fieldValue) {
+		this.topics.add(Util.trimTrailingPunctuation(fieldValue));
+	}
+
 	void addTopicFacet(Set<String> fieldList) {
 		this.topicFacets.addAll(Util.trimTrailingPunctuation(fieldList));
+	}
+	void addTopicFacet(String fieldValue) {
+		this.topicFacets.add(Util.trimTrailingPunctuation(fieldValue));
 	}
 
 	void addSubjects(Set<String> fieldList) {
@@ -1233,20 +1240,28 @@ public class GroupedWorkSolr implements Cloneable {
 		this.genres.addAll(Util.trimTrailingPunctuation(fieldList));
 	}
 
+	void addGenre(String fieldValue) {
+		this.genres.add(Util.trimTrailingPunctuation(fieldValue));
+	}
+
 	void addGenreFacet(Set<String> fieldList) {
 		this.genreFacets.addAll(Util.trimTrailingPunctuation(fieldList));
 	}
 
-	void addGeographic(Set<String> fieldList) {
-		this.geographic.addAll(Util.trimTrailingPunctuation(fieldList));
+	void addGenreFacet(String fieldValue) {
+		this.genreFacets.add(Util.trimTrailingPunctuation(fieldValue));
 	}
 
-	void addGeographicFacet(Set<String> fieldList) {
-		this.geographicFacets.addAll(Util.trimTrailingPunctuation(fieldList));
+	void addGeographic(String fieldValue) {
+		this.geographic.add(Util.trimTrailingPunctuation(fieldValue));
 	}
 
-	void addEra(Set<String> fieldList) {
-		this.eras.addAll(Util.trimTrailingPunctuation(fieldList));
+	void addGeographicFacet(String fieldValue) {
+		this.geographicFacets.add(Util.trimTrailingPunctuation(fieldValue));
+	}
+
+	void addEra(String fieldValue) {
+		this.eras.add(Util.trimTrailingPunctuation(fieldValue));
 	}
 
 	void setLanguageBoost(Long languageBoost) {
@@ -1511,12 +1526,12 @@ public class GroupedWorkSolr implements Cloneable {
 		}
 	}
 
-	void addLCSubjects(Set<String> lcSubjects) {
-		this.lcSubjects.addAll(Util.trimTrailingPunctuation(lcSubjects));
+	void addLCSubject(String lcSubject) {
+		this.lcSubjects.add(Util.trimTrailingPunctuation(lcSubject));
 	}
 
-	void addBisacSubjects(Set<String> bisacSubjects) {
-		this.bisacSubjects.addAll(Util.trimTrailingPunctuation(bisacSubjects));
+	void addBisacSubject(String bisacSubject) {
+		this.bisacSubjects.add(Util.trimTrailingPunctuation(bisacSubject));
 	}
 
 	void addSystemLists(Set<String> systemLists) {

@@ -368,7 +368,7 @@ class MaterialsRequest_ManageRequests extends Admin_Admin {
 		$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, 'Magazine');
 		$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, 'Author');
 		$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, 'Format');
-		if ($configArray['MaterialsRequest']['showEbookFormatField'] || $configArray['MaterialsRequest']['showEaudioFormatField']){
+		if ($configArray['MaterialsRequest']['showEbookFormatField']/* || $configArray['MaterialsRequest']['showEaudioFormatField']*/){
 			$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, 'Sub Format');
 		}
 		if ($configArray['MaterialsRequest']['showBookTypeField']){
@@ -430,7 +430,7 @@ class MaterialsRequest_ManageRequests extends Admin_Admin {
 				$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, trim($magazineInfo));
 				$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, $request->author);
 				$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, $request->format);
-				if ($configArray['MaterialsRequest']['showEbookFormatField'] || $configArray['MaterialsRequest']['showEaudioFormatField']){
+				if ($configArray['MaterialsRequest']['showEbookFormatField']/* || $configArray['MaterialsRequest']['showEaudioFormatField']*/){
 					$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, $request->subFormat);
 				}
 				if ($configArray['MaterialsRequest']['showBookTypeField']){

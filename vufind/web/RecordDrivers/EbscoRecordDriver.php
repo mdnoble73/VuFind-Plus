@@ -39,7 +39,12 @@ class EbscoRecordDriver extends RecordInterface {
 	}
 
 	public function getBookcoverUrl($size = 'small') {
-		// TODO: Implement getBookcoverUrl() method.
+		if ($this->recordData->ImageInfo){
+			return (string)$this->recordData->ImageInfo->CoverArt->Target;
+		}else{
+			return null;
+		}
+
 	}
 
 	/**
@@ -159,9 +164,10 @@ class EbscoRecordDriver extends RecordInterface {
 	}
 
 	public function getRecordUrl() {
-		global $configArray;
-		return $configArray['Site']['path'] . '/EBSCO/Home?id=' . urlencode($this->getUniqueID());
-		//return $this->recordData->PLink;
+		//TODO: Switch back to an internal link once we do a full EBSCO implementation
+		//global $configArray;
+		//return $configArray['Site']['path'] . '/EBSCO/Home?id=' . urlencode($this->getUniqueID());
+		return $this->recordData->PLink;
 	}
 
 	public function getEbscoUrl() {
@@ -218,9 +224,45 @@ class EbscoRecordDriver extends RecordInterface {
 		$interface->assign('summSourceDatabase', $this->getSourceDatabase());
 		$interface->assign('summHasFullText', $this->hasFullText());
 
+		$interface->assign('bookCoverUrl', $this->getBookcoverUrl('small'));
+		$interface->assign('bookCoverUrlMedium', $this->getBookcoverUrl('medium'));
+
 		$interface->assign('summURLs', $this->getURLs());
 
 		return 'RecordDrivers/EBSCO/result.tpl';
+	}
+
+	/**
+	 * Assign necessary Smarty variables and return a template name to
+	 * load in order to display a summary of the item suitable for use in
+	 * search results.
+	 *
+	 * @access  public
+	 * @return  string              Name of Smarty template file to display.
+	 */
+	public function getCombinedResult() {
+		global $interface;
+
+		$id = $this->getUniqueID();
+		$interface->assign('summId', $id);
+		$interface->assign('summShortId', $id);
+		$interface->assign('module', $this->getModule());
+
+		$formats = $this->getFormats();
+		$interface->assign('summFormats', $formats);
+
+		$interface->assign('summUrl', $this->getLinkUrl());
+		$interface->assign('summTitle', $this->getTitle());
+		$interface->assign('summAuthor', $this->getAuthor());
+		$interface->assign('summSourceDatabase', $this->getSourceDatabase());
+		$interface->assign('summHasFullText', $this->hasFullText());
+
+		$interface->assign('bookCoverUrl', $this->getBookcoverUrl('small'));
+		$interface->assign('bookCoverUrlMedium', $this->getBookcoverUrl('medium'));
+
+		$interface->assign('summURLs', $this->getURLs());
+
+		return 'RecordDrivers/EBSCO/combinedResult.tpl';
 	}
 
 	/**
