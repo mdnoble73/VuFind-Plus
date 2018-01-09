@@ -949,6 +949,15 @@ function getLibraryLocationUpdates(){
 			),
 		),
 
+		'increase_login_form_labels' => array(
+			'title' => 'Allow for longer Login Form Labels',
+			'description' => 'Increase allowable size for the labels of the login form',
+			'sql' => array(
+				"ALTER TABLE `library` CHANGE COLUMN `loginFormUsernameLabel` `loginFormUsernameLabel` VARCHAR(100) NULL DEFAULT 'Your Name'" ,
+				"ALTER TABLE `library`CHANGE COLUMN `loginFormPasswordLabel` `loginFormPasswordLabel` VARCHAR(100) NULL DEFAULT 'Library Card Number' ",
+			),
+		),
+
 		'detailed_hold_notice_configuration' => array(
 			'title' => 'Detailed Hold Notice Configuration',
 			'description' => 'Additional configuration over how detailed hold notices are displayed to the user',
