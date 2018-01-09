@@ -54,6 +54,8 @@
 								{include file="MyAccount/ilsCheckedOutTitle.tpl" record=$checkedOutTitle resultIndex=$smarty.foreach.checkedOutTitleLoop.iteration}
 							{elseif $checkedOutTitle.checkoutSource == 'OverDrive'}
 								{include file="MyAccount/overdriveCheckedOutTitle.tpl" record=$checkedOutTitle resultIndex=$smarty.foreach.checkedOutTitleLoop.iteration}
+							{elseif $checkedOutTitle.checkoutSource == 'Hoopla'}
+								{include file="MyAccount/hooplaCheckedOutTitle.tpl" record=$checkedOutTitle resultIndex=$smarty.foreach.checkedOutTitleLoop.iteration}
 							{else}
 								<div class="row">
 									Unknown record source {$checkedOutTitle.checkoutSource}

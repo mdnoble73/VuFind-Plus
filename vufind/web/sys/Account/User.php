@@ -447,6 +447,16 @@ class User extends DB_DataObject
 		return false;
 	}
 
+	function isValidForHoopla(){
+		if ($this->parentUser == null || ($this->getBarcode() != $this->parentUser->getBarcode())){
+			$userHomeLibrary = Library::getPatronHomeLibrary($this);
+			if ($userHomeLibrary && $userHomeLibrary->hooplaLibraryID > 0){
+				return true;
+			}
+		}
+		return false;
+	}
+
 	/**
 	 * Returns a list of users that can view this account
 	 *
@@ -847,6 +857,15 @@ class User extends DB_DataObject
 		}
 
 		$allCheckedOut = array_merge($ilsCheckouts, $overDriveCheckedOutItems);
+
+		//Get checked out titles from Hoopla
+		//Do not load Hoopla titles if the parent barcode (if any) is the same as the current barcode
+		if ($this->isValidForHoopla()){
+			require_once ROOT_DIR . '/Drivers/HooplaDriver.php';
+			$hooplaDriver = new HooplaDriver();
+			$hooplaCheckedOutItems = $hooplaDriver->getHooplaCheckedOutItems($this);
+			$allCheckedOut = array_merge($allCheckedOut, $hooplaCheckedOutItems);
+		}
 
 		if ($includeLinkedUsers) {
 			if ($this->getLinkedUsers() != null) {

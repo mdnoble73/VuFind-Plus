@@ -1668,5 +1668,14 @@ function getLibraryLocationUpdates(){
 
 					)
 			),
+		'hoopla_integration' => array(
+			'title' => 'Hoopla Integration',
+			'description' => 'Add settings for Hoopla Integration: Hoopla ID',
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE `library` ADD COLUMN `hooplaLibraryID` INTEGER UNSIGNED;",
+			),
+		),
+
 	);
 }
