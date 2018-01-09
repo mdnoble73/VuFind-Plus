@@ -130,7 +130,7 @@ class HooplaDriver
 						$currentTitle['ratingData']    = $hooplaRecordDriver->getRatingData();
 						$currentTitle['title_sort']    = $hooplaRecordDriver->getSortableTitle();
 						$currentTitle['author']        = $hooplaRecordDriver->getPrimaryAuthor();
-						$currentTitle['format']        = $hooplaRecordDriver->getFormat();
+						$currentTitle['format']        = implode(', ',$hooplaRecordDriver->getFormat());
 					}
 					$checkedOutItems[] = $currentTitle;
 				}
