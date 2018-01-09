@@ -56,7 +56,6 @@ class Hoopla_AJAX extends Action
 		}
 	}
 
-	//TODO: Verify this works
 	function downloadMarc(){
 		$id = $_REQUEST['id'];
 		$marcData = MarcLoader::loadMarcRecordByILSId($id);
@@ -74,7 +73,6 @@ class Hoopla_AJAX extends Action
 		echo($marcData->toRaw());
 	}
 
-	//TODO: Verify this works
 	function reloadCover(){
 		require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
 		$id = $_REQUEST['id'];
