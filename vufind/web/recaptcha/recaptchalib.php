@@ -35,8 +35,8 @@
 /**
  * The reCAPTCHA server URL's
  */
-define("RECAPTCHA_API_SERVER", "http://www.google.com/recaptcha/api");
-define("RECAPTCHA_API_SECURE_SERVER", "https://www.google.com/recaptcha/api");
+define("RECAPTCHA_API_SECURE_SERVER", "https://www.google.com/recaptcha/api.js");
+
 define("RECAPTCHA_VERIFY_SERVER", "www.google.com");
 
 /**
@@ -63,7 +63,7 @@ function _recaptcha_qsencode($data) {
  * @param int port
  * @return array response
  */
-function _recaptcha_http_post($host, $path, $data, $port = 80) {
+function _recaptcha_http_post($host, $path, $data, $port = 443) {
 
 	$req = _recaptcha_qsencode($data);
 
@@ -76,6 +76,10 @@ function _recaptcha_http_post($host, $path, $data, $port = 80) {
 	$http_request .= $req;
 
 	$response = '';
+	if ($port == 443) {
+		$host = 'ssl://' . $host;
+		// this enables secure calls with fsockopen
+	}
 	if (false == ($fs = @fsockopen($host, $port, $errno, $errstr, 10))) {
 		die ('Could not open socket');
 	}
@@ -96,45 +100,15 @@ function _recaptcha_http_post($host, $path, $data, $port = 80) {
  * This is called from the browser, and the resulting reCAPTCHA HTML widget
  * is embedded within the HTML form it was called from.
  * @param string $pubkey A public key for reCAPTCHA
- * @param string $error The error given by reCAPTCHA (optional, default is null)
- * @param boolean $use_ssl Should the request be made over ssl? (optional, default is false)
  * @return string - The HTML to be embedded in the user's form.
  */
-function recaptcha_get_html($pubkey, $error = null, $use_ssl = false) {
+function recaptcha_get_html($pubkey) {
 	if ($pubkey == null || $pubkey == '') {
 		die ("To use reCAPTCHA you must get an API key from <a href='https://www.google.com/recaptcha/admin/create'>https://www.google.com/recaptcha/admin/create</a>");
 	}
 
-	if ($use_ssl) {
-		$server = RECAPTCHA_API_SECURE_SERVER;
-	} else {
-		$server = RECAPTCHA_API_SERVER;
-	}
-
-	$errorpart = "";
-	if ($error) {
-		$errorpart = "&amp;error=" . $error;
-	}
-	if (isset($_REQUEST['lightbox'])){
-		return '<script type="text/javascript">
-         function showRecaptcha(element) {
-	         Recaptcha.create("' . $pubkey . '", element, {
-             theme: "red",
-             callback: Recaptcha.focus_response_field});
-         }
-         showRecaptcha("recaptcha_div");
-      </script>
-      <div id="recaptcha_div"></div>';
-
-	}else{
-		return '<script type="text/javascript" src="' . $server . '/challenge?k=' . $pubkey . $errorpart . '"></script>
-
-		<noscript>
-	    <iframe src="' . $server . '/noscript?k=' . $pubkey . $errorpart . '" height="300" width="500" frameborder="0"></iframe><br/>
-	    <textarea name="recaptcha_challenge_field" rows="3" cols="40"></textarea>
-	    <input type="hidden" name="recaptcha_response_field" value="manual_challenge"/>
-		</noscript>';
-	}
+	return '<script src="'. RECAPTCHA_API_SECURE_SERVER .'" async defer></script>' .
+		'<div class="g-recaptcha" data-sitekey="'. $pubkey .'">';
 }
 
 
@@ -151,12 +125,11 @@ class ReCaptchaResponse {
  * Calls an HTTP POST function to verify if the user's guess was correct
  * @param string $privkey
  * @param string $remoteip
- * @param string $challenge
  * @param string $response
  * @param array $extra_params an array of extra variables to post to the server
  * @return ReCaptchaResponse
  */
-function recaptcha_check_answer($privkey, $remoteip, $challenge, $response, $extra_params = array()) {
+function recaptcha_check_answer($privkey, $remoteip, $response, $extra_params = array()) {
 	if ($privkey == null || $privkey == '') {
 		die ("To use reCAPTCHA you must get an API key from <a href='https://www.google.com/recaptcha/admin/create'>https://www.google.com/recaptcha/admin/create</a>");
 	}
@@ -165,32 +138,24 @@ function recaptcha_check_answer($privkey, $remoteip, $challenge, $response, $ext
 		die ("For security reasons, you must pass the remote ip to reCAPTCHA");
 	}
 
-
-	//discard spam submissions
-	if ($challenge == null || strlen($challenge) == 0 || $response == null || strlen($response) == 0) {
-		$recaptcha_response = new ReCaptchaResponse();
-		$recaptcha_response->is_valid = false;
-		$recaptcha_response->error = 'incorrect-captcha-sol';
-		return $recaptcha_response;
-	}
-
-	$response = _recaptcha_http_post(RECAPTCHA_VERIFY_SERVER, "/recaptcha/api/verify",
+	$response = _recaptcha_http_post(RECAPTCHA_VERIFY_SERVER, "/recaptcha/api/siteverify",
 			array(
-				'privatekey' => $privkey,
+				'secret' => "$privkey",
 				'remoteip' => $remoteip,
-				'challenge' => $challenge,
 				'response' => $response
 			) + $extra_params
 	);
 
-	$answers = explode("\n", $response [1]);
+	$php_friendly_data = str_replace('"error-codes"', '"error_codes"', $response[1]);
+	//error-codes can't be a valid name for a property
+	$answers = json_decode($php_friendly_data);
 	$recaptcha_response = new ReCaptchaResponse();
 
-	if (trim($answers [0]) == 'true') {
+	if (isset($answers->success) && $answers->success) {
 		$recaptcha_response->is_valid = true;
 	} else {
 		$recaptcha_response->is_valid = false;
-		$recaptcha_response->error = $answers [1];
+		$recaptcha_response->error = $answers->error_codes;
 	}
 	return $recaptcha_response;
 
