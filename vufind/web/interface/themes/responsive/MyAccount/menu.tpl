@@ -363,7 +363,7 @@
 			{/if}
 
 			{if $loggedIn && (array_key_exists('opacAdmin', $userRoles) || array_key_exists('libraryAdmin', $userRoles) || array_key_exists('locationReports', $userRoles) || array_key_exists('contentEditor', $userRoles))}
-				{if in_array($action, array('ReportExternalLinks', 'StudentReport'))}
+				{if in_array($action, array('StudentReport'))}
 					{assign var="curSection" value=true}
 				{else}
 					{assign var="curSection" value=false}
@@ -378,9 +378,6 @@
 					</a>
 					<div id="reportsMenu" class="panel-collapse collapse {if $curSection}in{/if}">
 						<div class="panel-body">
-							{if $loggedIn && (array_key_exists('opacAdmin', $userRoles) || array_key_exists('libraryAdmin', $userRoles))}
-								<div class="adminMenuLink{if $action == "ReportExternalLinks"} active{/if}"><a href="{$path}/Report/ReportExternalLinks">External Link Tracking</a></div>
-							{/if}
 							{if ($ils == 'CarlX' || $ils == 'Sierra') && $loggedIn && (array_key_exists('opacAdmin', $userRoles) || array_key_exists('libraryAdmin', $userRoles) || array_key_exists('locationReports', $userRoles))}
 								<div class="adminMenuLink{if $action == "StudentReport"} active{/if}"><a href="{$path}/Report/StudentReport">Student Reports</a></div>
 							{/if}
