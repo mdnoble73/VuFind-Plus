@@ -138,11 +138,9 @@ class MaterialsRequest_AJAX extends Action{
 								$requestFormFields = $materialsRequest->getRequestFormFields($staffLibrary->libraryId, true);
 								$interface->assign('requestFormFields', $requestFormFields);
 
-								if (UserAccount::userHasRole('cataloging')) {
-									$canUpdate   = true; // TODO: Cataloging supersedes library_materials_requests??
-									$isAdminUser = true;
-								} elseif ($user->id == $materialsRequest->createdBy) {
+								if ($user->id == $materialsRequest->createdBy) {
 									$canUpdate = true;
+									$isAdminUser = UserAccount::userHasRole('library_material_requests');
 								} elseif (UserAccount::userHasRole('library_material_requests')) {
 									//User can update if the home library of the requester is their library
 
@@ -310,7 +308,7 @@ class MaterialsRequest_AJAX extends Action{
 
 						$interface->assign('materialsRequest', $materialsRequest);
 
-						if ($user && UserAccount::userHasRole('cataloging') || UserAccount::userHasRole('library_material_requests') || UserAccount::userHasRole('opacAdmin')) {
+						if ($user && UserAccount::userHasRole('library_material_requests')) {
 							$interface->assign('showUserInformation', true);
 							//Load user information
 							$requestUser     = new User();

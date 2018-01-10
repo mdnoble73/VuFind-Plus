@@ -64,7 +64,7 @@ class ManageStatuses extends ObjectEditor
 		return 'id';
 	}
 	function getAllowableRoles(){
-		return array('cataloging', 'library_material_requests');
+		return array('library_material_requests');
 	}
 	function customListActions(){
 		$objectActions = array();
