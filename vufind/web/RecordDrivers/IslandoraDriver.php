@@ -3030,7 +3030,7 @@ abstract class IslandoraDriver extends RecordInterface {
 			$searchObject = SearchObjectFactory::initSearchObject('Islandora');
 			$searchObject->init();
 			$searchObject->setLimit(100);
-			$searchObject->setSort('fgs_label_s');
+			$searchObject->setSort('RELS_EXT_isSequenceNumber_literal_intDerivedFromString_l asc,fgs_label_s');
 			$searchObject->setSearchTerms(array(
 					'lookfor' => '"info:fedora/' . $this->getUniqueID() .'"',
 					'index' => 'RELS_EXT_isMemberOf_uri_mt'
