@@ -15,22 +15,26 @@ class HooplaDriver
 //	public $hooplaAPIBaseURL = 'hoopla-api-dev.hoopladigital.com';
 	public $hooplaAPIBaseURL = 'hoopla-api-dev.hoopladigital.com';
 	private $accessToken;
+	private $hooplaEnabled = false;
 
 
 
 	public function __construct()
 	{
 		global $configArray;
-		if (!empty($configArray['Hoopla']['APIBaseURL'])) {
-			$this->hooplaAPIBaseURL = $configArray['Hoopla']['APIBaseURL'];
-			$this->getAccessToken();
+		if (!empty($configArray['Hoopla']['HooplaAPIUser']) && !empty($configArray['Hoopla']['HooplaAPIpassword'])) {
+			$this->hooplaEnabled = true;
+			if (!empty($configArray['Hoopla']['APIBaseURL'])) {
+				$this->hooplaAPIBaseURL = $configArray['Hoopla']['APIBaseURL'];
+				$this->getAccessToken();
+			}
 		}
 	}
 
 
 	// Originally copied from SirsiDynixROA Driver
 	// $customRequest is for curl, can be 'PUT', 'DELETE', 'POST'
-	public function getAPIResponse($url, $params = null, $customRequest = null, $additionalHeaders = null)
+	private function getAPIResponse($url, $params = null, $customRequest = null, $additionalHeaders = null)
 	{
 		global $logger;
 		$logger->log('Hoopla API URL :' .$url, PEAR_LOG_INFO);
@@ -89,9 +93,12 @@ class HooplaDriver
 	 * @param $user User
 	 */
 	function getHooplaLibraryID($user) {
-		$library = $user->getHomeLibrary();
-		$hooplaID = $library->hooplaLibraryID;
-		return $hooplaID;
+		if ($this->hooplaEnabled) {
+			$library  = $user->getHomeLibrary();
+			$hooplaID = $library->hooplaLibraryID;
+			return $hooplaID;
+		}
+		return false;
 }
 
 	/**
@@ -100,43 +107,45 @@ class HooplaDriver
 	public function getHooplaCheckedOutItems($user)
 	{
 		$checkedOutItems = array();
-		$hooplaID = $this->getHooplaLibraryID($user);
-		$barcode         = $user->getBarcode();
-		if (!empty($hooplaID) && !empty($barcode)) {
-			$getCheckOutsURL = $this->hooplaAPIBaseURL . '/api/v1/libraries/' .
-				$hooplaID .'/patrons/' . $barcode . '/checkouts/current';
-			$checkOutsResponse = $this->getAPIResponse($getCheckOutsURL);
-			if (is_array($checkOutsResponse)) {
-				foreach ($checkOutsResponse as $checkOut) {
-					$hooplaRecordID = 'MWT' . $checkOut->contentId;
-					$simpleSortTitle       = preg_replace('/^The\s|^A\s/i', '', $checkOut->title); // remove begining The or A
+		if ($this->hooplaEnabled) {
+			$hooplaID = $this->getHooplaLibraryID($user);
+			$barcode  = $user->getBarcode();
+			if (!empty($hooplaID) && !empty($barcode)) {
+				$getCheckOutsURL   = $this->hooplaAPIBaseURL . '/api/v1/libraries/' .
+					$hooplaID . '/patrons/' . $barcode . '/checkouts/current';
+				$checkOutsResponse = $this->getAPIResponse($getCheckOutsURL);
+				if (is_array($checkOutsResponse)) {
+					foreach ($checkOutsResponse as $checkOut) {
+						$hooplaRecordID  = 'MWT' . $checkOut->contentId;
+						$simpleSortTitle = preg_replace('/^The\s|^A\s/i', '', $checkOut->title); // remove begining The or A
 
-					$currentTitle = array(
-						'checkoutSource'  => 'Hoopla',
-						'title'           => $checkOut->title,
-						'title_sort'      => empty($simpleSortTitle) ? $checkOut->title : $simpleSortTitle,
-						'author'          => isset($checkOut->author) ? $checkOut->author : null,
-						'format'          => $checkOut->kind,
-						'checkoutdate'    => $checkOut->borrowed,
-						'dueDate'         => $checkOut->due,
-					);
-					require_once ROOT_DIR . '/RecordDrivers/HooplaDriver.php';
-					$hooplaRecordDriver = new HooplaRecordDriver($hooplaRecordID);
-					if ($hooplaRecordDriver->isValid()) {
-						// Get Record For other details
-						$currentTitle['coverUrl']      = $hooplaRecordDriver->getBookcoverUrl('medium');
-						$currentTitle['linkUrl']       = $hooplaRecordDriver->getLinkUrl();
-						$currentTitle['groupedWorkId'] = $hooplaRecordDriver->getGroupedWorkId();
-						$currentTitle['ratingData']    = $hooplaRecordDriver->getRatingData();
-						$currentTitle['title_sort']    = $hooplaRecordDriver->getSortableTitle();
-						$currentTitle['author']        = $hooplaRecordDriver->getPrimaryAuthor();
-						$currentTitle['format']        = implode(', ',$hooplaRecordDriver->getFormat());
+						$currentTitle = array(
+							'checkoutSource' => 'Hoopla',
+							'title' => $checkOut->title,
+							'title_sort' => empty($simpleSortTitle) ? $checkOut->title : $simpleSortTitle,
+							'author' => isset($checkOut->author) ? $checkOut->author : null,
+							'format' => $checkOut->kind,
+							'checkoutdate' => $checkOut->borrowed,
+							'dueDate' => $checkOut->due,
+						);
+						require_once ROOT_DIR . '/RecordDrivers/HooplaDriver.php';
+						$hooplaRecordDriver = new HooplaRecordDriver($hooplaRecordID);
+						if ($hooplaRecordDriver->isValid()) {
+							// Get Record For other details
+							$currentTitle['coverUrl']      = $hooplaRecordDriver->getBookcoverUrl('medium');
+							$currentTitle['linkUrl']       = $hooplaRecordDriver->getLinkUrl();
+							$currentTitle['groupedWorkId'] = $hooplaRecordDriver->getGroupedWorkId();
+							$currentTitle['ratingData']    = $hooplaRecordDriver->getRatingData();
+							$currentTitle['title_sort']    = $hooplaRecordDriver->getSortableTitle();
+							$currentTitle['author']        = $hooplaRecordDriver->getPrimaryAuthor();
+							$currentTitle['format']        = implode(', ', $hooplaRecordDriver->getFormat());
+						}
+						$checkedOutItems[] = $currentTitle;
 					}
-					$checkedOutItems[] = $currentTitle;
+				} else {
+					global $logger;
+					$logger->log('Error retrieving checkouts from Hoopla.', PEAR_LOG_ERR);
 				}
-			} else {
-				global $logger;
-				$logger->log('Error retrieving checkouts from Hoopla.', PEAR_LOG_ERR);
 			}
 		}
 		return $checkedOutItems;
