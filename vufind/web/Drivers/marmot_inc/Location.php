@@ -699,7 +699,7 @@ class Location extends DB_DataObject
 		if ($searchSource == null){
 			global $searchSource;
 		}
-		if ($searchSource = 'combinedResults'){
+		if ($searchSource == 'combinedResults'){
 			$searchSource = 'local';
 		}
 		if (!array_key_exists($searchSource, Location::$searchLocation)){
