@@ -403,7 +403,12 @@ abstract class IslandoraDriver extends RecordInterface {
 		$interface->assign('module', $this->getModule());
 
 		$linkUrl = $this->getLinkUrl();
-		$linkUrl .= '?searchId=' . $interface->get_template_vars('searchId') . '&amp;recordIndex=' . $interface->get_template_vars('recordIndex') . '&amp;page='  . $interface->get_template_vars('page');
+		if (strpos($linkUrl, '?') === false){
+			$linkUrl .= '?';
+		}else{
+			$linkUrl .= '&';
+		}
+		$linkUrl .= 'searchId=' . $interface->get_template_vars('searchId') . '&amp;recordIndex=' . $interface->get_template_vars('recordIndex') . '&amp;page='  . $interface->get_template_vars('page');
 
 		$interface->assign('summUrl', $linkUrl);
 //		$interface->assign('summUrl', $this->getLinkUrl());
