@@ -47,6 +47,7 @@ class RecordGroupingProcessor {
 	//A list of grouped works that have been manually merged.
 	private HashMap<String, String> mergedGroupedWorks = new HashMap<>();
 	private HashSet<String> recordsToNotGroup = new HashSet<>();
+	private Long updateTime = new Date().getTime() / 1000;
 
 	/**
 	 * Default constructor for use by subclasses
@@ -179,7 +180,6 @@ class RecordGroupingProcessor {
 				if (allItemsSuppressed && identifier != null) {
 					//Don't return a primary identifier for this record (we will suppress the bib and just use OverDrive APIs)
 					identifier.setSuppressed(true);
-					identifier.setSuppressionReason("All Items suppressed");
 				}
 			} else {
 				//Check the 856 for an overdrive url
@@ -191,7 +191,6 @@ class RecordGroupingProcessor {
 							String linkData = linkField.getSubfield('u').getData().trim();
 							if (overdrivePattern.matcher(linkData).matches()) {
 								identifier.setSuppressed(true);
-								identifier.setSuppressionReason("OverDrive Title");
 							}
 						}
 					}
@@ -205,48 +204,10 @@ class RecordGroupingProcessor {
 			return null;
 		}
 	}
-	HashSet<RecordIdentifier> getIdentifiersFromMarcRecord(Record marcRecord) {
-		HashSet<RecordIdentifier> identifiers = new HashSet<>();
-		//Load identifiers
-		List<DataField> identifierFields = getDataFields(marcRecord, new String[]{"020", "024"});
-		for (DataField identifierField : identifierFields){
-			if (identifierField.getSubfield('a') != null){
-				String identifierValue = identifierField.getSubfield('a').getData().trim();
-				//Get rid of any extra data at the end of the identifier
-				if (identifierValue.indexOf(' ') > 0){
-					identifierValue = identifierValue.substring(0, identifierValue.indexOf(' '));
-				}
-				String identifierType;
-				if (identifierField.getTag().equals("020")){
-					identifierType = "isbn";
-					identifierValue = identifierValue.replaceAll("\\D", "");
-					if (identifierValue.length() == 10){
-						identifierValue = convertISBN10to13(identifierValue);
-					}
-				}else{
-					identifierType = "upc";
-				}
-				RecordIdentifier identifier = new RecordIdentifier();
-				if (identifierValue == null || identifierValue.length() > 20){
-					continue;
-				}else if (identifierValue.length() == 0){
-					continue;
-				}
-				identifier.setValue(identifierType, identifierValue);
-				if (identifier.isValid()){
-					identifiers.add(identifier);
-				}
-			}
-		}
-		return identifiers;
-	}
+
 
 	List<DataField> getDataFields(Record marcRecord, String tag) {
 		return marcRecord.getDataFields(tag);
-	}
-
-	private List<DataField> getDataFields(Record marcRecord, String[] tags) {
-		return marcRecord.getDataFields(tags);
 	}
 
 	GroupedWorkBase setupBasicWorkForIlsRecord(Record marcRecord, String loadFormatFrom, char formatSubfield, String specifiedFormatCategory) {
@@ -288,10 +249,10 @@ class RecordGroupingProcessor {
 
 	private void setWorkAuthorBasedOnMarcRecord(Record marcRecord, GroupedWorkBase workForTitle, DataField field245, String groupingFormat) {
 		String author = null;
-		DataField field100 = (DataField)marcRecord.getVariableField("100");
-		DataField field110 = (DataField)marcRecord.getVariableField("110");
-		DataField field260 = (DataField)marcRecord.getVariableField("260");
-		DataField field710 = (DataField)marcRecord.getVariableField("710");
+		DataField field100 = marcRecord.getDataField("100");
+		DataField field110 = marcRecord.getDataField("110");
+		DataField field260 = marcRecord.getDataField("260");
+		DataField field710 = marcRecord.getDataField("710");
 
 		//Depending on the format we will promote the use of the 245c
 		if (field100 != null && field100.getSubfield('a') != null){
@@ -322,7 +283,7 @@ class RecordGroupingProcessor {
 	}
 
 	private DataField setWorkTitleBasedOnMarcRecord(Record marcRecord, GroupedWorkBase workForTitle) {
-		DataField field245 = (DataField)marcRecord.getVariableField("245");
+		DataField field245 = marcRecord.getDataField("245");
 		if (field245 != null && field245.getSubfield('a') != null){
 			String fullTitle = field245.getSubfield('a').getData();
 
@@ -393,7 +354,7 @@ class RecordGroupingProcessor {
 				insertGroupedWorkStmt.setString(2, groupedWork.getAuthor());
 				insertGroupedWorkStmt.setString(3, groupedWork.getGroupingCategory());
 				insertGroupedWorkStmt.setString(4, groupedWorkPermanentId);
-				insertGroupedWorkStmt.setLong(5, new Date().getTime() / 1000);
+				insertGroupedWorkStmt.setLong(5, updateTime);
 
 				insertGroupedWorkStmt.executeUpdate();
 				ResultSet generatedKeysRS = insertGroupedWorkStmt.getGeneratedKeys();
@@ -451,7 +412,7 @@ class RecordGroupingProcessor {
 		//Optimize to not continually mark the same works as updateed
 		if (!updatedAndInsertedWorksThisRun.contains(groupedWorkId)) {
 			try {
-				updateDateUpdatedForGroupedWorkStmt.setLong(1, new Date().getTime() / 1000);
+				updateDateUpdatedForGroupedWorkStmt.setLong(1, updateTime);
 				updateDateUpdatedForGroupedWorkStmt.setLong(2, groupedWorkId);
 				updateDateUpdatedForGroupedWorkStmt.executeUpdate();
 				updatedAndInsertedWorksThisRun.add(groupedWorkId);
@@ -470,10 +431,10 @@ class RecordGroupingProcessor {
 			addPrimaryIdentifierForWorkStmt.setString(2, primaryIdentifier.getType());
 			addPrimaryIdentifierForWorkStmt.setString(3, primaryIdentifier.getIdentifier());
 			addPrimaryIdentifierForWorkStmt.executeUpdate();
-			ResultSet primaryIdentifierRS = addPrimaryIdentifierForWorkStmt.getGeneratedKeys();
+			/*ResultSet primaryIdentifierRS = addPrimaryIdentifierForWorkStmt.getGeneratedKeys();
 			primaryIdentifierRS.next();
 			primaryIdentifier.setIdentifierId(primaryIdentifierRS.getLong(1));
-			primaryIdentifierRS.close();
+			primaryIdentifierRS.close();*/
 		} catch (SQLException e) {
 			logger.error("Error adding primary identifier to grouped work " + groupedWorkId + " " + primaryIdentifier.toString(), e);
 		}
@@ -548,7 +509,7 @@ class RecordGroupingProcessor {
 		}
 
 		// check for playaway in 260|b
-		DataField sysDetailsNote = (DataField) record.getVariableField("260");
+		DataField sysDetailsNote = record.getDataField("260");
 		if (sysDetailsNote != null) {
 			if (sysDetailsNote.getSubfield('b') != null) {
 				String sysDetailsValue = sysDetailsNote.getSubfield('b').getData().toLowerCase();
@@ -559,7 +520,7 @@ class RecordGroupingProcessor {
 		}
 
 		// Check for formats in the 538 field
-		DataField sysDetailsNote2 = (DataField) record.getVariableField("538");
+		DataField sysDetailsNote2 = record.getDataField("538");
 		if (sysDetailsNote2 != null) {
 			if (sysDetailsNote2.getSubfield('a') != null) {
 				String sysDetailsValue = sysDetailsNote2.getSubfield('a').getData().toLowerCase();
@@ -577,7 +538,7 @@ class RecordGroupingProcessor {
 		}
 
 		// Check for formats in the 500 tag
-		DataField noteField = (DataField) record.getVariableField("500");
+		DataField noteField = record.getDataField("500");
 		if (noteField != null) {
 			if (noteField.getSubfield('a') != null) {
 				String noteValue = noteField.getSubfield('a').getData().toLowerCase();
@@ -589,7 +550,7 @@ class RecordGroupingProcessor {
 
 		// Check for large print book (large format in 650, 300, or 250 fields)
 		// Check for blu-ray in 300 fields
-		DataField edition = (DataField) record.getVariableField("250");
+		DataField edition = record.getDataField("250");
 		if (edition != null) {
 			if (edition.getSubfield('a') != null) {
 				if (edition.getSubfield('a').getData().toLowerCase().contains("large type")) {
@@ -856,31 +817,6 @@ class RecordGroupingProcessor {
 		}
 		// Nothing worked!
 		return "Unknown";
-	}
-
-	private static String convertISBN10to13(String isbn10){
-		if (isbn10.length() != 10){
-			return null;
-		}
-		String isbn = "978" + isbn10.substring(0, 9);
-		//Calculate the 13 digit checksum
-		int sumOfDigits = 0;
-		for (int i = 0; i < 12; i++){
-			int multiplier = 1;
-			if (i % 2 == 1){
-				multiplier = 3;
-			}
-			int curDigit = Integer.parseInt(Character.toString(isbn.charAt(i)));
-			sumOfDigits += multiplier * curDigit;
-		}
-		int modValue = sumOfDigits % 10;
-		int checksumDigit;
-		if (modValue == 0){
-			checksumDigit = 0;
-		}else{
-			checksumDigit = 10 - modValue;
-		}
-		return  isbn + Integer.toString(checksumDigit);
 	}
 
 	private static HashMap<String, String> formatsToGroupingCategory = new HashMap<>();
