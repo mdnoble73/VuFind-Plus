@@ -306,13 +306,32 @@ class ArlingtonRecordProcessor extends IIIRecordProcessor {
 	}
 
 	boolean checkIfBibShouldBeRemovedAsItemless(RecordInfo recordInfo) {
-		boolean hasVolumeRecords = recordsWithVolumes.contains(recordInfo.getRecordIdentifier());
-		return !hasVolumeRecords && recordInfo.getNumPrintCopies() == 0 && recordInfo.getNumCopiesOnOrder() == 0 && suppressItemlessBibs;
+		boolean hasVolumeRecords = recordsWithVolumes.contains(recordInfo.getFullIdentifier());
+		if (recordInfo.getNumPrintCopies() == 0 && recordInfo.getNumCopiesOnOrder() == 0 && suppressItemlessBibs){
+			return true;
+			//Need to do additional work to determine exactly how Arlington wants bibs with volumes, but no items
+			//to show.  See #D-81
+			/*if (hasVolumeRecords){
+				//Add a fake record for use in scoping
+				recordInfo.setHasVolumes(true);
+				ItemInfo volumeInfo = new ItemInfo();
+				volumeInfo.setItemIdentifier("tmpVolume");
+				for (Scope scope: indexer.getScopes()){
+					volumeInfo.addScope(scope);
+				}
+				recordInfo.addItem(volumeInfo);
+				return false;
+			}else{
+				return true;
+			}*/
+		}else{
+			return false;
+		}
 	}
 
 	private static Pattern suppressedBCode3Pattern = Pattern.compile("^[xnopwhd]$");
 	protected boolean isBibSuppressed(Record record) {
-		DataField field998 = (DataField)record.getVariableField("998");
+		DataField field998 = record.getDataField("998");
 		if (field998 != null){
 			Subfield suppressionSubfield = field998.getSubfield('e');
 			if (suppressionSubfield != null){

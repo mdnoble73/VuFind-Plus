@@ -66,8 +66,7 @@ class MarcUtil {
 					subend = (sub.length > 1) ? Integer.parseInt(sub[1]) + 1
 							: substart + 1;
 					String subfieldWObracket = subfield.substring(0, bracket - 3);
-					result.addAll(getSubfieldDataAsSet(record, tag, subfieldWObracket,
-							substart, subend));
+					result.addAll(getSubfieldDataAsSet(record, tag, subfieldWObracket, substart, subend));
 				} catch (NumberFormatException e) {
 					// assume brackets expression is a pattern such as [a-z]
 					havePattern = true;

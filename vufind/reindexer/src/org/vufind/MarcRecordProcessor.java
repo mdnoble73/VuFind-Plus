@@ -904,7 +904,7 @@ abstract class MarcRecordProcessor {
 	 *         be found.
 	 */
 	private String getSortableTitle(Record record) {
-		DataField titleField = (DataField) record.getVariableField("245");
+		DataField titleField = record.getDataField("245");
 		if (titleField == null || titleField.getSubfield('a') == null)
 			return "";
 

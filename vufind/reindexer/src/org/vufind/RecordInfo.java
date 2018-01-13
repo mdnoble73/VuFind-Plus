@@ -28,6 +28,7 @@ public class RecordInfo {
 	private String publisher;
 	private String publicationDate;
 	private String physicalDescription;
+	private boolean hasVolumes;
 
 	private HashSet<ItemInfo> relatedItems = new HashSet<>();
 	public RecordInfo(String source, String recordIdentifier){
@@ -311,12 +312,20 @@ public class RecordInfo {
 		}
 	}
 
-	public boolean hasItemFormats() {
+	boolean hasItemFormats() {
 		for (ItemInfo curItem : relatedItems){
 			if (curItem.getFormat() != null){
 				return true;
 			}
 		}
 		return false;
+	}
+
+	void setHasVolumes(boolean hasVolumes) {
+		this.hasVolumes = hasVolumes;
+	}
+
+	boolean hasVolumes(){
+		return true;
 	}
 }

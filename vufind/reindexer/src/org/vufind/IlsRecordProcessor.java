@@ -71,7 +71,7 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	private char volumeSubfield;
 	char itemRecordNumberSubfieldIndicator;
 	private char itemUrlSubfieldIndicator;
-	private boolean suppressItemlessBibs;
+	boolean suppressItemlessBibs;
 
 	//Fields for loading order information
 	private String orderTag;
@@ -331,7 +331,7 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			loadUnsuppressedPrintItems(groupedWork, recordInfo, identifier, record);
 			loadOnOrderItems(groupedWork, recordInfo, record, recordInfo.getNumPrintCopies() > 0);
 			//If we don't get anything remove the record we just added
-			if (recordInfo.getNumPrintCopies() == 0 && recordInfo.getNumCopiesOnOrder() == 0 && suppressItemlessBibs) {
+			if (checkIfBibShouldBeRemovedAsItemless(recordInfo)) {
 				groupedWork.removeRelatedRecord(recordInfo);
 				logger.debug("Removing related print record for " + identifier + " because there are no print copies, no on order copies and suppress itemless bibs is on");
 			}else{
@@ -402,6 +402,10 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		}catch (Exception e){
 			logger.error("Error updating grouped work " + groupedWork.getId() + " for MARC record with identifier " + identifier, e);
 		}
+	}
+
+	boolean checkIfBibShouldBeRemovedAsItemless(RecordInfo recordInfo) {
+		return recordInfo.getNumPrintCopies() == 0 && recordInfo.getNumCopiesOnOrder() == 0 && suppressItemlessBibs;
 	}
 
 	/**
@@ -1084,7 +1088,7 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		if (!hasCallNumber){
 			String callNumber = null;
 			if (use099forBibLevelCallNumbers()) {
-				DataField localCallNumberField = (DataField) record.getVariableField("099");
+				DataField localCallNumberField = record.getDataField("099");
 				if (localCallNumberField != null) {
 					callNumber = "";
 					for (Subfield curSubfield : localCallNumberField.getSubfields()) {
@@ -1094,7 +1098,7 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			}
 			//MDN #ARL-217 do not use 099 as a call number
 			if (callNumber == null) {
-				DataField deweyCallNumberField = (DataField) record.getVariableField("092");
+				DataField deweyCallNumberField = record.getDataField("092");
 				if (deweyCallNumberField != null) {
 					callNumber = "";
 					for (Subfield curSubfield : deweyCallNumberField.getSubfields()) {
@@ -1282,6 +1286,7 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				return true;
 			} else {
 				if (statusesToSuppressPattern != null && statusesToSuppressPattern.matcher(statusSubfield.getData()).matches()) {
+
 					return true;
 				}
 			}
@@ -1620,7 +1625,7 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 	private void getFormatFromPublicationInfo(Record record, Set<String> result) {
 		// check for playaway in 260|b
-		DataField sysDetailsNote = (DataField) record.getVariableField("260");
+		DataField sysDetailsNote = record.getDataField("260");
 		if (sysDetailsNote != null) {
 			if (sysDetailsNote.getSubfield('b') != null) {
 				String sysDetailsValue = sysDetailsNote.getSubfield('b').getData()
@@ -1637,7 +1642,7 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	private void getFormatFromEdition(Record record, Set<String> result) {
 		// Check for large print book (large format in 650, 300, or 250 fields)
 		// Check for blu-ray in 300 fields
-		DataField edition = (DataField) record.getVariableField("250");
+		DataField edition = record.getDataField("250");
 		if (edition != null) {
 			if (edition.getSubfield('a') != null) {
 				String editionData = edition.getSubfield('a').getData().toLowerCase();
@@ -1691,7 +1696,7 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 	private void getFormatFromNotes(Record record, Set<String> result) {
 		// Check for formats in the 538 field
-		DataField sysDetailsNote2 = (DataField) record.getVariableField("538");
+		DataField sysDetailsNote2 = record.getDataField("538");
 		if (sysDetailsNote2 != null) {
 			if (sysDetailsNote2.getSubfield('a') != null) {
 				String sysDetailsValue = sysDetailsNote2.getSubfield('a').getData().toLowerCase();
@@ -1713,7 +1718,7 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		}
 
 		// Check for formats in the 500 tag
-		DataField noteField = (DataField) record.getVariableField("500");
+		DataField noteField = record.getDataField("500");
 		if (noteField != null) {
 			if (noteField.getSubfield('a') != null) {
 				String noteValue = noteField.getSubfield('a').getData().toLowerCase();
@@ -1726,7 +1731,7 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		}
 
 		// Check for formats in the 502 tag
-		DataField dissertaionNoteField = (DataField) record.getVariableField("502");
+		DataField dissertaionNoteField = record.getDataField("502");
 		if (dissertaionNoteField != null) {
 			if (dissertaionNoteField.getSubfield('a') != null) {
 				String noteValue = dissertaionNoteField.getSubfield('a').getData().toLowerCase();
@@ -1737,7 +1742,7 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		}
 
 		// Check for formats in the 590 tag
-		DataField localNoteField = (DataField) record.getVariableField("590");
+		DataField localNoteField = record.getDataField("590");
 		if (localNoteField != null) {
 			if (localNoteField.getSubfield('a') != null) {
 				String noteValue = localNoteField.getSubfield('a').getData().toLowerCase();

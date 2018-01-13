@@ -1425,6 +1425,13 @@ public class MarcPermissiveStreamReader implements MarcReader {
 
     }
 
+    private static Pattern ltPattern = Pattern.compile("&lt;");
+    private static Pattern gtPattern = Pattern.compile("&gt;");
+    private static Pattern ampPattern = Pattern.compile("&amp;");
+    private static Pattern aposPattern = Pattern.compile("&apos;");
+    private static Pattern quotPattern = Pattern.compile("&quot;");
+    private static Pattern dollar1Pattern = Pattern.compile("\\$1(.)");
+    private static Pattern parenBPattern = Pattern.compile("\\(B");
     private String getDataAsString(final byte[] bytes) {
         String dataElement = null;
 
@@ -1473,12 +1480,12 @@ public class MarcPermissiveStreamReader implements MarcReader {
                 e.printStackTrace();
             }
 
-            String newdataElement = dataElement.replaceAll("&lt;", "<");
+            String newdataElement = ltPattern.matcher(dataElement).replaceAll("<");
 
-            newdataElement = newdataElement.replaceAll("&gt;", ">");
-            newdataElement = newdataElement.replaceAll("&amp;", "&");
-            newdataElement = newdataElement.replaceAll("&apos;", "'");
-            newdataElement = newdataElement.replaceAll("&quot;", "\"");
+            newdataElement = gtPattern.matcher(newdataElement).replaceAll(">");
+            newdataElement = ampPattern.matcher(newdataElement).replaceAll("&");
+            newdataElement = aposPattern.matcher(newdataElement).replaceAll("'");
+            newdataElement = quotPattern.matcher(newdataElement).replaceAll("\"");
 
             if (!newdataElement.equals(dataElement)) {
                 dataElement = newdataElement;
@@ -1489,8 +1496,8 @@ public class MarcPermissiveStreamReader implements MarcReader {
             final String rep1 = "" + (char) 0x1b + "\\$1$1";
             final String rep2 = "" + (char) 0x1b + "\\(B";
 
-            newdataElement = dataElement.replaceAll("\\$1(.)", rep1);
-            newdataElement = newdataElement.replaceAll("\\(B", rep2);
+            newdataElement = dollar1Pattern.matcher(dataElement).replaceAll(rep1);
+            newdataElement = parenBPattern.matcher(newdataElement).replaceAll(rep2);
 
             if (!newdataElement.equals(dataElement)) {
                 dataElement = newdataElement;
@@ -1651,6 +1658,8 @@ public class MarcPermissiveStreamReader implements MarcReader {
         return dataElement;
     }
 
+    private static Pattern u0088Pattern = Pattern.compile("\u0088");
+    private static Pattern u0089Pattern = Pattern.compile("\u0089");
     private String getUnimarcConversion(final byte[] bytes) {
         if (converterUnimarc == null) {
             converterUnimarc = new Iso5426ToUnicode();
@@ -1658,8 +1667,8 @@ public class MarcPermissiveStreamReader implements MarcReader {
 
         String dataElement = converterUnimarc.convert(bytes);
 
-        dataElement = dataElement.replaceAll("\u0088", "");
-        dataElement = dataElement.replaceAll("\u0089", "");
+        dataElement = u0088Pattern.matcher(dataElement).replaceAll("");
+        dataElement = u0089Pattern.matcher(dataElement).replaceAll("");
 
         if (unimarcPattern1.matcher(dataElement).matches()) {
             final Matcher matcher = unimarcPattern2.matcher(dataElement);
