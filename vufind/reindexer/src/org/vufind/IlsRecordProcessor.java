@@ -43,7 +43,7 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	private Pattern nonHoldableStatuses;
 	char shelvingLocationSubfield;
 	char collectionSubfield;
-	private char dueDateSubfield;
+	char dueDateSubfield;
 	SimpleDateFormat dueDateFormatter;
 	private char lastCheckInSubfield;
 	private String lastCheckInFormat;

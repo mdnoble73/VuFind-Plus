@@ -7,9 +7,7 @@ import org.marc4j.marc.Subfield;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 /**
  * Record Processing Specific to records loaded from CARL.X
@@ -45,6 +43,38 @@ class CarlXRecordProcessor extends IlsRecordProcessor {
 			statusCode = translateValue("status_codes", statusCode, recordIdentifier);
 		}
 		return statusCode;
+	}
+
+	private static Date yesterday = null;
+	private static Date lostDay = null;
+	String getOverriddenStatus(ItemInfo itemInfo, boolean groupedStatus) {
+		if (lostDay == null){
+			Calendar lostDayCal = GregorianCalendar.getInstance();
+			lostDayCal.roll(Calendar.DATE, -32);
+			lostDay = lostDayCal.getTime();
+		}
+		if (yesterday == null){
+			Calendar yesterdayCal = GregorianCalendar.getInstance();
+			yesterdayCal.roll(Calendar.DATE, -1);
+			yesterday = yesterdayCal.getTime();
+		}
+		String overriddenStatus = super.getOverriddenStatus(itemInfo, groupedStatus);
+		String statusToTest = overriddenStatus == null ? itemInfo.getStatusCode() : overriddenStatus;
+		if (statusToTest.equals("C")) {
+			//Depending on due date this could be checked out, overdue or lost
+			String dueDateStr = itemInfo.getDueDate();
+			try {
+				Date dueDate = dueDateFormatter.parse(dueDateStr);
+				if (dueDate.before(lostDay)) {
+					return "Lost";
+				} else if (dueDate.before(yesterday)) {
+					return "Overdue";
+				}
+			} catch (Exception e) {
+				logger.warn("Error parsing due date", e);
+			}
+		}
+		return overriddenStatus;
 	}
 
 	protected String getShelfLocationForItem(ItemInfo itemInfo, DataField itemField, String identifier) {
