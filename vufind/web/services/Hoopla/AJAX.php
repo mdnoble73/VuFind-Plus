@@ -21,6 +21,7 @@ class Hoopla_AJAX extends Action
 		// Methods intend to return JSON data
 		if (in_array($method, array(
 			'reloadCover',
+			'checkOutHooplaTitle', 'getHooplaCheckOutPrompt',
 		))){
 			header('Content-type: text/plain');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
@@ -109,5 +110,102 @@ class Hoopla_AJAX extends Action
 		return array('success' => true, 'message' => 'Covers have been reloaded.  You may need to refresh the page to clear your local cache.');
 	}
 
+
+	/**
+	 * @return array
+	 */
+	function getHooplaCheckOutPrompt(){
+		$user = UserAccount::getLoggedInUser();
+		if ($user) {
+			$hooplaUsers = $user->getRelatedHooplaUsers();
+
+			require_once ROOT_DIR . '/Drivers/HooplaDriver.php';
+			$driver = new HooplaDriver();
+
+			$id = $_REQUEST['id'];
+			if (strpos($id, ':') !== false) {
+				list(, $id) = explode(':', $id);
+			}
+			if ($id) {
+				global $interface;
+				$interface->assign('hooplaId', $id);
+
+				//TODO: need to determine what happens to cards without a Hoopla account
+				$hooplaUserStatuses = array();
+				foreach ($hooplaUsers as $tmpUser) {
+					$checkOutStatus                   = $driver->getHooplaPatronStatus($tmpUser);
+					$hooplaUserStatuses[$tmpUser->id] = $checkOutStatus;
+				}
+
+				if (count($hooplaUsers) > 1) {
+					$interface->assign('hooplaUsers', $hooplaUsers);
+					$interface->assign('hooplaUserStatuses', $hooplaUserStatuses);
+
+					return
+						array(
+							'title'   => 'Hoopla Check Out',
+							'body'    => $interface->fetch('Hoopla/ajax-hoopla-checkout-prompt.tpl'),
+							'buttons' => '<button class="btn btn-primary" type= "button" title="Check Out" onclick="return VuFind.Hoopla.checkOutHooplaTitle(\'' . $id . '\');">Check Out</button>'
+						);
+				} elseif (count($hooplaUsers) == 1) {
+					$hooplaUser = reset($hooplaUsers);
+					if ($hooplaUser->id != $user->id) {
+						$interface->assign('hooplaUser', $hooplaUser); // Display the account name when not using the main user
+					}
+					$checkOutStatus = $hooplaUserStatuses[$hooplaUser->id];
+					$interface->assign('hooplaPatronStatus', $checkOutStatus);
+
+					return
+						array(
+							'title'   => 'Confirm Hoopla Check Out',
+							'body'    => $interface->fetch('Hoopla/ajax-hoopla-single-user-checkout-prompt.tpl'),
+							'buttons' => '<button class="btn btn-primary" type= "button" title="Check Out" onclick="return VuFind.Hoopla.checkOutHooplaTitle(\'' . $id . '\', ' . $hooplaUser->id . ');">Check Out</button>'
+						);
+				} else {
+					// No Hoopla Account Found, give the user an error message
+					global $logger;
+					$logger->log('No valid Hoopla account was found to check out a Hoopla title.', PEAR_LOG_ERR);
+					return
+						array(
+							'title'   => 'Invalid Hoopla Account',
+							'body'    => '<p class="alert alert-danger">The barcode or library for this account is not valid for Hoopla.</p>',
+							'buttons' => ''
+						);
+				}
+			}
+		}
+	}
+
+	function checkOutHooplaTitle() {
+		$user = UserAccount::getLoggedInUser();
+		if ($user){
+			$patronId = $_REQUEST['patronId'];
+			$patron   = $user->getUserReferredTo($patronId);
+			if ($patron) {
+				$id = $_REQUEST['id'];
+				require_once ROOT_DIR . '/Drivers/HooplaDriver.php';
+				$driver = new HooplaDriver();
+				$result = $driver->checkoutHooplaItem($id, $patron);
+				if ($result['success']) {
+					global $interface;
+					$checkOutStatus = $driver->getHooplaPatronStatus($user);
+					$interface->assign('hooplaPatronStatus', $checkOutStatus);
+					$title = empty($result['title']) ? "Title checked out successfully" : $result['title'] . " checked out successfully";
+					return array(
+						'success' => true,
+						'title'   => $title,
+						'message' => $interface->fetch('Hoopla/hoopla-checkout-success.tpl'),
+						'buttons' => '<a class="btn btn-primary" href="/MyAccount/CheckedOut" role="button">View My Check Outs</a>'
+					);
+				} else {
+					return $result;
+				}
+			}else{
+				return array('success'=>false, 'message'=>'Sorry, it looks like you don\'t have permissions to checkout titles for that user.');
+			}
+		}else{
+			return array('success'=>false, 'message'=>'You must be logged in to checkout an item.');
+		}
+	}
 
 }

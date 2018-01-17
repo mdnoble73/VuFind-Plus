@@ -1,0 +1,43 @@
+VuFind.Hoopla = (function(){
+	return {
+		checkOutHooplaTitle: function (hooplaId, patronId) {
+			if (Globals.loggedIn) {
+				if (typeof patronId === 'undefined') {
+					patronId = $('#patronId', '#pickupLocationOptions').val(); // Lookup selected user from the options form
+				}
+				var url = Globals.path + '/Hoopla/'+ hooplaId + '/AJAX',
+						params = {
+							'method' : 'checkOutHooplaTitle',
+							patronId : patronId
+						};
+				$.getJSON(url, params, function (data) {
+					if (data.success) {
+						VuFind.showMessageWithButtons(data.title, data.message, data.buttons);
+					} else {
+						VuFind.showMessage("Checking Out Title", data.message);
+					}
+				}).fail(VuFind.ajaxFail)
+			}else{
+				VuFind.Account.ajaxLogin(null, function(){
+					VuFind.Hoopla.checkOutHooplaTitle(hooplaId, patronId);
+				}, false);
+			}
+			return false;
+		},
+
+		getHooplaCheckOutPrompt: function (hooplaId) {
+			if (Globals.loggedIn) {
+				var url = Globals.path + "/Hoopla/" + hooplaId + "/AJAX?method=getHooplaCheckOutPrompt";
+				$.getJSON(url, function (data) {
+					VuFind.showMessageWithButtons(data.title, data.body, data.buttons);
+				}).fail(VuFind.ajaxFail);
+			} else {
+				VuFind.Account.ajaxLogin(null, function () {
+					VuFind.Hoopla.getHooplaCheckOutPrompt(hooplaId);
+				}, false);
+			}
+			return false;
+		}
+
+	}
+}(VuFind.Hoopla || {}));

@@ -31,6 +31,19 @@ class HooplaDriver
 		}
 	}
 
+	/**
+	 * Clean an assumed Hoopla RecordID to Hoopla ID number
+	 * @param $hooplaRecordId
+	 * @return string
+	 */
+	public static function recordIDtoHooplaID($hooplaRecordId)
+	{
+		if (strpos($hooplaRecordId, ':') !== false) {
+			list(,$hooplaRecordId) = explode(':', $hooplaRecordId, 2);
+		}
+		return preg_replace('/^MWT/', '', $hooplaRecordId);
+	}
+
 
 	// Originally copied from SirsiDynixROA Driver
 	// $customRequest is for curl, can be 'PUT', 'DELETE', 'POST'
@@ -68,7 +81,7 @@ class HooplaDriver
 			curl_setopt($ch, CURLINFO_HEADER_OUT, true);
 
 		}
-		if ($params != null) {
+		if ($params !== null) {
 			curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($params));
 		}
 		$json = curl_exec($ch);
@@ -89,17 +102,64 @@ class HooplaDriver
 		}
 	}
 
+
+	private static $hooplaLibraryIdsForUser;
+
 	/**
 	 * @param $user User
 	 */
-	function getHooplaLibraryID($user) {
+	public function getHooplaLibraryID($user) {
 		if ($this->hooplaEnabled) {
-			$library  = $user->getHomeLibrary();
-			$hooplaID = $library->hooplaLibraryID;
-			return $hooplaID;
+			if (isset(self::$hooplaLibraryIdsForUser[$user->id])) {
+				return self::$hooplaLibraryIdsForUser[$user->id]['libraryId'];
+			} else {
+				$library                                               = $user->getHomeLibrary();
+				$hooplaID                                              = $library->hooplaLibraryID;
+				self::$hooplaLibraryIdsForUser[$user->id]['libraryId'] = $hooplaID;
+				return $hooplaID;
+			}
 		}
 		return false;
-}
+	}
+
+	/**
+	 * @param $user User
+	 */
+	private function getHooplaBasePatronURL($user) {
+		$url = null;
+		if ($this->hooplaEnabled) {
+			$hooplaLibraryID = $this->getHooplaLibraryID($user);
+			$barcode         = $user->getBarcode();
+			if (!empty($hooplaLibraryID) && !empty($barcode)) {
+				$url = $this->hooplaAPIBaseURL . '/api/v1/libraries/' . $hooplaLibraryID . '/patrons/' . $barcode;
+			}
+		}
+		return $url;
+		}
+
+	/**
+	 * @param $user User
+	 */
+	public function getHooplaPatronStatus($user) {
+		if ($this->hooplaEnabled) {
+			//TODO store Status in memcache ??
+//			$hooplaLibraryID = $this->getHooplaLibraryID($user);
+//			$barcode  = $user->getBarcode();
+			$getPatronStatusURL =$this->getHooplaBasePatronURL($user);
+			if (!empty($getPatronStatusURL)) {
+				$getPatronStatusURL .= '/status';
+				$hooplaPatronStatusResponse = $this->getAPIResponse($getPatronStatusURL);
+				if (!empty($hooplaPatronStatusResponse) && !isset($hooplaPatronStatusResponse->message)) {
+					return $hooplaPatronStatusResponse;
+				} else {
+					global $logger;
+					$hooplaErrorMessage = empty($hooplaPatronStatusResponse->message) ? '' : ' Hoopla Message :' . $hooplaPatronStatusResponse->message;
+					$logger->log('Error retrieving patron status from Hoopla. User ID : ' . $user->id . $hooplaErrorMessage, PEAR_LOG_ERR);
+				}
+			}
+		}
+		return false;
+	}
 
 	/**
 	 * @param $user User
@@ -108,11 +168,11 @@ class HooplaDriver
 	{
 		$checkedOutItems = array();
 		if ($this->hooplaEnabled) {
-			$hooplaID = $this->getHooplaLibraryID($user);
+			$hooplaLibraryID = $this->getHooplaLibraryID($user);
 			$barcode  = $user->getBarcode();
-			if (!empty($hooplaID) && !empty($barcode)) {
+			if (!empty($hooplaLibraryID) && !empty($barcode)) {
 				$getCheckOutsURL   = $this->hooplaAPIBaseURL . '/api/v1/libraries/' .
-					$hooplaID . '/patrons/' . $barcode . '/checkouts/current';
+					$hooplaLibraryID . '/patrons/' . $barcode . '/checkouts/current';
 				$checkOutsResponse = $this->getAPIResponse($getCheckOutsURL);
 				if (is_array($checkOutsResponse)) {
 					foreach ($checkOutsResponse as $checkOut) {
@@ -223,4 +283,71 @@ class HooplaDriver
 		}
 	}
 
+	/**
+	 * @param $hooplaId
+	 * @param $user User
+	 */
+	public function checkoutHooplaItem($hooplaId, $user) {
+		if ($this->hooplaEnabled) {
+			$checkoutURL = $this->getHooplaBasePatronURL($user);
+			if (!empty($checkoutURL)) {
+
+				//			$hooplaLibraryID = $this->getHooplaLibraryID($user);
+//			$barcode  = $user->getBarcode();
+//			if (!empty($hooplaLibraryID) && !empty($barcode)) {
+				$hooplaId = self::recordIDtoHooplaID($hooplaId);
+//				$checkoutURL = $this->hooplaAPIBaseURL . '/api/v1/libraries/' . $hooplaLibraryID . '/patrons/' . $barcode . '/' . $hooplaId;
+				$checkoutURL      .= '/' . $hooplaId;
+				$checkoutResponse = $this->getAPIResponse($checkoutURL, array(), 'POST');
+				if ($checkoutResponse) {
+					if ($checkoutResponse->contentId == $hooplaId) {
+						return array(
+							'success'   => true,
+							'message'   => $checkoutResponse->message,
+							'title'     => $checkoutResponse->title,
+							'HooplaURL' => $checkoutResponse->url,
+							'due'       => $checkoutResponse->due
+						);
+ 						// Example Success Response
+						//{
+						//	'contentId': 10051356,
+						//  'title': 'The Night Before Christmas',
+						//  'borrowed': 1515799430,
+						//  'due': 1517613830,
+						//  'kind': 'AUDIOBOOK',
+						//  'url': 'https://www-dev.hoopladigital.com/title/10051356',
+						//  'message': 'You can now enjoy this title through Friday, February 2.  You can stream it to your browser, or download it for offline viewing using our Amazon, Android, or iOS mobile apps.'
+						//}
+					} else {
+						//TODO: error message from API
+						return array(
+							'success' => false,
+							'message' => 'An error occurred checking out the Hoopla title.'
+						);
+					}
+
+				} else {
+					return array(
+						'success' => false,
+						'message' => 'An error occurred checking out the Hoopla title.'
+					);
+				}
+			} elseif (!$this->getHooplaLibraryID($user)) {
+				return array(
+					'success' => false,
+					'message' => 'Your library does not have Hoopla integration enabled.'
+				);
+			} else {
+				return array(
+					'success' => false,
+					'message' => 'There was an error retrieving your library card number.'
+				);
+			}
+		} else {
+			return array(
+				'success' => false,
+				'message' => 'Hoopla integration is not enabled.'
+			);
+		}
+	}
 }

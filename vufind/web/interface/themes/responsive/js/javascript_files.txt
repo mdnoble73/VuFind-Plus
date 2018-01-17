@@ -28,6 +28,7 @@ vufind/lists.min.js
 vufind/lists-widgets.min.js
 vufind/materials-request.min.js
 vufind/menu.min.js
+vufind/hoopla.min.js
 vufind/overdrive.min.js
 vufind/prospector.min.js
 vufind/ratings.min.js

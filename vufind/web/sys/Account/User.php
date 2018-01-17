@@ -457,6 +457,22 @@ class User extends DB_DataObject
 		return false;
 	}
 
+	function getRelatedHooplaUsers(){
+		$hooplaUsers = array();
+		if ($this->isValidForHoopla()){
+			$hooplaUsers[$this->cat_username . ':' . $this->cat_password] = $this;
+		}
+		foreach ($this->getLinkedUsers() as $linkedUser){
+			if ($linkedUser->isValidForHoopla()){
+				if (!array_key_exists($linkedUser->cat_username . ':' . $linkedUser->cat_password, $hooplaUsers)){
+					$hooplaUsers[$linkedUser->cat_username . ':' . $linkedUser->cat_password] = $linkedUser;
+				}
+			}
+		}
+
+		return $hooplaUsers;
+	}
+
 	/**
 	 * Returns a list of users that can view this account
 	 *

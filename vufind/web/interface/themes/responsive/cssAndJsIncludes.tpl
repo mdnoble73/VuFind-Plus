@@ -1,9 +1,16 @@
 {strip}
+	{* All CSS should be come before javascript for better browser performance *}
 	{if $debugCss}
     {css filename="main.css"}
 	{else}
 		{css filename="main.min.css"}
 	{/if}
+	{if $additionalCss}
+		<style type="text/css">
+			{$additionalCss}
+		</style>
+	{/if}
+
 	{* Include correct all javascript *}
 	{if $ie8}
 		{* include to give responsive capability to ie8 browsers, but only on successful detection of those browsers. For that reason, don't include in vufind.min.js *}
@@ -48,6 +55,7 @@
 		<script src="{$path}/interface/themes/responsive/js/vufind/materials-request.js?v={$gitBranch|urlencode}"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/menu.js?v={$gitBranch|urlencode}"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/overdrive.js?v={$gitBranch|urlencode}"></script>
+		<script src="{$path}/interface/themes/responsive/js/vufind/hoopla.js?v={$gitBranch|urlencode}"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/prospector.js?v={$gitBranch|urlencode}"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/ratings.js?v={$gitBranch|urlencode}"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/reading-history.js?v={$gitBranch|urlencode}"></script>
@@ -99,10 +107,5 @@
 		{else}
 			<script type="text/javascript" src="{$path}/interface/themes/responsive/js/vufind/autoLogout.min.js?v={$gitBranch|urlencode}"></script>
 		{/if}
-	{/if}
-	{if $additionalCss}
-		<style type="text/css">
-			{$additionalCss}
-		</style>
 	{/if}
 {/strip}
