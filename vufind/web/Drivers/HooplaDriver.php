@@ -137,24 +137,29 @@ class HooplaDriver
 		return $url;
 		}
 
+	private $hooplaPatronStatuses = array();
 	/**
 	 * @param $user User
 	 */
 	public function getHooplaPatronStatus($user) {
 		if ($this->hooplaEnabled) {
-			//TODO store Status in memcache ??
-//			$hooplaLibraryID = $this->getHooplaLibraryID($user);
-//			$barcode  = $user->getBarcode();
-			$getPatronStatusURL =$this->getHooplaBasePatronURL($user);
-			if (!empty($getPatronStatusURL)) {
-				$getPatronStatusURL .= '/status';
-				$hooplaPatronStatusResponse = $this->getAPIResponse($getPatronStatusURL);
-				if (!empty($hooplaPatronStatusResponse) && !isset($hooplaPatronStatusResponse->message)) {
-					return $hooplaPatronStatusResponse;
-				} else {
-					global $logger;
-					$hooplaErrorMessage = empty($hooplaPatronStatusResponse->message) ? '' : ' Hoopla Message :' . $hooplaPatronStatusResponse->message;
-					$logger->log('Error retrieving patron status from Hoopla. User ID : ' . $user->id . $hooplaErrorMessage, PEAR_LOG_ERR);
+			if (isset($this->hooplaPatronStatuses[$user->id])) {
+				return $this->hooplaPatronStatuses[$user->id];
+			} else {
+				//TODO store Status in memcache ??
+				$getPatronStatusURL = $this->getHooplaBasePatronURL($user);
+				if (!empty($getPatronStatusURL)) {
+					$getPatronStatusURL         .= '/status';
+					$hooplaPatronStatusResponse = $this->getAPIResponse($getPatronStatusURL);
+					if (!empty($hooplaPatronStatusResponse) && !isset($hooplaPatronStatusResponse->message)) {
+						$this->hooplaPatronStatuses[$user->id] = $hooplaPatronStatusResponse;
+						return $hooplaPatronStatusResponse;
+					} else {
+						global $logger;
+						$hooplaErrorMessage = empty($hooplaPatronStatusResponse->message) ? '' : ' Hoopla Message :' . $hooplaPatronStatusResponse->message;
+						$logger->log('Error retrieving patron status from Hoopla. User ID : ' . $user->id . $hooplaErrorMessage, PEAR_LOG_ERR);
+						$this->hooplaPatronStatuses[$user->id] = false; // Don't do status call again for this user
+					}
 				}
 			}
 		}
@@ -168,26 +173,36 @@ class HooplaDriver
 	{
 		$checkedOutItems = array();
 		if ($this->hooplaEnabled) {
-			$hooplaLibraryID = $this->getHooplaLibraryID($user);
-			$barcode  = $user->getBarcode();
-			if (!empty($hooplaLibraryID) && !empty($barcode)) {
-				$getCheckOutsURL   = $this->hooplaAPIBaseURL . '/api/v1/libraries/' .
-					$hooplaLibraryID . '/patrons/' . $barcode . '/checkouts/current';
-				$checkOutsResponse = $this->getAPIResponse($getCheckOutsURL);
+			$hooplaCheckedOutTitlesURL = $this->getHooplaBasePatronURL($user);
+			if (!empty($hooplaCheckedOutTitlesURL)) {
+				$hooplaCheckedOutTitlesURL  .= '/checkouts/current';
+				$checkOutsResponse = $this->getAPIResponse($hooplaCheckedOutTitlesURL);
 				if (is_array($checkOutsResponse)) {
+					if (count($checkOutsResponse)) { // Only get Patron status if there are checkouts
+						$hooplaPatronStatus = $this->getHooplaPatronStatus($user);
+					}
 					foreach ($checkOutsResponse as $checkOut) {
 						$hooplaRecordID  = 'MWT' . $checkOut->contentId;
-						$simpleSortTitle = preg_replace('/^The\s|^A\s/i', '', $checkOut->title); // remove begining The or A
+						$simpleSortTitle = preg_replace('/^The\s|^A\s/i', '', $checkOut->title); // remove beginning The or A
 
 						$currentTitle = array(
 							'checkoutSource' => 'Hoopla',
-							'title' => $checkOut->title,
-							'title_sort' => empty($simpleSortTitle) ? $checkOut->title : $simpleSortTitle,
-							'author' => isset($checkOut->author) ? $checkOut->author : null,
-							'format' => $checkOut->kind,
-							'checkoutdate' => $checkOut->borrowed,
-							'dueDate' => $checkOut->due,
+							'user'           => $user->getNameAndLibraryLabel(),
+							'userId'         => $user->id,
+							'hooplaId'       => $checkOut->contentId,
+							'title'          => $checkOut->title,
+							'title_sort'     => empty($simpleSortTitle) ? $checkOut->title : $simpleSortTitle,
+							'author'         => isset($checkOut->author) ? $checkOut->author : null,
+							'format'         => $checkOut->kind,
+							'checkoutdate'   => $checkOut->borrowed,
+							'dueDate'        => $checkOut->due,
+							'hooplaUrl'      => $checkOut->url
 						);
+
+						if (isset($hooplaPatronStatus->borrowsRemaining)) {
+							$currentTitle['borrowsRemaining'] = $hooplaPatronStatus->borrowsRemaining;
+						}
+
 						require_once ROOT_DIR . '/RecordDrivers/HooplaDriver.php';
 						$hooplaRecordDriver = new HooplaRecordDriver($hooplaRecordID);
 						if ($hooplaRecordDriver->isValid()) {

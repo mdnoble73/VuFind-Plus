@@ -8,7 +8,7 @@
 						{foreach from=$hooplaUsers item=tmpUser}
 						{assign var="userId" value=$tmpUser->id}
 							<option value="{$tmpUser->id}"{* {if $location->selected == "selected"}selected="selected"{/if}*}>
-								{$tmpUser->displayName} - {$tmpUser->getHomeLibrarySystemName()}
+								{$tmpUser->getNameAndLibraryLabel()}
 								{if !empty($hooplaUserStatuses[$userId])}
 									{assign var="hooplaPatronStatus" value=$hooplaUserStatuses[$userId]}
 									&nbsp; ({$hooplaPatronStatus->borrowsRemaining} of {$hooplaPatronStatus->borrowsAllowedPerMonth} check outs available)

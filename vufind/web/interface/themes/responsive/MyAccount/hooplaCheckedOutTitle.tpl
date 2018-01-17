@@ -95,6 +95,15 @@
 						<div class="result-label col-tn-4 col-lg-3">{translate text='Expires'}</div>
 						<div class="result-value col-tn-8 col-lg-9">{$record.dueDate|date_format}</div>
 					</div>
+
+
+					{if isset($record.borrowsRemaining)}
+						<div class="row">
+							<div class="col-tn-12">You can borrow <strong>{$record.borrowsRemaining}</strong> more Hoopla title{if $record.borrowsRemaining !=1}s{/if} this month.</div>
+							{*<div class="result-label col-tn-4 col-lg-3">{translate text='Expires'}</div>*}
+							{*<div class="result-value col-tn-8 col-lg-9">{$record.dueDate|date_format}</div>*}
+						</div>
+					{/if}
 {* TODO: refactor or delete
 
 					<div class="row econtent-download-row">
@@ -140,6 +149,11 @@
 							<a href="#" onclick="return VuFind.OverDrive.returnOverDriveTitle('{$record.userId}', '{$record.overDriveId}', '{$record.transactionId}');" class="btn btn-sm btn-warning">Return&nbsp;Now</a>
 						{/if}
 *}
+						{if $record.hooplaUrl}
+						<a href="{$record.hooplaUrl}" {*onclick="alert('Dummy button');return false"*} class="btn btn-sm btn-primary">Access&nbsp;Online</a>
+						{/if}
+						<a href="#" onclick="return VuFind.Hoopla.returnHooplaTitle('{$record.userId}', '{$record.hooplaId}');" class="btn btn-sm btn-warning">Return&nbsp;Now</a>
+
 					</div>
 				</div>
 			</div>

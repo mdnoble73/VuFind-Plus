@@ -2,7 +2,7 @@
 	{if $hooplaPatronStatus}
 		{if $hooplaUser}{* Linked User that is not the main user *}
 			<p>
-				Using card for {$hooplaUser->displayName} - {$hooplaUser->getHomeLibrarySystemName()} :
+				Using card for {$hooplaUser->getNameAndLibraryLabel()} :
 			</p>
 		{/if}
 		<div class="alert alert-info">
