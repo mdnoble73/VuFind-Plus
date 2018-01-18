@@ -209,6 +209,7 @@ class Library extends DB_DataObject
 	public $interLibraryLoanUrl;
 	public $expiredMessage;
 	public $expirationNearMessage;
+	public $showOnOrderCounts;
 
 	//Combined Results (Bento Box)
 	public $enableCombinedResults;
@@ -230,6 +231,7 @@ class Library extends DB_DataObject
 	public $archiveRequestFieldPurpose;
 
 	public $archiveMoreDetailsRelatedObjectsOrEntitiesDisplayMode;
+
 
 
 	// Use this to set which details will be shown in the the Main Details section of the record view.
@@ -669,6 +671,7 @@ class Library extends DB_DataObject
 					'helpLink' => 'https://docs.google.com/document/d/1PjlFlhPVNRVcg_uzzHLQLkRicyPEB1KeVNok4Wkye1I', 'properties' => array(
 					'showItsHere' => array('property'=>'showItsHere', 'type'=>'checkbox', 'label'=>'Show It\'s Here', 'description'=>'Whether or not the holdings summary should show It\'s here based on IP and the currently logged in patron\'s location.', 'hideInLists' => true, 'default' => 1),
 					'showGroupedHoldCopiesCount' => array('property'=>'showGroupedHoldCopiesCount', 'type'=>'checkbox', 'label'=>'Show Hold and Copy Counts', 'description'=>'Whether or not the hold count and copies counts should be visible for grouped works when summarizing formats.', 'hideInLists' => true, 'default' => 1),
+					'showOnOrderCounts' => array('property'=>'showOnOrderCounts', 'type'=>'checkbox', 'label'=>'Show On Order Counts', 'description'=>'Whether or not counts of Order Items should be shown .', 'hideInLists' => true, 'default' => 1),
 			)),
 
 			'materialsRequestSection'=> array('property'=>'materialsRequestSection', 'type' => 'section', 'label' =>'Materials Request', 'hideInLists' => true,

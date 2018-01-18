@@ -1677,14 +1677,24 @@ function getLibraryLocationUpdates(){
 
 					)
 			),
-		'hoopla_integration' => array(
-			'title' => 'Hoopla Integration',
-			'description' => 'Add settings for Hoopla Integration: Hoopla ID',
-			'continueOnError' => true,
-			'sql' => array(
-				"ALTER TABLE `library` ADD COLUMN `hooplaLibraryID` INTEGER UNSIGNED;",
+
+			'hoopla_integration' => array(
+				'title' => 'Hoopla Integration',
+				'description' => 'Add settings for Hoopla Integration: Hoopla ID',
+				'continueOnError' => true,
+				'sql' => array(
+					"ALTER TABLE `library` ADD COLUMN `hooplaLibraryID` INTEGER UNSIGNED;",
+				),
 			),
-		),
+
+			'library_on_order_counts' => array(
+					'title' => 'Library On Order Counts',
+					'description' => 'Add a setting for whether or not on order counts should be shown to users',
+					'continueOnError' => false,
+					'sql' => array(
+							"ALTER TABLE `library` ADD COLUMN `showOnOrderCounts` TINYINT(1) DEFAULT 1;",
+					),
+			),
 
 	);
 }
