@@ -332,13 +332,12 @@ class MarcUtil {
 
 			List<DataField> marcFieldList = record.getDataFields(fldTag);
 			if (!marcFieldList.isEmpty()) {
-				Pattern subfieldPattern = Pattern
-						.compile(subfldTags.length() == 0 ? "." : subfldTags);
 				for (DataField marcField : marcFieldList) {
 
-					StringBuilder buffer = getSpecifiedSubfieldsAsString(marcField, subfieldPattern, separator);
-					if (buffer.length() > 0)
+					StringBuilder buffer = getSpecifiedSubfieldsAsString(marcField, subfldTags, separator);
+					if (buffer.length() > 0) {
 						result.add(Utils.cleanData(buffer.toString()));
+					}
 				}
 			}
 		}
@@ -346,14 +345,14 @@ class MarcUtil {
 		return result;
 	}
 
-	static StringBuilder getSpecifiedSubfieldsAsString(DataField marcField, Pattern subfieldPattern, String separator) {
+	static StringBuilder getSpecifiedSubfieldsAsString(DataField marcField, String validSubfields, String separator) {
 		StringBuilder buffer = new StringBuilder("");
 		List<Subfield> subFields = marcField.getSubfields();
 		for (Subfield subfield : subFields) {
-			Matcher matcher = subfieldPattern.matcher("" + subfield.getCode());
-			if (matcher.matches()) {
-				if (buffer.length() > 0)
+			if (validSubfields.length() == 0 || validSubfields.contains("" + subfield.getCode())){
+				if (buffer.length() > 0) {
 					buffer.append(separator != null ? separator : " ");
+				}
 				buffer.append(subfield.getData().trim());
 			}
 		}
