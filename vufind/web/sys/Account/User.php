@@ -77,6 +77,7 @@ class User extends DB_DataObject
 	private $numHoldsOverDrive = 0;
 	private $numHoldsAvailableOverDrive = 0;
 	private $numHoldsRequestedOverDrive = 0;
+	private $numCheckedOutHoopla = 0;
 	public $numBookings;
 	public $notices;
 	public $noticePreferenceLabel;
@@ -769,7 +770,7 @@ class User extends DB_DataObject
 
 	public function getNumCheckedOutTotal($includeLinkedUsers = true) {
 		$this->updateRuntimeInformation();
-		$myCheckouts = $this->numCheckedOutIls + $this->numCheckedOutOverDrive;
+		$myCheckouts = $this->numCheckedOutIls + $this->numCheckedOutOverDrive + $this->numCheckedOutHoopla;
 		if ($includeLinkedUsers) {
 			if ($this->getLinkedUsers() != null) {
 				/** @var User $user */
@@ -1406,6 +1407,10 @@ class User extends DB_DataObject
 	public function setMaterialsRequestEmailSignature($materialsRequestEmailSignature)
 	{
 		$this->materialsRequestEmailSignature = $materialsRequestEmailSignature;
+	}
+
+	function setNumCheckedOutHoopla($val){
+		$this->numCheckedOutHoopla = $val;
 	}
 
 	function setNumCheckedOutOverDrive($val){

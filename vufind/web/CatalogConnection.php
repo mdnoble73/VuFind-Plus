@@ -249,6 +249,14 @@ class CatalogConnection
 			$timer->logTime("Updated runtime information from OverDrive");
 		}
 
+		if ($user->isValidForHoopla()){
+			require_once ROOT_DIR . '/Drivers/HooplaDriver.php';
+			$driver = new HooplaDriver();
+			$hooplaSummary = $driver->getHooplaPatronStatus($user);
+			$hooplaCheckOuts = isset($hooplaSummary->currentlyBorrowed) ? $hooplaSummary->currentlyBorrowed : 0;
+			$user->setNumCheckedOutHoopla($hooplaCheckOuts);
+		}
+
 		$materialsRequest = new MaterialsRequest();
 		$materialsRequest->createdBy = $user->id;
 		$homeLibrary = Library::getLibraryForLocation($user->homeLocationId);
