@@ -63,11 +63,11 @@ class MyAccount_CheckedOut extends MyAccount{
 				$interface->assign('showNotInterested', false);
 				//Do sorting now that we have all records
 				$curTransaction = 0;
-				$hasOnlyOverDriveCheckOuts = true;
+				$hasOnlyEContentCheckOuts = true;
 				foreach ($allCheckedOut as $i => $curTitle) {
 					$curTransaction++;
-					if (strpos($i, 'OverDrive') === false) {
-						$hasOnlyOverDriveCheckOuts = false;
+					if ($hasOnlyEContentCheckOuts && strpos($i, 'OverDrive') === false && strpos($i, 'Hoopla') === false) {
+						$hasOnlyEContentCheckOuts = false;
 					}
 					$sortTitle = isset($curTitle['title_sort']) ? $curTitle['title_sort'] : $curTitle['title'];
 					$sortKey   = $sortTitle;
@@ -127,7 +127,7 @@ class MyAccount_CheckedOut extends MyAccount{
 					ksort($allCheckedOut);
 				}
 
-				$interface->assign('hasOnlyOverDriveCheckOuts', $hasOnlyOverDriveCheckOuts);
+				$interface->assign('hasOnlyEContentCheckOuts', $hasOnlyEContentCheckOuts);
 				$interface->assign('transList', $allCheckedOut);
 				unset($_SESSION['renew_message']);
 			}

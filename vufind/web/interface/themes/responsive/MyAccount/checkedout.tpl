@@ -39,7 +39,7 @@
 					</div>
 
 					<div class="btn-group">
-						{if !$hasOnlyOverDriveCheckOuts}
+						{if !$hasOnlyEContentCheckOuts}
 							<a href="#" onclick="VuFind.Account.renewSelectedTitles()" class="btn btn-sm btn-default">Renew Selected Items</a>
 							<a href="#" onclick="VuFind.Account.renewAll()" class="btn btn-sm btn-default">Renew All</a>
 						{/if}
@@ -71,7 +71,7 @@
 					{/if}
 
 					<div class="btn-group">
-						{if !$hasOnlyOverDriveCheckOuts}
+						{if !$hasOnlyEContentCheckOuts}
 							<a href="#" onclick="VuFind.Account.renewSelectedTitles()" class="btn btn-sm btn-default">Renew Selected Items</a>
 							<a href="#" onclick="VuFind.Account.renewAll()" class="btn btn-sm btn-default">Renew All</a>
 						{/if}

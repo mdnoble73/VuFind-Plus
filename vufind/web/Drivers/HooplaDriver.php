@@ -215,7 +215,8 @@ class HooplaDriver
 							$currentTitle['author']        = $hooplaRecordDriver->getPrimaryAuthor();
 							$currentTitle['format']        = implode(', ', $hooplaRecordDriver->getFormat());
 						}
-						$checkedOutItems[] = $currentTitle;
+						$key = $currentTitle['checkoutSource'] . $currentTitle['hooplaId']; // This matches the key naming scheme in the Overdrive Driver
+						$checkedOutItems[$key] = $currentTitle;
 					}
 				} else {
 					global $logger;

@@ -150,7 +150,7 @@
 						{/if}
 *}
 						{if $record.hooplaUrl}
-						<a href="{$record.hooplaUrl}" {*onclick="alert('Dummy button');return false"*} class="btn btn-sm btn-primary">Access&nbsp;Online</a>
+						<a href="{$record.hooplaUrl}" target="_blank" {*onclick="alert('Dummy button');return false"*} class="btn btn-sm btn-primary">Access&nbsp;Online</a>
 						{/if}
 						<a href="#" onclick="return VuFind.Hoopla.returnHooplaTitle('{$record.userId}', '{$record.hooplaId}');" class="btn btn-sm btn-warning">Return&nbsp;Now</a>
 
