@@ -285,9 +285,8 @@ abstract class MarcRecordProcessor {
 		}*/
 		List<DataField> seriesFields = MarcUtil.getDataFields(record, "830");
 		HashSet<String> seriesWithVolumes = new HashSet<>();
-		Pattern subfields830Pattern = Pattern.compile("[ap]");
 		for (DataField seriesField : seriesFields){
-			String series = Util.trimTrailingPunctuation(MarcUtil.getSpecifiedSubfieldsAsString(seriesField, subfields830Pattern,"")).toString();
+			String series = Util.trimTrailingPunctuation(MarcUtil.getSpecifiedSubfieldsAsString(seriesField, "ap","")).toString();
 			//Remove anything in parens since it's normally just the format
 			series = series.replaceAll("\\s+\\(.*?\\)", "");
 			//Remove the word series at the end since this gets cataloged inconsistently
@@ -299,9 +298,8 @@ abstract class MarcRecordProcessor {
 			seriesWithVolumes.add(series);
 		}
 		seriesFields = MarcUtil.getDataFields(record, "800");
-		Pattern subfields800Pattern = Pattern.compile("[pqt]");
 		for (DataField seriesField : seriesFields){
-			String series = Util.trimTrailingPunctuation(MarcUtil.getSpecifiedSubfieldsAsString(seriesField, subfields800Pattern,"")).toString();
+			String series = Util.trimTrailingPunctuation(MarcUtil.getSpecifiedSubfieldsAsString(seriesField, "pqt","")).toString();
 			//Remove anything in parens since it's normally just the format
 			series = series.replaceAll("\\s+\\(.*?\\)", "");
 			//Remove the word series at the end since this gets cataloged inconsistently
@@ -816,9 +814,8 @@ abstract class MarcRecordProcessor {
 		//Load contributors with role
 		List<DataField> contributorFields = MarcUtil.getDataFields(record, new String[]{"700","710"});
 		HashSet<String> contributors = new HashSet<>();
-		Pattern contributorSubfieldPattern = Pattern.compile("[abcdetmnr]");
 		for (DataField contributorField : contributorFields){
-			StringBuilder contributor = MarcUtil.getSpecifiedSubfieldsAsString(contributorField, contributorSubfieldPattern, "");
+			StringBuilder contributor = MarcUtil.getSpecifiedSubfieldsAsString(contributorField, "abcdetmnr", "");
 			if (contributorField.getTag().equals("700") && contributorField.getSubfield('4') != null){
 				String role = indexer.translateSystemValue("contributor_role", Util.trimTrailingPunctuation(contributorField.getSubfield('4').getData()), identifier);
 				contributor.append("|").append(role);
