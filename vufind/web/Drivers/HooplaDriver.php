@@ -102,6 +102,41 @@ class HooplaDriver
 		}
 	}
 
+	/**
+	 * Simplified CURL call for returning a title. Sucess is determined by recieving a http status code of 204
+	 * @param $url
+	 * @return bool
+	 */
+	private function getAPIResponseReturnHooplaTitle($url)
+	{
+		$ch = curl_init();
+		$headers  = array(
+			'Authorization: Bearer ' . $this->accessToken,
+			'Originating-App-Id: Pika',
+		);
+
+		curl_setopt($ch, CURLOPT_URL, $url);
+		curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'DELETE');
+		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		global $instanceName;
+		if (stripos($instanceName, 'localhost') !== false) {
+			// For local debugging only
+			curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+			curl_setopt($ch, CURLINFO_HEADER_OUT, true);
+		}
+
+		curl_exec($ch);
+		$http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+//		// For debugging only
+//		if (stripos($instanceName, 'localhost') !== false) {
+//		$err  = curl_getinfo($ch);
+//		$headerRequest = curl_getinfo($ch, CURLINFO_HEADER_OUT);
+//		}
+		curl_close($ch);
+		return $http_code == 204;
+	}
+
 
 	private static $hooplaLibraryIdsForUser;
 
@@ -348,6 +383,44 @@ class HooplaDriver
 						'message' => 'An error occurred checking out the Hoopla title.'
 					);
 				}
+			} elseif (!$this->getHooplaLibraryID($user)) {
+				return array(
+					'success' => false,
+					'message' => 'Your library does not have Hoopla integration enabled.'
+				);
+			} else {
+				return array(
+					'success' => false,
+					'message' => 'There was an error retrieving your library card number.'
+				);
+			}
+		} else {
+			return array(
+				'success' => false,
+				'message' => 'Hoopla integration is not enabled.'
+			);
+		}
+	}
+
+	public function returnHooplaItem($hooplaId, $user) {
+		if ($this->hooplaEnabled) {
+			$returnHooplaItemURL = $this->getHooplaBasePatronURL($user);
+			if (!empty($returnHooplaItemURL)) {
+				$itemId = self::recordIDtoHooplaID($hooplaId);
+				$returnHooplaItemURL .= "/$itemId";
+				$result = $this->getAPIResponseReturnHooplaTitle($returnHooplaItemURL);
+				if ($result) {
+					return array(
+						'success' => true,
+						'message' => 'The title was successfully returned.'
+					);
+				} else {
+					return array(
+						'success' => false,
+						'message' => 'There was an error returning this title.'
+					);
+				}
+
 			} elseif (!$this->getHooplaLibraryID($user)) {
 				return array(
 					'success' => false,
