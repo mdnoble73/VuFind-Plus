@@ -460,6 +460,8 @@ class OverDriveDriver3 {
 				$bookshelfItem['expiresOn'] = $curTitle->expires;
 				$expirationDate = new DateTime($curTitle->expires);
 				$bookshelfItem['dueDate'] = $expirationDate->getTimestamp();
+				$checkOutDate = new DateTime($curTitle->checkoutDate);
+				$bookshelfItem['checkoutdate'] = $checkOutDate->getTimestamp();
 				$bookshelfItem['overdriveRead'] = false;
 				if (isset($curTitle->isFormatLockedIn) && $curTitle->isFormatLockedIn == 1){
 					$bookshelfItem['formatSelected'] = true;
@@ -537,12 +539,12 @@ class OverDriveDriver3 {
 						$bookshelfItem['groupedWorkId'] = $overDriveRecord->getGroupedWorkId();
 					}
 					$formats = $overDriveRecord->getFormats();
-					$bookshelfItem['format'] = reset($formats);
-					$bookshelfItem['coverUrl'] = $overDriveRecord->getCoverUrl('medium');
-					$bookshelfItem['recordUrl'] = $configArray['Site']['path'] . '/OverDrive/' . $overDriveRecord->getUniqueID() . '/Home';
-					$bookshelfItem['title'] = $overDriveRecord->getTitle();
-					$bookshelfItem['author'] = $overDriveRecord->getAuthor();
-					$bookshelfItem['linkUrl'] = $overDriveRecord->getLinkUrl(false);
+					$bookshelfItem['format']     = reset($formats);
+					$bookshelfItem['coverUrl']   = $overDriveRecord->getCoverUrl('medium');
+					$bookshelfItem['recordUrl']  = $configArray['Site']['path'] . '/OverDrive/' . $overDriveRecord->getUniqueID() . '/Home';
+					$bookshelfItem['title']      = $overDriveRecord->getTitle();
+					$bookshelfItem['author']     = $overDriveRecord->getAuthor();
+					$bookshelfItem['linkUrl']    = $overDriveRecord->getLinkUrl(false);
 					$bookshelfItem['ratingData'] = $overDriveRecord->getRatingData();
 				}
 				$bookshelfItem['user'] = $user->getNameAndLibraryLabel();

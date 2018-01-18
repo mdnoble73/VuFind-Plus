@@ -21,10 +21,6 @@
 			<div class="alert alert-warning"><strong>The library system is currently offline.</strong> We are unable to retrieve information about your {translate text='Checked Out Titles'|lower} at this time.</div>
 		{else}
 
-			<p>
-				{translate text="Checked out items includes titles in Overdrive."}
-			</p>
-
 			{if $transList}
 				<form id="renewForm" action="{$path}/MyAccount/RenewMultiple">
 					<div id="pager" class="navbar form-inline">
@@ -43,7 +39,7 @@
 							<a href="#" onclick="VuFind.Account.renewSelectedTitles()" class="btn btn-sm btn-default">Renew Selected Items</a>
 							<a href="#" onclick="VuFind.Account.renewAll()" class="btn btn-sm btn-default">Renew All</a>
 						{/if}
-						<a href="{$path}/MyAccount/CheckedOut?exportToExcel" class="btn btn-sm btn-default" id="exportToExcelTop">Export to Excel</a>
+						<a href="{$path}/MyAccount/CheckedOut?exportToExcel{if isset($defaultSortOption)}&accountSort={$defaultSortOption}{/if}" class="btn btn-sm btn-default" id="exportToExcelTop">Export to Excel</a>
 					</div>
 
 					<br>
