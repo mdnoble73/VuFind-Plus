@@ -21,7 +21,7 @@ class Hoopla_AJAX extends Action
 		// Methods intend to return JSON data
 		if (in_array($method, array(
 			'reloadCover',
-			'checkOutHooplaTitle', 'getHooplaCheckOutPrompt',
+			'checkOutHooplaTitle', 'getHooplaCheckOutPrompt', 'returnHooplaTitle'
 		))){
 			header('Content-type: text/plain');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
@@ -205,6 +205,25 @@ class Hoopla_AJAX extends Action
 			}
 		}else{
 			return array('success'=>false, 'message'=>'You must be logged in to checkout an item.');
+		}
+	}
+
+	function returnHooplaTitle() {
+		$user = UserAccount::getLoggedInUser();
+		if ($user){
+			$patronId = $_REQUEST['patronId'];
+			$patron   = $user->getUserReferredTo($patronId);
+			if ($patron) {
+				$id = $_REQUEST['id'];
+				require_once ROOT_DIR . '/Drivers/HooplaDriver.php';
+				$driver = new HooplaDriver();
+				$result = $driver->returnHooplaItem($id, $patron);
+				return $result;
+			}else{
+				return array('success'=>false, 'message'=>'Sorry, it looks like you don\'t have permissions to return titles for that user.');
+			}
+		}else{
+			return array('success'=>false, 'message'=>'You must be logged in to return an item.');
 		}
 	}
 
