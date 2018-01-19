@@ -86,6 +86,35 @@ class HooplaRecordDriver extends MarcRecord {
 		return $this->marcRecord;
 	}
 
+	/**
+	 * @param $actions
+	 * @return array
+	 * @throws File_MARC_Exception
+	 */
+	public function getAccessLink($actions = null)
+	{
+		$title      = translate('hoopla_url_action');
+		$marcRecord = $this->getMarcRecord();
+		/** @var File_MARC_Data_Field[] $linkFields */
+		$linkFields = $marcRecord->getFields('856');
+		$fileOrUrl  = null;
+		foreach ($linkFields as $linkField) {
+			if ($linkField->getIndicator(1) == 4 && $linkField->getIndicator(2) == 0) {
+				$linkSubfield = $linkField->getSubfield('u');
+				$fileOrUrl    = $linkSubfield->getData();
+				break;
+			}
+		}
+		if ($fileOrUrl != null) {
+			$actions[] = array(
+				'url' => $fileOrUrl,
+				'title' => $title,
+				'requireLogin' => false,
+			);
+		}
+		return $actions;
+	}
+
 	protected function getRecordType(){
 		return 'hoopla';
 	}
@@ -112,25 +141,7 @@ class HooplaRecordDriver extends MarcRecord {
 			);
 
 		} else {
-			$title = translate('hoopla_url_action');
-			$marcRecord = $this->getMarcRecord();
-			/** @var File_MARC_Data_Field[] $linkFields */
-			$linkFields = $marcRecord->getFields('856');
-			$fileOrUrl = null;
-			foreach($linkFields as $linkField){
-				if ($linkField->getIndicator(1) == 4 && $linkField->getIndicator(2) == 0){
-					$linkSubfield = $linkField->getSubfield('u');
-					$fileOrUrl = $linkSubfield->getData();
-					break;
-				}
-			}
-			if ($fileOrUrl != null){
-				$actions[] = array(
-					'url' => $fileOrUrl,
-					'title' => $title,
-					'requireLogin' => false,
-				);
-			}
+			$actions = $this->getAccessLink($actions);
 		}
 
 		return $actions;

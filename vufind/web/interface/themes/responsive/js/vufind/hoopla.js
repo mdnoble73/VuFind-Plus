@@ -45,8 +45,8 @@ VuFind.Hoopla = (function(){
 					VuFind.showMessage("Returning Title", "Returning your title in Hoopla.");
 					var url = Globals.path + "/Hoopla/" + hooplaId + "/AJAX",
 							params = {
-								'method': 'returnHooplaTitle',
-								patronId: patronId
+								'method': 'returnHooplaTitle'
+								,patronId: patronId
 							};
 					$.getJSON(url, params, function (data) {
 						VuFind.showMessage(data.success ? 'Success' : 'Error', data.message, data.success, data.success);
@@ -59,7 +59,6 @@ VuFind.Hoopla = (function(){
 			}
 			return false;
 		}
-
 
 	}
 }(VuFind.Hoopla || {}));

@@ -181,7 +181,6 @@ class HooplaDriver
 			if (isset($this->hooplaPatronStatuses[$user->id])) {
 				return $this->hooplaPatronStatuses[$user->id];
 			} else {
-				//TODO store Status in memcache ??
 				$getPatronStatusURL = $this->getHooplaBasePatronURL($user);
 				if (!empty($getPatronStatusURL)) {
 					$getPatronStatusURL         .= '/status';
@@ -192,7 +191,7 @@ class HooplaDriver
 					} else {
 						global $logger;
 						$hooplaErrorMessage = empty($hooplaPatronStatusResponse->message) ? '' : ' Hoopla Message :' . $hooplaPatronStatusResponse->message;
-						$logger->log('Error retrieving patron status from Hoopla. User ID : ' . $user->id . $hooplaErrorMessage, PEAR_LOG_ERR);
+						$logger->log('Error retrieving patron status from Hoopla. User ID : ' . $user->id . $hooplaErrorMessage, PEAR_LOG_INFO);
 						$this->hooplaPatronStatuses[$user->id] = false; // Don't do status call again for this user
 					}
 				}
@@ -343,15 +342,11 @@ class HooplaDriver
 			$checkoutURL = $this->getHooplaBasePatronURL($user);
 			if (!empty($checkoutURL)) {
 
-				//			$hooplaLibraryID = $this->getHooplaLibraryID($user);
-//			$barcode  = $user->getBarcode();
-//			if (!empty($hooplaLibraryID) && !empty($barcode)) {
 				$hooplaId = self::recordIDtoHooplaID($hooplaId);
-//				$checkoutURL = $this->hooplaAPIBaseURL . '/api/v1/libraries/' . $hooplaLibraryID . '/patrons/' . $barcode . '/' . $hooplaId;
 				$checkoutURL      .= '/' . $hooplaId;
 				$checkoutResponse = $this->getAPIResponse($checkoutURL, array(), 'POST');
 				if ($checkoutResponse) {
-					if ($checkoutResponse->contentId == $hooplaId) {
+					if (!empty($checkoutResponse->contentId)) {
 						return array(
 							'success'   => true,
 							'message'   => $checkoutResponse->message,
@@ -370,10 +365,9 @@ class HooplaDriver
 						//  'message': 'You can now enjoy this title through Friday, February 2.  You can stream it to your browser, or download it for offline viewing using our Amazon, Android, or iOS mobile apps.'
 						//}
 					} else {
-						//TODO: error message from API
 						return array(
 							'success' => false,
-							'message' => 'An error occurred checking out the Hoopla title.'
+							'message' => isset($checkoutResponse->message) ? $checkoutResponse->message : 'An error occurred checking out the Hoopla title.'
 						);
 					}
 
