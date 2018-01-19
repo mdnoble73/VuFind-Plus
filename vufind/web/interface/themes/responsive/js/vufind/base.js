@@ -74,10 +74,14 @@ var VuFind = (function(){
 
 			jcarousel.on('jcarousel:reload jcarousel:create', function() {
 
-				var Carousel       = $(this),
-						width          = Carousel.innerWidth(),
-						leftMargin     = +Carousel.find('li').css('margin-left').replace('px', ''),
-						rightMargin    = +Carousel.find('li').css('margin-right').replace('px', ''),
+				var Carousel       = $(this);
+				var width          = Carousel.innerWidth();
+				var liTags         = Carousel.find('li');
+				if (liTags == null || liTags === undefined || liTags.length === 0){
+					return;
+				}
+				var leftMargin     = +liTags.css('margin-left').replace('px', ''),
+						rightMargin    = +liTags.css('margin-right').replace('px', ''),
 						numCategories  = Carousel.jcarousel('items').length || 1,
 						numItemsToShow = 1;
 
