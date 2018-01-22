@@ -8,6 +8,7 @@
 		</h2>
 
 		{if $canView}
+			<video width="100%" controls poster="{$medium_image}" id="player" oncontextmenu="return false;">
 				<source src="{$videoLink}" type="video/mp4">
 			</video>
 		{else}
