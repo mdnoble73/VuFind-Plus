@@ -8,12 +8,12 @@
 		</h2>
 
 		{if $canView}
-			<div class="main-project-image">
+			<div class="main-project-image" oncontextmenu="return false;">
 				{* TODO: restrict access to original image *}
 				{if $anonymousMasterDownload || ($loggedIn && $verifiedMasterDownload)}
 					<a href="{$original_image}">
 				{/if}
-					<img src="{$large_image}" class="img-responsive">
+					<img src="{$large_image}" class="img-responsive" oncontextmenu="return false;">
 				{if $anonymousMasterDownload || ($loggedIn && $verifiedMasterDownload)}
 					</a>
 				{/if}
