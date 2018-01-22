@@ -60,44 +60,66 @@ abstract class Archive_Object extends Action {
 		if (count($viewingRestrictions) > 0){
 			$canView = false;
 			$validHomeLibraries = array();
+			$userPTypes = array();
 
 			$user = UserAccount::getLoggedInUser();
 			if ($user && $user->getHomeLibrary()){
 				$validHomeLibraries[] = $user->getHomeLibrary()->subdomain;
+				$userPTypes = $user->getRelatedPTypes();
 				$linkedAccounts = $user->getLinkedUsers();
 				foreach ($linkedAccounts as $linkedAccount){
 					$validHomeLibraries[] = $linkedAccount->getHomeLibrary()->subdomain;
 				}
 			}
 
-			foreach ($viewingRestrictions as $restriction){
-				$libraryDomain = trim($restriction);
-				if (array_search($libraryDomain, $validHomeLibraries) !== false){
-					//User is valid based on their login
-					$canView = true;
-					break;
+			global $locationSingleton;
+			$physicalLocation = $locationSingleton->getPhysicalLocation();
+			$physicalLibrarySubdomain = null;
+			if ($physicalLocation){
+				$physicalLibrary = new Library();
+				$physicalLibrary->libraryId = $physicalLocation->libraryId;
+				if ($physicalLibrary->find(true)) {
+					$physicalLibrarySubdomain = $physicalLibrary->subdomain;
 				}
 			}
 
-			if (!$canView){
-				global $locationSingleton;
-				$physicalLocation = $locationSingleton->getPhysicalLocation();
-				if ($physicalLocation){
-					$physicalLibrary = new Library();
-					$physicalLibrary->libraryId = $physicalLocation->libraryId;
-					if ($physicalLibrary->find(true)){
-						$physicalLibrarySubdomain = $physicalLibrary->subdomain;
-						foreach ($viewingRestrictions as $restriction){
-							$libraryDomain = trim($restriction);
-							if ($libraryDomain == $physicalLibrarySubdomain){
-								//User is valid based on their login
-								$canView = true;
-								break;
-							}
+			foreach ($viewingRestrictions as $restriction){
+				$restrictionType = 'homeLibraryOrIP';
+				if (strpos($restriction, ':') !== false){
+					list($restrictionType, $restriction) = explode(':', $restriction, 2);
+				}
+				$restrictionType = strtolower(trim($restrictionType));
+				$restriction = trim($restriction);
+				if ($restrictionType == 'homelibraryorip' || $restrictionType == 'patronsfrom') {
+					$libraryDomain = trim($restriction);
+					if (array_search($libraryDomain, $validHomeLibraries) !== false){
+						//User is valid based on their login
+						$canView = true;
+						break;
+					}
+				}
+				if ($restrictionType == 'homelibraryorip' || $restrictionType == 'withinlibrary') {
+					$libraryDomain = trim($restriction);
+					if ($libraryDomain == $physicalLibrarySubdomain){
+						//User is valid based on being in the library
+						$canView = true;
+						break;
+					}
+				}
+				if ($restrictionType == 'ptypes' || $restrictionType == 'ptype'){
+					$validPTypes = explode(',', $restriction);
+					foreach ($validPTypes as $pType){
+						if (array_search($pType, $userPTypes) !== false){
+							$canView = true;
+							break;
 						}
+					}
+					if ($canView){
+						break;
 					}
 				}
 			}
+
 		}else{
 			$canView = true;
 		}
