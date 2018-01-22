@@ -18,7 +18,7 @@
 						Clip Image
 					</a> *}
 					<div class="large-image-content">
-						<div id="pika-openseadragon" class="openseadragon"></div>
+						<div id="pika-openseadragon" class="openseadragon" oncontextmenu="return false;"></div>
 					</div>
 				</div>
 			{else}

@@ -9,7 +9,7 @@
 
 		{if $canView}
 			<img src="{$medium_image}" class="img-responsive">
-			<audio width="100%" controls id="player">
+			<audio width="100%" controls id="player" class="copy-prevention" oncontextmenu="return false;">
 				<source src="{$audioLink}" type="audio/mpeg">
 			</audio>
 

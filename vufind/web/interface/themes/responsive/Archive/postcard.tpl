@@ -9,7 +9,7 @@
 
 		{if $canView}
 			<div class="large-image-wrapper">
-				<div class="large-image-content">
+				<div class="large-image-content" oncontextmenu="return false;">
 					<div id="pika-openseadragon" class="openseadragon"></div>
 				</div>
 			</div>
