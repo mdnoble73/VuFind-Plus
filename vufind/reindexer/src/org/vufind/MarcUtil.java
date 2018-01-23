@@ -366,7 +366,7 @@ class MarcUtil {
 	}
 
 	static List<DataField> getDataFields(Record marcRecord, String[] tags) {
-		return marcRecord.getDataFields();
+		return marcRecord.getDataFields(tags);
 	}
 
 	static ControlField getControlField(Record marcRecord, String tag){
