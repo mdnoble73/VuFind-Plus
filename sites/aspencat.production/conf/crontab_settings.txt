@@ -72,14 +72,17 @@
 15 6 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar aspencat.production DatabaseCleanup
 # DB clean-up at end of the day, 11:44pm
 
+# Check for semaphore errors
+0 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./apacheSemaphoreCleanup.sh root@aspencatvm.marmot.org
+
+# Check Apache Solr process and website that it has not stalled.
+*/10 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./solrTest.sh
+
 ###################################
 # Data Extract from other systems #
 ###################################
 # Library supplied covers
 */10 * * * * /usr/local/vufind-plus/sites/aspencat.production/copyCovers.sh
-
-# Check Apache Solr process and website that it has not stalled.
-*/10 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./solrTest.sh
 
 #################
 # Let's Encrypt #
