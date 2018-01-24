@@ -1,6 +1,6 @@
 <?php
 /**
- * Updates related to islandora for cleanliness
+ * Updates related to hoopla for cleanliness
  *
  * @category Pika
  * @author Mark Noble <mark@marmot.org>
@@ -15,6 +15,28 @@ function getHooplaUpdates() {
 					'description' => 'Add a variable for when hoopla data was extracted from the API last.',
 					'sql' => array(
 							"INSERT INTO variables (name, value) VALUES ('lastHooplaExport', 'false')",
+					),
+			),
+
+			'hoopla_exportTables' => array(
+					'title' => 'Hoopla export tables',
+					'description' => 'Create tables to .',
+					'sql' => array(
+							"CREATE TABLE hoopla_export ( 
+									id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+									hooplaId INT NOT NULL,
+									active TINYINT NOT NULL DEFAULT 1,
+									title VARCHAR(255),
+									kind VARCHAR(50),
+									pa TINYINT NOT NULL DEFAULT 0,
+									demo TINYINT NOT NULL DEFAULT 0,
+									profanity TINYINT NOT NULL DEFAULT 0,
+									rating VARCHAR(10),
+									abridged TINYINT NOT NULL DEFAULT 0,
+									children TINYINT NOT NULL DEFAULT 0,
+									price DOUBLE NOT NULL DEFAULT 0,
+									UNIQUE(hooplaId)
+								) ENGINE = INNODB",
 					),
 			),
 	);
