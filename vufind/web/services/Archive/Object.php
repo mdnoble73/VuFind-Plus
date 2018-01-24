@@ -89,10 +89,16 @@ abstract class Archive_Object extends Action {
 					list($restrictionType, $restriction) = explode(':', $restriction, 2);
 				}
 				$restrictionType = strtolower(trim($restrictionType));
+				$restrictionType = str_replace(' ', '', strtolower($restrictionType));
 				$restriction = trim($restriction);
+				$restrictionLower = strtolower($restriction);
+				if ($restrictionLower == 'anonymousmasterdownload' || $restrictionLower == 'verifiedmasterdownload'){
+					continue;
+				}
+
 				if ($restrictionType == 'homelibraryorip' || $restrictionType == 'patronsfrom') {
 					$libraryDomain = trim($restriction);
-					if (array_search($libraryDomain, $validHomeLibraries) !== false){
+					if ($restrictionLower == 'default' || array_search($libraryDomain, $validHomeLibraries) !== false){
 						//User is valid based on their login
 						$canView = true;
 						break;
@@ -317,7 +323,7 @@ abstract class Archive_Object extends Action {
 		$interface->assign('repositoryLink', $repositoryLink);
 
 		//Check for display restrictions
-		if ($this->recordDriver instanceof BasicImageDriver || $this->recordDriver instanceof LargeImageDriver || $this->recordDriver instanceof BookDriver || $this->recordDriver instanceof PageDriver) {
+		if ($this->recordDriver instanceof BasicImageDriver || $this->recordDriver instanceof LargeImageDriver || $this->recordDriver instanceof BookDriver || $this->recordDriver instanceof PageDriver || $this->recordDriver instanceof AudioDriver || $this->recordDriver instanceof VideoDriver) {
 			/** @var CollectionDriver $collection */
 			$anonymousMasterDownload = true;
 			$verifiedMasterDownload = true;
@@ -338,9 +344,27 @@ abstract class Archive_Object extends Action {
 					$verifiedLcDownload = false;
 				}
 			}
+
+			$viewingRestrictions = $this->recordDriver->getViewingRestrictions();
+			foreach ($viewingRestrictions as $viewingRestriction){
+				$restrictionLower = str_replace(' ', '', strtolower($viewingRestriction));
+				if ($restrictionLower == 'preventanonymousmasterdownload'){
+					$anonymousMasterDownload = false;
+				}
+				if ($restrictionLower == 'preventverifiedmasterdownload'){
+					$verifiedMasterDownload = false;
+					$anonymousMasterDownload = false;
+				}
+			}
 			$interface->assign('anonymousMasterDownload', $anonymousMasterDownload);
+			if ($anonymousMasterDownload){
+				$verifiedMasterDownload = true;
+			}
 			$interface->assign('verifiedMasterDownload', $verifiedMasterDownload);
 			$interface->assign('anonymousLcDownload', $anonymousLcDownload);
+			if ($anonymousLcDownload){
+				$verifiedLcDownload = true;
+			}
 			$interface->assign('verifiedLcDownload', $verifiedLcDownload);
 		}
 	}

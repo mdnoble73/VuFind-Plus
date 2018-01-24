@@ -94,14 +94,31 @@ class Archive_Page extends Archive_Object{
 					$verifiedLcDownload = false;
 				}
 			}
+			$viewingRestrictions = $this->recordDriver->getViewingRestrictions();
+			foreach ($viewingRestrictions as $viewingRestriction){
+				$restrictionLower = str_replace(' ', '', strtolower($viewingRestriction));
+				if ($restrictionLower == 'preventanonymousmasterdownload'){
+					$anonymousMasterDownload = false;
+				}
+				if ($restrictionLower == 'preventverifiedmasterdownload'){
+					$verifiedMasterDownload = false;
+					$anonymousMasterDownload = false;
+				}
+			}
 			if (!$anonymousMasterDownload){
 				$interface->assign('anonymousMasterDownload', $anonymousMasterDownload);
+			}
+			if ($anonymousMasterDownload){
+				$verifiedMasterDownload = true;
 			}
 			if (!$verifiedMasterDownload) {
 				$interface->assign('verifiedMasterDownload', $verifiedMasterDownload);
 			}
 			if (!$anonymousLcDownload){
 				$interface->assign('anonymousLcDownload', $anonymousLcDownload);
+			}
+			if ($anonymousLcDownload){
+				$verifiedLcDownload = true;
 			}
 			if (!$verifiedLcDownload) {
 				$interface->assign('verifiedLcDownload', $verifiedLcDownload);
