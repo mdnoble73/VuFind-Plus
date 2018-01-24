@@ -100,6 +100,8 @@ EOQ;
 				$objStream = $sectionObject->getDatastream('OBJ');
 				if ($objStream && $objStream->mimetype == 'audio/mpeg'){
 					$sectionDetails['audio'] = $objectUrl . '/' . $objectPid . '/datastream/OBJ/view';;
+				}elseif ($objStream && $objStream->mimetype == 'video/mp4'){
+					$sectionDetails['video'] = $objectUrl . '/' . $objectPid . '/datastream/OBJ/view';;
 				}
 				//Load individual pages for this section
 				$sectionDetails = $this->loadPagesForSection($sectionObject, $sectionDetails);
