@@ -355,6 +355,13 @@ abstract class Archive_Object extends Action {
 					$verifiedMasterDownload = false;
 					$anonymousMasterDownload = false;
 				}
+				if ($restrictionLower == 'anonymousmasterdownload'){
+					$anonymousMasterDownload = true;
+					$verifiedMasterDownload = true;
+				}
+				if ($restrictionLower == 'verifiedmasterdownload'){
+					$anonymousMasterDownload = true;
+				}
 			}
 			$interface->assign('anonymousMasterDownload', $anonymousMasterDownload);
 			if ($anonymousMasterDownload){

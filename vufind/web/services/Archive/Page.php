@@ -104,6 +104,13 @@ class Archive_Page extends Archive_Object{
 					$verifiedMasterDownload = false;
 					$anonymousMasterDownload = false;
 				}
+				if ($restrictionLower == 'anonymousmasterdownload'){
+					$anonymousMasterDownload = true;
+					$verifiedMasterDownload = true;
+				}
+				if ($restrictionLower == 'verifiedmasterdownload'){
+					$anonymousMasterDownload = true;
+				}
 			}
 			if (!$anonymousMasterDownload){
 				$interface->assign('anonymousMasterDownload', $anonymousMasterDownload);
