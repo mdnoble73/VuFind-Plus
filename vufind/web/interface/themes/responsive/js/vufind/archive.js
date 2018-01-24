@@ -134,7 +134,7 @@ VuFind.Archive = (function(){
 				$("#view-image").hide();
 				$("#view-transcription").hide();
 				$("#view-video").hide();
-			}else if (viewerName == 'audio'){
+			}else if (viewerName == 'video'){
 				$('#view-toggle-transcription').prop('checked', true);
 				// .parent('.btn').addClass('active');
 				$("#view-video").show();
@@ -504,13 +504,10 @@ VuFind.Archive = (function(){
 				audioPlayer.load();
 				//audioPlayer.play();
 			}else if(this.activeBookViewer == 'video') {
-				$('#view-video').html(
-					$('<source />').attr({
-						type: 'video/mp4',
-						src: this.pageDetails[pid]['video'],
-						class: 'book-video' // Class that styles/sizes the PDF page
-					})
-				).show();
+				$('#view-video').show();
+				$('#video-player-src').attr('src', this.pageDetails[pid]['video']);
+				var videoPlayer = document.getElementById("video-player");
+				videoPlayer.load();
 			}
 			if (pageChanged && this.multiPage){
 				var numSectionsShown = 0;
