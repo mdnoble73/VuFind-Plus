@@ -90,6 +90,8 @@ class DBMaintenance extends Admin_Admin {
 		$indexing_updates = getIndexingUpdates();
 		require_once ROOT_DIR . '/sys/DBMaintenance/islandora_updates.php';
 		$islandora_updates = getIslandoraUpdates();
+		require_once ROOT_DIR . '/sys/DBMaintenance/hoopla_updates.php';
+		$hoopla_updates = getHooplaUpdates();
 
 		return array_merge(
 			$library_location_updates,
@@ -98,6 +100,7 @@ class DBMaintenance extends Admin_Admin {
 			$list_widget_updates,
 			$indexing_updates,
 			$islandora_updates,
+			$hoopla_updates,
 			array(
 				'index_search_stats' => array(
 					'title' => 'Index search stats table',
@@ -894,7 +897,7 @@ class DBMaintenance extends Admin_Admin {
 
 				'author_enrichment' => array(
 						'title' => 'Author Enrichment',
-						'description' => 'Create Variables Table for storing basic variables for use in programs (system writable config)',
+						'description' => 'Create table to store enrichment for authors',
 						'sql' => array(
 								"CREATE TABLE `author_enrichment` (
 									id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
