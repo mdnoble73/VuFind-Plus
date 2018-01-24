@@ -17,13 +17,13 @@
 			{include file="Archive/noAccess.tpl"}
 		{/if}
 		<div id="download-options">
-			{if $canView}
+			{* {if $canView}
 				{if $anonymousMasterDownload || ($loggedIn && $verifiedMasterDownload)}
 					<a class="btn btn-default" href="/Archive/{$pid}/DownloadOriginal">Download Original</a>
 				{elseif (!$loggedIn && $verifiedMasterDownload)}
 					<a class="btn btn-default" onclick="return VuFind.Account.followLinkIfLoggedIn(this)" href="/Archive/{$pid}/DownloadOriginal">Login to Download Original</a>
 				{/if}
-			{/if}
+			{/if} *}
 			{if $allowRequestsForArchiveMaterials}
 				<a class="btn btn-default" href="{$path}/Archive/RequestCopy?pid={$pid}">Request Copy</a>
 			{/if}
