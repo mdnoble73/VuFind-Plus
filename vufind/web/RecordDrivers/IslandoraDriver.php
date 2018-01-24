@@ -3175,7 +3175,7 @@ abstract class IslandoraDriver extends RecordInterface {
 					}
 				}
 			}else{
-				$accessLimits = preg_split('/[\r\n,]/', $accessLimits);
+				$accessLimits = explode("&#xD;\n", $accessLimits);
 				$this->viewingRestrictions = array_merge($this->viewingRestrictions, $accessLimits);
 			}
 		}
