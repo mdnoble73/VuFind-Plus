@@ -31,6 +31,7 @@
 							<td>{$logEntry->lastUpdate|date_format:"%D %T"}</td>
 							<td>{$logEntry->endTime|date_format:"%D %T"}</td>
 							<td>{$logEntry->getElapsedTime()}</td>
+							<td><a href="#" onclick="return VuFind.Admin.showHooplaExtractNotes('{$logEntry->id}');">Show Notes</a></td>
 						</tr>
 					{/foreach}
 				</tbody>
