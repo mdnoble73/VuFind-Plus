@@ -6,6 +6,7 @@ import org.apache.log4j.PropertyConfigurator;
 import org.ini4j.Ini;
 import org.ini4j.InvalidFileFormatException;
 import org.ini4j.Profile;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -32,6 +33,7 @@ public class HooplaExportMain {
 	private static boolean doFullReload;
 	private static Long lastExportTime;
 	private static Long lastExportTimeVariableId;
+	private static boolean hadErrors = false;
 
 	//Reporting information
 	private static long hooplaExportLogId;
@@ -114,7 +116,10 @@ public class HooplaExportMain {
 		//Do work here
 		exportHooplaData(vufindConn, lastExportTime, doFullReload);
 
-		updateHooplaExportTime(vufindConn, startTime.getTime() / 1000);
+		if (!hadErrors){
+			updateHooplaExportTime(vufindConn, startTime.getTime() / 1000);
+		}
+
 		logger.info("Finished exporting hoopla data " + new Date().toString());
 		long endTime = new Date().getTime();
 		long elapsedTime = endTime - startTime.getTime();
@@ -144,26 +149,96 @@ public class HooplaExportMain {
 			if (hooplaLibraryId == null){
 				logger.error("No hoopla library id found");
 				addNoteToHooplaExportLog("No hoopla library id found");
+				hadErrors = true;
 				return;
 			}else{
 				addNoteToHooplaExportLog("Hoopla library id is " + hooplaLibraryId);
 			}
 
 			String accessToken = getAccessToken();
+			if (accessToken == null){
+				hadErrors = true;
+				return;
+			}
 
 			//Formulate the first call depending on if we are doing a full reload or not
-			String url = hooplaAPIBaseURL + "/api/via/libraries/" + hooplaLibraryId + "/content";
-			if (!doFullReload){
+			String url = hooplaAPIBaseURL + "/api/v1/libraries/" + hooplaLibraryId + "/content";
+			if (!doFullReload && startTime != null){
 				url += "?startTime=" + startTime;
 			}
 
+			int numProcessed = 0;
 			URLPostResponse response = getURL(url, accessToken);
+			JSONObject responseJSON = new JSONObject(response.getMessage());
+			if (responseJSON.has("titles")){
+				JSONArray responseTitles = responseJSON.getJSONArray("titles");
+				if (responseTitles != null && responseTitles.length() > 0){
+					numProcessed += updateTitlesInDB(vufindConn, responseTitles);
+				}
 
-
+				String startToken = null;
+				if (responseJSON.has("nextStartToken")){
+					startToken = responseJSON.getString("nextStartToken");
+				}
+				while (startToken != null){
+					url = hooplaAPIBaseURL + "/api/v1/libraries/" + hooplaLibraryId + "/content?startToken=" + startToken;
+					response = getURL(url, accessToken);
+					responseJSON = new JSONObject(response.getMessage());
+					if (responseJSON.has("titles")) {
+						responseTitles = responseJSON.getJSONArray("titles");
+						if (responseTitles != null && responseTitles.length() > 0) {
+							numProcessed += updateTitlesInDB(vufindConn, responseTitles);
+						}
+					}
+					if (responseJSON.has("nextStartToken")) {
+						startToken = responseJSON.getString("nextStartToken");
+					} else {
+						startToken = null;
+					}
+					if (numProcessed % 10000 == 0){
+						addNoteToHooplaExportLog("Processed " + numProcessed + " records from hoopla");
+					}
+				}
+			}
 		}catch (Exception e){
 			logger.error("Error exporting hoopla data", e);
 			addNoteToHooplaExportLog("Error exporting hoopla data " + e.toString());
+			hadErrors = true;
 		}
+	}
+
+	private static PreparedStatement updateHooplaTitleInDB = null;
+	private static int updateTitlesInDB(Connection vufindConn, JSONArray responseTitles) {
+		int numUpdates = 0;
+		try {
+			if (updateHooplaTitleInDB == null) {
+				updateHooplaTitleInDB = vufindConn.prepareStatement("INSERT INTO hoopla_export (hooplaId, active, title, kind, pa, demo, profanity, rating, abridged, children, price) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY " +
+								"UPDATE active = VALUES(active), title = VALUES(title), kind = VALUES(kind), pa = VALUES(pa), demo = VALUES(demo), profanity = VALUES(profanity), " +
+								"rating = VALUES(rating), abridged = VALUES(abridged), children = VALUES(children), price = VALUES(price)");
+			}
+			for (int i = 0; i < responseTitles.length(); i++){
+				JSONObject curTitle = responseTitles.getJSONObject(i);
+				updateHooplaTitleInDB.setLong(1, curTitle.getLong("titleId"));
+				updateHooplaTitleInDB.setBoolean(2, curTitle.getBoolean("active"));
+				updateHooplaTitleInDB.setString(3, curTitle.getString("title"));
+				updateHooplaTitleInDB.setString(4, curTitle.getString("kind"));
+				updateHooplaTitleInDB.setBoolean(5, curTitle.getBoolean("pa"));
+				updateHooplaTitleInDB.setBoolean(6, curTitle.getBoolean("demo"));
+				updateHooplaTitleInDB.setBoolean(7, curTitle.getBoolean("profanity"));
+				updateHooplaTitleInDB.setString(8, curTitle.has("rating") ? curTitle.getString("rating") : "");
+				updateHooplaTitleInDB.setBoolean(9, curTitle.getBoolean("abridged"));
+				updateHooplaTitleInDB.setBoolean(10, curTitle.getBoolean("children"));
+				updateHooplaTitleInDB.setDouble(11, curTitle.getDouble("price"));
+				updateHooplaTitleInDB.executeUpdate();
+				numUpdates++;
+			}
+
+		}catch (Exception e){
+			logger.error("Error updating hoopla data in database", e);
+			addNoteToHooplaExportLog("Error updating hoopla data in database " + e.toString());
+			hadErrors = true;
+		}
+		return numUpdates;
 	}
 
 	private static String getAccessToken() {
