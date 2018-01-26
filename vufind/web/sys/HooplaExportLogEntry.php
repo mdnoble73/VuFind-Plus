@@ -5,9 +5,9 @@
 require_once 'DB/DataObject.php';
 require_once 'DB/DataObject/Cast.php';
 
-class HooplaExtractLogEntry extends DB_DataObject
+class HooplaExportLogEntry extends DB_DataObject
 {
-	public $__table = 'hoopla_extract_log';   // table name
+	public $__table = 'hoopla_export_log';   // table name
 	public $id;
 	public $startTime;
 	public $lastUpdate;

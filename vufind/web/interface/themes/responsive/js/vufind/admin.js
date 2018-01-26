@@ -1,6 +1,6 @@
 VuFind.Admin = (function(){
 	return {
-		showHooplaExtractNotes: function (id){
+		showHooplaExportNotes: function (id){
 			VuFind.Account.ajaxLightbox("/Admin/AJAX?method=getHooplaExportNotes&id=" + id, true);
 			return false;
 		},

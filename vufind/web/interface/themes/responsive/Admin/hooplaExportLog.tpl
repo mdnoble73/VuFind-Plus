@@ -1,6 +1,6 @@
 {strip}
 	<div id="main-content" class="col-md-12">
-		<h3>Hoopla Extract Log</h3>
+		<h3>Hoopla Export Log</h3>
 		<hr>
 
 		<h4>Filter by</h4>
@@ -18,7 +18,7 @@
 				</span>
 			</div>
 		</form>
-		<div id="hooplaExtractLogContainer">
+		<div id="hooplaExportLogContainer">
 			<table class="logEntryDetails table table-condensed table-hover">
 				<thead>
 					<tr><th>Id</th><th>Started</th><th>Last Update</th><th>Finished</th><th>Elapsed</th><th>Notes</th></tr>
@@ -31,7 +31,7 @@
 							<td>{$logEntry->lastUpdate|date_format:"%D %T"}</td>
 							<td>{$logEntry->endTime|date_format:"%D %T"}</td>
 							<td>{$logEntry->getElapsedTime()}</td>
-							<td><a href="#" onclick="return VuFind.Admin.showHooplaExtractNotes('{$logEntry->id}');">Show Notes</a></td>
+							<td><a href="#" onclick="return VuFind.Admin.showHooplaExportNotes('{$logEntry->id}');">Show Notes</a></td>
 						</tr>
 					{/foreach}
 				</tbody>

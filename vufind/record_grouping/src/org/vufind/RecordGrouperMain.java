@@ -786,7 +786,7 @@ public class RecordGrouperMain {
 			finishedStatement.setLong(2, groupingLogId);
 			finishedStatement.executeUpdate();
 		} catch (SQLException e) {
-			logger.error("Unable to update reindex log with completion time.", e);
+			logger.error("Unable to update record grouping log with completion time.", e);
 		}
 
 		try{
@@ -1651,13 +1651,13 @@ public class RecordGrouperMain {
 		return crc32.getValue();
 	}
 
-	private static StringBuffer reindexNotes = new StringBuffer();
+	private static StringBuffer notes = new StringBuffer();
 	private static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	private static void addNoteToGroupingLog(String note) {
 		try {
 			Date date = new Date();
-			reindexNotes.append("<br>").append(dateFormat.format(date)).append(": ").append(note);
-			addNoteToGroupingLogStmt.setString(1, trimTo(65535, reindexNotes.toString()));
+			notes.append("<br>").append(dateFormat.format(date)).append(": ").append(note);
+			addNoteToGroupingLogStmt.setString(1, trimTo(65535, notes.toString()));
 			addNoteToGroupingLogStmt.setLong(2, new Date().getTime() / 1000);
 			addNoteToGroupingLogStmt.setLong(3, groupingLogId);
 			addNoteToGroupingLogStmt.executeUpdate();
@@ -1669,7 +1669,7 @@ public class RecordGrouperMain {
 
 	private static void updateLastUpdateTimeInLog() {
 		try {
-			addNoteToGroupingLogStmt.setString(1, trimTo(65535, reindexNotes.toString()));
+			addNoteToGroupingLogStmt.setString(1, trimTo(65535, notes.toString()));
 			addNoteToGroupingLogStmt.setLong(2, new Date().getTime() / 1000);
 			addNoteToGroupingLogStmt.setLong(3, groupingLogId);
 			addNoteToGroupingLogStmt.executeUpdate();

@@ -22,17 +22,17 @@ require_once ROOT_DIR . '/Action.php';
 require_once ROOT_DIR . '/services/Admin/Admin.php';
 require_once ROOT_DIR . '/sys/Pager.php';
 
-class HooplaExtractLog extends Admin_Admin
+class HooplaExportLog extends Admin_Admin
 {
 	function launch()
 	{
-		global $interface,
-		       $configArray;
+		global $interface;
+		global $configArray;
 
 		$logEntries = array();
-		$logEntry = new HooplaExtractLogEntry();
+		$logEntry = new HooplaExportLogEntry();
 		$total = $logEntry->count();
-		$logEntry = new HooplaExtractLogEntry();
+		$logEntry = new HooplaExportLogEntry();
 		$logEntry->orderBy('startTime DESC');
 		$page = isset($_REQUEST['page']) ? $_REQUEST['page'] : 1;
 		$pagesize = isset($_REQUEST['pagesize']) ? $_REQUEST['pagesize'] : 30; // to adjust number of items listed on a page
@@ -46,13 +46,13 @@ class HooplaExtractLog extends Admin_Admin
 		$interface->assign('logEntries', $logEntries);
 
 		$options = array('totalItems' => $total,
-		                 'fileName'   => $configArray['Site']['path'].'/Admin/HooplaExtractLog?page=%d'. (empty($_REQUEST['pagesize']) ? '' : '&pagesize=' . $_REQUEST['pagesize']),
+		                 'fileName'   => $configArray['Site']['path'].'/Admin/HooplaExportLog?page=%d'. (empty($_REQUEST['pagesize']) ? '' : '&pagesize=' . $_REQUEST['pagesize']),
 		                 'perPage'    => $pagesize,
 		);
 		$pager = new VuFindPager($options);
 		$interface->assign('pageLinks', $pager->getLinks());
 
-		$this->display('hooplaExtractLog.tpl', 'Hoopla Extract Log');
+		$this->display('hooplaExportLog.tpl', 'Hoopla Export Log');
 	}
 
 	function getAllowableRoles(){

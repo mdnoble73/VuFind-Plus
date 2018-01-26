@@ -105,19 +105,19 @@ class Admin_AJAX extends Action {
 
 	function getHooplaExportNotes(){
 		$id = $_REQUEST['id'];
-		$hooplaExtractProcess = new HooplaExtractLogEntry();
-		$hooplaExtractProcess->id = $id;
+		$hooplaExportProcess = new HooplaExportLogEntry();
+		$hooplaExportProcess->id = $id;
 		$results = array(
 				'title' => '',
 				'modalBody' => '',
 				'modalButtons' => ''
 		);
-		if ($hooplaExtractProcess->find(true)){
-			$results['title'] = "Hoopla Extract Notes";
-			if (strlen(trim($hooplaExtractProcess->notes)) == 0){
+		if ($hooplaExportProcess->find(true)){
+			$results['title'] = "Hoopla Export Notes";
+			if (strlen(trim($hooplaExportProcess->notes)) == 0){
 				$results['modalBody'] = "No notes have been entered yet";
 			}else{
-				$results['modalBody'] = "<div class='helpText'>{$hooplaExtractProcess->notes}</div>";
+				$results['modalBody'] = "<div class='helpText'>{$hooplaExportProcess->notes}</div>";
 			}
 		}else{
 			$results['title'] = "Error";

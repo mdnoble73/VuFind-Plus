@@ -51,7 +51,7 @@ function getHooplaUpdates() {
 									`lastUpdate` INT(11) NULL COMMENT 'The timestamp when the run last updated (to check for stuck processes)', 
 									`notes` TEXT COMMENT 'Additional information about the run', 
 									PRIMARY KEY ( `id` )
-									) ENGINE = MYISAM;",
+									) ENGINE = INNODB;",
 					)
 			),
 	);
