@@ -55,7 +55,7 @@
 26 * * * * cd /tmp; /bin/rm -rf CURLCOOKIE*
 27 */2 * * * cd /tmp; /bin/rm -rf epb*
 # Restart apache
-0 * * * * /usr/sbin/apachectl restart > /dev/null 2>&1
+0 0-7 * * * /usr/sbin/apachectl restart > /dev/null 2>&1
 0 8-23 * * * /usr/sbin/apachectl graceful > /dev/null 2>&1
 
 ############################################
@@ -73,7 +73,7 @@
 # DB clean-up at end of the day, 11:44pm
 
 # Check for semaphore errors
-0 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./apacheSemaphoreCleanup.sh root@aspencatvm.marmot.org
+17 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./apacheSemaphoreCleanup.sh root@aspencatvm.marmot.org
 
 # Check Apache Solr process and website that it has not stalled.
 */10 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./solrTest.sh

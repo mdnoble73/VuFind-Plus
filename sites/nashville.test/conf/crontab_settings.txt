@@ -31,7 +31,7 @@
 # On Reboot #
 #############
 # Continuous Re-Indexing
-@reboot cd /usr/local/VuFind-Plus/sites/nashville.test; ./continuous_partial_reindex.sh
+#@reboot sleep 300 &&  /usr/local/VuFind-Plus/sites/nashville.test/continuous_partial_reindex.sh
 
 ######################
 # MySQL Nightly Dump #
@@ -100,4 +100,4 @@
 */3 6-23 * * * cd /usr/local/vufind-plus/vufind/cron/; ./solrTest.sh
 
 # Check for semaphore errors
-0 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./apacheSemaphoreCleanup.sh james.staub@nashville.gov,Mark.Noble@nashville.gov,Pascal.Brammeier@nashville.gov
+17 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./apacheSemaphoreCleanup.sh james.staub@nashville.gov,Mark.Noble@nashville.gov,Pascal.Brammeier@nashville.gov

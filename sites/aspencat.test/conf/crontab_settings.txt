@@ -79,5 +79,5 @@
 */3 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./solrTest.sh
 
 # Check for semaphore errors
-0 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./apacheSemaphoreCleanup.sh root@aspencatvm.marmot.org
+17 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./apacheSemaphoreCleanup.sh root@aspencatvm.marmot.org
 
