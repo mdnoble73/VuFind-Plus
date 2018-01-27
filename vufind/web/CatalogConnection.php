@@ -899,6 +899,8 @@ class CatalogConnection
 			$source = $checkout['checkoutSource'];
 			if ($source == 'OverDrive'){
 				$sourceId = $checkout['overDriveId'];
+			}elseif ($source == 'Hoopla'){
+				$sourceId = $checkout['hooplaId'];
 			}elseif ($source == 'ILS'){
 				$sourceId = $checkout['fullId'];
 			}elseif ($source == 'eContent'){
@@ -917,11 +919,11 @@ class CatalogConnection
 					$historyEntryDB->groupedWorkPermanentId = "";
 				}
 
-				$historyEntryDB->source = $source;
-				$historyEntryDB->sourceId = $sourceId;
-				$historyEntryDB->title = substr($checkout['title'], 0, 150);
-				$historyEntryDB->author = substr($checkout['author'], 0, 75);
-				$historyEntryDB->format = substr($checkout['format'], 0, 50);
+				$historyEntryDB->source       = $source;
+				$historyEntryDB->sourceId     = $sourceId;
+				$historyEntryDB->title        = substr($checkout['title'], 0, 150);
+				$historyEntryDB->author       = substr($checkout['author'], 0, 75);
+				$historyEntryDB->format       = substr($checkout['format'], 0, 50);
 				$historyEntryDB->checkOutDate = time();
 				if (!$historyEntryDB->insert()){
 					global $logger;
