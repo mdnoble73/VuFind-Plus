@@ -227,7 +227,7 @@ class Hoopla_AJAX extends Action
 				}
 				if ($result['success']) {
 					global $interface;
-					$checkOutStatus = $driver->getHooplaPatronStatus($user);
+					$checkOutStatus = $driver->getHooplaPatronStatus($patron);
 					$interface->assign('hooplaPatronStatus', $checkOutStatus);
 					$title = empty($result['title']) ? "Title checked out successfully" : $result['title'] . " checked out successfully";
 					return array(
