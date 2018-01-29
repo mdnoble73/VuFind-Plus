@@ -217,6 +217,11 @@ class Hoopla_AJAX extends Action
 			$patronId = $_REQUEST['patronId'];
 			$patron   = $user->getUserReferredTo($patronId);
 			if ($patron) {
+				global $interface;
+				if ($patron->id != $user->id) {
+					$interface->assign('hooplaUser', $patron); // Display the account name when not using the main user
+				}
+
 				$id = $_REQUEST['id'];
 				require_once ROOT_DIR . '/Drivers/HooplaDriver.php';
 				$driver = new HooplaDriver();
@@ -226,7 +231,6 @@ class Hoopla_AJAX extends Action
 					$patron->update();
 				}
 				if ($result['success']) {
-					global $interface;
 					$checkOutStatus = $driver->getHooplaPatronStatus($patron);
 					$interface->assign('hooplaPatronStatus', $checkOutStatus);
 					$title = empty($result['title']) ? "Title checked out successfully" : $result['title'] . " checked out successfully";
