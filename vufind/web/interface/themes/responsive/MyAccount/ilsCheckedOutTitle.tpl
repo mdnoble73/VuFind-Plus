@@ -152,7 +152,7 @@
 						</div>
 					{/if}
 
-					{if $showRenewed && $record.renewCount}
+					{if $showRenewed && $record.renewCount || $defaultSortOption == 'renewed'}{* Show times renewed when sorting by that value (even if 0)*}
 						<div class="row">
 							<div class="result-label col-tn-4 col-lg-3">{translate text='Renewed'}</div>
 							<div class="result-value col-tn-8 col-lg-9">
