@@ -99,6 +99,9 @@ class OverDrive_AJAX extends Action {
 				$driver = OverDriveDriverFactory::getDriver();
 				$result = $driver->checkoutOverDriveItem($overDriveId, $patron);
 				//$logger->log("Checkout result = $result", PEAR_LOG_INFO);
+				if ($result['success']){
+					$result['buttons'] = '<a class="btn btn-primary" href="/MyAccount/CheckedOut" role="button">View My Check Outs</a>';
+				}
 				return json_encode($result);
 			}else{
 				return json_encode(array('result'=>false, 'message'=>'Sorry, it looks like you don\'t have permissions to checkout titles for that user.'));
