@@ -148,6 +148,7 @@ class Hoopla_AJAX extends Action
 							'buttons' => '<button class="btn btn-primary" type= "button" title="Check Out" onclick="return VuFind.Hoopla.checkOutHooplaTitle(\'' . $id . '\');">Check Out</button>'
 						);
 				} elseif (count($hooplaUsers) == 1) {
+					/** @var User $hooplaUser */
 					$hooplaUser = reset($hooplaUsers);
 					if ($hooplaUser->id != $user->id) {
 						$interface->assign('hooplaUser', $hooplaUser); // Display the account name when not using the main user
@@ -156,8 +157,8 @@ class Hoopla_AJAX extends Action
 					if (!$checkOutStatus) {
 						require_once ROOT_DIR . '/RecordDrivers/HooplaDriver.php';
 						$hooplaRecord = new HooplaRecordDriver($id);
-						$accesslink = reset($hooplaRecord->getAccessLink()); // Base Hoopla Title View Url
-						$hooplaRegistrationUrl = $accesslink['url'];
+						$accessLink = reset($hooplaRecord->getAccessLink()); // Base Hoopla Title View Url
+						$hooplaRegistrationUrl = $accessLink['url'];
 						$hooplaRegistrationUrl .= (parse_url($hooplaRegistrationUrl, PHP_URL_QUERY) ? '&' : '?') . 'showRegistration=true'; // Add Registration URL parameter
 
 						return
@@ -167,17 +168,25 @@ class Hoopla_AJAX extends Action
 								'buttons' =>
 									'<button id="theHooplaButton" class="btn btn-default" type="button" title="Check Out" onclick="return VuFind.Hoopla.checkOutHooplaTitle(\'' . $id . '\', ' . $hooplaUser->id . ');">I registered, Check Out now</button>'
 									.'<a class="btn btn-primary" role="button" href="'.$hooplaRegistrationUrl.'" target="_blank" title="Register at Hoopla" onclick="$(\'#theHooplaButton+a,#theHooplaButton\').toggleClass(\'btn-primary btn-default\');">Register at Hoopla</a>'
-
 							);
 
 					}
-					$interface->assign('hooplaPatronStatus', $checkOutStatus);
-					return
-						array(
-							'title'   => 'Confirm Hoopla Check Out',
-							'body'    => $interface->fetch('Hoopla/ajax-hoopla-single-user-checkout-prompt.tpl'),
-							'buttons' => '<button class="btn btn-primary" type="button" title="Check Out" onclick="return VuFind.Hoopla.checkOutHooplaTitle(\'' . $id . '\', ' . $hooplaUser->id . ');">Check Out</button>'
+					if ($hooplaUser->hooplaCheckOutConfirmation) {
+						$interface->assign('hooplaPatronStatus', $checkOutStatus);
+						return
+							array(
+								'title'   => 'Confirm Hoopla Check Out',
+								'body'    => $interface->fetch('Hoopla/ajax-hoopla-single-user-checkout-prompt.tpl'),
+								'buttons' => '<button class="btn btn-primary" type="button" title="Check Out" onclick="return VuFind.Hoopla.checkOutHooplaTitle(\'' . $id . '\', ' . $hooplaUser->id . ');">Check Out</button>'
+							);
+					}else{
+						// Go ahead and checkout the title
+						return array(
+							'title'   => 'Checking out Hoopla title',
+							'body'    => '<script>VuFind.Hoopla.checkOutHooplaTitle(\'' . $id . '\', ' . $hooplaUser->id . ')</script>',
+							'buttons' => ''
 						);
+					}
 				} else {
 					// No Hoopla Account Found, give the user an error message
 					global $logger;
@@ -212,6 +221,10 @@ class Hoopla_AJAX extends Action
 				require_once ROOT_DIR . '/Drivers/HooplaDriver.php';
 				$driver = new HooplaDriver();
 				$result = $driver->checkoutHooplaItem($id, $patron);
+				if (!empty($_REQUEST['stopHooplaConfirmation'])) {
+					$patron->hooplaCheckOutConfirmation = false;
+					$patron->update();
+				}
 				if ($result['success']) {
 					global $interface;
 					$checkOutStatus = $driver->getHooplaPatronStatus($user);

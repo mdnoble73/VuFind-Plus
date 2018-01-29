@@ -10,6 +10,9 @@ VuFind.Hoopla = (function(){
 							'method' : 'checkOutHooplaTitle',
 							patronId : patronId
 						};
+				if ($('#stopHooplaConfirmation').prop('checked')){
+					params['stopHooplaConfirmation'] = true;
+				}
 				$.getJSON(url, params, function (data) {
 					if (data.success) {
 						VuFind.showMessageWithButtons(data.title, data.message, data.buttons);

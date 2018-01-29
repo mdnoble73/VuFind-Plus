@@ -35,6 +35,7 @@ class User extends DB_DataObject
 	public $disableCoverArt;     //tinyint
 	public $overdriveEmail;
 	public $promptForOverdriveEmail;
+	public $hooplaCheckOutConfirmation;
 	public $preferredLibraryInterface;
 	public $noPromptForUserReviews; //tinyint(1)
 
@@ -664,6 +665,16 @@ class User extends DB_DataObject
 		}
 		$this->update();
 	}
+
+	function updateHooplaOptions(){
+		if (isset($_REQUEST['hooplaCheckOutConfirmation']) && ($_REQUEST['hooplaCheckOutConfirmation'] == 'yes' || $_REQUEST['hooplaCheckOutConfirmation'] == 'on')) {
+			// if set check & on check must be combined because checkboxes/radios don't report 'offs'
+			$this->hooplaCheckOutConfirmation = 1;
+		}else{
+			$this->hooplaCheckOutConfirmation = 0;
+		}
+		$this->update();
+		}
 
 	function updateUserPreferences(){
 		// Validate that the input data is correct
