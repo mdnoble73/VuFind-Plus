@@ -30,7 +30,6 @@ public class HooplaExportMain {
 	private static Ini configIni;
 	private static String hooplaAPIBaseURL;
 
-	private static boolean doFullReload;
 	private static Long lastExportTime;
 	private static Long lastExportTimeVariableId;
 	private static boolean hadErrors = false;
@@ -41,8 +40,7 @@ public class HooplaExportMain {
 	public static void main(String[] args){
 		serverName = args[0];
 		args = Arrays.copyOfRange(args, 1, args.length);
-		doFullReload = false;
-		String individualIdToProcess = null;
+		boolean doFullReload = false;
 		if (args.length == 1){
 			//Check to see if we got a full reload parameter
 			String firstArg = args[0].replaceAll("\\s", "");
@@ -102,8 +100,14 @@ public class HooplaExportMain {
 			PreparedStatement loadLastGroupingTime = vufindConn.prepareStatement("SELECT * from variables WHERE name = 'lastHooplaExport'");
 			ResultSet lastGroupingTimeRS = loadLastGroupingTime.executeQuery();
 			if (lastGroupingTimeRS.next()){
-				lastExportTime = lastGroupingTimeRS.getLong("value");
 				lastExportTimeVariableId = lastGroupingTimeRS.getLong("id");
+				try {
+					lastExportTime = lastGroupingTimeRS.getLong("value");
+				}catch (Exception e){
+					//Initially this is set to false, so we get an error.  If that happens, just set lastExport time to null
+					lastExportTime = null;
+				}
+
 			}
 			lastGroupingTimeRS.close();
 			loadLastGroupingTime.close();
@@ -423,7 +427,7 @@ public class HooplaExportMain {
 	}
 
 	private static String getHooplaLibraryId(Connection vufindConn) throws SQLException {
-		PreparedStatement getLibraryIdStmt = vufindConn.prepareStatement("SELECT hooplaLibraryID from library where hooplaLibraryID is not null LIMIT 1");
+		PreparedStatement getLibraryIdStmt = vufindConn.prepareStatement("SELECT hooplaLibraryID from library where hooplaLibraryID is not null and hooplaLibraryID != 0 LIMIT 1");
 		ResultSet getLibraryIdRS = getLibraryIdStmt.executeQuery();
 		if (getLibraryIdRS.next()){
 			return getLibraryIdRS.getString("hooplaLibraryID");
