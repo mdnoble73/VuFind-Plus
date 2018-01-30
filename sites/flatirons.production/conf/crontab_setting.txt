@@ -68,6 +68,12 @@
 7 20 * * * cd /usr/local/vufind-plus/vufind/cron/; java -Dhttps.protocols="TLSv1.1,TLSv1.2" -jar cron.jar flatirons.production UpdateReadingHistory
 20 0 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar flatirons.production DatabaseCleanup
 
+# Check Apache Solr process and website that it has not stalled.
+*/3 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./solrTest.sh
+
+# Check for semaphore errors
+17 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./apacheSemaphoreCleanup.sh root
+
 #############################################
 # New York Times Best seller Lists Updating #
 #############################################
@@ -79,9 +85,6 @@
 ################
 # Clean Up Temporary Files
 27 */2 * * * cd /tmp; /bin/rm -rf epb*
-
-# Check Apache Solr process and website that it has not stalled.
-*/3 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./solrTest.sh
 
 # backup important bits at 12:10am daily
 10 0 * * * /root/cron/backup 2>&1 >/dev/null

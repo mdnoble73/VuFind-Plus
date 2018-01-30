@@ -53,15 +53,18 @@
 4 20 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar anythink.production
 20 0 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar anythink.production DatabaseCleanup
 
+# Check Apache Solr process and website that it has not stalled.
+*/3 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./solrTest.sh
+
+# Check for semaphore errors
+17 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./apacheSemaphoreCleanup.sh root
+
 ################
 # Pika Cleanup #
 ################
 # Clean Up Temporary Files
 26 * * * * cd /tmp; /bin/rm -rf CURLCOOKIE*
 27 */2 * * * cd /tmp; /bin/rm -rf epb*
-
-# Check Apache Solr process and website that it has not stalled.
-*/3 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./solrTest.sh
 
 # Restart apache
 0 * * * * /usr/sbin/apachectl graceful > /dev/null 2>&1

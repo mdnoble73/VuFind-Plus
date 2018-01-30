@@ -57,6 +57,12 @@
 20 0 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar aacpl.test DatabaseCleanup
 0 20 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar aacpl.test UpdateReadingHistory
 
+# Check Apache Solr process and website that it has not stalled.
+*/3 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./solrTest.sh
+
+# Check for semaphore errors
+17 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./apacheSemaphoreCleanup.sh root
+
 ###############################################
 # Copy Original Covers from Marmot FTP Server #
 ###############################################
@@ -76,10 +82,4 @@
 ############################################
 23 7 * * 0-1 /usr/local/vufind-plus/vufind/cron/updateNYTLists.sh aacpl.test
 # update on Sundays at 7:23
-
-# Check Apache Solr process and website that it has not stalled.
-*/3 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./solrTest.sh
-
-# Check for semaphore errors
-17 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./apacheSemaphoreCleanup.sh root
 
