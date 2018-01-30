@@ -427,7 +427,7 @@ public class HooplaExportMain {
 	}
 
 	private static String getHooplaLibraryId(Connection vufindConn) throws SQLException {
-		PreparedStatement getLibraryIdStmt = vufindConn.prepareStatement("SELECT hooplaLibraryID from library where hooplaLibraryID is not null LIMIT 1");
+		PreparedStatement getLibraryIdStmt = vufindConn.prepareStatement("SELECT hooplaLibraryID from library where hooplaLibraryID is not null and hooplaLibraryID != 0 LIMIT 1");
 		ResultSet getLibraryIdRS = getLibraryIdStmt.executeQuery();
 		if (getLibraryIdRS.next()){
 			return getLibraryIdRS.getString("hooplaLibraryID");
