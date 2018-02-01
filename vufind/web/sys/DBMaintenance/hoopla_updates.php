@@ -20,7 +20,7 @@ function getHooplaUpdates() {
 
 			'hoopla_exportTables' => array(
 					'title' => 'Hoopla export tables',
-					'description' => 'Create tables to .',
+					'description' => 'Create tables to store data exported from hoopla.',
 					'sql' => array(
 							"CREATE TABLE hoopla_export ( 
 									id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
