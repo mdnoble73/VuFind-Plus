@@ -36,7 +36,6 @@ class Author_Home extends Action
 		global $library;
 
 		//Check to see if the year has been set and if so, convert to a filter and resend.
-
 		$dateFilters = array('publishDate');
 		foreach ($dateFilters as $dateFilter){
 			if ((isset($_REQUEST[$dateFilter . 'yearfrom']) && !empty($_REQUEST[$dateFilter . 'yearfrom'])) || (isset($_REQUEST[$dateFilter . 'yearto']) && !empty($_REQUEST[$dateFilter . 'yearto']))){

@@ -168,13 +168,13 @@
 															{if $facetInfo.facetName == "publishDate"}
 															<div class="form-inline">
 																<div class="form-group">
-																<label for="yearfrom" class="yearboxlabel">From: </label>
-																<input type="text" size="4" maxlength="4" class="yearbox form-control" name="yearfrom" id="yearfrom"
+																<label for="publishDateyearfrom" class="yearboxlabel">From: </label>
+																<input type="text" size="4" maxlength="4" class="yearbox form-control" name="publishDateyearfrom" id="publishDateyearfrom"
 																       value="">
 																</div>
 																<div class="form-group">
-																<label for="yearto" class="yearboxlabel">To: </label>
-																<input type="text" size="4" maxlength="4" class="yearbox form-control" name="yearto" id="yearto"
+																<label for="publishDateyearto" class="yearboxlabel">To: </label>
+																<input type="text" size="4" maxlength="4" class="yearbox form-control" name="publishDateyearto" id="publishDateyearto"
 																       value="">
 																</div>
 															</div>
