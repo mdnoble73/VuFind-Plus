@@ -91,8 +91,8 @@ class Author_Home extends Action
 		foreach ($rangeFilters as $filter){
 			if ((isset($_REQUEST[$filter . 'from']) && strlen($_REQUEST[$filter . 'from']) > 0) || (isset($_REQUEST[$filter . 'to']) && strlen($_REQUEST[$filter . 'to']) > 0)){
 				$queryParams = $_GET;
-				$from = (isset($_REQUEST[$filter . 'from']) && preg_match('/^\d*(\.\d*)?$/', $_REQUEST[$filter . 'from'])) ? $_REQUEST[$filter . 'from'] : '*';
-				$to = (isset($_REQUEST[$filter . 'to']) && preg_match('/^\d*(\.\d*)?$/', $_REQUEST[$filter . 'to'])) ? $_REQUEST[$filter . 'to'] : '*';
+				$from = (isset($_REQUEST[$filter . 'from']) && preg_match('/^\d+(\.\d*)?$/', $_REQUEST[$filter . 'from'])) ? $_REQUEST[$filter . 'from'] : '*';
+				$to = (isset($_REQUEST[$filter . 'to']) && preg_match('/^\d+(\.\d*)?$/', $_REQUEST[$filter . 'to'])) ? $_REQUEST[$filter . 'to'] : '*';
 
 				if ($to != '*' && $from != '*' && $to < $from){
 					$tmpFilter = $to;
