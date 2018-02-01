@@ -69,12 +69,12 @@ class Author_Home extends Action
 					if (is_array($queryValue)){
 						foreach ($queryValue as $arrayValue){
 							if (strlen($arrayValue) > 0){
-								$queryParamStrings[] = $paramName . '[]=' . $arrayValue;
+								$queryParamStrings[] = $paramName . '[]=' . urlencode($arrayValue);
 							}
 						}
 					}else{
 						if (strlen($queryValue)){
-							$queryParamStrings[] = $paramName . '=' . $queryValue;
+							$queryParamStrings[] = $paramName . '=' . urlencode($queryValue);
 						}
 					}
 				}
@@ -108,12 +108,12 @@ class Author_Home extends Action
 					if (is_array($queryValue)){
 						foreach ($queryValue as $arrayValue){
 							if (strlen($arrayValue) > 0){
-								$queryParamStrings[] = $paramName . '[]=' . $arrayValue;
+								$queryParamStrings[] = $paramName . '[]=' . urlencode($arrayValue);
 							}
 						}
 					}else{
 						if (strlen($queryValue)){
-							$queryParamStrings[] = $paramName . '=' . $queryValue;
+							$queryParamStrings[] = $paramName . '=' . urlencode($queryValue);
 						}
 					}
 				}
