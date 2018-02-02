@@ -1,4 +1,4 @@
-package org.vufind;
+ package org.vufind;
 
 import org.apache.log4j.Logger;
 import org.marc4j.marc.DataField;
@@ -45,7 +45,7 @@ class CarlXRecordProcessor extends IlsRecordProcessor {
 		return statusCode;
 	}
 
-	private static Date yesterday = null;
+	/*private static Date yesterday = null;
 	private static Date lostDay = null;
 	String getOverriddenStatus(ItemInfo itemInfo, boolean groupedStatus) {
 		if (lostDay == null){
@@ -75,7 +75,7 @@ class CarlXRecordProcessor extends IlsRecordProcessor {
 			}
 		}
 		return overriddenStatus;
-	}
+	}*/
 
 	protected String getShelfLocationForItem(ItemInfo itemInfo, DataField itemField, String identifier) {
 		String locationCode = getItemSubfieldData(locationSubfieldIndicator, itemField);
