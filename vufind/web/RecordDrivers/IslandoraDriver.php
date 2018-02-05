@@ -1407,9 +1407,9 @@ abstract class IslandoraDriver extends RecordInterface {
 			$searchObject->init();
 			$searchObject->clearFilters();
 			$searchObject->setBasicQuery('"' . $this->pid . '"', 'ancestors_ms');
-			$searchObject->addHiddenFilter('mods_extension_marmotLocal_relatedPlace_generalPlace_latitude_s', '*');
-			$searchObject->addHiddenFilter('mods_extension_marmotLocal_relatedPlace_generalPlace_longitude_s', '*');
-			$searchObject->addFieldsToReturn(array('mods_extension_marmotLocal_relatedPlace_generalPlace_latitude_s', 'mods_extension_marmotLocal_relatedPlace_generalPlace_longitude_s'));
+			$searchObject->addFilter('mods_extension_marmotLocal_relatedPlace_generalPlace_latitude_s:* OR mods_extension_marmotLocal_art_artInstallation_generalPlace_latitude_s:*');
+			$searchObject->addFilter('mods_extension_marmotLocal_relatedPlace_generalPlace_longitude_s:* OR mods_extension_marmotLocal_art_artInstallation_generalPlace_longitude_s:*');
+			$searchObject->addFieldsToReturn(array('mods_extension_marmotLocal_relatedPlace_generalPlace_latitude_s', 'mods_extension_marmotLocal_relatedPlace_generalPlace_longitude_s', 'mods_extension_marmotLocal_art_artInstallation_generalPlace_latitude_s', 'mods_extension_marmotLocal_art_artInstallation_generalPlace_longitude_s'));
 			$searchObject->setLimit(2500);
 			$response = $searchObject->processSearch(true, false, true);
 			if ($response && $response['response']['numFound'] > 0) {
@@ -1418,8 +1418,8 @@ abstract class IslandoraDriver extends RecordInterface {
 					$objectInfo = array(
 							'pid' => $doc['PID'],
 							'label' => $doc['fgs_label_s'],
-							'latitude' => $doc['mods_extension_marmotLocal_relatedPlace_generalPlace_latitude_s'],
-							'longitude' => $doc['mods_extension_marmotLocal_relatedPlace_generalPlace_longitude_s'],
+							'latitude' => isset($doc['mods_extension_marmotLocal_relatedPlace_generalPlace_latitude_s']) ? $doc['mods_extension_marmotLocal_relatedPlace_generalPlace_latitude_s'] : $doc['mods_extension_marmotLocal_art_artInstallation_generalPlace_latitude_s'],
+							'longitude' => isset($doc['mods_extension_marmotLocal_relatedPlace_generalPlace_longitude_s']) ? $doc['mods_extension_marmotLocal_relatedPlace_generalPlace_longitude_s'] : $doc['mods_extension_marmotLocal_art_artInstallation_generalPlace_longitude_s'],
 							'count' => 1
 					);
 					if (array_key_exists("{$objectInfo['latitude']}-{$objectInfo['longitude']}", $this->geolocatedObjects)){
