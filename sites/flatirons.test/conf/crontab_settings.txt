@@ -58,6 +58,8 @@
 ###################################
 # Library supplied covers
 1-51/10 * * * * /usr/local/vufind-plus/sites/flatirons.test/copyCovers.sh
+# Hoopla extract from API
+0 23 * * * cd /usr/local/vufind-plus/vufind/hoopla_export; java -jar hoopla_export.jar flatirons.test
 
 ############################################
 # New York Times Bestseller Lists Updating #
