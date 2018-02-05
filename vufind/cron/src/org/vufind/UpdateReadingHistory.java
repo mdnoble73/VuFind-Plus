@@ -25,15 +25,9 @@ import java.util.Iterator;
 
 public class UpdateReadingHistory implements IProcessHandler {
 	private CronProcessLogEntry processLog;
-	private PreparedStatement updateReadingHistoryStmt;
 	private PreparedStatement insertReadingHistoryStmt;
 	private String vufindUrl;
-	private SimpleDateFormat checkoutDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	private Logger logger;
-	private boolean loadPrintHistory = true;
-	private boolean loadEcontentHistory = true;
-	private boolean loadOverdriveHistory = false;
-	private PreparedStatement getCheckedOutTitlesForUser;
 
 	public void doCronProcess(String servername, Ini configIni, Section processSettings, Connection vufindConn, Connection econtentConn, CronLogEntry cronEntry, Logger logger) {
 		processLog = new CronProcessLogEntry(cronEntry.getLogEntryId(), "Update Reading History");
@@ -51,27 +45,14 @@ public class UpdateReadingHistory implements IProcessHandler {
 			return;
 		}
 
-		String loadPrintSetting = processSettings.get("loadPrint");
-		if (loadPrintSetting != null){
-			loadPrintHistory = loadPrintSetting.equals("true");
-		}
-		String loadEcontentSetting = processSettings.get("loadEcontent");
-		if (loadEcontentSetting != null){
-			loadEcontentHistory = loadEcontentSetting.equals("true");
-		}
-		String loadOverdriveSetting = processSettings.get("loadOverdrive");
-		if (loadOverdriveSetting != null){
-			loadOverdriveHistory = loadOverdriveSetting.equals("true");
-		}
-
 		// Connect to the VuFind MySQL database
 		try {
 			// Get a list of all patrons that have reading history turned on.
 			PreparedStatement getUsersStmt = vufindConn.prepareStatement("SELECT id, cat_username, cat_password, initialReadingHistoryLoaded FROM user where trackReadingHistory=1", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			PreparedStatement updateInitialReadingHistoryLoaded = vufindConn.prepareStatement("UPDATE user SET initialReadingHistoryLoaded = 1 WHERE id = ?");
 
-			getCheckedOutTitlesForUser = vufindConn.prepareStatement("SELECT id, groupedWorkPermanentId, source, sourceId, title FROM user_reading_history_work WHERE userId=? and checkInDate is null", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-			updateReadingHistoryStmt = vufindConn.prepareStatement("UPDATE user_reading_history_work SET checkInDate=? WHERE id = ?");
+			PreparedStatement getCheckedOutTitlesForUser = vufindConn.prepareStatement("SELECT id, groupedWorkPermanentId, source, sourceId, title FROM user_reading_history_work WHERE userId=? and checkInDate is null", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			PreparedStatement updateReadingHistoryStmt = vufindConn.prepareStatement("UPDATE user_reading_history_work SET checkInDate=? WHERE id = ?");
 			insertReadingHistoryStmt = vufindConn.prepareStatement("INSERT INTO user_reading_history_work (userId, groupedWorkPermanentId, source, sourceId, title, author, format, checkOutDate) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
 			
 			ResultSet userResults = getUsersStmt.executeQuery();
@@ -102,7 +83,7 @@ public class UpdateReadingHistory implements IProcessHandler {
 					//Get a list of titles that are currently checked out
 					getCheckedOutTitlesForUser.setLong(1, userId);
 					ResultSet checkedOutTitlesRS = getCheckedOutTitlesForUser.executeQuery();
-					ArrayList<CheckedOutTitle> checkedOutTitles = new ArrayList<CheckedOutTitle>();
+					ArrayList<CheckedOutTitle> checkedOutTitles = new ArrayList<>();
 					while (checkedOutTitlesRS.next()) {
 						CheckedOutTitle curCheckout = new CheckedOutTitle();
 						curCheckout.setId(checkedOutTitlesRS.getLong("id"));
@@ -114,7 +95,7 @@ public class UpdateReadingHistory implements IProcessHandler {
 					}
 
 					logger.info("Loading Reading History for patron " + cat_username);
-					processTitlesForUser(userId, cat_username, cat_password, checkedOutTitles, loadPrintHistory, loadEcontentHistory, loadOverdriveHistory);
+					processTitlesForUser(userId, cat_username, cat_password, checkedOutTitles);
 
 					//Any titles that are left in checkedOutTitles were checked out previously and are no longer checked out.
 					Long curTime = new Date().getTime() / 1000;
@@ -261,7 +242,7 @@ public class UpdateReadingHistory implements IProcessHandler {
 		}
 	}
 
-	private void processTitlesForUser(Long userId, String cat_username, String cat_password, ArrayList<CheckedOutTitle> checkedOutTitles, boolean loadPrintHistory, boolean loadEcontentHistory, boolean loadOverdriveHistory) throws SQLException{
+	private void processTitlesForUser(Long userId, String cat_username, String cat_password, ArrayList<CheckedOutTitle> checkedOutTitles) throws SQLException{
 		try {
 			// Call the patron API to get their checked out items
 			URL patronApiUrl = new URL(vufindUrl + "/API/UserAPI?method=getPatronCheckedOutItems&username=" + URLEncoder.encode(cat_username) + "&password=" + URLEncoder.encode(cat_password));
@@ -321,13 +302,22 @@ public class UpdateReadingHistory implements IProcessHandler {
 			// System.out.println(checkedOutItem.toString());
 			String source = checkedOutItem.getString("checkoutSource");
 			String sourceId = "?";
-			if (source.equals("OverDrive")){
-				sourceId = checkedOutItem.getString("overDriveId");
-			}else if (source.equals("ILS")){
-				sourceId = checkedOutItem.getString("id");
-			}else if (source.equals("eContent")){
-				source = checkedOutItem.getString("recordType");
-				sourceId = checkedOutItem.getString("id");
+			switch (source) {
+				case "OverDrive":
+					sourceId = checkedOutItem.getString("overDriveId");
+					break;
+				case "ILS":
+					sourceId = checkedOutItem.getString("id");
+					break;
+				case "Hoopla":
+					sourceId = checkedOutItem.getString("hooplaId");
+					break;
+				case "eContent":
+					source = checkedOutItem.getString("recordType");
+					sourceId = checkedOutItem.getString("id");
+					break;
+				default:
+					logger.error("Unknown source updating reading history: " + source);
 			}
 
 			//Check to see if this is an existing checkout.  If it is, skip inserting
