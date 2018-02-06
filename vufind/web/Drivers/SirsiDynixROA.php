@@ -56,7 +56,11 @@ abstract class SirsiDynixROA extends HorizonAPI
 		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 		curl_setopt($ch, CURLOPT_HEADER, false);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-//		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // TODO: debugging only: comment out for production
+		global $instanceName;
+		if (stripos($instanceName, 'localhost') !== false) {
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // TODO: debugging only: comment out for production
+
+		}
 		//TODO: need switch to set this option when using on local machine
 		if ($params != null) {
 			curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($params));
@@ -347,18 +351,24 @@ abstract class SirsiDynixROA extends HorizonAPI
 			$timer->logTime("User is valid in symphony");
 			$webServiceURL = $this->getWebServiceURL();
 
-
+//  Calls that show how patron-related data is represented
 //			$patronDescribeResponse           = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/describe', null, $sessionToken);
+//			$patronPhoneDescribeResponse           = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/phone/describe', null, $sessionToken);
+//			$patronPhoneListDescribeResponse           = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/phoneList/describe', null, $sessionToken);
 //			$patronStatusInfoDescribeResponse = $this->getWebServiceResponse($webServiceURL . '/v1/user/patronStatusInfo/describe', null, $sessionToken);
-//			$userProfileDescribeResponse      = $this->getWebServiceResponse($webServiceURL . '/v1/policy/profile/describe', null, $sessionToken);
-			// NOt a policy
-//				$patronStatusResponse  = $this->getWebServiceResponse($webServiceURL . '/v1/user/patronStatusInfo/key/' . $sirsiRoaUserID, null, $sessionToken);
+//			$patroncustomInfoDescribeResponse = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/address1/describe', null, $sessionToken);
+//			$patronaddress1PolicyDescribeResponse = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/address1/describe', null, $sessionToken);
+
+			//				$patronStatusResponse  = $this->getWebServiceResponse($webServiceURL . '/v1/user/patronStatusInfo/key/' . $sirsiRoaUserID, null, $sessionToken);
 			//TODO: This resource is currently hidden
 
-//			$lookupMyAccountInfoResponse = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/key/' . $sirsiRoaUserID . '?includeFields=firstName,lastName,displayName,privilegeExpiresDate,estimatedOverdueAmount,patronStatusInfo{*},preferredAddress,address1,address2,address3,primaryPhone,library', null, $sessionToken);
-			// TODO: Use Primary Phone at all? displayName doesn't seem to be a field
 
-			$lookupMyAccountInfoResponse = $this->getWebServiceResponse($webServiceURL . '/v1/user/patron/key/' . $sirsiRoaUserID . '?includeFields=firstName,lastName,privilegeExpiresDate,patronStatusInfo{*},preferredAddress,address1,address2,address3,library,circRecordList{claimsReturnedDate,status},blockList{owed},holdRecordList{status}', null, $sessionToken);
+			$acountInfoLookupURL         = $webServiceURL . '/v1/user/patron/key/' . $sirsiRoaUserID .
+				'?includeFields=firstName,lastName,privilegeExpiresDate,patronStatusInfo{*},preferredAddress,address1,address2,address3,library,circRecordList{claimsReturnedDate,status},blockList{owed},holdRecordList{status},phoneList{*}';
+
+			// phoneList is for texting notification preferences
+
+			$lookupMyAccountInfoResponse = $this->getWebServiceResponse($acountInfoLookupURL, null, $sessionToken);
 			if ($lookupMyAccountInfoResponse && !isset($lookupMyAccountInfoResponse->messageList)) {
 				$lastName  = $lookupMyAccountInfoResponse->fields->lastName;
 				$firstName = $lookupMyAccountInfoResponse->fields->firstName;
@@ -1598,6 +1608,8 @@ abstract class SirsiDynixROA extends HorizonAPI
 	function updatePin($patron, $oldPin, $newPin, $confirmNewPin)
 	{
 		$sessionToken = $this->getSessionToken($patron);
+//		$sessionToken = $this->getStaffSessionToken();
+//		$sessionToken = $this->staffOrPatronSessionTokenSwitch() ? $this->getStaffSessionToken() : $this->getSessionToken($patron);
 		if (!$sessionToken) {
 			return 'Sorry, it does not look like you are logged in currently.  Please login and try again';
 		}
@@ -1620,10 +1632,13 @@ abstract class SirsiDynixROA extends HorizonAPI
 			if (isset($updatePinResponse->messageList)) {
 				foreach ($updatePinResponse->messageList as $message) {
 					$messages[] = $message->message;
+					if ($message->message == 'Public access users may not change this user\'s PIN') {
+						$staffPinError = 'Staff can not change their PIN through the online catalog.';
+					}
 				}
 				global $logger;
 				$logger->log('Symphony ILS encountered errors updating patron pin : '. implode('; ', $messages), PEAR_LOG_ERR);
-				return 'The circulation system encountered errors attempt to update the pin.';
+				return !empty($staffPinError) ? $staffPinError : 'The circulation system encountered errors attempt to update the pin.';
 			}
 			return 'Failed to update pin';
 		}

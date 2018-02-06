@@ -56,6 +56,12 @@
 ###############################################
 23 */2 * * * /usr/local/vufind-plus/sites/anythink.production/copyCovers.sh
 
+# Check Apache Solr process and website that it has not stalled.
+*/3 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./solrTest.sh
+
+# Check for semaphore errors
+17 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./apacheSemaphoreCleanup.sh root
+
 ################
 # Pika Cleanup #
 ################
@@ -73,7 +79,3 @@
 #37 7 * * 0-1 /usr/local/vufind-plus/vufind/cron/updateNYTLists.sh anythink.production
 # update on Sundays & Mondays at 7:37
 #Not implemented for anythink
-
-# Check Apache Solr process and website that it has not stalled.
-*/3 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./solrTest.sh
-

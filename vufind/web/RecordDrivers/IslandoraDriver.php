@@ -403,7 +403,12 @@ abstract class IslandoraDriver extends RecordInterface {
 		$interface->assign('module', $this->getModule());
 
 		$linkUrl = $this->getLinkUrl();
-		$linkUrl .= '?searchId=' . $interface->get_template_vars('searchId') . '&amp;recordIndex=' . $interface->get_template_vars('recordIndex') . '&amp;page='  . $interface->get_template_vars('page');
+		if (strpos($linkUrl, '?') === false){
+			$linkUrl .= '?';
+		}else{
+			$linkUrl .= '&';
+		}
+		$linkUrl .= 'searchId=' . $interface->get_template_vars('searchId') . '&amp;recordIndex=' . $interface->get_template_vars('recordIndex') . '&amp;page='  . $interface->get_template_vars('page');
 
 		$interface->assign('summUrl', $linkUrl);
 //		$interface->assign('summUrl', $this->getLinkUrl());
@@ -1402,9 +1407,9 @@ abstract class IslandoraDriver extends RecordInterface {
 			$searchObject->init();
 			$searchObject->clearFilters();
 			$searchObject->setBasicQuery('"' . $this->pid . '"', 'ancestors_ms');
-			$searchObject->addHiddenFilter('mods_extension_marmotLocal_relatedPlace_generalPlace_latitude_s', '*');
-			$searchObject->addHiddenFilter('mods_extension_marmotLocal_relatedPlace_generalPlace_longitude_s', '*');
-			$searchObject->addFieldsToReturn(array('mods_extension_marmotLocal_relatedPlace_generalPlace_latitude_s', 'mods_extension_marmotLocal_relatedPlace_generalPlace_longitude_s'));
+			$searchObject->addFilter('mods_extension_marmotLocal_relatedPlace_generalPlace_latitude_s:* OR mods_extension_marmotLocal_art_artInstallation_generalPlace_latitude_s:*');
+			$searchObject->addFilter('mods_extension_marmotLocal_relatedPlace_generalPlace_longitude_s:* OR mods_extension_marmotLocal_art_artInstallation_generalPlace_longitude_s:*');
+			$searchObject->addFieldsToReturn(array('mods_extension_marmotLocal_relatedPlace_generalPlace_latitude_s', 'mods_extension_marmotLocal_relatedPlace_generalPlace_longitude_s', 'mods_extension_marmotLocal_art_artInstallation_generalPlace_latitude_s', 'mods_extension_marmotLocal_art_artInstallation_generalPlace_longitude_s'));
 			$searchObject->setLimit(2500);
 			$response = $searchObject->processSearch(true, false, true);
 			if ($response && $response['response']['numFound'] > 0) {
@@ -1413,8 +1418,8 @@ abstract class IslandoraDriver extends RecordInterface {
 					$objectInfo = array(
 							'pid' => $doc['PID'],
 							'label' => $doc['fgs_label_s'],
-							'latitude' => $doc['mods_extension_marmotLocal_relatedPlace_generalPlace_latitude_s'],
-							'longitude' => $doc['mods_extension_marmotLocal_relatedPlace_generalPlace_longitude_s'],
+							'latitude' => isset($doc['mods_extension_marmotLocal_relatedPlace_generalPlace_latitude_s']) ? $doc['mods_extension_marmotLocal_relatedPlace_generalPlace_latitude_s'] : $doc['mods_extension_marmotLocal_art_artInstallation_generalPlace_latitude_s'],
+							'longitude' => isset($doc['mods_extension_marmotLocal_relatedPlace_generalPlace_longitude_s']) ? $doc['mods_extension_marmotLocal_relatedPlace_generalPlace_longitude_s'] : $doc['mods_extension_marmotLocal_art_artInstallation_generalPlace_longitude_s'],
 							'count' => 1
 					);
 					if (array_key_exists("{$objectInfo['latitude']}-{$objectInfo['longitude']}", $this->geolocatedObjects)){
@@ -3030,7 +3035,7 @@ abstract class IslandoraDriver extends RecordInterface {
 			$searchObject = SearchObjectFactory::initSearchObject('Islandora');
 			$searchObject->init();
 			$searchObject->setLimit(100);
-			$searchObject->setSort('fgs_label_s');
+			$searchObject->setSort('RELS_EXT_isSequenceNumber_literal_intDerivedFromString_l asc,fgs_label_s');
 			$searchObject->setSearchTerms(array(
 					'lookfor' => '"info:fedora/' . $this->getUniqueID() .'"',
 					'index' => 'RELS_EXT_isMemberOf_uri_mt'
@@ -3175,7 +3180,7 @@ abstract class IslandoraDriver extends RecordInterface {
 					}
 				}
 			}else{
-				$accessLimits = preg_split('/[\r\n,]/', $accessLimits);
+				$accessLimits = explode("&#xD;\n", $accessLimits);
 				$this->viewingRestrictions = array_merge($this->viewingRestrictions, $accessLimits);
 			}
 		}

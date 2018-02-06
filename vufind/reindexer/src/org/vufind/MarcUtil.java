@@ -66,8 +66,7 @@ class MarcUtil {
 					subend = (sub.length > 1) ? Integer.parseInt(sub[1]) + 1
 							: substart + 1;
 					String subfieldWObracket = subfield.substring(0, bracket - 3);
-					result.addAll(getSubfieldDataAsSet(record, tag, subfieldWObracket,
-							substart, subend));
+					result.addAll(getSubfieldDataAsSet(record, tag, subfieldWObracket, substart, subend));
 				} catch (NumberFormatException e) {
 					// assume brackets expression is a pattern such as [a-z]
 					havePattern = true;
@@ -333,13 +332,12 @@ class MarcUtil {
 
 			List<DataField> marcFieldList = record.getDataFields(fldTag);
 			if (!marcFieldList.isEmpty()) {
-				Pattern subfieldPattern = Pattern
-						.compile(subfldTags.length() == 0 ? "." : subfldTags);
 				for (DataField marcField : marcFieldList) {
 
-					StringBuilder buffer = getSpecifiedSubfieldsAsString(marcField, subfieldPattern, separator);
-					if (buffer.length() > 0)
+					StringBuilder buffer = getSpecifiedSubfieldsAsString(marcField, subfldTags, separator);
+					if (buffer.length() > 0) {
 						result.add(Utils.cleanData(buffer.toString()));
+					}
 				}
 			}
 		}
@@ -347,14 +345,14 @@ class MarcUtil {
 		return result;
 	}
 
-	static StringBuilder getSpecifiedSubfieldsAsString(DataField marcField, Pattern subfieldPattern, String separator) {
+	static StringBuilder getSpecifiedSubfieldsAsString(DataField marcField, String validSubfields, String separator) {
 		StringBuilder buffer = new StringBuilder("");
 		List<Subfield> subFields = marcField.getSubfields();
 		for (Subfield subfield : subFields) {
-			Matcher matcher = subfieldPattern.matcher("" + subfield.getCode());
-			if (matcher.matches()) {
-				if (buffer.length() > 0)
+			if (validSubfields.length() == 0 || validSubfields.contains("" + subfield.getCode())){
+				if (buffer.length() > 0) {
 					buffer.append(separator != null ? separator : " ");
+				}
 				buffer.append(subfield.getData().trim());
 			}
 		}
@@ -366,7 +364,7 @@ class MarcUtil {
 	}
 
 	static List<DataField> getDataFields(Record marcRecord, String[] tags) {
-		return marcRecord.getDataFields();
+		return marcRecord.getDataFields(tags);
 	}
 
 	static ControlField getControlField(Record marcRecord, String tag){

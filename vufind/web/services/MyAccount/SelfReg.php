@@ -46,8 +46,7 @@ class SelfReg extends Action {
 				$privatekey = $configArray['ReCaptcha']['privateKey'];
 				$resp = recaptcha_check_answer ($privatekey,
 					$_SERVER["REMOTE_ADDR"],
-					$_POST["recaptcha_challenge_field"],
-					$_POST["recaptcha_response_field"]);
+					$_POST["g-recaptcha-response"]);
 				$recaptchaValid = $resp->is_valid;
 			}else{
 				$recaptchaValid = true;
@@ -78,10 +77,8 @@ class SelfReg extends Action {
 
 		// Set up captcha to limit spam self registrations
 		if (isset($configArray['ReCaptcha']['publicKey'])) {
-//			TODO: and not inside library
 			$recaptchaPublicKey = $configArray['ReCaptcha']['publicKey'];
-			$secureConnection   = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == "on"); // check that this request is using https
-			$captchaCode        = recaptcha_get_html($recaptchaPublicKey, null, $secureConnection);
+			$captchaCode        = recaptcha_get_html($recaptchaPublicKey);
 			$interface->assign('captcha', $captchaCode);
 		}
 

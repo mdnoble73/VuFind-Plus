@@ -146,9 +146,9 @@
 		{* Show more link if we aren't seeing all the records already *}
 		<div id="nextInsertPoint">
 		{if $recordEnd < $recordCount}
-			<a onclick="return VuFind.Archive.getMoreExhibitResults('{$pid|urlencode}')">
+			<a onclick="return VuFind.Archive.getMoreExhibitResults('{$pid|urlencode}')" role="button">
 				<div class="row" id="more-browse-results">
-					<img src="{img filename="browse_more_arrow.png"}" alt="Load More Results" title="Load More Results">
+					<span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
 				</div>
 			</a>
 		{/if}

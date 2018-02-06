@@ -4,7 +4,7 @@
 	{* Cover Column *}
 	{if $showCovers}
 		{*<div class="col-xs-4">*}
-		<div class="col-xs-3 col-sm-4 col-md-3">
+		<div class="col-xs-3 col-sm-4 col-md-3 checkedOut-covers-column">
 			<div class="row">
 				<div class="selectTitle hidden-xs col-sm-1">
 					&nbsp;{* Can't renew overdrive titles*}
@@ -61,6 +61,18 @@
 					</div>
 				{/if}
 
+				{if $record.checkoutdate}
+					<div class="row">
+						<div class="result-label col-tn-4 col-lg-3">{translate text='Checked Out'}</div>
+						<div class="result-value col-tn-8 col-lg-9">{$record.checkoutdate|date_format}</div>
+					</div>
+				{/if}
+
+				<div class="row">
+					<div class="result-label col-tn-4 col-lg-3">{translate text='Format'}</div>
+					<div class="result-value col-tn-8 col-lg-9">{$record.format} - Overdrive</div>
+				</div>
+
 				{if $showRatings && $record.groupedWorkId && $record.ratingData}
 					<div class="row">
 						<div class="result-label col-tn-4 col-lg-3">Rating&nbsp;</div>
@@ -84,7 +96,7 @@
 					<div class="result-value col-tn-8 col-lg-9">{$record.dueDate|date_format}</div>
 				</div>
 
-				<div class="row">
+				<div class="row econtent-download-row">
 					<div class="result-label col-md-4 col-lg-3">{translate text='Download'}</div>
 					<div class="result-value col-md-8 col-lg-9">
 						{if $record.formatSelected}

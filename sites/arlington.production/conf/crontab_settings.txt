@@ -56,6 +56,12 @@
 20 0 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar arlington.production DatabaseCleanup
 0 20 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar arlington.production UpdateReadingHistory
 
+# Check Apache Solr process and website that it has not stalled.
+*/3 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./solrTest.sh
+
+# Check for semaphore errors
+17 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./apacheSemaphoreCleanup.sh root
+
 ###############################################
 # Copy Original Covers from Marmot FTP Server #
 ###############################################
@@ -82,5 +88,3 @@
 # Backup all mySQL databases to /home/mysql.dump
 #05 0 * * * cd /root/cron/; ./mySQLBackup
 
-# Check Apache Solr process and website that it has not stalled.
-*/3 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./solrTest.sh

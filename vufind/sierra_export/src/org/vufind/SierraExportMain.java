@@ -104,7 +104,7 @@ public class SierraExportMain{
 		try{
 			//Open the connection to the database
 			conn = DriverManager.getConnection(url);
-			orderStatusesToExport = ini.get("Reindex", "orderStatusesToExport");
+			orderStatusesToExport = cleanIniValue(ini.get("Reindex", "orderStatusesToExport"));
 			if (orderStatusesToExport == null){
 				orderStatusesToExport = "o|1";
 			}
@@ -637,7 +637,7 @@ public class SierraExportMain{
 
 	private static void exportActiveOrders(String exportPath, Connection conn) throws SQLException, IOException {
 		logger.info("Starting export of active orders");
-		String[] orderStatusesToExportVals = orderStatusesToExport.split("|");
+		String[] orderStatusesToExportVals = orderStatusesToExport.split("\\|");
 		String orderStatusCodesSQL = "";
 		for (String orderStatusesToExportVal : orderStatusesToExportVals){
 			if (orderStatusCodesSQL.length() > 0){
@@ -645,7 +645,7 @@ public class SierraExportMain{
 			}
 			orderStatusCodesSQL += " order_status_code = '" + orderStatusesToExportVal + "'";
 		}
-		String activeOrderSQL = "select bib_view.record_num as bib_record_num, order_view.record_num as order_record_num, accounting_unit_code_num, order_status_code, copies, location_code " +
+		String activeOrderSQL = "select bib_view.record_num as bib_record_num, order_view.record_num as order_record_num, accounting_unit_code_num, order_status_code, copies, location_code, catalog_date_gmt, received_date_gmt " +
 				"from sierra_view.order_view " +
 				"inner join sierra_view.bib_record_order_record_link on bib_record_order_record_link.order_record_id = order_view.record_id " +
 				"inner join sierra_view.bib_view on sierra_view.bib_view.id = bib_record_order_record_link.bib_record_id " +

@@ -43,7 +43,7 @@ class SantaFeRecordProcessor extends IIIRecordProcessor {
 	}
 
 	protected boolean isBibSuppressed(Record record) {
-		DataField field907 = (DataField)record.getVariableField("907");
+		DataField field907 = record.getDataField("907");
 		if (field907 != null){
 			Subfield suppressionSubfield = field907.getSubfield('c');
 			if (suppressionSubfield != null){

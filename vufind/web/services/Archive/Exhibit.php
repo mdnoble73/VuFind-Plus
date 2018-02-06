@@ -227,12 +227,14 @@ class Archive_Exhibit extends Archive_Object{
 						'collectionTitles' => $collectionTitles,
 					);
 					$interface->assignAppendToExisting('browseCollectionTitlesData', $browseCollectionTitlesData);
-					if ($collectionTemplate == 'browse'){
-						// TODO: determine exhibit navigation
-						$interface->assign('isCollectionOnExhibitPage', true); // only needed for the fetch below
-						$collectionTemplates[] = $interface->fetch('Archive/browseCollectionTitles.tpl');
-					}else{
-						$collectionTemplates[] = $interface->fetch('Archive/collectionScroller.tpl');
+					if (count($collectionTitles) > 0) {
+						if ($collectionTemplate == 'browse') {
+							// TODO: determine exhibit navigation
+							$interface->assign('isCollectionOnExhibitPage', true); // only needed for the fetch below
+							$collectionTemplates[] = $interface->fetch('Archive/browseCollectionTitles.tpl');
+						} else {
+							$collectionTemplates[] = $interface->fetch('Archive/collectionScroller.tpl');
+						}
 					}
 
 				}else if (strpos($option, 'randomImage') === 0 ){

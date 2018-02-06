@@ -67,6 +67,8 @@
 ###################################
 # Library supplied covers
 37 */2 * * * /usr/local/vufind-plus/sites/marmot.test/copyCovers.sh
+# Hoopla
+0 20 * * * cd /usr/local/vufind-plus/vufind/hoopla_export; java -jar hoopla_export.jar marmot.test
 
 ############################################
 # New York Times Bestseller Lists Updating #
@@ -85,4 +87,4 @@
 */3 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./solrTest.sh
 
 # Check for semaphore errors
-0 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./apacheSemaphoreCleanup.sh root@marmot.org
+17 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./apacheSemaphoreCleanup.sh root

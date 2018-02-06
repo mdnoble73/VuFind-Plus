@@ -228,6 +228,15 @@ class RecordImpl implements Record {
         return result;
     }
 
+    public DataField getDataField(String tag){
+        for (final DataField field : dataFields) {
+            if (fieldMatches(field, tag)) {
+                return field;
+            }
+        }
+        return null;
+    }
+
     /**
      * Gets a {@link List} of {@link DataField}s with the supplied tag.
      */

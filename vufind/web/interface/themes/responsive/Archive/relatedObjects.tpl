@@ -137,36 +137,36 @@
 	{if $displayType == 'map' || $displayType == 'mapNoTimeline'}
 		{* {$recordCount-$recordEnd} more records to load *}
 		{if $recordEnd < $recordCount}
-			<a onclick="return VuFind.Archive.getMoreMapResults('{$exhibitPid|urlencode}', '{$placePid|urlencode}', '{if $displayType == 'map'}true{else}false{/if}')">
+			<a onclick="return VuFind.Archive.getMoreMapResults('{$exhibitPid|urlencode}', '{$placePid|urlencode}', '{if $displayType == 'map'}true{else}false{/if}')" role="button">
 				<div class="row" id="more-browse-results">
-					<img src="{img filename="browse_more_arrow.png"}" alt="Load More Search Results" title="Load More Search Results">
+					<span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
 				</div>
 			</a>
 		{/if}
 	{elseif $displayType == 'timeline'}
 		{* {$recordCount-$recordEnd} more records to load *}
 		{if $recordEnd < $recordCount}
-			<a onclick="return VuFind.Archive.getMoreTimelineResults('{$exhibitPid|urlencode}')">
+			<a onclick="return VuFind.Archive.getMoreTimelineResults('{$exhibitPid|urlencode}')" role="button">
 				<div class="row" id="more-browse-results">
-					<img src="{img filename="browse_more_arrow.png"}" alt="Load More Search Results" title="Load More Search Results">
+					<span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
 				</div>
 			</a>
 		{/if}
 	{elseif $displayType == 'scroller'}
 		{* {$recordCount-$recordEnd} more records to load *}
 		{if $recordEnd < $recordCount}
-			<a onclick="return VuFind.Archive.getMoreScrollerResults('{$exhibitPid|urlencode}')">
+			<a onclick="return VuFind.Archive.getMoreScrollerResults('{$exhibitPid|urlencode}')" role="button">
 				<div class="row" id="more-browse-results">
-					<img src="{img filename="browse_more_arrow.png"}" alt="Load More Search Results" title="Load More Search Results">
+					<span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
 				</div>
 			</a>
 		{/if}
 	{else}
 		{if $recordEnd < $recordCount}
 			{* {$recordCount-$recordEnd} more records to load *}
-			<a onclick="return VuFind.Archive.getMoreExhibitResults('{$exhibitPid|urlencode}')">
+			<a onclick="return VuFind.Archive.getMoreExhibitResults('{$exhibitPid|urlencode}')" role="button">
 				<div class="row" id="more-browse-results">
-					<img src="{img filename="browse_more_arrow.png"}" alt="Load More Search Results" title="Load More Search Results">
+					<span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
 				</div>
 			</a>
 		{/if}

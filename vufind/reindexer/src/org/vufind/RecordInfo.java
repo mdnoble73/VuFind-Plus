@@ -3,6 +3,7 @@ package org.vufind;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.TreeMap;
+import java.util.regex.Pattern;
 
 /**
  * Information about a Record within the system
@@ -28,6 +29,7 @@ public class RecordInfo {
 	private String publisher;
 	private String publicationDate;
 	private String physicalDescription;
+	private boolean hasVolumes;
 
 	private HashSet<ItemInfo> relatedItems = new HashSet<>();
 	public RecordInfo(String source, String recordIdentifier){
@@ -35,7 +37,7 @@ public class RecordInfo {
 		this.recordIdentifier = recordIdentifier;
 	}
 
-	public void setSubSource(String subSource) {
+	void setSubSource(String subSource) {
 		this.subSource = subSource;
 	}
 
@@ -49,31 +51,31 @@ public class RecordInfo {
 		}
 	}
 
-	public void setEdition(String edition) {
+	void setEdition(String edition) {
 		this.edition = edition;
 	}
 
-	public void setPrimaryLanguage(String primaryLanguage) {
+	void setPrimaryLanguage(String primaryLanguage) {
 		this.primaryLanguage = primaryLanguage;
 	}
 
-	public void setPublisher(String publisher) {
+	void setPublisher(String publisher) {
 		this.publisher = publisher;
 	}
 
-	public void setPublicationDate(String publicationDate) {
+	void setPublicationDate(String publicationDate) {
 		this.publicationDate = publicationDate;
 	}
 
-	public void setPhysicalDescription(String physicalDescription) {
+	void setPhysicalDescription(String physicalDescription) {
 		this.physicalDescription = physicalDescription;
 	}
 
-	public HashSet<ItemInfo> getRelatedItems() {
+	HashSet<ItemInfo> getRelatedItems() {
 		return relatedItems;
 	}
 
-	public void setRecordIdentifier(String source, String recordIdentifier) {
+	void setRecordIdentifier(String source, String recordIdentifier) {
 		this.source = source;
 		this.recordIdentifier = recordIdentifier;
 	}
@@ -82,8 +84,8 @@ public class RecordInfo {
 		return recordIdentifier;
 	}
 
-	String recordDetails = null;
-	public String getDetails() {
+	private String recordDetails = null;
+	String getDetails() {
 		if (recordDetails == null) {
 			//None of this changes by scope so we can just form it once and then return the previous value
 			recordDetails = this.getFullIdentifier() + "|" +
@@ -99,7 +101,7 @@ public class RecordInfo {
 		return recordDetails;
 	}
 
-	protected String getPrimaryFormat() {
+	String getPrimaryFormat() {
 		HashMap<String, Integer> relatedFormats = new HashMap<>();
 		for (String format : formats){
 			relatedFormats.put(format, 1);
@@ -127,7 +129,7 @@ public class RecordInfo {
 		return mostUsedFormat;
 	}
 
-	protected String getPrimaryFormatCategory() {
+	private String getPrimaryFormatCategory() {
 		HashMap<String, Integer> relatedFormats = new HashMap<>();
 		for (String format : formatCategories){
 			relatedFormats.put(format, 1);
@@ -161,46 +163,47 @@ public class RecordInfo {
 	}
 
 	private HashSet<String> allFormats = null;
-	public HashSet<String> getAllSolrFieldEscapedFormats() {
+	private Pattern nonWordPattern = Pattern.compile("\\W");
+	HashSet<String> getAllSolrFieldEscapedFormats() {
 		if (allFormats == null){
 			allFormats = new HashSet<>();
 			for (String curFormat : formats){
-				allFormats.add(curFormat.replaceAll("\\W", "_").toLowerCase());
+				allFormats.add(nonWordPattern.matcher(curFormat).replaceAll("_").toLowerCase());
 			}
 			for (ItemInfo curItem : relatedItems){
 				if (curItem.getFormat() != null) {
-					allFormats.add(curItem.getFormat().replaceAll("\\W", "_").toLowerCase());
+					allFormats.add(nonWordPattern.matcher(curItem.getFormat()).replaceAll("_").toLowerCase());
 				}
 			}
 		}
 		return allFormats;
 	}
 
-	public HashSet<String> getFormats() {
+	HashSet<String> getFormats() {
 		return formats;
 	}
 
 	private HashSet<String> allFormatCategories = null;
-	public HashSet<String> getAllSolrFieldEscapedFormatCategories() {
+	HashSet<String> getAllSolrFieldEscapedFormatCategories() {
 		if (allFormatCategories == null) {
 			allFormatCategories = new HashSet<>();
 			for (String curFormat : formatCategories){
-				allFormatCategories.add(curFormat.replaceAll("\\W", "_").toLowerCase());
+				allFormatCategories.add(nonWordPattern.matcher(curFormat).replaceAll("_").toLowerCase());
 			}
 			for (ItemInfo curItem : relatedItems) {
 				if (curItem.getFormatCategory() != null) {
-					allFormatCategories.add(curItem.getFormatCategory().replaceAll("\\W", "_").toLowerCase());
+					allFormatCategories.add(nonWordPattern.matcher(curItem.getFormatCategory()).replaceAll("_").toLowerCase());
 				}
 			}
 		}
 		return allFormatCategories;
 	}
 
-	public HashSet<String> getFormatCategories() {
+	HashSet<String> getFormatCategories() {
 		return formatCategories;
 	}
 
-	public HashSet<ItemInfo> getRelatedItemsForScope(String scopeName) {
+	private HashSet<ItemInfo> getRelatedItemsForScope(String scopeName) {
 		HashSet<ItemInfo> values = new HashSet<>();
 		for (ItemInfo curItem : relatedItems){
 			if (curItem.isValidForScope(scopeName)){
@@ -210,7 +213,7 @@ public class RecordInfo {
 		return values;
 	}
 
-	public int getNumCopiesOnOrder() {
+	int getNumCopiesOnOrder() {
 		int numOrders = 0;
 		for (ItemInfo curItem : relatedItems){
 			if (curItem.isOrderItem()){
@@ -220,7 +223,7 @@ public class RecordInfo {
 		return numOrders;
 	}
 
-	public String getFullIdentifier() {
+	String getFullIdentifier() {
 		String fullIdentifier;
 		if (subSource != null && subSource.length() > 0){
 			fullIdentifier = source + ":" + subSource + ":" + recordIdentifier;
@@ -230,7 +233,7 @@ public class RecordInfo {
 		return fullIdentifier;
 	}
 
-	public int getNumPrintCopies() {
+	int getNumPrintCopies() {
 		int numPrintCopies = 0;
 		for (ItemInfo curItem : relatedItems){
 			if (!curItem.isOrderItem() && !curItem.isEContent()){
@@ -240,7 +243,7 @@ public class RecordInfo {
 		return numPrintCopies;
 	}
 
-	public HashSet<String> getAllEContentSources() {
+	HashSet<String> getAllEContentSources() {
 		HashSet<String> values = new HashSet<>();
 		for (ItemInfo curItem : relatedItems){
 			values.add(curItem.geteContentSource());
@@ -248,7 +251,7 @@ public class RecordInfo {
 		return values;
 	}
 
-	public HashSet<String> getAllCallNumbers(){
+	HashSet<String> getAllCallNumbers(){
 		HashSet<String> values = new HashSet<>();
 		for (ItemInfo curItem : relatedItems){
 			values.add(curItem.getCallNumber());
@@ -256,23 +259,23 @@ public class RecordInfo {
 		return values;
 	}
 
-	public void addFormats(HashSet<String> translatedFormats) {
+	void addFormats(HashSet<String> translatedFormats) {
 		this.formats.addAll(translatedFormats);
 	}
 
-	public void addFormat(String translatedFormat){
+	void addFormat(String translatedFormat){
 		this.formats.add(translatedFormat);
 	}
 
-	public void addFormatCategories(HashSet<String> translatedFormatCategories) {
+	void addFormatCategories(HashSet<String> translatedFormatCategories) {
 		this.formatCategories.addAll(translatedFormatCategories);
 	}
 
-	public void addFormatCategory(String translatedFormatCategory){
+	void addFormatCategory(String translatedFormatCategory){
 		this.formatCategories.add(translatedFormatCategory);
 	}
 
-	public void updateIndexingStats(TreeMap<String, ScopedIndexingStats> indexingStats) {
+	void updateIndexingStats(TreeMap<String, ScopedIndexingStats> indexingStats) {
 		for (ScopedIndexingStats scopedStats : indexingStats.values()){
 			String recordProcessor = this.subSource == null ? this.source : this.subSource;
 			RecordProcessorIndexingStats stats = scopedStats.recordProcessorIndexingStats.get(recordProcessor.toLowerCase());
@@ -311,12 +314,20 @@ public class RecordInfo {
 		}
 	}
 
-	public boolean hasItemFormats() {
+	boolean hasItemFormats() {
 		for (ItemInfo curItem : relatedItems){
 			if (curItem.getFormat() != null){
 				return true;
 			}
 		}
 		return false;
+	}
+
+	void setHasVolumes(boolean hasVolumes) {
+		this.hasVolumes = hasVolumes;
+	}
+
+	boolean hasVolumes(){
+		return true;
 	}
 }

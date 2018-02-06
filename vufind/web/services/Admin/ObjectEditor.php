@@ -140,6 +140,7 @@ abstract class ObjectEditor extends Admin_Admin
 				}
 				$logger->log('Could not insert new object ' . $ret . ' ' . $errorDescription, PEAR_LOG_DEBUG);
 				$_SESSION['lastError'] = "An error occurred inserting {$this->getObjectType()} <br/>{$errorDescription}";
+				@session_start();
 				$logger->log(mysql_error(), PEAR_LOG_DEBUG);
 				return false;
 			}
@@ -148,6 +149,7 @@ abstract class ObjectEditor extends Admin_Admin
 			$errorDescription = implode(', ', $validationResults['errors']);
 			$logger->log('Could not validate new object ' . $objectType . ' ' . $errorDescription, PEAR_LOG_DEBUG);
 			$_SESSION['lastError'] = "The information entered was not valid. <br/>" . implode('<br/>', $validationResults['errors']);
+			@session_start();
 			return false;
 		}
 		return $newObject;

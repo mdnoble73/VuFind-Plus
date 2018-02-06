@@ -208,7 +208,7 @@
 			{/if}
 
 			{if $loggedIn && (array_key_exists('libraryAdmin', $userRoles) || array_key_exists('opacAdmin', $userRoles) || array_key_exists('cataloging', $userRoles))}
-				{if in_array($action, array('RecordGroupingLog', 'ReindexLog', 'OverDriveExtractLog', 'IndexingStats', 'IndexingProfiles', 'TranslationMaps'))}
+				{if in_array($action, array('RecordGroupingLog', 'ReindexLog', 'OverDriveExtractLog', 'HooplaExportLog', 'IndexingStats', 'IndexingProfiles', 'TranslationMaps'))}
 					{assign var="curSection" value=true}
 				{else}
 					{assign var="curSection" value=false}
@@ -227,6 +227,7 @@
 							<div class="adminMenuLink{if $action == "RecordGroupingLog"} active{/if}"><a href="{$path}/Admin/RecordGroupingLog">Record Grouping Log</a></div>
 							<div class="adminMenuLink{if $action == "ReindexLog"} active{/if}"><a href="{$path}/Admin/ReindexLog">Reindex Log</a></div>
 							<div class="adminMenuLink{if $action == "OverDriveExtractLog"} active{/if}"><a href="{$path}/Admin/OverDriveExtractLog">OverDrive Extract Log</a></div>
+							<div class="adminMenuLink{if $action == "HooplaExportLog"} active{/if}"><a href="{$path}/Admin/HooplaExportLog">Hoopla Export Log</a></div>
 							<div class="adminMenuLink{if $action == "IndexingProfiles"} active{/if}"><a href="{$path}/Admin/IndexingProfiles">Indexing Profiles</a></div>
 							<div class="adminMenuLink{if $action == "TranslationMaps"} active{/if}"><a href="{$path}/Admin/TranslationMaps">Translation Maps</a></div>
 						</div>
@@ -234,7 +235,7 @@
 				</div>
 			{/if}
 
-			{if $loggedIn && $enableMaterialsRequest && (array_key_exists('cataloging', $userRoles) || array_key_exists('library_material_requests', $userRoles) || array_key_exists('opacAdmin', $userRoles) || array_key_exists('libraryAdmin', $userRoles))}
+			{if $loggedIn && $enableMaterialsRequest && array_key_exists('library_material_requests', $userRoles)}
 				{if in_array($action, array('ManageRequests', 'SummaryReport', 'UserReport', 'ManageStatuses'))}
 					{assign var="curSection" value=true}
 				{else}
@@ -330,7 +331,9 @@
 					</a>
 					<div id="circulationMenu" class="panel-collapse collapse {if $curSection}in{/if}">
 						<div class="panel-body">
-							<div class="adminMenuLink{if $action == "Home" && $module == "Circa"} active{/if}"><a href="{$path}/Circa/Home">Inventory</a></div>
+							{if array_key_exists('opacAdmin', $userRoles) || array_key_exists('libraryAdmin', $userRoles)}
+								<div class="adminMenuLink{if $action == "Home" && $module == "Circa"} active{/if}"><a href="{$path}/Circa/Home">Inventory</a></div>
+							{/if}
 							<div class="adminMenuLink{if $action == "OfflineCirculation" && $module == "Circa"} active{/if}"><a href="{$path}/Circa/OfflineCirculation">Offline Circulation</a></div>
 							<div class="adminMenuLink{if $action == "OfflineHoldsReport" && $module == "Circa"} active{/if}"><a href="{$path}/Circa/OfflineHoldsReport">Offline Holds Report</a></div>
 							<div class="adminMenuLink{if $action == "OfflineCirculationReport" && $module == "Circa"} active{/if}"><a href="{$path}/Circa/OfflineCirculationReport">Offline Circulation Report</a></div>
@@ -363,7 +366,7 @@
 			{/if}
 
 			{if $loggedIn && (array_key_exists('opacAdmin', $userRoles) || array_key_exists('libraryAdmin', $userRoles) || array_key_exists('locationReports', $userRoles) || array_key_exists('contentEditor', $userRoles))}
-				{if in_array($action, array('ReportExternalLinks', 'StudentReport'))}
+				{if in_array($action, array('StudentReport'))}
 					{assign var="curSection" value=true}
 				{else}
 					{assign var="curSection" value=false}
@@ -378,9 +381,6 @@
 					</a>
 					<div id="reportsMenu" class="panel-collapse collapse {if $curSection}in{/if}">
 						<div class="panel-body">
-							{if $loggedIn && (array_key_exists('opacAdmin', $userRoles) || array_key_exists('libraryAdmin', $userRoles))}
-								<div class="adminMenuLink{if $action == "ReportExternalLinks"} active{/if}"><a href="{$path}/Report/ReportExternalLinks">External Link Tracking</a></div>
-							{/if}
 							{if ($ils == 'CarlX' || $ils == 'Sierra') && $loggedIn && (array_key_exists('opacAdmin', $userRoles) || array_key_exists('libraryAdmin', $userRoles) || array_key_exists('locationReports', $userRoles))}
 								<div class="adminMenuLink{if $action == "StudentReport"} active{/if}"><a href="{$path}/Report/StudentReport">Student Reports</a></div>
 							{/if}

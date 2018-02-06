@@ -273,7 +273,8 @@ class SearchSources{
 			$showCombinedResultsFirst = $library->defaultToCombinedResults;
 			$combinedResultsName = $library->combinedResultsLabel;
 			return array($enableCombinedResults, $showCombinedResultsFirst, $combinedResultsName);
-		}return array($enableCombinedResults, $showCombinedResultsFirst, $combinedResultsName);
+		}
+		return array($enableCombinedResults, $showCombinedResultsFirst, $combinedResultsName);
 	}
 
 	public function getWorldCatSearchType($type){

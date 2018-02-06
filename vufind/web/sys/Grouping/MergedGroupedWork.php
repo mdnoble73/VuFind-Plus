@@ -92,7 +92,7 @@ class MergedGroupedWork extends DB_DataObject {
 		}elseif (!preg_match('/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/i', $this->destinationGroupedWorkId)){
 			$validationResults = array(
 					'validatedOk' => false,
-					'errors' => array('The format of trehe destination is not a valid work id'),
+					'errors' => array('The format of the destination is not a valid work id'),
 			);
 		}else{
 			//Make sure the destination actually exists (not a big deal if the source doesn't since invalid ones will just be skipped)

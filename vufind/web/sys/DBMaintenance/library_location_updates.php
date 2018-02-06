@@ -949,6 +949,15 @@ function getLibraryLocationUpdates(){
 			),
 		),
 
+		'increase_login_form_labels' => array(
+			'title' => 'Allow for longer Login Form Labels',
+			'description' => 'Increase allowable size for the labels of the login form',
+			'sql' => array(
+				"ALTER TABLE `library` CHANGE COLUMN `loginFormUsernameLabel` `loginFormUsernameLabel` VARCHAR(100) NULL DEFAULT 'Your Name'" ,
+				"ALTER TABLE `library`CHANGE COLUMN `loginFormPasswordLabel` `loginFormPasswordLabel` VARCHAR(100) NULL DEFAULT 'Library Card Number' ",
+			),
+		),
+
 		'detailed_hold_notice_configuration' => array(
 			'title' => 'Detailed Hold Notice Configuration',
 			'description' => 'Additional configuration over how detailed hold notices are displayed to the user',
@@ -1668,5 +1677,24 @@ function getLibraryLocationUpdates(){
 
 					)
 			),
+
+			'hoopla_integration' => array(
+				'title' => 'Hoopla Integration',
+				'description' => 'Add settings for Hoopla Integration: Hoopla ID',
+				'continueOnError' => true,
+				'sql' => array(
+					"ALTER TABLE `library` ADD COLUMN `hooplaLibraryID` INTEGER UNSIGNED;",
+				),
+			),
+
+			'library_on_order_counts' => array(
+					'title' => 'Library On Order Counts',
+					'description' => 'Add a setting for whether or not on order counts should be shown to users',
+					'continueOnError' => false,
+					'sql' => array(
+							"ALTER TABLE `library` ADD COLUMN `showOnOrderCounts` TINYINT(1) DEFAULT 1;",
+					),
+			),
+
 	);
 }

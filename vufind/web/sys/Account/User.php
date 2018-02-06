@@ -35,6 +35,7 @@ class User extends DB_DataObject
 	public $disableCoverArt;     //tinyint
 	public $overdriveEmail;
 	public $promptForOverdriveEmail;
+	public $hooplaCheckOutConfirmation;
 	public $preferredLibraryInterface;
 	public $noPromptForUserReviews; //tinyint(1)
 
@@ -77,6 +78,7 @@ class User extends DB_DataObject
 	private $numHoldsOverDrive = 0;
 	private $numHoldsAvailableOverDrive = 0;
 	private $numHoldsRequestedOverDrive = 0;
+	private $numCheckedOutHoopla = 0;
 	public $numBookings;
 	public $notices;
 	public $noticePreferenceLabel;
@@ -447,6 +449,32 @@ class User extends DB_DataObject
 		return false;
 	}
 
+	function isValidForHoopla(){
+		if ($this->parentUser == null || ($this->getBarcode() != $this->parentUser->getBarcode())){
+			$userHomeLibrary = Library::getPatronHomeLibrary($this);
+			if ($userHomeLibrary && $userHomeLibrary->hooplaLibraryID > 0){
+				return true;
+			}
+		}
+		return false;
+	}
+
+	function getRelatedHooplaUsers(){
+		$hooplaUsers = array();
+		if ($this->isValidForHoopla()){
+			$hooplaUsers[$this->cat_username . ':' . $this->cat_password] = $this;
+		}
+		foreach ($this->getLinkedUsers() as $linkedUser){
+			if ($linkedUser->isValidForHoopla()){
+				if (!array_key_exists($linkedUser->cat_username . ':' . $linkedUser->cat_password, $hooplaUsers)){
+					$hooplaUsers[$linkedUser->cat_username . ':' . $linkedUser->cat_password] = $linkedUser;
+				}
+			}
+		}
+
+		return $hooplaUsers;
+	}
+
 	/**
 	 * Returns a list of users that can view this account
 	 *
@@ -638,6 +666,16 @@ class User extends DB_DataObject
 		$this->update();
 	}
 
+	function updateHooplaOptions(){
+		if (isset($_REQUEST['hooplaCheckOutConfirmation']) && ($_REQUEST['hooplaCheckOutConfirmation'] == 'yes' || $_REQUEST['hooplaCheckOutConfirmation'] == 'on')) {
+			// if set check & on check must be combined because checkboxes/radios don't report 'offs'
+			$this->hooplaCheckOutConfirmation = 1;
+		}else{
+			$this->hooplaCheckOutConfirmation = 0;
+		}
+		$this->update();
+		}
+
 	function updateUserPreferences(){
 		// Validate that the input data is correct
 		if (isset($_POST['myLocation1']) && preg_match('/^\d{1,3}$/', $_POST['myLocation1']) == 0){
@@ -743,7 +781,7 @@ class User extends DB_DataObject
 
 	public function getNumCheckedOutTotal($includeLinkedUsers = true) {
 		$this->updateRuntimeInformation();
-		$myCheckouts = $this->numCheckedOutIls + $this->numCheckedOutOverDrive;
+		$myCheckouts = $this->numCheckedOutIls + $this->numCheckedOutOverDrive + $this->numCheckedOutHoopla;
 		if ($includeLinkedUsers) {
 			if ($this->getLinkedUsers() != null) {
 				/** @var User $user */
@@ -847,6 +885,15 @@ class User extends DB_DataObject
 		}
 
 		$allCheckedOut = array_merge($ilsCheckouts, $overDriveCheckedOutItems);
+
+		//Get checked out titles from Hoopla
+		//Do not load Hoopla titles if the parent barcode (if any) is the same as the current barcode
+		if ($this->isValidForHoopla()){
+			require_once ROOT_DIR . '/Drivers/HooplaDriver.php';
+			$hooplaDriver = new HooplaDriver();
+			$hooplaCheckedOutItems = $hooplaDriver->getHooplaCheckedOutItems($this);
+			$allCheckedOut = array_merge($allCheckedOut, $hooplaCheckedOutItems);
+		}
 
 		if ($includeLinkedUsers) {
 			if ($this->getLinkedUsers() != null) {
@@ -1371,6 +1418,10 @@ class User extends DB_DataObject
 	public function setMaterialsRequestEmailSignature($materialsRequestEmailSignature)
 	{
 		$this->materialsRequestEmailSignature = $materialsRequestEmailSignature;
+	}
+
+	function setNumCheckedOutHoopla($val){
+		$this->numCheckedOutHoopla = $val;
 	}
 
 	function setNumCheckedOutOverDrive($val){

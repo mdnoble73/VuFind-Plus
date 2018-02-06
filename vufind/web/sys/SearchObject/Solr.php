@@ -525,8 +525,7 @@ class SearchObject_Solr extends SearchObject_Base
 	public function getSearchIndex()
 	{
 		// Use normal parent method for non-advanced searches.
-		if ($this->searchType == $this->basicSearchType ||
-		$this->searchType == 'author') {
+		if ($this->searchType == $this->basicSearchType || $this->searchType == 'author') {
 			return parent::getSearchIndex();
 		} else {
 			return null;

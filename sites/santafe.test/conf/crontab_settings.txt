@@ -60,6 +60,8 @@
 ###################################
 # Library supplied covers
 29 5 * * * /usr/local/vufind-plus/sites/santafe.test/copyCovers.sh
+# Hoopla
+0 20 * * * cd /usr/local/vufind-plus/vufind/hoopla_export; java -jar hoopla_export.jar santafe.test
 
 ############################################
 # New York Times Bestseller Lists Updating #
@@ -75,3 +77,6 @@
 
 # Check Apache Solr process and website that it has not stalled.
 */3 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./solrTest.sh
+
+# Check for semaphore errors
+17 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./apacheSemaphoreCleanup.sh root

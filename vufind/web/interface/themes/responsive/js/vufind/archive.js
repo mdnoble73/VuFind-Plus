@@ -134,7 +134,7 @@ VuFind.Archive = (function(){
 				$("#view-image").hide();
 				$("#view-transcription").hide();
 				$("#view-video").hide();
-			}else if (viewerName == 'audio'){
+			}else if (viewerName == 'video'){
 				$('#view-toggle-transcription').prop('checked', true);
 				// .parent('.btn').addClass('active');
 				$("#view-video").show();
@@ -161,8 +161,7 @@ VuFind.Archive = (function(){
 		},
 
 		initializeOpenSeadragon: function(viewer){
-			viewer.addHandler("open", this.update_clip);
-			viewer.addHandler("animationfinish", this.update_clip);
+
 		},
 
 		getMoreExhibitResults: function(exhibitPid, reloadHeader){
@@ -505,13 +504,10 @@ VuFind.Archive = (function(){
 				audioPlayer.load();
 				//audioPlayer.play();
 			}else if(this.activeBookViewer == 'video') {
-				$('#view-video').html(
-					$('<source />').attr({
-						type: 'video/mp4',
-						src: this.pageDetails[pid]['video'],
-						class: 'book-video' // Class that styles/sizes the PDF page
-					})
-				).show();
+				$('#view-video').show();
+				$('#video-player-src').attr('src', this.pageDetails[pid]['video']);
+				var videoPlayer = document.getElementById("video-player");
+				videoPlayer.load();
 			}
 			if (pageChanged && this.multiPage){
 				var numSectionsShown = 0;
@@ -634,84 +630,6 @@ VuFind.Archive = (function(){
 				VuFind.showMessageWithButtons(data.title, data.modalBody, data.modalButtons);
 			}).fail(VuFind.ajaxFail);
 			return false;
-		},
-
-		// showObjectInPopup: function(pid, returnId){
-		// 	var url = Globals.path + "/Archive/AJAX?id=" + encodeURI(pid) + "&method=getObjectInfo" +
-		// 			(typeof returnId == 'undefined' ? '' : '&returnTo=' + encodeURI(returnId));
-		// 	VuFind.loadingMessage();
-		// 	$.getJSON(url, function(data){
-		// 		VuFind.showMessageWithButtons(data.title, data.modalBody, data.modalButtons);
-		// 	}).fail(VuFind.ajaxFail);
-		// 	return false;
-		// },
-		//
-		/**
-		 * All this is doing is updating a URL so the patron can download a clipped portion of the image
-		 * not needed for our basic implementation
-		 *
-		 * @param viewer
-		 */
-		update_clip: function(viewer) {
-			var fitWithinBoundingBox = function(d, max) {
-				if (d.width/d.height > max.x/max.y) {
-					return new OpenSeadragon.Point(max.x, parseInt(d.height * max.x/d.width));
-				} else {
-					return new OpenSeadragon.Point(parseInt(d.width * max.y/d.height),max.y);
-				}
-			};
-			var getDisplayRegion = function(viewer, source) {
-				// Determine portion of scaled image that is being displayed.
-				var box = new OpenSeadragon.Rect(0, 0, source.x, source.y);
-				var container = viewer.viewport.getContainerSize();
-				var bounds = viewer.viewport.getBounds();
-				// If image is offset to the left.
-				if (bounds.x > 0){
-					box.x = box.x - viewer.viewport.pixelFromPoint(new OpenSeadragon.Point(0,0)).x;
-				}
-				// If full image doesn't fit.
-				if (box.x + source.x > container.x) {
-					box.width = container.x - viewer.viewport.pixelFromPoint(new OpenSeadragon.Point(0,0)).x;
-					if (box.width > container.x) {
-						box.width = container.x;
-					}
-				}
-				// If image is offset up.
-				if (bounds.y > 0) {
-					box.y = box.y - viewer.viewport.pixelFromPoint(new OpenSeadragon.Point(0,0)).y;
-				}
-				// If full image doesn't fit.
-				if (box.y + source.y > container.y) {
-					box.height = container.y - viewer.viewport.pixelFromPoint(new OpenSeadragon.Point(0,0)).y;
-					if (box.height > container.y) {
-						box.height = container.y;
-					}
-				}
-				return box;
-			};
-			var source = viewer.source;
-			var zoom = viewer.viewport.getZoom();
-			var size = new OpenSeadragon.Rect(0, 0, source.dimensions.x, source.dimensions.y);
-			var container = viewer.viewport.getContainerSize();
-			var fit_source = fitWithinBoundingBox(size, container);
-			var total_zoom = fit_source.x/source.dimensions.x;
-			var container_zoom = fit_source.x/container.x;
-			var level = (zoom * total_zoom) / container_zoom;
-			var box = getDisplayRegion(viewer, new OpenSeadragon.Point(parseInt(source.dimensions.x*level), parseInt(source.dimensions.y*level)));
-			var scaled_box = new OpenSeadragon.Rect(parseInt(box.x/level), parseInt(box.y/level), parseInt(box.width/level), parseInt(box.height/level));
-			var params = {
-				'url_ver': 'Z39.88-2004',
-				'rft_id': source.imageID,
-				'svc_id': 'info:lanl-repo/svc/getRegion',
-				'svc_val_fmt': 'info:ofi/fmt:kev:mtx:jpeg2000',
-				'svc.format': 'image/jpeg',
-				'svc.region': scaled_box.y + ',' + scaled_box.x + ',' + (scaled_box.getBottomRight().y - scaled_box.y) + ',' + (scaled_box.getBottomRight().x - scaled_box.x),
-			};
-			var dimensions = (zoom <= 1) ? source.dimensions.x + ',' + source.dimensions.y : container.x + ',' + container.y;
-			jQuery("#clip").attr('href',  Globals.repositoryUrl + '/islandora/object/' + settings.islandoraOpenSeadragon.pid + '/print?' + jQuery.param({
-						'clip': source.baseURL + '?' + jQuery.param(params),
-						'dimensions': dimensions,
-					}));
 		},
 
 		showSaveToListForm: function (trigger, id){

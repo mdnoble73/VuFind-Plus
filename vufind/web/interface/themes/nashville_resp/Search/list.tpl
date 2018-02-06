@@ -67,9 +67,9 @@
 
 	{if $displayMode == 'covers'}
 		{if $recordEnd < $recordCount}
-			<a onclick="return VuFind.Searches.getMoreResults()">
+			<a onclick="return VuFind.Searches.getMoreResults()" role="button">
 				<div class="row" id="more-browse-results">
-					<img src="{img filename="browse_more_arrow.png"}" alt="Load More Search Results" title="Load More Search Results">
+					<span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
 				</div>
 			</a>
 		{/if}

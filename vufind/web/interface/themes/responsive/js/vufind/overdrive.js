@@ -77,8 +77,7 @@ VuFind.OverDrive = (function(){
 					cache: false,
 					success: function(data){
 						if (data.success == true){
-							VuFind.showMessage("Title Checked Out Successfully", data.message, true);
-							window.location.href = Globals.path + "/MyAccount/CheckedOut";
+							VuFind.showMessageWithButtons("Title Checked Out Successfully", data.message, data.buttons);
 						}else{
 							if (data.noCopies == true){
 								VuFind.closeLightbox();
@@ -101,7 +100,9 @@ VuFind.OverDrive = (function(){
 				});
 			}else{
 				VuFind.Account.ajaxLogin(null, function(){
-					VuFind.OverDrive.checkoutOverDriveItemOneClick(overdriveId);
+					// VuFind.OverDrive.checkoutOverDriveItemOneClick(overdriveId);
+					//TODO: method above hasn't been defined
+					VuFind.OverDrive.checkoutOverDriveItem(overdriveId);
 				}, false);
 			}
 			return false;

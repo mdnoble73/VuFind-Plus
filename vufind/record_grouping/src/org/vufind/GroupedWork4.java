@@ -71,12 +71,14 @@ class GroupedWork4 extends GroupedWorkBase implements Cloneable {
 		return groupingTitle;
 	}
 
+	private static Pattern dashPattern = Pattern.compile("&#8211");
+	private static Pattern ampersandPattern = Pattern.compile("&");
 	private String cleanTitleCharacters(String groupingTitle) {
 		//Fix abbreviations
 		groupingTitle = initialsFix.matcher(groupingTitle).replaceAll(" ");
 		//Replace & with and for better matching
-		groupingTitle = groupingTitle.replaceAll("&#8211;", "-");
-		groupingTitle = groupingTitle.replaceAll("&", "and");
+		groupingTitle = dashPattern.matcher(groupingTitle).replaceAll("-");
+		groupingTitle = ampersandPattern.matcher(groupingTitle).replaceAll("and");
 
 		groupingTitle = apostropheStrip.matcher(groupingTitle).replaceAll("s");
 		groupingTitle = specialCharacterStrip.matcher(groupingTitle).replaceAll(" ").toLowerCase();
@@ -91,18 +93,28 @@ class GroupedWork4 extends GroupedWorkBase implements Cloneable {
 		return groupingTitle;
 	}
 
+	private static Pattern firstPattern = Pattern.compile("1st");
+	private static Pattern secondPattern = Pattern.compile("2nd");
+	private static Pattern thirdPattern = Pattern.compile("3rd");
+	private static Pattern fourthPattern = Pattern.compile("4th");
+	private static Pattern fifthPattern = Pattern.compile("5th");
+	private static Pattern sixthPattern = Pattern.compile("6th");
+	private static Pattern seventhPattern = Pattern.compile("7th");
+	private static Pattern eighthPattern = Pattern.compile("8th");
+	private static Pattern ninthPattern = Pattern.compile("9th");
+	private static Pattern tenthPattern = Pattern.compile("10th");
 	private String normalizeNumericTitleText(String groupingTitle) {
 		//Normalize numeric titles
-		groupingTitle = groupingTitle.replaceAll("1st", "first");
-		groupingTitle = groupingTitle.replaceAll("2nd", "second");
-		groupingTitle = groupingTitle.replaceAll("3rd", "third");
-		groupingTitle = groupingTitle.replaceAll("4th", "fourth");
-		groupingTitle = groupingTitle.replaceAll("5th", "fifth");
-		groupingTitle = groupingTitle.replaceAll("6th", "sixth");
-		groupingTitle = groupingTitle.replaceAll("7th", "seventh");
-		groupingTitle = groupingTitle.replaceAll("8th", "eighth");
-		groupingTitle = groupingTitle.replaceAll("9th", "ninth");
-		groupingTitle = groupingTitle.replaceAll("10th", "tenth");
+		groupingTitle = firstPattern.matcher(groupingTitle).replaceAll("first");
+		groupingTitle = secondPattern.matcher(groupingTitle).replaceAll("second");
+		groupingTitle = thirdPattern.matcher(groupingTitle).replaceAll("third");
+		groupingTitle = fourthPattern.matcher(groupingTitle).replaceAll("fourth");
+		groupingTitle = fifthPattern.matcher(groupingTitle).replaceAll("fifth");
+		groupingTitle = sixthPattern.matcher(groupingTitle).replaceAll("sixth");
+		groupingTitle = seventhPattern.matcher(groupingTitle).replaceAll("seventh");
+		groupingTitle = eighthPattern.matcher(groupingTitle).replaceAll("eighth");
+		groupingTitle = ninthPattern.matcher(groupingTitle).replaceAll("ninth");
+		groupingTitle = tenthPattern.matcher(groupingTitle).replaceAll("tenth");
 		return groupingTitle;
 	}
 

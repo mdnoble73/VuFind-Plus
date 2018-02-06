@@ -115,7 +115,7 @@ class FlatironsRecordProcessor extends IIIRecordProcessor{
 	}
 
 	protected boolean isBibSuppressed(Record record) {
-		DataField field998 = (DataField)record.getVariableField("998");
+		DataField field998 = record.getDataField("998");
 		if (field998 != null){
 			Subfield bcode3Subfield = field998.getSubfield('f');
 			if (bcode3Subfield != null){

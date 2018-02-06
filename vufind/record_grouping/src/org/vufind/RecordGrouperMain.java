@@ -786,7 +786,7 @@ public class RecordGrouperMain {
 			finishedStatement.setLong(2, groupingLogId);
 			finishedStatement.executeUpdate();
 		} catch (SQLException e) {
-			logger.error("Unable to update reindex log with completion time.", e);
+			logger.error("Unable to update record grouping log with completion time.", e);
 		}
 
 		try{
@@ -1270,6 +1270,11 @@ public class RecordGrouperMain {
 								if (numRecordsRead % 100000 == 0) {
 									recordGroupingProcessor.dumpStats();
 								}
+								if (numRecordsRead % 5000 == 0) {
+									updateLastUpdateTimeInLog();
+									//Let the hard drives rest a bit so other things can happen.
+									Thread.sleep(100);
+								}
 							}
 							marcFileStream.close();
 						} catch (Exception e) {
@@ -1631,6 +1636,7 @@ public class RecordGrouperMain {
 		return value;
 	}
 
+	private static Pattern specialCharPattern = Pattern.compile("\\p{C}");
 	private static long getChecksum(Record marcRecord) {
 		CRC32 crc32 = new CRC32();
 		String marcRecordContents = marcRecord.toString();
@@ -1640,24 +1646,35 @@ public class RecordGrouperMain {
 		// Remove the length of the record
 		// Remove characters in position 12-16 (position of data)
 		marcRecordContents = marcRecordContents.substring(12, 19) + marcRecordContents.substring(24).trim();
-		marcRecordContents = marcRecordContents.replaceAll("\\p{C}", "?");
+		marcRecordContents = specialCharPattern.matcher(marcRecordContents).replaceAll("?");
 		crc32.update(marcRecordContents.getBytes());
 		return crc32.getValue();
 	}
 
-	private static StringBuffer reindexNotes = new StringBuffer();
+	private static StringBuffer notes = new StringBuffer();
 	private static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	private static void addNoteToGroupingLog(String note) {
 		try {
 			Date date = new Date();
-			reindexNotes.append("<br>").append(dateFormat.format(date)).append(": ").append(note);
-			addNoteToGroupingLogStmt.setString(1, trimTo(65535, reindexNotes.toString()));
+			notes.append("<br>").append(dateFormat.format(date)).append(": ").append(note);
+			addNoteToGroupingLogStmt.setString(1, trimTo(65535, notes.toString()));
 			addNoteToGroupingLogStmt.setLong(2, new Date().getTime() / 1000);
 			addNoteToGroupingLogStmt.setLong(3, groupingLogId);
 			addNoteToGroupingLogStmt.executeUpdate();
 			logger.info(note);
 		} catch (SQLException e) {
-			logger.error("Error adding note to Reindex Log", e);
+			logger.error("Error adding note to Record Grouping Log", e);
+		}
+	}
+
+	private static void updateLastUpdateTimeInLog() {
+		try {
+			addNoteToGroupingLogStmt.setString(1, trimTo(65535, notes.toString()));
+			addNoteToGroupingLogStmt.setLong(2, new Date().getTime() / 1000);
+			addNoteToGroupingLogStmt.setLong(3, groupingLogId);
+			addNoteToGroupingLogStmt.executeUpdate();
+		} catch (SQLException e) {
+			logger.error("Error adding note to Record Grouping Log", e);
 		}
 	}
 

@@ -62,9 +62,9 @@
 				</div>
 			</div>
 
-			<a onclick="return VuFind.Browse.getMoreResults()">
+			<a onclick="return VuFind.Browse.getMoreResults()" role="button">
 				<div class="row" id="more-browse-results">
-					<img src="{img filename="browse_more_arrow.png"}" alt="Load More Browse Results" title="Load More Browse Results">
+					<span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
 				</div>
 			</a>
 		</div>

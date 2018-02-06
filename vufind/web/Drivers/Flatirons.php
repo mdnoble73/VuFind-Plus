@@ -34,9 +34,6 @@ require_once ROOT_DIR . '/Drivers/Millennium.php';
  * 
  */
 class Flatirons extends Millennium{
-	function combineCityStateZipInSelfRegistration(){
-		return false;
-	}
 	public function getSelfRegistrationFields(){
 		global $library;
 		$fields = array();
@@ -57,4 +54,17 @@ class Flatirons extends Millennium{
 
 		return $fields;
 	}
+
+	function selfRegister()
+	{
+		// Capitalize Mailing address
+		$_REQUEST['address'] = strtoupper($_REQUEST['address']);
+		$_REQUEST['city']    = strtoupper($_REQUEST['city']);
+		$_REQUEST['state']   = strtoupper($_REQUEST['state']);
+		$_REQUEST['zip']     = strtoupper($_REQUEST['zip']);
+
+		return parent::selfRegister();
+	}
+
+
 }

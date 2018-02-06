@@ -60,44 +60,72 @@ abstract class Archive_Object extends Action {
 		if (count($viewingRestrictions) > 0){
 			$canView = false;
 			$validHomeLibraries = array();
+			$userPTypes = array();
 
 			$user = UserAccount::getLoggedInUser();
 			if ($user && $user->getHomeLibrary()){
 				$validHomeLibraries[] = $user->getHomeLibrary()->subdomain;
+				$userPTypes = $user->getRelatedPTypes();
 				$linkedAccounts = $user->getLinkedUsers();
 				foreach ($linkedAccounts as $linkedAccount){
 					$validHomeLibraries[] = $linkedAccount->getHomeLibrary()->subdomain;
 				}
 			}
 
-			foreach ($viewingRestrictions as $restriction){
-				$libraryDomain = trim($restriction);
-				if (array_search($libraryDomain, $validHomeLibraries) !== false){
-					//User is valid based on their login
-					$canView = true;
-					break;
+			global $locationSingleton;
+			$physicalLocation = $locationSingleton->getPhysicalLocation();
+			$physicalLibrarySubdomain = null;
+			if ($physicalLocation){
+				$physicalLibrary = new Library();
+				$physicalLibrary->libraryId = $physicalLocation->libraryId;
+				if ($physicalLibrary->find(true)) {
+					$physicalLibrarySubdomain = $physicalLibrary->subdomain;
 				}
 			}
 
-			if (!$canView){
-				global $locationSingleton;
-				$physicalLocation = $locationSingleton->getPhysicalLocation();
-				if ($physicalLocation){
-					$physicalLibrary = new Library();
-					$physicalLibrary->libraryId = $physicalLocation->libraryId;
-					if ($physicalLibrary->find(true)){
-						$physicalLibrarySubdomain = $physicalLibrary->subdomain;
-						foreach ($viewingRestrictions as $restriction){
-							$libraryDomain = trim($restriction);
-							if ($libraryDomain == $physicalLibrarySubdomain){
-								//User is valid based on their login
-								$canView = true;
-								break;
-							}
+			foreach ($viewingRestrictions as $restriction){
+				$restrictionType = 'homeLibraryOrIP';
+				if (strpos($restriction, ':') !== false){
+					list($restrictionType, $restriction) = explode(':', $restriction, 2);
+				}
+				$restrictionType = strtolower(trim($restrictionType));
+				$restrictionType = str_replace(' ', '', strtolower($restrictionType));
+				$restriction = trim($restriction);
+				$restrictionLower = strtolower($restriction);
+				if ($restrictionLower == 'anonymousmasterdownload' || $restrictionLower == 'verifiedmasterdownload'){
+					continue;
+				}
+
+				if ($restrictionType == 'homelibraryorip' || $restrictionType == 'patronsfrom') {
+					$libraryDomain = trim($restriction);
+					if ($restrictionLower == 'default' || array_search($libraryDomain, $validHomeLibraries) !== false){
+						//User is valid based on their login
+						$canView = true;
+						break;
+					}
+				}
+				if ($restrictionType == 'homelibraryorip' || $restrictionType == 'withinlibrary') {
+					$libraryDomain = trim($restriction);
+					if ($libraryDomain == $physicalLibrarySubdomain){
+						//User is valid based on being in the library
+						$canView = true;
+						break;
+					}
+				}
+				if ($restrictionType == 'ptypes' || $restrictionType == 'ptype'){
+					$validPTypes = explode(',', $restriction);
+					foreach ($validPTypes as $pType){
+						if (array_search($pType, $userPTypes) !== false){
+							$canView = true;
+							break;
 						}
+					}
+					if ($canView){
+						break;
 					}
 				}
 			}
+
 		}else{
 			$canView = true;
 		}
@@ -295,7 +323,7 @@ abstract class Archive_Object extends Action {
 		$interface->assign('repositoryLink', $repositoryLink);
 
 		//Check for display restrictions
-		if ($this->recordDriver instanceof BasicImageDriver || $this->recordDriver instanceof LargeImageDriver || $this->recordDriver instanceof BookDriver || $this->recordDriver instanceof PageDriver) {
+		if ($this->recordDriver instanceof BasicImageDriver || $this->recordDriver instanceof LargeImageDriver || $this->recordDriver instanceof BookDriver || $this->recordDriver instanceof PageDriver || $this->recordDriver instanceof AudioDriver || $this->recordDriver instanceof VideoDriver) {
 			/** @var CollectionDriver $collection */
 			$anonymousMasterDownload = true;
 			$verifiedMasterDownload = true;
@@ -316,9 +344,34 @@ abstract class Archive_Object extends Action {
 					$verifiedLcDownload = false;
 				}
 			}
+
+			$viewingRestrictions = $this->recordDriver->getViewingRestrictions();
+			foreach ($viewingRestrictions as $viewingRestriction){
+				$restrictionLower = str_replace(' ', '', strtolower($viewingRestriction));
+				if ($restrictionLower == 'preventanonymousmasterdownload'){
+					$anonymousMasterDownload = false;
+				}
+				if ($restrictionLower == 'preventverifiedmasterdownload'){
+					$verifiedMasterDownload = false;
+					$anonymousMasterDownload = false;
+				}
+				if ($restrictionLower == 'anonymousmasterdownload'){
+					$anonymousMasterDownload = true;
+					$verifiedMasterDownload = true;
+				}
+				if ($restrictionLower == 'verifiedmasterdownload'){
+					$anonymousMasterDownload = true;
+				}
+			}
 			$interface->assign('anonymousMasterDownload', $anonymousMasterDownload);
+			if ($anonymousMasterDownload){
+				$verifiedMasterDownload = true;
+			}
 			$interface->assign('verifiedMasterDownload', $verifiedMasterDownload);
 			$interface->assign('anonymousLcDownload', $anonymousLcDownload);
+			if ($anonymousLcDownload){
+				$verifiedLcDownload = true;
+			}
 			$interface->assign('verifiedLcDownload', $verifiedLcDownload);
 		}
 	}

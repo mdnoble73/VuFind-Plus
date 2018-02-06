@@ -290,6 +290,6 @@ class MaterialsRequest_SummaryReport extends Admin_Admin {
 	}
 
 	function getAllowableRoles(){
-		return array('cataloging', 'library_material_requests');
+		return array('library_material_requests');
 	}
 }

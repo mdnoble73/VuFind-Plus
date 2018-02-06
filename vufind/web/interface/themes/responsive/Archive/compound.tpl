@@ -48,7 +48,7 @@
 
 					<div id="view-image" style="display: none">
 						<div class="large-image-wrapper">
-							<div class="large-image-content">
+							<div class="large-image-content" oncontextmenu="return false;">
 								<div id="pika-openseadragon" class="openseadragon"></div>
 							</div>
 						</div>
@@ -60,13 +60,13 @@
 
 					<div id="view-audio" style="display: none">
 						<img src="" class="img-responsive">
-						<audio width="100%" controls id="audio-player">
+						<audio width="100%" controls id="audio-player" oncontextmenu="return false;">
 							<source src="" type="audio/mpeg" id="audio-player-src">
 						</audio>
 					</div>
 
 					<div id="view-video" style="display: none">
-						<video width="100%" controls poster="" id="video-player">
+						<video width="100%" controls poster="" id="video-player" oncontextmenu="return false;">
 							<source src="" type="video/mp4" id="video-player-src">
 						</video>
 					</div>
