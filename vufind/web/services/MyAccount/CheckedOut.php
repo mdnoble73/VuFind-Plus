@@ -104,6 +104,7 @@ class MyAccount_CheckedOut extends MyAccount{
 					} elseif ($selectedSortOption == 'libraryAccount') {
 						$sortKey =  $curTitle['user'] . '-' . $sortTitle;
 					}
+					$sortKey = strtolower($sortKey);
 					$sortKey = utf8_encode($sortKey . '-' . $curTransaction);
 
 					$itemBarcode = isset($curTitle['barcode']) ? $curTitle['barcode'] : null;
