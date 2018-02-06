@@ -56,6 +56,9 @@
 ###############################################
 17 */2 * * * /usr/local/vufind-plus/sites/anythink.test/copyCovers.sh
 
+# Hoopla
+30 20 * * * cd /usr/local/vufind-plus/vufind/hoopla_export; java -jar hoopla_export.jar marmot.test
+
 # Check Apache Solr process and website that it has not stalled.
 */3 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./solrTest.sh
 
