@@ -64,7 +64,11 @@
 							{foreach from=$summary item="item"}
 								<tr {if $item.availableCopies}class="available" {/if}>
 									{if $item.onOrderCopies > 0}
-										<td>{$item.onOrderCopies} on order</td>
+										{if $showOnOrderCounts}
+											<td>{$item.onOrderCopies} on order</td>
+										{else}
+											<td>Copies on order</td>
+										{/if}
 									{else}
 										<td>{$item.availableCopies} of {$item.totalCopies}</td>
 									{/if}
