@@ -29,7 +29,7 @@ class MergedGroupedWork extends DB_DataObject {
 				'property' => 'sourceGroupedWorkId',
 				'type' => 'text',
 				'size' => 36,
-				'maxLength' => 36,
+				'maxLength' => 40,
 				'label' => 'Source Grouped Work Id',
 				'description' => 'The id of the grouped work to be merged.',
 				'serverValidation' => 'validateSource',
@@ -40,7 +40,7 @@ class MergedGroupedWork extends DB_DataObject {
 				'property' => 'destinationGroupedWorkId',
 				'type' => 'text',
 				'size' => 36,
-				'maxLength' => 36,
+				'maxLength' => 40,
 				'label' => 'Destination Grouped Work Id',
 				'description' => 'The id of the grouped work to merge the work into.',
 				'serverValidation' => 'validateDestination',
@@ -68,6 +68,7 @@ class MergedGroupedWork extends DB_DataObject {
 				'errors' => array(),
 		);
 
+		$this->sourceGroupedWorkId = trim($this->sourceGroupedWorkId);
 		if (!preg_match('/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/i', $this->sourceGroupedWorkId)){
 			$validationResults = array(
 					'validatedOk' => false,
@@ -83,6 +84,7 @@ class MergedGroupedWork extends DB_DataObject {
 			'validatedOk' => true,
 			'errors' => array(),
 		);
+		$this->destinationGroupedWorkId = trim($this->destinationGroupedWorkId);
 
 		if ($this->destinationGroupedWorkId == $this->sourceGroupedWorkId){
 			$validationResults = array(
@@ -109,4 +111,4 @@ class MergedGroupedWork extends DB_DataObject {
 
 		return $validationResults;
 	}
-} 
+}
