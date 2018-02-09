@@ -294,11 +294,11 @@ class AspencatRecordProcessor extends IlsRecordProcessor {
 			sourceType = itemField.getSubfield('e').getData();
 		}else{
 			//Try 949a
-			DataField field949 = (DataField)record.getVariableField("949");
+			DataField field949 = record.getDataField("949");
 			if (field949 != null && field949.getSubfield('a') != null){
 				sourceType = field949.getSubfield('a').getData();
 			}else{
-				DataField field037 = (DataField)record.getVariableField("037");
+				DataField field037 = record.getDataField("037");
 				if (field037 != null && field037.getSubfield('b') != null){
 					sourceType = field037.getSubfield('b').getData();
 				}else{

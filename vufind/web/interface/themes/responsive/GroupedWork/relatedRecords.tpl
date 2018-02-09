@@ -5,7 +5,7 @@
 			{display_if_inconsistent array=$relatedRecords key="publicationDate"}
 				<th>Pub. Date</th>
 			{/display_if_inconsistent}
-			{if $relatedManifestation.format == 'eBook' || $relatedManifestation.format == 'eAudiobook' || $relatedManifestation.format == 'eMagazine'}
+			{if in_array(strtolower($relatedManifestation.format), array('ebook', 'eaudiobook', 'emagazine', 'evideo'))}
 				<th>Source</th>
 			{/if}
 			{display_if_inconsistent array=$relatedRecords key="edition"}
@@ -32,7 +32,7 @@
 				{display_if_inconsistent array=$relatedRecords key="publicationDate"}
 					<td><a href="{$relatedRecord.url}">{$relatedRecord.publicationDate}</a></td>
 				{/display_if_inconsistent}
-				{if $relatedManifestation.format == 'eBook' || $relatedManifestation.format == 'eAudiobook' || $relatedManifestation.format == 'eMagazine'}
+				{if in_array(strtolower($relatedManifestation.format), array('ebook', 'eaudiobook', 'emagazine', 'evideo'))}
 					<td><a href="{$relatedRecord.url}">{$relatedRecord.eContentSource}</a></td>
 				{/if}
 				{display_if_inconsistent array=$relatedRecords key="edition"}

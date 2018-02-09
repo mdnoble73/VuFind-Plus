@@ -92,6 +92,13 @@ public interface Record extends Serializable {
     List<ControlField> getControlFields();
 
     /**
+     * Returns the first instance of a data field by tag number
+     *
+     * @return DataField - the data field
+     */
+    DataField getDataField(String tag);
+
+    /**
      * Returns a list of data fields
      *
      * @return List - the data fields

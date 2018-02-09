@@ -76,6 +76,7 @@ class Library extends DB_DataObject
 	public $overdriveRequirePin;
 	public $overdriveAdvantageName;
 	public $overdriveAdvantageProductsKey;
+	public $hooplaLibraryID;
 	public $systemsToRepeatIn;
 	public $additionalLocationsToShowAvailabilityFor;
 	public $homeLink;
@@ -208,6 +209,7 @@ class Library extends DB_DataObject
 	public $interLibraryLoanUrl;
 	public $expiredMessage;
 	public $expirationNearMessage;
+	public $showOnOrderCounts;
 
 	//Combined Results (Bento Box)
 	public $enableCombinedResults;
@@ -229,6 +231,7 @@ class Library extends DB_DataObject
 	public $archiveRequestFieldPurpose;
 
 	public $archiveMoreDetailsRelatedObjectsOrEntitiesDisplayMode;
+
 
 
 	// Use this to set which details will be shown in the the Main Details section of the record view.
@@ -457,8 +460,8 @@ class Library extends DB_DataObject
 					'showLoginButton'         => array('property'=>'showLoginButton', 'type'=>'checkbox', 'label'=>'Show Login Button', 'description'=>'Whether or not the login button is displayed so patrons can login to the site', 'hideInLists' => true, 'default' => 1),
 					'allowPinReset'           => array('property'=>'allowPinReset', 'type'=>'checkbox', 'label'=>'Allow PIN Reset', 'description'=>'Whether or not the user can reset their PIN if they forget it.', 'hideInLists' => true, 'default' => 0),
 					'preventExpiredCardLogin' => array('property'=>'preventExpiredCardLogin', 'type'=>'checkbox', 'label'=>'Prevent Login for Expired Cards', 'description'=>'Users with expired cards will not be allowed to login. They will recieve an expired card notice instead.', 'hideInLists' => true, 'default' => 0),
-					'loginFormUsernameLabel'  => array('property'=>'loginFormUsernameLabel', 'type'=>'text', 'label'=>'Login Form Username Label', 'description'=>'The label to show for the username when logging in', 'size'=>'50', 'hideInLists' => true, 'default'=>'Your Name'),
-					'loginFormPasswordLabel'  => array('property'=>'loginFormPasswordLabel', 'type'=>'text', 'label'=>'Login Form Password Label', 'description'=>'The label to show for the password when logging in', 'size'=>'50', 'hideInLists' => true, 'default'=>'Library Card Number'),
+					'loginFormUsernameLabel'  => array('property'=>'loginFormUsernameLabel', 'type'=>'text', 'label'=>'Login Form Username Label', 'description'=>'The label to show for the username when logging in', 'size'=>'100', 'hideInLists' => true, 'default'=>'Your Name'),
+					'loginFormPasswordLabel'  => array('property'=>'loginFormPasswordLabel', 'type'=>'text', 'label'=>'Login Form Password Label', 'description'=>'The label to show for the password when logging in', 'size'=>'100', 'hideInLists' => true, 'default'=>'Library Card Number'),
 				)),
 				'selfRegistrationSection' => array('property' => 'selfRegistrationSection', 'type' => 'section', 'label' => 'Self Registration', 'hideInLists' => true,
 						'helpLink' => 'https://docs.google.com/document/d/1MZAOlg3F2IEa0WKsJmDQiCFUrw-pVo_fnSNexAV4MbQ', 'properties' => array(
@@ -548,7 +551,8 @@ class Library extends DB_DataObject
 					),
 				)),
 
-				'combinedResultsSection' => array('property' => 'combinedResultsSection', 'type' => 'section', 'label' => 'Combined Results', 'hideInLists' => true, 'properties' => array(
+				'combinedResultsSection' => array('property' => 'combinedResultsSection', 'type' => 'section', 'label' => 'Combined Results', 'hideInLists' => true,
+						'helpLink' => 'https://docs.google.com/document/d/1dcG12grGAzYlWAl6LWUnr9t-wdqcmMTJVwjLuItRNwk', 'properties' => array(
 						'enableCombinedResults' => array('property' => 'enableCombinedResults', 'type'=>'checkbox', 'label'=>'Enable Combined Results', 'description'=>'Whether or not combined results should be shown ', 'hideInLists' => true, 'default' => false),
 						'combinedResultsLabel' => array('property' => 'combinedResultsLabel', 'type' => 'text', 'label' => 'Combined Results Label', 'description' => 'The label to use in the search source box when combined results is active.', 'size'=>'20', 'hideInLists' => true, 'default' => 'Combined Results'),
 						'defaultToCombinedResults' => array('property' => 'defaultToCombinedResults', 'type'=>'checkbox', 'label'=>'Default To Combined Results', 'description'=>'Whether or not combined results should be the default search source when active ', 'hideInLists' => true, 'default' => true),
@@ -668,6 +672,7 @@ class Library extends DB_DataObject
 					'helpLink' => 'https://docs.google.com/document/d/1PjlFlhPVNRVcg_uzzHLQLkRicyPEB1KeVNok4Wkye1I', 'properties' => array(
 					'showItsHere' => array('property'=>'showItsHere', 'type'=>'checkbox', 'label'=>'Show It\'s Here', 'description'=>'Whether or not the holdings summary should show It\'s here based on IP and the currently logged in patron\'s location.', 'hideInLists' => true, 'default' => 1),
 					'showGroupedHoldCopiesCount' => array('property'=>'showGroupedHoldCopiesCount', 'type'=>'checkbox', 'label'=>'Show Hold and Copy Counts', 'description'=>'Whether or not the hold count and copies counts should be visible for grouped works when summarizing formats.', 'hideInLists' => true, 'default' => 1),
+					'showOnOrderCounts' => array('property'=>'showOnOrderCounts', 'type'=>'checkbox', 'label'=>'Show On Order Counts', 'description'=>'Whether or not counts of Order Items should be shown .', 'hideInLists' => true, 'default' => 1),
 			)),
 
 			'materialsRequestSection'=> array('property'=>'materialsRequestSection', 'type' => 'section', 'label' =>'Materials Request', 'hideInLists' => true,
@@ -776,6 +781,11 @@ class Library extends DB_DataObject
 				'overdriveRequirePin'            => array('property'=>'overdriveRequirePin', 'type'=>'checkbox', 'label'=>'Is a Pin Required to log into Overdrive website?', 'description'=>'Turn on to allow repeat search in Overdrive functionality.', 'hideInLists' => true, 'default' => 0),
 				'overdriveAdvantageName'         => array('property'=>'overdriveAdvantageName', 'type'=>'text', 'label'=>'Overdrive Advantage Name', 'description'=>'The name of the OverDrive Advantage account if any.', 'size'=>'80', 'hideInLists' => true,),
 				'overdriveAdvantageProductsKey'  => array('property'=>'overdriveAdvantageProductsKey', 'type'=>'text', 'label'=>'Overdrive Advantage Products Key', 'description'=>'The products key for use when building urls to the API from the advantageAccounts call.', 'size'=>'80', 'hideInLists' => false,),
+			)),
+			'hooplaSection' => array('property'=>'hooplaSection', 'type' => 'section', 'label' =>'Hoopla', 'hideInLists' => true,
+//					'helpLink'=>'',
+					                     'properties' => array(
+				'hooplaLibraryID'      => array('property'=>'hooplaLibraryID', 'type'=>'integer', 'label'=>'Hoopla Library ID', 'description'=>'The ID Number Hoopla uses for this library', 'hideInLists' => true),
 			)),
 			'archiveSection' => array('property'=>'archiveSection', 'type' => 'section', 'label' =>'Local Content Archive', 'hideInLists' => true, 'helpLink'=>'https://docs.google.com/a/marmot.org/document/d/128wrNtZu_sUqm2_NypC6Sx8cOvM2cdmeOUDp0hUhQb4/edit?usp=sharing_eid&ts=57324e27', 'properties' => array(
 					'enableArchive' => array('property'=>'enableArchive', 'type'=>'checkbox', 'label'=>'Allow Searching the Archive', 'description'=>'Whether or not information from the archive is shown in Pika.', 'hideInLists' => true, 'default' => 0),
@@ -1014,7 +1024,7 @@ class Library extends DB_DataObject
 		if ($searchSource == null){
 			global $searchSource;
 		}
-		if ($searchSource = 'combinedResults'){
+		if ($searchSource == 'combinedResults'){
 			$searchSource = 'local';
 		}
 		if (!array_key_exists($searchSource, Library::$searchLibrary)){

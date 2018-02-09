@@ -1,11 +1,13 @@
 package org.vufind;
 
+import com.sun.deploy.panel.PathEditor;
 import com.sun.istack.internal.NotNull;
 import org.apache.log4j.Logger;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.SolrInputField;
 
 import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * A representation of the grouped record as it will be added to Solr.
@@ -916,6 +918,9 @@ public class GroupedWorkSolr implements Cloneable {
 		this.id = id;
 	}
 
+	private static Pattern removeBracketsPattern = Pattern.compile("\\[.*?\\]");
+	private static Pattern commonSubtitlePattern = Pattern.compile("(?i)((?:[(])?(?:a )?graphic novel|audio cd|book club kit|large print(?:[)])?)$");
+	private static Pattern punctuationPattern = Pattern.compile("[.\\\\/()\\[\\]:;]");
 	void setTitle(String shortTitle, String displayTitle, String sortableTitle, String recordFormat) {
 		if (shortTitle != null){
 			shortTitle = Util.trimTrailingPunctuation(shortTitle);
@@ -955,38 +960,38 @@ public class GroupedWorkSolr implements Cloneable {
 
 			if (updateTitle){
 				//Strip out anything in brackets unless that would cause us to show nothing
-				String tmpTitle = shortTitle.replaceAll("\\[.*?\\]", "").trim();
+				String tmpTitle = removeBracketsPattern.matcher(shortTitle).replaceAll("").trim();
 				if (shortTitle.length() > 0){
 					shortTitle = tmpTitle;
 				}
 				//Remove common formats
-				tmpTitle = shortTitle.replaceAll("(?i)((?:[(])?(?:a )?graphic novel|audio cd|book club kit|large print(?:[)])?)$", "").trim();
+				tmpTitle = commonSubtitlePattern.matcher(shortTitle).replaceAll("").trim();
 				if (tmpTitle.length() > 0){
 					shortTitle = tmpTitle;
 				}
 				this.title = shortTitle;
 				this.titleFormat = recordFormat;
 				//Strip out anything in brackets unless that would cause us to show nothing
-				tmpTitle = sortableTitle.replaceAll("\\[.*?\\]", "").trim();
+				tmpTitle = removeBracketsPattern.matcher(sortableTitle).replaceAll("").trim();
 				if (tmpTitle.length() > 0){
 					sortableTitle = tmpTitle;
 				}
 				//Remove common formats
-				tmpTitle = sortableTitle.replaceAll("(?i)((?:a )?graphic novel|audio cd|book club kit|large print)$", "").trim();
+				tmpTitle = commonSubtitlePattern.matcher(sortableTitle).replaceAll("").trim();
 				if (tmpTitle.length() > 0){
 					sortableTitle = tmpTitle;
 				}
 				//remove punctuation from the sortable title
-				sortableTitle = sortableTitle.replaceAll("[.\\\\/()\\[\\]:;]", "");
+				sortableTitle = punctuationPattern.matcher(sortableTitle).replaceAll("");
 				this.titleSort = sortableTitle.trim();
 				displayTitle = Util.trimTrailingPunctuation(displayTitle);
 				//Strip out anything in brackets unless that would cause us to show nothing
-				tmpTitle = displayTitle.replaceAll("\\[.*?\\]", "").trim();
+				tmpTitle = removeBracketsPattern.matcher(displayTitle).replaceAll("").trim();
 				if (tmpTitle.length() > 0){
 					displayTitle = tmpTitle;
 				}
 				//Remove common formats
-				tmpTitle = displayTitle.replaceAll("(?i)((?:a )?graphic novel|audio cd|book club kit|large print)$", "").trim();
+				tmpTitle = commonSubtitlePattern.matcher(displayTitle).replaceAll("").trim();
 				if (tmpTitle.length() > 0){
 					displayTitle = tmpTitle;
 				}
@@ -1009,12 +1014,12 @@ public class GroupedWorkSolr implements Cloneable {
 			subTitle = Util.trimTrailingPunctuation(subTitle);
 			//TODO: determine if the subtitle should be changed?
 			//Strip out anything in brackets unless that would cause us to show nothing
-			String tmpTitle = subTitle.replaceAll("\\[.*?\\]", "").trim();
+			String tmpTitle = removeBracketsPattern.matcher(subTitle).replaceAll("").trim();
 			if (tmpTitle.length() > 0){
 				subTitle = tmpTitle;
 			}
 			//Remove common formats
-			tmpTitle = subTitle.replaceAll("(?i)((?:a )?graphic novel|audio cd|book club kit|large print)$", "").trim();
+			tmpTitle = commonSubtitlePattern.matcher(subTitle).replaceAll("").trim();
 			if (tmpTitle.length() > 0){
 				subTitle = tmpTitle;
 			}

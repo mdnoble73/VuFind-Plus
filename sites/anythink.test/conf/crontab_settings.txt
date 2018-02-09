@@ -22,6 +22,8 @@
 
 # Hoopla extract - once a week for the entire server
 5 23 * * 0 cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh anythink.test
+# Hoopla extract from API
+0 21 * * * cd /usr/local/vufind-plus/vufind/hoopla_export; java -jar hoopla_export.jar anythink.test
 
 ########################
 # Update Grouped Works #

@@ -72,13 +72,16 @@
 # Process Offline Circs
 29 21 * * * cd /usr/local/vufind-plus/vufind/cron; java -jar cron.jar marmot.production OfflineCirculation
 
+# Check Apache Solr process and website that it has not stalled.
+*/3 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./solrTest.sh
+
+# Check for semaphore errors
+17 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./apacheSemaphoreCleanup.sh root
+
 ###################################
 # Data Extract from other systems #
 ###################################
 # Library supplied covers
 */10 * * * * /usr/local/vufind-plus/sites/marmot.production/copyCovers.sh
-
-# Check Apache Solr process and website that it has not stalled.
-*/10 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./solrTest.sh
 
 #final end of line character needed for crontab to be read

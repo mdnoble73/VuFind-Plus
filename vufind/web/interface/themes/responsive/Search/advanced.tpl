@@ -168,23 +168,22 @@
 															{if $facetInfo.facetName == "publishDate"}
 															<div class="form-inline">
 																<div class="form-group">
-																<label for="yearfrom" class="yearboxlabel">From: </label>
-																<input type="text" size="4" maxlength="4" class="yearbox form-control" name="yearfrom" id="yearfrom"
+																<label for="publishDateyearfrom" class="yearboxlabel">From: </label>
+																<input type="text" size="4" maxlength="4" class="yearbox form-control" name="publishDateyearfrom" id="publishDateyearfrom"
 																       value="">
 																</div>
 																<div class="form-group">
-																<label for="yearto" class="yearboxlabel">To: </label>
-																<input type="text" size="4" maxlength="4" class="yearbox form-control" name="yearto" id="yearto"
+																<label for="publishDateyearto" class="yearboxlabel">To: </label>
+																<input type="text" size="4" maxlength="4" class="yearbox form-control" name="publishDateyearto" id="publishDateyearto"
 																       value="">
 																</div>
 															</div>
 																<div id="yearDefaultLinks">
-																	<a onclick="$('#yearfrom').val('2015');$('#yearto').val('');"
-																	   href='javascript:void(0);'>since&nbsp;2015 </a>
-																	&bull; <a onclick="$('#yearfrom').val('2010');$('#yearto').val('');"
-																	         href='javascript:void(0);'>since&nbsp;2010 </a>
-																	&bull; <a onclick="$('#yearfrom').val('2005');$('#yearto').val('');"
-																	         href='javascript:void(0);'>since&nbsp;2005 </a>
+																	{assign var=thisyear value=$smarty.now|date_format:"%Y"}
+																	Published in the last:<br/>
+																	<a onclick="$('#publishDateyearfrom').val('{$thisyear-1}');$('#publishDateyearto').val('');" href='javascript:void(0);'>year</a>
+																	&bullet; <a onclick="$('#publishDateyearfrom').val('{$thisyear-5}');$('#publishDateyearto').val('');" href='javascript:void(0);'>5&nbsp;years</a>
+																	&bullet; <a onclick="$('#publishDateyearfrom').val('{$thisyear-10}');$('#publishDateyearto').val('');" href='javascript:void(0);'>10&nbsp;years</a>
 																</div>
 															{elseif $facetInfo.facetName == "lexile_score"}
 																<div id="lexile-range"></div>

@@ -31,7 +31,7 @@
 # On Reboot #
 #############
 # Continuous Re-Indexing
-@reboot cd /usr/local/VuFind-Plus/sites/nashville.test; ./continuous_partial_reindex.sh
+#@reboot sleep 300 &&  /usr/local/VuFind-Plus/sites/nashville.test/continuous_partial_reindex.sh
 
 ######################
 # MySQL Nightly Dump #
@@ -82,6 +82,9 @@
 # SIDELOADED ECONTENT MARC triggered HERE (and commented out in full_update.sh)
 0 22 * * * cd /usr/local/vufind-plus/vufind/cron; ./sideload.sh nashville.test
 
+# Hoopla extract from API
+0 19 * * * cd /usr/local/vufind-plus/vufind/hoopla_export; java -jar hoopla_export.jar nashville.test
+
 # Download Lexile and AR files triggered in full_update.sh
 
 ###############################
@@ -98,4 +101,7 @@
 
 # Check Apache Solr process and website that it has not stalled.
 */3 6-23 * * * cd /usr/local/vufind-plus/vufind/cron/; ./solrTest.sh
+
+# Check for semaphore errors
+17 * * * * cd /usr/local/vufind-plus/vufind/cron/; ./apacheSemaphoreCleanup.sh james.staub@nashville.gov,Mark.Noble@nashville.gov,Pascal.Brammeier@nashville.gov
 

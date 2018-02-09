@@ -309,7 +309,7 @@
 }
 .browse-thumbnail-sorted{
   .thumbnail;
-  border-width: 0px;
+  border-width: 0;
   height: 210px;
   overflow: hidden;
   text-align: center;
@@ -334,13 +334,17 @@
   }
 }
 #more-browse-results{
-  background-color: #e6e6e6;
-  color: #c7c9ca;
+  background-color: @more-browse-results-backgroundcolor;
+  color: @more-browse-results-color;
   .text-center();
-  font-weight: bold;
-  font-size: 16px;
   padding: 2px;
   cursor: pointer;
+  border-radius: 4px;
+  line-height: 0;
+  span {
+    font-weight: bold;
+    font-size: 33px;
+  }
 }
 
 // Browse Sub-Categories

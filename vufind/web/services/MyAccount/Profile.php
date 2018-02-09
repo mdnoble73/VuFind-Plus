@@ -122,6 +122,8 @@ class MyAccount_Profile extends MyAccount
 						$result = $overDriveDriver->updateLendingOptions();
 		*/
 					$patron->updateOverDriveOptions();
+				} elseif ($updateScope == 'hoopla') {
+					$patron->updateHooplaOptions();
 				} elseif ($updateScope == 'pin') {
 					$errors = $patron->updatePin();
 					session_start(); // any writes to the session storage also closes session. possibly happens in updatePin. plb 4-21-2015

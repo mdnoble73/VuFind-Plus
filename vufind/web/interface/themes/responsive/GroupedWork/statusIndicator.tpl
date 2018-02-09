@@ -61,7 +61,15 @@
 		{/if}
 		{if $statusInformation.onOrderCopies > 0}
 			<br/>
-			{$statusInformation.onOrderCopies} {if $statusInformation.onOrderCopies == 1}copy{else}copies{/if} on order.
+			{if $showOnOrderCounts}
+				{$statusInformation.onOrderCopies} {if $statusInformation.onOrderCopies == 1}copy{else}copies{/if} on order.
+			{else}
+				{if $statusInformation.totalCopies > 0}
+					Additional copies on order
+				{else}
+					Copies on order
+				{/if}
+			{/if}
 		{/if}
 
 	</div>

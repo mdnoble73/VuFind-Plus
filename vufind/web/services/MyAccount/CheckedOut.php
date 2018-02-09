@@ -10,6 +10,9 @@
 
 require_once ROOT_DIR . '/services/MyAccount/MyAccount.php';
 class MyAccount_CheckedOut extends MyAccount{
+
+	const SORT_LAST_ALPHA = 'zzzzz';
+
 	function launch(){
 
 		$allCheckedOut = array();
@@ -63,18 +66,18 @@ class MyAccount_CheckedOut extends MyAccount{
 				$interface->assign('showNotInterested', false);
 				//Do sorting now that we have all records
 				$curTransaction = 0;
-				$hasOnlyOverDriveCheckOuts = true;
+				$hasOnlyEContentCheckOuts = true;
 				foreach ($allCheckedOut as $i => $curTitle) {
 					$curTransaction++;
-					if (strpos($i, 'OverDrive') === false) {
-						$hasOnlyOverDriveCheckOuts = false;
+					if ($hasOnlyEContentCheckOuts && strpos($i, 'OverDrive') === false && strpos($i, 'Hoopla') === false) {
+						$hasOnlyEContentCheckOuts = false;
 					}
-					$sortTitle = isset($curTitle['title_sort']) ? $curTitle['title_sort'] : $curTitle['title'];
+					$sortTitle = !empty($curTitle['title_sort']) ? $curTitle['title_sort'] : (empty($curTitle['title'])? $this::SORT_LAST_ALPHA : $curTitle['title']);
 					$sortKey   = $sortTitle;
 					if ($selectedSortOption == 'title') {
 						$sortKey = $sortTitle;
 					} elseif ($selectedSortOption == 'author') {
-						$sortKey = (isset($curTitle['author']) ? $curTitle['author'] : "Unknown") . '-' . $sortTitle;
+						$sortKey = (empty($curTitle['author']) ? $this::SORT_LAST_ALPHA : $curTitle['author']) . '-' . $sortTitle;
 					} elseif ($selectedSortOption == 'dueDate') {
 						if (isset($curTitle['dueDate'])) {
 							if (preg_match('/.*?(\\d{1,2})[-\/](\\d{1,2})[-\/](\\d{2,4}).*/', $curTitle['dueDate'], $matches)) {
@@ -84,14 +87,24 @@ class MyAccount_CheckedOut extends MyAccount{
 							}
 						}
 					} elseif ($selectedSortOption == 'format') {
-						$sortKey = (isset($curTitle['format']) ? $curTitle['format'] : "Unknown") . '-' . $sortTitle;
+						$sortKey = ((empty($curTitle['format']) || strcasecmp($curTitle['format'], 'unknown') == 0) ? $this::SORT_LAST_ALPHA : $curTitle['format'] ). '-' . $sortTitle;
 					} elseif ($selectedSortOption == 'renewed') {
-						$sortKey = str_pad((isset($curTitle['renewCount']) ? $curTitle['renewCount'] : 0), 3, '0', STR_PAD_LEFT) . '-' . $sortTitle;
+						if (isset($curTitle['renewCount']) && is_numeric($curTitle['renewCount'])) {
+							$sortKey = str_pad($curTitle['renewCount'], 3, '0', STR_PAD_LEFT) . '-' . $sortTitle;
+						} else {
+							$sortKey = '***' . '-' . $sortTitle;
+						}
 					} elseif ($selectedSortOption == 'holdQueueLength') {
-						$sortKey = str_pad((isset($curTitle['holdQueueLength']) ? $curTitle['holdQueueLength'] : 0), 3, '0', STR_PAD_LEFT) . '-' . $sortTitle;
+						if (isset($curTitle['holdQueueLength']) && is_numeric($curTitle['holdQueueLength'])) {
+							$sortKey = str_pad($curTitle['holdQueueLength'], 3, '0', STR_PAD_LEFT) . '-' . $sortTitle;
+						} else {
+							$sortKey = '***' . '-' . $sortTitle;
+						}
+
 					} elseif ($selectedSortOption == 'libraryAccount') {
 						$sortKey =  $curTitle['user'] . '-' . $sortTitle;
 					}
+					$sortKey = strtolower($sortKey);
 					$sortKey = utf8_encode($sortKey . '-' . $curTransaction);
 
 					$itemBarcode = isset($curTitle['barcode']) ? $curTitle['barcode'] : null;
@@ -127,7 +140,7 @@ class MyAccount_CheckedOut extends MyAccount{
 					ksort($allCheckedOut);
 				}
 
-				$interface->assign('hasOnlyOverDriveCheckOuts', $hasOnlyOverDriveCheckOuts);
+				$interface->assign('hasOnlyEContentCheckOuts', $hasOnlyEContentCheckOuts);
 				$interface->assign('transList', $allCheckedOut);
 				unset($_SESSION['renew_message']);
 			}
@@ -138,7 +151,7 @@ class MyAccount_CheckedOut extends MyAccount{
 
 		}
 
-		$this->display('checkedout.tpl', 'Checked Out Items');
+		$this->display('checkedout.tpl', translate('Checked Out Titles'));
 	}
 
 	public function exportToExcel($checkedOutItems, $showOut, $showRenewed, $showWaitList) {

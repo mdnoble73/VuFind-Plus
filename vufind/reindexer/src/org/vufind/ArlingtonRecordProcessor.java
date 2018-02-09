@@ -6,7 +6,9 @@ import org.marc4j.marc.Record;
 import org.marc4j.marc.Subfield;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -19,7 +21,7 @@ import java.util.regex.Pattern;
  * Time: 9:48 PM
  */
 class ArlingtonRecordProcessor extends IIIRecordProcessor {
-
+	private HashSet<String> recordsWithVolumes = new HashSet<>();
 	ArlingtonRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, ResultSet indexingProfileRS, Logger logger, boolean fullReindex) {
 		super(indexer, vufindConn, indexingProfileRS, logger, fullReindex);
 
@@ -27,7 +29,23 @@ class ArlingtonRecordProcessor extends IIIRecordProcessor {
 
 		loadOrderInformationFromExport();
 
+		loadVolumesFromExport(vufindConn);
+
 		validCheckedOutStatusCodes.add("o");
+	}
+
+	private void loadVolumesFromExport(Connection vufindConn){
+		try{
+			PreparedStatement loadVolumesStmt = vufindConn.prepareStatement("SELECT distinct(recordId) FROM ils_volume_info", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			ResultSet volumeInfoRS = loadVolumesStmt.executeQuery();
+			while (volumeInfoRS.next()){
+				String recordId = volumeInfoRS.getString(1);
+				recordsWithVolumes.add(recordId);
+			}
+			volumeInfoRS.close();
+		}catch (SQLException e){
+			logger.error("Error loading volumes from the export", e);
+		}
 	}
 
 	@Override
@@ -287,9 +305,33 @@ class ArlingtonRecordProcessor extends IIIRecordProcessor {
 		return unsuppressedEcontentRecords;
 	}
 
+	boolean checkIfBibShouldBeRemovedAsItemless(RecordInfo recordInfo) {
+		boolean hasVolumeRecords = recordsWithVolumes.contains(recordInfo.getFullIdentifier());
+		if (recordInfo.getNumPrintCopies() == 0 && recordInfo.getNumCopiesOnOrder() == 0 && suppressItemlessBibs){
+			return true;
+			//Need to do additional work to determine exactly how Arlington wants bibs with volumes, but no items
+			//to show.  See #D-81
+			/*if (hasVolumeRecords){
+				//Add a fake record for use in scoping
+				recordInfo.setHasVolumes(true);
+				ItemInfo volumeInfo = new ItemInfo();
+				volumeInfo.setItemIdentifier("tmpVolume");
+				for (Scope scope: indexer.getScopes()){
+					volumeInfo.addScope(scope);
+				}
+				recordInfo.addItem(volumeInfo);
+				return false;
+			}else{
+				return true;
+			}*/
+		}else{
+			return false;
+		}
+	}
+
 	private static Pattern suppressedBCode3Pattern = Pattern.compile("^[xnopwhd]$");
 	protected boolean isBibSuppressed(Record record) {
-		DataField field998 = (DataField)record.getVariableField("998");
+		DataField field998 = record.getDataField("998");
 		if (field998 != null){
 			Subfield suppressionSubfield = field998.getSubfield('e');
 			if (suppressionSubfield != null){
@@ -336,8 +378,8 @@ class ArlingtonRecordProcessor extends IIIRecordProcessor {
 		//groupedWork.addLCSubjects(getLCSubjects(record));
 		//Add bisac subjects
 		//groupedWork.addBisacSubjects(getBisacSubjects(record));
-		//groupedWork.addGenre(getAllSubfields(record, "655abcvxyz", " -- "));
-		//groupedWork.addGenreFacet(getAllSubfields(record, "600v:610v:611v:630v:648v:650v:651v:655av", " -- "));
+		groupedWork.addGenre(MarcUtil.getAllSubfields(record, "655abcvxyz", " -- "));
+		groupedWork.addGenreFacet(MarcUtil.getAllSubfields(record, "655av", " -- "));
 		//groupedWork.addGeographic(getAllSubfields(record, "651avxyz", " -- "));
 		//groupedWork.addGeographicFacet(getAllSubfields(record, "600z:610z:611z:630z:648z:650z:651a:651z:655z", " -- "));
 		//groupedWork.addEra(getAllSubfields(record, "600d:610y:611y:630y:648a:648y:650y:651y:655y", " -- "));

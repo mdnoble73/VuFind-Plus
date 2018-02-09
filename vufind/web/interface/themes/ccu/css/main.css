@@ -9366,7 +9366,7 @@ a.browse-thumbnail.active {
   border-radius: 4px;
   -webkit-transition: all 0.2s ease-in-out;
   transition: all 0.2s ease-in-out;
-  border-width: 0px;
+  border-width: 0;
   height: 210px;
   overflow: hidden;
   text-align: center;
@@ -9416,13 +9416,17 @@ a.browse-thumbnail-sorted.active {
   border-radius: 3px;
 }
 #more-browse-results {
-  background-color: #e6e6e6;
-  color: #c7c9ca;
+  background-color: #0d8ec7;
+  color: #d4d4d4;
   text-align: center;
-  font-weight: bold;
-  font-size: 16px;
   padding: 2px;
   cursor: pointer;
+  border-radius: 4px;
+  line-height: 0;
+}
+#more-browse-results span {
+  font-weight: bold;
+  font-size: 33px;
 }
 #browse-sub-category-menu {
   margin-top: 10px;

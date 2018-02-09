@@ -8,7 +8,7 @@ PIKASERVER=opac.marmot.org
 PIKADBNAME=vufind
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
 
-MINFILE1SIZE=$((5040000000))
+MINFILE1SIZE=$((5070000000))
 
 # Check for conflicting processes currently running
 function checkConflictingProcesses() {
@@ -59,7 +59,6 @@ cd /usr/local/vufind-plus/vufind/cron;./GetHooplaFromMarmot.sh >> ${OUTPUT_FILE}
 
 #Adams Ebrary DDA files
 /usr/local/vufind-plus/sites/${PIKASERVER}/moveFullExport.sh adams/ebrary/DDA ebrary/adams >> ${OUTPUT_FILE}
-#/usr/local/vufind-plus/vufind/cron/mergeSideloadMarc.sh ebrary/adams/dda >> ${OUTPUT_FILE}
 
 # CCU Alexander Street Press Marc Updates
 /usr/local/vufind-plus/vufind/cron/fetch_sideload_data.sh ${PIKASERVER} ccu/alexanderStreetPress alexanderstreetpress/ccu >> ${OUTPUT_FILE}
@@ -84,6 +83,10 @@ cd /usr/local/vufind-plus/vufind/cron;./GetHooplaFromMarmot.sh >> ${OUTPUT_FILE}
 
 # Englewood Axis 360 Marc Updates
 /usr/local/vufind-plus/vufind/cron/fetch_sideload_data.sh ${PIKASERVER} englewood/axis360 axis360/englewood >> ${OUTPUT_FILE}
+
+# Marmot RBDigital (magazine) Marc Updates
+/usr/local/vufind-plus/vufind/cron/fetch_sideload_data.sh ${PIKASERVER} marmot/rbdigital zinio >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/fetch_sideload_data.sh ${PIKASERVER} marmot/rbdigitalBackIssues zinio/backIssues >> ${OUTPUT_FILE}
 
 # Western Oxford Reference Marc Updates
 /usr/local/vufind-plus/vufind/cron/fetch_sideload_data.sh ${PIKASERVER} western/oxfordReference oxfordReference/western >> ${OUTPUT_FILE}

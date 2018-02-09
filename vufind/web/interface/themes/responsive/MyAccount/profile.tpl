@@ -461,6 +461,44 @@
 					</div>
 				</div>
 
+				{*Hoopla Options*}
+				{if $profile->isValidforHoopla()}
+				<div class="panel active">
+					<a data-toggle="collapse" data-parent="#account-settings-accordion" href="#overdrivePanel">
+						<div class="panel-heading">
+							<div class="panel-title">
+								Hoopla Options
+							</div>
+						</div>
+					</a>
+					<div id="hooplaPanel" class="panel-collapse collapse in">
+						<div class="panel-body">
+							{* Empty action attribute uses the page loaded. this keeps the selected user patronId in the parameters passed back to server *}
+							<form action="" method="post" class="form-horizontal">
+								<input type="hidden" name="updateScope" value="hoopla">
+								<div class="form-group">
+									<div class="col-xs-4"><label for="hooplaCheckOutConfirmation" class="control-label">{translate text='Ask for confirmation before checking out from Hoopla'}:</label></div>
+									<div class="col-xs-8">
+										{if $edit == true}
+											<input type="checkbox" name="hooplaCheckOutConfirmation" id="hooplaCheckOutConfirmation" {if $profile->hooplaCheckOutConfirmation==1}checked='checked'{/if} data-switch="">
+										{else}
+											{if $profile->hooplaCheckOutConfirmation==0}No{else}Yes{/if}
+										{/if}
+									</div>
+								</div>
+								{if !$offline && $edit == true}
+									<div class="form-group">
+										<div class="col-xs-8 col-xs-offset-4">
+											<input type="submit" value="Update Hoopla Options" name="updateHoopla" class="btn btn-sm btn-primary">
+										</div>
+									</div>
+								{/if}
+							</form>
+						</div>
+					</div>
+				</div>
+				{/if}
+
 				{*User Preference Options*}
 				{if $showAlternateLibraryOptions || $userIsStaff || ($showRatings && $showComments)}
 				<div class="panel active">
@@ -593,6 +631,11 @@
 												<li>{$role}</li>
 											{/foreach}
 										</ul>
+									</div>
+									<div class="col-tn-12">
+										<div class="alert alert-info">
+											For more information about what each role can do, see the <a href="https://docs.google.com/spreadsheets/d/1sPR8mIidkg00B2XzgiEq1MMDO3Y2ZOZNH-y_xonN-zA">online documentation</a>.
+										</div>
 									</div>
 								</div>
 

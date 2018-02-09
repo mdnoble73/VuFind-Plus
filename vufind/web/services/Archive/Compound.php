@@ -51,9 +51,9 @@ class Archive_Compound extends Archive_Object{
 						$defaultViewer = 'image';
 					}elseif (isset($section['pdf']) && $section['pdf'] != ''){
 						$defaultViewer = 'pdf';
-					}elseif ($section['audio'] != ''){
+					}elseif (isset($section['audio']) && $section['audio'] != ''){
 						$defaultViewer = 'audio';
-					}elseif ($section['video'] != ''){
+					}elseif (isset($section['video']) && $section['video'] != ''){
 						$defaultViewer = 'video';
 					}
 					break;

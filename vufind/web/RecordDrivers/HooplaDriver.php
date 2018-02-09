@@ -86,6 +86,35 @@ class HooplaRecordDriver extends MarcRecord {
 		return $this->marcRecord;
 	}
 
+	/**
+	 * @param $actions
+	 * @return array
+	 * @throws File_MARC_Exception
+	 */
+	public function getAccessLink($actions = null)
+	{
+		$title      = translate('hoopla_url_action');
+		$marcRecord = $this->getMarcRecord();
+		/** @var File_MARC_Data_Field[] $linkFields */
+		$linkFields = $marcRecord->getFields('856');
+		$fileOrUrl  = null;
+		foreach ($linkFields as $linkField) {
+			if ($linkField->getIndicator(1) == 4 && $linkField->getIndicator(2) == 0) {
+				$linkSubfield = $linkField->getSubfield('u');
+				$fileOrUrl    = $linkSubfield->getData();
+				break;
+			}
+		}
+		if ($fileOrUrl != null) {
+			$actions[] = array(
+				'url' => $fileOrUrl,
+				'title' => $title,
+				'requireLogin' => false,
+			);
+		}
+		return $actions;
+	}
+
 	protected function getRecordType(){
 		return 'hoopla';
 	}
@@ -100,25 +129,19 @@ class HooplaRecordDriver extends MarcRecord {
 	function getActions() {
 		//TODO: If this is added to the related record, pass in the value
 		$actions = array();
-		$title = translate('hoopla_checkout_action');
 
-		$marcRecord = $this->getMarcRecord();
-		/** @var File_MARC_Data_Field[] $linkFields */
-		$linkFields = $marcRecord->getFields('856');
-		$fileOrUrl = null;
-		foreach($linkFields as $linkField){
-			if ($linkField->getIndicator(1) == 4 && $linkField->getIndicator(2) == 0){
-				$linkSubfield = $linkField->getSubfield('u');
-				$fileOrUrl = $linkSubfield->getData();
-				break;
-			}
-		}
-		if ($fileOrUrl != null){
+		/** @var Library $searchLibrary */
+		$searchLibrary = Library::getSearchLibrary();
+		if ($searchLibrary->hooplaLibraryID > 0) { // Library is enabled for Hoopla patron action integration
+			$id = $this->getId();
+			$title = translate('hoopla_checkout_action');
 			$actions[] = array(
-				'url' => $fileOrUrl,
-				'title' => $title,
-				'requireLogin' => false,
+				'onclick' => "return VuFind.Hoopla.getHooplaCheckOutPrompt('$id')",
+				'title'   => $title
 			);
+
+		} else {
+			$actions = $this->getAccessLink($actions);
 		}
 
 		return $actions;
@@ -130,13 +153,27 @@ class HooplaRecordDriver extends MarcRecord {
 
 	function getRecordActions($recordAvailable, $recordHoldable, $recordBookable, $relatedUrls = null){
 		$actions = array();
-		$title = translate('hoopla_checkout_action');
-		foreach ($relatedUrls as $url){
+
+		/** @var Library $searchLibrary */
+		$searchLibrary = Library::getSearchLibrary();
+		if ($searchLibrary->hooplaLibraryID > 0) { // Library is enabled for Hoopla patron action integration
+			$id = $this->getId();
+			$title = translate('hoopla_checkout_action');
 			$actions[] = array(
-				'url' => $url['url'],
-				'title' => $title,
-				'requireLogin' => false,
+				'onclick' => "return VuFind.Hoopla.getHooplaCheckOutPrompt('$id')",
+				'title'   => $title
 			);
+
+		} else {
+			$title = translate('hoopla_url_action');
+			foreach ($relatedUrls as $url){
+				$actions[] = array(
+					'url' => $url['url'],
+					'title' => $title,
+					'requireLogin' => false,
+				);
+			}
+
 		}
 
 		return $actions;
