@@ -3,6 +3,8 @@ package org.vufind;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -91,6 +93,8 @@ public class SierraExportMain{
 			profileToLoad = args[1];
 		}
 		indexingProfile = IndexingProfile.loadIndexingProfile(vufindConn, profileToLoad, logger);
+
+		getMarcForBibFromAPI(ini, "2620124");
 
 		//Get a list of works that have changed since the last index
 		getChangedRecordsFromApi(ini, vufindConn, exportPath);
@@ -249,6 +253,36 @@ public class SierraExportMain{
 			}
 		}
 		logger.info("Finished exporting holds");
+	}
+
+	private static void getMarcForBibFromAPI(Ini ini, String bibNumber){
+		String apiVersion = cleanIniValue(ini.get("Catalog", "api_version"));
+		if (apiVersion == null || apiVersion.length() == 0){
+			return;
+		}
+		String apiBaseUrl = ini.get("Catalog", "url") + "/iii/sierra-api/v" + apiVersion;
+		String getMarcUrl = apiBaseUrl + "/bibs/marc?id=" + bibNumber;
+		JSONObject data = callSierraApiURL(ini, apiBaseUrl, getMarcUrl, true);
+
+		//logger.debug(data);
+
+		if (data != null && data.has("file")){
+			try {
+				String dataFileUrl = data.getString("file");
+				String marcData = getStringFromSierraApiURL(ini, apiBaseUrl, dataFileUrl, true);
+				String curBibId = ".b" + bibNumber + getCheckDigit(bibNumber);
+				File marcFile = indexingProfile.getFileForIlsRecord(curBibId);
+				if (marcData != null && marcFile.exists()) {
+					FileOutputStream writer = new FileOutputStream(marcFile);
+					writer.write(marcData.getBytes(Charset.forName("UTF-8")));
+					writer.close();
+				}
+				//logger.debug(marcData);
+			}catch (Exception e){
+				logger.error("Error getting MARC file", e);
+			}
+		}
+
 	}
 
 	private static void getChangedRecordsFromApi(Ini ini, Connection vufindConn, String exportPath) {
@@ -852,6 +886,7 @@ public class SierraExportMain{
 					});
 				}
 				conn.setRequestMethod("GET");
+				conn.setRequestProperty("Accept-Charset", "UTF-8");
 				conn.setRequestProperty("Authorization", sierraAPITokenType + " " + sierraAPIToken);
 				conn.setReadTimeout(20000);
 				conn.setConnectTimeout(5000);
@@ -859,7 +894,7 @@ public class SierraExportMain{
 				StringBuilder response = new StringBuilder();
 				if (conn.getResponseCode() == 200) {
 					// Get the response
-					BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+					BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
 					String line;
 					while ((line = rd.readLine()) != null) {
 						response.append(line);
@@ -871,7 +906,72 @@ public class SierraExportMain{
 					if (logErrors) {
 						logger.error("Received error " + conn.getResponseCode() + " calling sierra API " + sierraUrl);
 						// Get any errors
-						BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
+						BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getErrorStream(), "UTF-8"));
+						String line;
+						while ((line = rd.readLine()) != null) {
+							response.append(line);
+						}
+						logger.error("  Finished reading response");
+						logger.error(response.toString());
+
+						rd.close();
+					}
+				}
+
+			} catch (java.net.SocketTimeoutException e) {
+				logger.debug("Socket timeout talking to to sierra API " + e.toString() );
+				lastCallTimedOut = true;
+			} catch (java.net.ConnectException e) {
+				logger.debug("Timeout connecting to sierra API " + e.toString() );
+				lastCallTimedOut = true;
+			} catch (Exception e) {
+				logger.debug("Error loading data from sierra API ", e );
+			}
+		}
+		return null;
+	}
+
+	private static String getStringFromSierraApiURL(Ini configIni, String baseUrl, String sierraUrl, boolean logErrors) {
+		lastCallTimedOut = false;
+		if (connectToSierraAPI(configIni, baseUrl)){
+			//Connect to the API to get our token
+			HttpURLConnection conn;
+			try {
+				URL emptyIndexURL = new URL(sierraUrl);
+				conn = (HttpURLConnection) emptyIndexURL.openConnection();
+				if (conn instanceof HttpsURLConnection){
+					HttpsURLConnection sslConn = (HttpsURLConnection)conn;
+					sslConn.setHostnameVerifier(new HostnameVerifier() {
+
+						@Override
+						public boolean verify(String hostname, SSLSession session) {
+							//Do not verify host names
+							return true;
+						}
+					});
+				}
+				conn.setRequestMethod("GET");
+				conn.setRequestProperty("Accept-Charset", "UTF-8");
+				conn.setRequestProperty("Authorization", sierraAPITokenType + " " + sierraAPIToken);
+				conn.setReadTimeout(20000);
+				conn.setConnectTimeout(5000);
+
+				StringBuilder response = new StringBuilder();
+				if (conn.getResponseCode() == 200) {
+					// Get the response
+					BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
+					String line;
+					while ((line = rd.readLine()) != null) {
+						response.append(line);
+					}
+					//logger.debug("  Finished reading response");
+					rd.close();
+					return response.toString();
+				} else {
+					if (logErrors) {
+						logger.error("Received error " + conn.getResponseCode() + " calling sierra API " + sierraUrl);
+						// Get any errors
+						BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getErrorStream(), "UTF-8"));
 						String line;
 						while ((line = rd.readLine()) != null) {
 							response.append(line);
