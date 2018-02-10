@@ -581,7 +581,7 @@ class ItemAPI extends Action {
 		}
 	}
 
-	private function loadSolrRecord($id){
+	public function loadSolrRecord($id){
 		global $configArray;
 		//Load basic information
 		$this->id = $_GET['id'];
