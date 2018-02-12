@@ -584,7 +584,12 @@ class ItemAPI extends Action {
 	public function loadSolrRecord($id){
 		global $configArray;
 		//Load basic information
-		$this->id = $_GET['id'];
+		if (isset($id)){
+			$this->id = $id;
+		}else{
+			$this->id = $_GET['id'];
+		}
+
 		$itemData['id'] = $this->id;
 
 		// Setup Search Engine Connection
