@@ -2128,8 +2128,9 @@ class GroupedWorkDriver extends RecordInterface{
 	}
 
 	public function getFormats() {
-		if (isset($this->fields['format'])){
-			$formats = $this->fields['format'];
+		global $solrScope;
+		if (isset($this->fields['format_' . $solrScope])){
+			$formats = $this->fields['format_' . $solrScope];
 			if (is_array($formats)){
 				natcasesort($formats);
 				return implode(", ", $formats);
@@ -2142,8 +2143,9 @@ class GroupedWorkDriver extends RecordInterface{
 	}
 
 	public function getFormatsArray() {
-		if (isset($this->fields['format'])){
-			$formats = $this->fields['format'];
+		global $solrScope;
+		if (isset($this->fields['format_' . $solrScope])){
+			$formats = $this->fields['format_' . $solrScope];
 			if (is_array($formats)){
 				return $formats;
 			}else{
@@ -2155,11 +2157,12 @@ class GroupedWorkDriver extends RecordInterface{
 	}
 
 	public function getFormatCategory(){
-		if (isset($this->fields['format_category'])){
-			if (is_array($this->fields['format_category'])){
-				return reset($this->fields['format_category']);
+		global $solrScope;
+		if (isset($this->fields['format_category_' . $solrScope])){
+			if (is_array($this->fields['format_category_' . $solrScope])){
+				return reset($this->fields['format_category_' . $solrScope]);
 			}else{
-				return $this->fields['format_category'];
+				return $this->fields['format_category_' . $solrScope];
 			}
 		}
 		return "";
@@ -2717,6 +2720,14 @@ class GroupedWorkDriver extends RecordInterface{
 					),
 				)
 		);
+
+		//Open graph data (goes in meta tags)
+		global $interface;
+		$interface->assign('og_title', $this->getTitle());
+		$interface->assign('og_type', $this->getOGType());
+		$interface->assign('og_image', $this->getBookcoverUrl('medium', true));
+		$interface->assign('og_url', $this->getLinkUrl(true));
+
 		//TODO: add audience, award, content
 		return $semanticData;
 	}
@@ -3335,6 +3346,25 @@ class GroupedWorkDriver extends RecordInterface{
 
 			default:
 				return '';
+		}
+	}
+
+	function getOGType() {
+		$pikaFormat = strtolower($this->getFormatCategory());
+		switch ($pikaFormat){
+			case 'books':
+			case 'ebook':
+			case 'audio books':
+				return 'book';
+
+			case 'music':
+				return 'music.album';
+
+			case 'movies':
+				return 'video.movie';
+
+			default:
+				return 'website';
 		}
 	}
 
