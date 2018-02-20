@@ -4,7 +4,6 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -46,6 +45,10 @@ public class SierraExportMain{
 	private static boolean suppressOrderRecordsThatAreReceivedAndCatalogged = false;
 	private static boolean suppressOrderRecordsThatAreCatalogged = false;
 	private static String orderStatusesToExport;
+
+	//Reporting information
+	private static long exportLogId;
+	private static PreparedStatement addNoteToExportLogStmt;
 
 	public static void main(String[] args){
 		serverName = args[0];
@@ -94,6 +97,25 @@ public class SierraExportMain{
 		}
 		indexingProfile = IndexingProfile.loadIndexingProfile(vufindConn, profileToLoad, logger);
 
+		//Start a hoopla export log entry
+		try {
+			logger.info("Creating log entry for index");
+			PreparedStatement createLogEntryStatement = vufindConn.prepareStatement("INSERT INTO sierra_api_export_log (startTime, lastUpdate, notes) VALUES (?, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
+			createLogEntryStatement.setLong(1, startTime.getTime() / 1000);
+			createLogEntryStatement.setLong(2, startTime.getTime() / 1000);
+			createLogEntryStatement.setString(3, "Initialization complete");
+			createLogEntryStatement.executeUpdate();
+			ResultSet generatedKeys = createLogEntryStatement.getGeneratedKeys();
+			if (generatedKeys.next()){
+				exportLogId = generatedKeys.getLong(1);
+			}
+
+			addNoteToExportLogStmt = vufindConn.prepareStatement("UPDATE sierra_api_export_log SET notes = ?, lastUpdate = ? WHERE id = ?");
+		} catch (SQLException e) {
+			logger.error("Unable to create log entry for record grouping process", e);
+			System.exit(0);
+		}
+
 		getMarcForBibFromAPI(ini, "2620124");
 
 		//Get a list of works that have changed since the last index
@@ -120,6 +142,20 @@ public class SierraExportMain{
 		}catch(Exception e){
 			System.out.println("Error: " + e.toString());
 			e.printStackTrace();
+		}
+
+		logger.info("Finished exporting sierra data " + new Date().toString());
+		long endTime = new Date().getTime();
+		long elapsedTime = endTime - startTime.getTime();
+		logger.info("Elapsed Minutes " + (elapsedTime / 60000));
+
+		try {
+			PreparedStatement finishedStatement = vufindConn.prepareStatement("UPDATE sierra_api_export_log SET endTime = ? WHERE id = ?");
+			finishedStatement.setLong(1, endTime / 1000);
+			finishedStatement.setLong(2, exportLogId);
+			finishedStatement.executeUpdate();
+		} catch (SQLException e) {
+			logger.error("Unable to update hoopla export log with completion time.", e);
 		}
 
 		if (conn != null){
@@ -288,7 +324,7 @@ public class SierraExportMain{
 	private static void getChangedRecordsFromApi(Ini ini, Connection vufindConn, String exportPath) {
 		//Get the time the last extract was done
 		try{
-			logger.info("Starting to load changed records from Sierra using the API");
+			addNoteToExportLog("Starting to load changed records from Sierra using the API");
 			Long lastSierraExtractTime = null;
 			Long lastSierraExtractTimeVariableId = null;
 
@@ -493,7 +529,7 @@ public class SierraExportMain{
 				}
 
 				vufindConn.setAutoCommit(false);
-				logger.info("A total of " + changedBibs.size() + " bibs were updated");
+				addNoteToExportLog("A total of " + changedBibs.size() + " bibs were updated");
 				int numUpdates = 0;
 				for (String curBibId : changedBibs.keySet()){
 					//Update the marc record
@@ -555,7 +591,7 @@ public class SierraExportMain{
 			logger.error("Error loading changed records from Sierra API", e);
 			System.exit(1);
 		}
-		logger.info("Finished loading changed records from Sierra API");
+		addNoteToExportLog("Finished loading changed records from Sierra API");
 	}
 
 	private static void updateMarc(String curBibId, ArrayList<ItemChangeInfo> itemChangeInfo) {
@@ -634,7 +670,7 @@ public class SierraExportMain{
 	}
 
 	private static void exportDueDates(String exportPath, Connection conn) throws SQLException, IOException {
-		logger.info("Starting export of due dates");
+		addNoteToExportLog("Starting export of due dates");
 		String dueDatesSQL = "select record_num, due_gmt from sierra_view.checkout inner join sierra_view.item_view on item_record_id = item_view.id where due_gmt is not null";
 		PreparedStatement getDueDatesStmt = conn.prepareStatement(dueDatesSQL, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 		ResultSet dueDatesRS = null;
@@ -666,11 +702,11 @@ public class SierraExportMain{
 			dueDateWriter.close();
 			dueDatesRS.close();
 		}
-		logger.info("Finished exporting due dates");
+		addNoteToExportLog("Finished exporting due dates");
 	}
 
 	private static void exportActiveOrders(String exportPath, Connection conn) throws SQLException, IOException {
-		logger.info("Starting export of active orders");
+		addNoteToExportLog("Starting export of active orders");
 		String[] orderStatusesToExportVals = orderStatusesToExport.split("\\|");
 		String orderStatusCodesSQL = "";
 		for (String orderStatusesToExportVal : orderStatusesToExportVals){
@@ -706,7 +742,7 @@ public class SierraExportMain{
 			orderRecordWriter.close();
 			activeOrdersRS.close();
 		}
-		logger.info("Finished exporting active orders");
+		addNoteToExportLog("Finished exporting active orders");
 	}
 
 	private static Ini loadConfigFile(String filename){
@@ -1015,4 +1051,29 @@ public class SierraExportMain{
 		}
 	}
 
+	private static StringBuffer notes = new StringBuffer();
+	private static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	private static void addNoteToExportLog(String note) {
+		try {
+			Date date = new Date();
+			notes.append("<br>").append(dateFormat.format(date)).append(": ").append(note);
+			addNoteToExportLogStmt.setString(1, trimTo(65535, notes.toString()));
+			addNoteToExportLogStmt.setLong(2, new Date().getTime() / 1000);
+			addNoteToExportLogStmt.setLong(3, exportLogId);
+			addNoteToExportLogStmt.executeUpdate();
+			logger.info(note);
+		} catch (SQLException e) {
+			logger.error("Error adding note to Export Log", e);
+		}
+	}
+
+	private static String trimTo(int maxCharacters, String stringToTrim) {
+		if (stringToTrim == null) {
+			return null;
+		}
+		if (stringToTrim.length() > maxCharacters) {
+			stringToTrim = stringToTrim.substring(0, maxCharacters);
+		}
+		return stringToTrim.trim();
+	}
 }

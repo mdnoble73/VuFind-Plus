@@ -92,6 +92,8 @@ class DBMaintenance extends Admin_Admin {
 		$islandora_updates = getIslandoraUpdates();
 		require_once ROOT_DIR . '/sys/DBMaintenance/hoopla_updates.php';
 		$hoopla_updates = getHooplaUpdates();
+		require_once ROOT_DIR . '/sys/DBMaintenance/sierra_api_updates.php';
+		$sierra_api_updates = getSierraAPIUpdates();
 
 		return array_merge(
 			$library_location_updates,
@@ -101,6 +103,7 @@ class DBMaintenance extends Admin_Admin {
 			$indexing_updates,
 			$islandora_updates,
 			$hoopla_updates,
+			$sierra_api_updates,
 			array(
 				'index_search_stats' => array(
 					'title' => 'Index search stats table',
