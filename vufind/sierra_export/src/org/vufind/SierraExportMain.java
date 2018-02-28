@@ -776,24 +776,28 @@ public class SierraExportMain{
 			if (marcResults != null && marcResults.has("file")){
 				String dataFileUrl = marcResults.getString("file");
 				String marcData = getStringFromSierraApiURL(ini, apiBaseUrl, dataFileUrl, true);
-				MarcReader marcReader = new MarcStreamReader(new ByteArrayInputStream(marcData.getBytes(StandardCharsets.ISO_8859_1)));
+				MarcReader marcReader = new MarcPermissiveStreamReader(new ByteArrayInputStream(marcData.getBytes(StandardCharsets.UTF_8)), true, true);
 				while (marcReader.hasNext()){
-					Record marcRecord = marcReader.next();
-					RecordIdentifier identifier = recordGroupingProcessor.getPrimaryIdentifierFromMarcRecord(marcRecord, indexingProfile.name, indexingProfile.doAutomaticEcontentSuppression);
-					File marcFile = indexingProfile.getFileForIlsRecord(identifier.getIdentifier());
-					if (!marcFile.getParentFile().exists()){
-						if (!marcFile.getParentFile().mkdirs()){
-							logger.error("Could not create directories for " + marcFile.getAbsolutePath());
+					try {
+						Record marcRecord = marcReader.next();
+						RecordIdentifier identifier = recordGroupingProcessor.getPrimaryIdentifierFromMarcRecord(marcRecord, indexingProfile.name, indexingProfile.doAutomaticEcontentSuppression);
+						File marcFile = indexingProfile.getFileForIlsRecord(identifier.getIdentifier());
+						if (!marcFile.getParentFile().exists()) {
+							if (!marcFile.getParentFile().mkdirs()) {
+								logger.error("Could not create directories for " + marcFile.getAbsolutePath());
+							}
 						}
-					}
-					MarcWriter marcWriter = new MarcStreamWriter(new FileOutputStream(marcFile));
-					marcWriter.write(marcRecord);
-					marcWriter.close();
+						MarcWriter marcWriter = new MarcStreamWriter(new FileOutputStream(marcFile));
+						marcWriter.write(marcRecord);
+						marcWriter.close();
 
-					//Setup the grouped work for the record.  This will take care of either adding it to the proper grouped work
-					//or creating a new grouped work
-					if (!recordGroupingProcessor.processMarcRecord(marcRecord, true)) {
-						logger.warn(identifier.getIdentifier() + " was suppressed");
+						//Setup the grouped work for the record.  This will take care of either adding it to the proper grouped work
+						//or creating a new grouped work
+						if (!recordGroupingProcessor.processMarcRecord(marcRecord, true)) {
+							logger.warn(identifier.getIdentifier() + " was suppressed");
+						}
+					}catch (MarcException mre){
+						logger.error("Error loading marc file", mre);
 					}
 				}
 			}else{
