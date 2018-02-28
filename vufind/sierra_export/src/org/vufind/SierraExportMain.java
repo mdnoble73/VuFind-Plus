@@ -3,12 +3,13 @@ package org.vufind;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Date;
 
+import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
@@ -16,6 +17,7 @@ import org.ini4j.Ini;
 import org.ini4j.InvalidFileFormatException;
 import org.ini4j.Profile.Section;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import javax.net.ssl.HostnameVerifier;
@@ -40,11 +42,20 @@ public class SierraExportMain{
 	private static String serverName;
 
 	private static IndexingProfile indexingProfile;
+	private static GroupedWorkIndexer groupedWorkIndexer;
+	private static MarcRecordGrouper recordGroupingProcessor;
 
 	private static boolean exportItemHolds = true;
 	private static boolean suppressOrderRecordsThatAreReceivedAndCatalogged = false;
 	private static boolean suppressOrderRecordsThatAreCatalogged = false;
 	private static String orderStatusesToExport;
+
+	private static Long lastSierraExtractTime = null;
+	private static Long lastSierraExtractTimeVariableId = null;
+	private static String apiBaseUrl = null;
+
+	private static TreeSet<String> allBibsToUpdate = new TreeSet<>();
+	private static TreeSet<String> allDeletedIds = new TreeSet<>();
 
 	//Reporting information
 	private static long exportLogId;
@@ -90,6 +101,15 @@ public class SierraExportMain{
 			System.out.println("Error connecting to vufind database " + e.toString());
 			System.exit(1);
 		}
+		//Connect to the vufind database
+		Connection econtentConn = null;
+		try{
+			String databaseConnectionInfo = cleanIniValue(ini.get("Database", "database_econtent_jdbc"));
+			econtentConn = DriverManager.getConnection(databaseConnectionInfo);
+		}catch (Exception e){
+			System.out.println("Error connecting to econtent database " + e.toString());
+			System.exit(1);
+		}
 
 		String profileToLoad = "ils";
 		if (args.length > 1){
@@ -97,7 +117,11 @@ public class SierraExportMain{
 		}
 		indexingProfile = IndexingProfile.loadIndexingProfile(vufindConn, profileToLoad, logger);
 
-		//Start a hoopla export log entry
+		//Setup other systems we will use
+		recordGroupingProcessor = new MarcRecordGrouper(vufindConn, indexingProfile, logger, false);
+		groupedWorkIndexer = new GroupedWorkIndexer(serverName, vufindConn, econtentConn, ini, false, false, logger);
+
+		//Start an export log entry
 		try {
 			logger.info("Creating log entry for index");
 			PreparedStatement createLogEntryStatement = vufindConn.prepareStatement("INSERT INTO sierra_api_export_log (startTime, lastUpdate, notes) VALUES (?, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
@@ -116,10 +140,8 @@ public class SierraExportMain{
 			System.exit(0);
 		}
 
-		getMarcForBibFromAPI(ini, "2620124");
-
-		//Get a list of works that have changed since the last index
-		getChangedRecordsFromApi(ini, vufindConn, exportPath);
+		//Process MARC record changes
+		getBibsAndItemUpdatesFromSierra(ini, vufindConn, exportPath);
 
 		//Connect to the sierra database
 		String url = ini.get("Catalog", "sierra_db");
@@ -144,10 +166,12 @@ public class SierraExportMain{
 			e.printStackTrace();
 		}
 
-		logger.info("Finished exporting sierra data " + new Date().toString());
+		updateBibs(ini);
+
+		addNoteToExportLog("Finished exporting sierra data " + new Date().toString());
 		long endTime = new Date().getTime();
 		long elapsedTime = endTime - startTime.getTime();
-		logger.info("Elapsed Minutes " + (elapsedTime / 60000));
+		addNoteToExportLog("Elapsed Minutes " + (elapsedTime / 60000));
 
 		try {
 			PreparedStatement finishedStatement = vufindConn.prepareStatement("UPDATE sierra_api_export_log SET endTime = ? WHERE id = ?");
@@ -168,17 +192,96 @@ public class SierraExportMain{
 			}
 		}
 
-		if (vufindConn != null){
-			try{
-				//Close the connection
-				vufindConn.close();
-			}catch(Exception e){
-				System.out.println("Error closing connection: " + e.toString());
-				e.printStackTrace();
-			}
+		try{
+			//Close the connection
+			vufindConn.close();
+		}catch(Exception e){
+			System.out.println("Error closing connection: " + e.toString());
+			e.printStackTrace();
 		}
 		Date currentTime = new Date();
 		logger.info(currentTime.toString() + ": Finished Sierra Extract");
+	}
+
+	private static void getBibsAndItemUpdatesFromSierra(Ini ini, Connection vufindConn, String exportPath) {
+		try {
+			PreparedStatement loadLastSierraExtractTimeStmt = vufindConn.prepareStatement("SELECT * from variables WHERE name = 'last_sierra_extract_time'", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			ResultSet lastSierraExtractTimeRS = loadLastSierraExtractTimeStmt.executeQuery();
+			if (lastSierraExtractTimeRS.next()) {
+				lastSierraExtractTime = lastSierraExtractTimeRS.getLong("value");
+				lastSierraExtractTimeVariableId = lastSierraExtractTimeRS.getLong("id");
+			}
+		}catch (Exception e){
+			logger.error("Unable to load last_sierra_extract_time from variables", e);
+			return;
+		}
+
+		String apiVersion = cleanIniValue(ini.get("Catalog", "api_version"));
+		if (apiVersion == null || apiVersion.length() == 0){
+			return;
+		}
+		apiBaseUrl = ini.get("Catalog", "url") + "/iii/sierra-api/v" + apiVersion;
+
+		//Last Update in UTC
+		//Add a small buffer to be
+		Date lastExtractDate = new Date((lastSierraExtractTime - 120) * 1000);
+
+		Date now = new Date();
+		Date yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+		if (lastExtractDate.before(yesterday)){
+			logger.warn("Last Extract date was more than 24 hours ago.  Just getting the last 24 hours since we should have a full extract.");
+			lastExtractDate = yesterday;
+		}
+
+		SimpleDateFormat dateTimeFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+		dateTimeFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+		String lastExtractDateTimeFormatted = dateTimeFormatter.format(lastExtractDate);
+		SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
+		dateFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+		String lastExtractDateFormatted = dateFormatter.format(lastExtractDate);
+		long updateTime = new Date().getTime() / 1000;
+		logger.info("Loading records changed since " + lastExtractDateTimeFormatted);
+
+		try{
+			getWorkForPrimaryIdentifierStmt = vufindConn.prepareStatement("SELECT id, grouped_work_id from grouped_work_primary_identifiers where type = ? and identifier = ?");
+			deletePrimaryIdentifierStmt = vufindConn.prepareStatement("DELETE from grouped_work_primary_identifiers where id = ?");
+			getAdditionalPrimaryIdentifierForWorkStmt = vufindConn.prepareStatement("SELECT * from grouped_work_primary_identifiers where grouped_work_id = ?");
+			markGroupedWorkAsChangedStmt = vufindConn.prepareStatement("UPDATE grouped_work SET date_updated = ? where id = ?");
+			deleteGroupedWorkStmt = vufindConn.prepareStatement("DELETE from grouped_work where id = ?");
+			getPermanentIdByWorkIdStmt = vufindConn.prepareStatement("SELECT permanent_id from grouped_work WHERE id = ?");
+		}catch (Exception e){
+			logger.error("Error setting up prepared statements for deleting bibs", e);
+		}
+		processDeletedBibs(ini, vufindConn, lastExtractDateFormatted, updateTime);
+		getNewRecordsFromAPI(ini, lastExtractDateTimeFormatted, updateTime);
+		getChangedRecordsFromAPI(ini, lastExtractDateTimeFormatted, updateTime);
+		getNewItemsFromAPI(ini, lastExtractDateTimeFormatted);
+		getChangedItemsFromAPI(ini, lastExtractDateTimeFormatted);
+		getDeletedItemsFromAPI(ini, lastExtractDateFormatted);
+
+	}
+
+	private static void updateBibs(Ini ini) {
+		int batchSize = 100;
+		boolean hasMoreIdsToProcess = true;
+		while (hasMoreIdsToProcess) {
+			hasMoreIdsToProcess = false;
+			String idsToProcess = "";
+			int maxIndex = Math.min(allBibsToUpdate.size(), batchSize);
+			for (int i = 0; i < maxIndex; i++) {
+				if (idsToProcess.length() > 0){
+					idsToProcess += ",";
+				}
+				String lastId = allBibsToUpdate.last();
+				idsToProcess += lastId;
+				allBibsToUpdate.remove(lastId);
+			}
+			updateMarcAndRegroupRecordIds(ini, idsToProcess);
+			if (allBibsToUpdate.size() > 0){
+				hasMoreIdsToProcess = true;
+			}
+		}
 	}
 
 	private static void exportHolds(Connection sierraConn, Connection vufindConn) {
@@ -291,42 +394,388 @@ public class SierraExportMain{
 		logger.info("Finished exporting holds");
 	}
 
-	private static void getMarcForBibFromAPI(Ini ini, String bibNumber){
-		String apiVersion = cleanIniValue(ini.get("Catalog", "api_version"));
-		if (apiVersion == null || apiVersion.length() == 0){
-			return;
-		}
-		String apiBaseUrl = ini.get("Catalog", "url") + "/iii/sierra-api/v" + apiVersion;
-		String getMarcUrl = apiBaseUrl + "/bibs/marc?id=" + bibNumber;
-		JSONObject data = callSierraApiURL(ini, apiBaseUrl, getMarcUrl, true);
 
-		//logger.debug(data);
 
-		if (data != null && data.has("file")){
-			try {
-				String dataFileUrl = data.getString("file");
-				String marcData = getStringFromSierraApiURL(ini, apiBaseUrl, dataFileUrl, true);
-				String curBibId = ".b" + bibNumber + getCheckDigit(bibNumber);
-				File marcFile = indexingProfile.getFileForIlsRecord(curBibId);
-				if (marcData != null && marcFile.exists()) {
-					FileOutputStream writer = new FileOutputStream(marcFile);
-					writer.write(marcData.getBytes(Charset.forName("UTF-8")));
-					writer.close();
+	private static PreparedStatement getWorkForPrimaryIdentifierStmt;
+	private static PreparedStatement getAdditionalPrimaryIdentifierForWorkStmt;
+	private static PreparedStatement deletePrimaryIdentifierStmt;
+	private static PreparedStatement markGroupedWorkAsChangedStmt;
+	private static PreparedStatement deleteGroupedWorkStmt;
+	private static PreparedStatement getPermanentIdByWorkIdStmt;
+	private static void processDeletedBibs(Ini ini, Connection vufindConn, String lastExtractDateFormatted, long updateTime) {
+		//Get a list of deleted bibs
+		addNoteToExportLog("Starting to process deleted records since " + lastExtractDateFormatted);
+
+		int bufferSize = 250;
+		boolean hasMoreRecords = true;
+		long offset = 0;
+		int numDeletions = 0;
+		while (hasMoreRecords){
+			hasMoreRecords = false;
+			String url = apiBaseUrl + "/bibs/?deletedDate=[" + lastExtractDateFormatted + ",]&fields=id&deleted=true&limit=" + bufferSize;
+			if (offset > 0){
+				url += "&offset=" + offset;
+			}
+			JSONObject deletedRecords = callSierraApiURL(ini, apiBaseUrl, url, false);
+
+			if (deletedRecords != null) {
+				try {
+					JSONArray entries = deletedRecords.getJSONArray("entries");
+					for (int i = 0; i < entries.length(); i++) {
+						JSONObject curBib = entries.getJSONObject(i);
+						String id = curBib.getString("id");
+						allDeletedIds.add(id);
+					}
+					if (deletedRecords.getLong("total") >= bufferSize){
+						offset += deletedRecords.getLong("total");
+						hasMoreRecords = true;
+					}
+				}catch (Exception e){
+					logger.error("Error processing deleted bibs", e);
 				}
-				//logger.debug(marcData);
-			}catch (Exception e){
-				logger.error("Error getting MARC file", e);
 			}
 		}
 
+
+		if (allDeletedIds.size() > 0){
+			for (String id : allDeletedIds) {
+				id = ".b" + id + getCheckDigit(id);
+				deleteRecord(updateTime, id);
+				numDeletions++;
+			}
+			addNoteToExportLog("Finished processing deleted records, deleted " + numDeletions);
+		}else{
+			addNoteToExportLog("No deleted records found");
+		}
 	}
 
-	private static void getChangedRecordsFromApi(Ini ini, Connection vufindConn, String exportPath) {
+	private static void deleteRecord(long updateTime, String id) {
+		try {
+			//Check to see if the identifier is in the grouped work primary identifiers table
+			getWorkForPrimaryIdentifierStmt.setString(1, indexingProfile.name);
+			getWorkForPrimaryIdentifierStmt.setString(2, id);
+			ResultSet getWorkForPrimaryIdentifierRS = getWorkForPrimaryIdentifierStmt.executeQuery();
+			if (getWorkForPrimaryIdentifierRS.next()) {
+				Long groupedWorkId = getWorkForPrimaryIdentifierRS.getLong("grouped_work_id");
+				Long primaryIdentifierId = getWorkForPrimaryIdentifierRS.getLong("id");
+				//Delete the primary identifier
+				deletePrimaryIdentifierStmt.setLong(1, primaryIdentifierId);
+				deletePrimaryIdentifierStmt.executeUpdate();
+				//Check to see if there are other identifiers for this work
+				getAdditionalPrimaryIdentifierForWorkStmt.setLong(1, groupedWorkId);
+				ResultSet getAdditionalPrimaryIdentifierForWorkRS = getAdditionalPrimaryIdentifierForWorkStmt.executeQuery();
+				if (getAdditionalPrimaryIdentifierForWorkRS.next()) {
+					//There are additional records for this work, just need to mark that it needs indexing again
+					markGroupedWorkAsChangedStmt.setLong(1, updateTime);
+					markGroupedWorkAsChangedStmt.setLong(2, groupedWorkId);
+					markGroupedWorkAsChangedStmt.executeUpdate();
+				} else {
+					//The grouped work no longer exists
+					//Get the permanent id
+					getPermanentIdByWorkIdStmt.setLong(1, groupedWorkId);
+					ResultSet getPermanentIdByWorkIdRS = getPermanentIdByWorkIdStmt.executeQuery();
+					if (getPermanentIdByWorkIdRS.next()) {
+						String permanentId = getPermanentIdByWorkIdRS.getString("permanent_id");
+						//Delete the work from solr
+						groupedWorkIndexer.deleteRecord(permanentId);
+
+						//Delete the work from the database?
+						//TODO: Should we do this or leave a record if it was linked to lists, reading history, etc?
+						//regular indexer deletes them too
+						deleteGroupedWorkStmt.setLong(1, groupedWorkId);
+						deleteGroupedWorkStmt.executeUpdate();
+					}
+
+				}
+			}//If not true, already deleted skip this
+		} catch (Exception e) {
+			logger.error("Error processing deleted bibs", e);
+		}
+	}
+
+	private static void getChangedRecordsFromAPI(Ini ini, String lastExtractDateFormatted, long updateTime) {
+		//Get a list of deleted bibs
+		addNoteToExportLog("Starting to process records changed since " + lastExtractDateFormatted);
+		int bufferSize = 1000;
+		boolean hasMoreRecords = true;
+		int numChangedRecords = 0;
+		int numSuppressedRecords = 0;
+		int recordOffset = 50000;
+		long firstRecordIdToLoad = 1;
+		while (hasMoreRecords) {
+			hasMoreRecords = false;
+			String url = apiBaseUrl + "/bibs/?updatedDate=[" + lastExtractDateFormatted + ",]&deleted=false&fields=id,suppressed&limit=" + bufferSize;
+			if (firstRecordIdToLoad > 1){
+				url += "&id=[" + firstRecordIdToLoad + ",]";
+			}
+			JSONObject createdRecords = callSierraApiURL(ini, apiBaseUrl, url, false);
+			if (createdRecords != null){
+				try {
+					JSONArray entries = createdRecords.getJSONArray("entries");
+					int lastId = 0;
+					for (int i = 0; i < entries.length(); i++) {
+						JSONObject curBib = entries.getJSONObject(i);
+						boolean isSuppressed = false;
+						if (curBib.has("suppressed")){
+							isSuppressed = curBib.getBoolean("suppressed");
+						}
+						lastId = curBib.getInt("id");
+						if (isSuppressed){
+							String id = curBib.getString("id");
+							allDeletedIds.add(id);
+							id = ".b" + id + getCheckDigit(id);
+							deleteRecord(updateTime, id);
+							numSuppressedRecords++;
+						}else {
+							allBibsToUpdate.add(curBib.getString("id"));
+							numChangedRecords++;
+						}
+					}
+					if (createdRecords.getLong("total") >= bufferSize){
+						hasMoreRecords = true;
+					}
+					if (entries.length() >= bufferSize){
+						firstRecordIdToLoad = lastId + 1;
+					}else{
+						firstRecordIdToLoad += recordOffset;
+					}
+					//Get the grouped work id for the new bib
+				}catch (Exception e){
+					logger.error("Error processing changed bibs", e);
+				}
+			}else{
+				addNoteToExportLog("No changed records found");
+			}
+		}
+		addNoteToExportLog("Finished processing changed records, there were " + numChangedRecords + " changed records and " + numSuppressedRecords + " suppressed records");
+	}
+
+	private static void getNewRecordsFromAPI(Ini ini, String lastExtractDateFormatted, long updateTime) {
+		//Get a list of deleted bibs
+		addNoteToExportLog("Starting to process records created since " + lastExtractDateFormatted);
+		int bufferSize = 1000;
+		boolean hasMoreRecords = true;
+		long offset = 0;
+		int numNewRecords = 0;
+		int numSuppressedRecords = 0;
+
+		while (hasMoreRecords) {
+			hasMoreRecords = false;
+			String url = apiBaseUrl + "/bibs/?createdDate=[" + lastExtractDateFormatted + ",]&deleted=false&fields=id,suppressed&limit=" + bufferSize;
+			if (offset > 0){
+				url += "&offset=" + offset;
+			}
+			JSONObject createdRecords = callSierraApiURL(ini, apiBaseUrl, url, false);
+			if (createdRecords != null){
+				try {
+					JSONArray entries = createdRecords.getJSONArray("entries");
+					for (int i = 0; i < entries.length(); i++) {
+						JSONObject curBib = entries.getJSONObject(i);
+						boolean isSuppressed = false;
+						if (curBib.has("suppressed")){
+							isSuppressed = curBib.getBoolean("suppressed");
+						}
+						if (isSuppressed){
+							String id = curBib.getString("id");
+							allDeletedIds.add(id);
+							id = ".b" + id + getCheckDigit(id);
+							deleteRecord(updateTime, id);
+							numSuppressedRecords++;
+						}else {
+							allBibsToUpdate.add(curBib.getString("id"));
+							numNewRecords++;
+						}
+					}
+					if (createdRecords.getLong("total") >= bufferSize){
+						offset += createdRecords.getLong("total");
+						hasMoreRecords = true;
+					}
+					//Get the grouped work id for the new bib
+				}catch (Exception e){
+					logger.error("Error processing newly created bibs", e);
+				}
+			}else{
+				addNoteToExportLog("No newly created records found");
+			}
+		}
+		addNoteToExportLog("Finished processing newly created records " + numNewRecords + " were new and " + numSuppressedRecords + " were suppressed");
+	}
+
+	private static void getNewItemsFromAPI(Ini ini, String lastExtractDateFormatted) {
+		//Get a list of deleted bibs
+		addNoteToExportLog("Starting to process items created since " + lastExtractDateFormatted);
+		int bufferSize = 1000;
+		boolean hasMoreRecords = true;
+		long offset = 0;
+		int numNewRecords = 0;
+		while (hasMoreRecords) {
+			hasMoreRecords = false;
+			String url = apiBaseUrl + "/items/?createdDate=[" + lastExtractDateFormatted + ",]&deleted=false&fields=id,bibIds&limit=" + bufferSize;
+			if (offset > 0){
+				url += "&offset=" + offset;
+			}
+			JSONObject createdRecords = callSierraApiURL(ini, apiBaseUrl, url, false);
+			if (createdRecords != null){
+				try {
+					JSONArray entries = createdRecords.getJSONArray("entries");
+					for (int i = 0; i < entries.length(); i++) {
+						JSONObject curBib = entries.getJSONObject(i);
+						JSONArray bibIds = curBib.getJSONArray("bibIds");
+						for (int j = 0; j < bibIds.length(); j++){
+							String id = bibIds.getString(j);
+							if (!allDeletedIds.contains(id) && !allBibsToUpdate.contains(id)) {
+								allBibsToUpdate.add(id);
+							}
+							numNewRecords++;
+						}
+					}
+					if (createdRecords.getLong("total") >= bufferSize){
+						offset += createdRecords.getLong("total");
+						hasMoreRecords = true;
+					}
+					//Get the grouped work id for the new bib
+				}catch (Exception e){
+					logger.error("Error processing newly created items", e);
+				}
+			}else{
+				addNoteToExportLog("No newly created items found");
+			}
+		}
+		addNoteToExportLog("Finished processing newly created items " + numNewRecords);
+	}
+
+	private static void getChangedItemsFromAPI(Ini ini, String lastExtractDateFormatted) {
+		//Get a list of deleted bibs
+		addNoteToExportLog("Starting to process items updated since " + lastExtractDateFormatted);
+		int bufferSize = 1000;
+		boolean hasMoreRecords = true;
+		int numChangedItems = 0;
+		int numNewBibs = 0;
+		long firstRecordIdToLoad = 1;
+		int recordOffset = 50000;
+		while (hasMoreRecords) {
+			hasMoreRecords = false;
+			String url = apiBaseUrl + "/items/?updatedDate=[" + lastExtractDateFormatted + ",]&deleted=false&fields=id,bibIds&limit=" + bufferSize;
+			if (firstRecordIdToLoad > 1){
+				url += "&id=[" + firstRecordIdToLoad + ",]";
+			}
+			JSONObject createdRecords = callSierraApiURL(ini, apiBaseUrl, url, false);
+			if (createdRecords != null){
+				try {
+					JSONArray entries = createdRecords.getJSONArray("entries");
+					int lastId = 0;
+					for (int i = 0; i < entries.length(); i++) {
+						JSONObject curItem = entries.getJSONObject(i);
+						lastId = curItem.getInt("id");
+						JSONArray bibIds = curItem.getJSONArray("bibIds");
+						for (int j = 0; j < bibIds.length(); j++){
+							String id = bibIds.getString(j);
+							if (!allDeletedIds.contains(id) && !allBibsToUpdate.contains(id)) {
+								allBibsToUpdate.add(id);
+								numNewBibs++;
+							}
+							numChangedItems++;
+						}
+					}
+					if (createdRecords.getLong("total") >= bufferSize){
+						hasMoreRecords = true;
+					}
+					if (entries.length() >= bufferSize){
+						firstRecordIdToLoad = lastId + 1;
+					}else{
+						firstRecordIdToLoad += recordOffset;
+					}
+					//Get the grouped work id for the new bib
+				}catch (Exception e){
+					logger.error("Error processing updated items", e);
+				}
+			}else{
+				addNoteToExportLog("No updated items found");
+			}
+		}
+		addNoteToExportLog("Finished processing updated items " + numChangedItems + " this added " + numNewBibs + " bibs to process");
+	}
+
+	private static void getDeletedItemsFromAPI(Ini ini, String lastExtractDateFormatted) {
+		//Get a list of deleted bibs
+		addNoteToExportLog("Starting to process items deleted since " + lastExtractDateFormatted);
+		int bufferSize = 1000;
+		boolean hasMoreRecords = true;
+		long offset = 0;
+		int numDeletedItems = 0;
+		while (hasMoreRecords) {
+			hasMoreRecords = false;
+			String url = apiBaseUrl + "/items/?deletedDate=[" + lastExtractDateFormatted + ",]&deleted=true&fields=id,bibIds&limit=" + bufferSize;
+			if (offset > 0){
+				url += "&offset=" + offset;
+			}
+			JSONObject createdRecords = callSierraApiURL(ini, apiBaseUrl, url, false);
+			if (createdRecords != null){
+				try {
+					JSONArray entries = createdRecords.getJSONArray("entries");
+					for (int i = 0; i < entries.length(); i++) {
+						JSONObject curBib = entries.getJSONObject(i);
+						JSONArray bibIds = curBib.getJSONArray("bibIds");
+						for (int j = 0; j < bibIds.length(); j++){
+							String id = bibIds.getString(j);
+							if (!allDeletedIds.contains(id) && !allBibsToUpdate.contains(id)) {
+								allBibsToUpdate.add(id);
+							}
+						}
+					}
+					if (createdRecords.getLong("total") >= bufferSize){
+						offset += createdRecords.getLong("total");
+						hasMoreRecords = true;
+					}
+					//Get the grouped work id for the new bib
+				}catch (Exception e){
+					logger.error("Error processing deleted items", e);
+				}
+			}else{
+				addNoteToExportLog("No deleted items found");
+			}
+		}
+		addNoteToExportLog("Finished processing deleted items found " + numDeletedItems);
+	}
+
+	private static void updateMarcAndRegroupRecordIds(Ini ini, String ids) {
+		try {
+			JSONObject marcResults = callSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/bibs/marc?id=" + ids, false);
+			if (marcResults != null && marcResults.has("file")){
+				String dataFileUrl = marcResults.getString("file");
+				String marcData = getStringFromSierraApiURL(ini, apiBaseUrl, dataFileUrl, true);
+				MarcReader marcReader = new MarcStreamReader(new ByteArrayInputStream(marcData.getBytes(StandardCharsets.ISO_8859_1)));
+				while (marcReader.hasNext()){
+					Record marcRecord = marcReader.next();
+					RecordIdentifier identifier = recordGroupingProcessor.getPrimaryIdentifierFromMarcRecord(marcRecord, indexingProfile.name, indexingProfile.doAutomaticEcontentSuppression);
+					File marcFile = indexingProfile.getFileForIlsRecord(identifier.getIdentifier());
+					if (!marcFile.getParentFile().exists()){
+						if (!marcFile.getParentFile().mkdirs()){
+							logger.error("Could not create directories for " + marcFile.getAbsolutePath());
+						}
+					}
+					MarcWriter marcWriter = new MarcStreamWriter(new FileOutputStream(marcFile));
+					marcWriter.write(marcRecord);
+					marcWriter.close();
+
+					//Setup the grouped work for the record.  This will take care of either adding it to the proper grouped work
+					//or creating a new grouped work
+					if (!recordGroupingProcessor.processMarcRecord(marcRecord, true)) {
+						logger.warn(identifier.getIdentifier() + " was suppressed");
+					}
+				}
+			}else{
+				logger.error("Error exporting marc records for " + ids);
+			}
+		}catch (Exception e){
+			logger.error("Error processing newly created bibs", e);
+		}
+	}
+
+	private static void getChangedItemsFromAPI(Ini ini, Connection vufindConn, String exportPath, String dateUpdated, SimpleDateFormat dateFormatter, long updateTime) {
 		//Get the time the last extract was done
 		try{
 			addNoteToExportLog("Starting to load changed records from Sierra using the API");
-			Long lastSierraExtractTime = null;
-			Long lastSierraExtractTimeVariableId = null;
 
 			Long exportStartTime = new Date().getTime() / 1000;
 
@@ -342,64 +791,13 @@ public class SierraExportMain{
 				changedItemsReader.close();
 			}
 
-			PreparedStatement loadLastSierraExtractTimeStmt = vufindConn.prepareStatement("SELECT * from variables WHERE name = 'last_sierra_extract_time'", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-			ResultSet lastSierraExtractTimeRS = loadLastSierraExtractTimeStmt.executeQuery();
-			if (lastSierraExtractTimeRS.next()){
-				lastSierraExtractTime = lastSierraExtractTimeRS.getLong("value");
-				lastSierraExtractTimeVariableId = lastSierraExtractTimeRS.getLong("id");
-			}
-
-			/*String maxRecordsToUpdateDuringExtractStr = ini.get("Sierra", "maxRecordsToUpdateDuringExtract");
-			int maxRecordsToUpdateDuringExtract = 5000;
-			if (maxRecordsToUpdateDuringExtractStr != null){
-				maxRecordsToUpdateDuringExtract = Integer.parseInt(maxRecordsToUpdateDuringExtractStr);
-				logger.info("Extracting a maximum of " + maxRecordsToUpdateDuringExtract + " records");
-			}*/
-
 			//Only mark records as changed
 			boolean errorUpdatingDatabase = false;
 			if (lastSierraExtractTime != null){
-				String apiVersion = cleanIniValue(ini.get("Catalog", "api_version"));
-				if (apiVersion == null || apiVersion.length() == 0){
-					return;
-				}
-				String apiBaseUrl = ini.get("Catalog", "url") + "/iii/sierra-api/v" + apiVersion;
-
-				//Last Update in UTC
-				//Add a small buffer to be
-				Date lastExtractDate = new Date((lastSierraExtractTime - 120) * 1000);
-
-				Date now = new Date();
-				Date yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-
-				if (lastExtractDate.before(yesterday)){
-					logger.warn("Last Extract date was more than 24 hours ago.  Just getting the last 24 hours since we should have a full extract.");
-					lastExtractDate = yesterday;
-				}
-
-				SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-				dateFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
-				String dateUpdated = dateFormatter.format(lastExtractDate);
-				long updateTime = new Date().getTime() / 1000;
-				logger.info("Loading records changed since " + dateUpdated);
-
-				SimpleDateFormat marcDateFormat = new SimpleDateFormat(indexingProfile.dueDateFormat);
-				SimpleDateFormat marcCheckInFormat = new SimpleDateFormat(indexingProfile.lastCheckinFormat);
-
-				//Extract the ids of all records that have changed.  That will allow us to mark
-				//That the grouped record has changed which will force the work to be indexed
-				//In reality, this will only update availability unless we pull the full marc record
-				//from the API since we only have updated availability, not location data or metadata
+				//Extract the ids of all records that have changed.
 				long firstRecordIdToLoad = 1;
 				boolean moreToRead = true;
-				PreparedStatement markGroupedWorkForBibAsChangedStmt = vufindConn.prepareStatement("UPDATE grouped_work SET date_updated = ? where id = (SELECT grouped_work_id from grouped_work_primary_identifiers WHERE type = 'ils' and identifier = ?)") ;
-				HashMap<String, ArrayList<ItemChangeInfo>> changedBibs = new HashMap<>();
 				int bufferSize = 1000;
-				/*String recordsToExtractBatchSizeStr = ini.get("Sierra", "recordsToExtractBatchSize");
-				if (recordsToExtractBatchSizeStr != null){
-					bufferSize = Integer.parseInt(recordsToExtractBatchSizeStr);
-					logger.info("Loading records in batches of " + bufferSize + " records");
-				}*/
 
 				//Get a list of everything that has changed, loading a minimum of data so we can get the ids as quickly as possible
 				int recordOffset = 50000;
@@ -416,7 +814,7 @@ public class SierraExportMain{
 							Thread.sleep(2500);
 						}
 						//changedRecords = callSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/items/?updatedDate=[" + dateUpdated + ",]&limit=" + bufferSize + "&fields=id,bibIds,location,status,fixedFields&deleted=false&suppressed=false&id=[" + firstRecordIdToLoad + "," + (lastRecord > 999999999 ? "" : lastRecord) + "]", false);
-						changedRecords = callSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/items/?updatedDate=[" + dateUpdated + ",]&limit=" + bufferSize + "&fields=id,bibIds&deleted=false&suppressed=false&id=[" + firstRecordIdToLoad + ",]", false);
+						changedRecords = callSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/items/?updatedDate=[" + dateUpdated + ",]&limit=" + bufferSize + "&fields=id,bibIds&deleted=false&id=[" + firstRecordIdToLoad + ",]", false);
 					}
 					if (lastCallTimedOut){
 						logger.error(" - call " + numTries + " timed out, data will be lost!");
@@ -448,113 +846,6 @@ public class SierraExportMain{
 					moreToRead = (numChangedIds >= bufferSize); // || firstRecordIdToLoad <= 999999999;
 				}
 
-				//Get details for each change.  This is a bit slower so we will just load for up to 5 minutes and save the rest for later if needed
-				int numProcessed = 0;
-				HashSet<String> itemsThatNeedToBeProcessed2 = (HashSet<String>)itemsThatNeedToBeProcessed.clone();
-				for (String itemId : itemsThatNeedToBeProcessed2){
-					JSONObject itemData = callSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/items/?id=" + itemId + "&fields=id,bibIds,location,status,fixedFields,updatedDate&suppressed=false", false);
-					if (itemData == null) {
-						//This seems to be a normal issue if items get deleted or suppressed.
-						//Manual lookups show that they cannot be found in sierra either.
-						logger.debug("Could not load item data (result was null) for " + itemId);
-						itemsThatNeedToBeProcessed.remove(itemId);
-					}else if (itemData.has("entries")){
-						JSONObject curItem = itemData.getJSONArray("entries").getJSONObject(0);
-
-						String location;
-						if (curItem.has("location")) {
-							location = curItem.getJSONObject("location").getString("code");
-						}else{
-							location = "";
-						}
-						String status;
-						if (curItem.has("status")){
-							status = curItem.getJSONObject("status").getString("code");
-						}else{
-							status = "";
-						}
-
-						String dueDateMarc = null;
-						if (curItem.getJSONObject("fixedFields").has("65")){
-							String dueDateStr = curItem.getJSONObject("fixedFields").getJSONObject("65").getString("value");
-							//The due date is in the format 2014-10-16T10:00:00Z, convert to what the marc record shows which is just yymmdd
-							Date dueDate = dateFormatter.parse(dueDateStr);
-							dueDateMarc = marcDateFormat.format(dueDate);
-						}
-						String lastCheckInDateMarc = null;
-						if (curItem.getJSONObject("fixedFields").has("68")){
-							String lastCheckInDateStr = curItem.getJSONObject("fixedFields").getJSONObject("68").getString("value");
-							//The due date is in the format 2014-10-16T10:00:00Z, convert to what the marc record shows which is just yymmdd
-							Date lastCheckInDate = dateFormatter.parse(lastCheckInDateStr);
-							lastCheckInDateMarc = marcCheckInFormat.format(lastCheckInDate);
-						}
-
-						ItemChangeInfo changeInfo = new ItemChangeInfo();
-						String itemIdFull = ".i" + itemId + getCheckDigit(itemId);
-						logger.debug("Loaded changes for item " + itemIdFull);
-
-						changeInfo.setItemId(itemIdFull);
-						changeInfo.setLocation(location);
-						changeInfo.setStatus(status);
-
-						changeInfo.setDueDate(dueDateMarc);
-						changeInfo.setLastCheckinDate(lastCheckInDateMarc);
-
-						JSONArray bibIds = curItem.getJSONArray("bibIds");
-						for (int j = 0; j < bibIds.length(); j++){
-							String curId = bibIds.getString(j);
-							String fullId = ".b" + curId + getCheckDigit(curId);
-							ArrayList<ItemChangeInfo> itemChanges;
-							if (changedBibs.containsKey(fullId)) {
-								itemChanges = changedBibs.get(fullId);
-							}else{
-								itemChanges = new ArrayList<>();
-								changedBibs.put(fullId, itemChanges);
-							}
-							itemChanges.add(changeInfo);
-						}
-
-						itemsThatNeedToBeProcessed.remove(itemId);
-					}else{
-						logger.warn("Did not get item information (entries) for " + itemId);
-					}
-
-					//Check to see if we've used too much time
-					numProcessed++;
-					if (numProcessed % 250 == 0){
-						if ((new Date().getTime() / 1000) - exportStartTime >= 5 * 60){
-							break;
-						}
-					}
-				}
-
-				vufindConn.setAutoCommit(false);
-				addNoteToExportLog("A total of " + changedBibs.size() + " bibs were updated");
-				int numUpdates = 0;
-				for (String curBibId : changedBibs.keySet()){
-					//Update the marc record
-					updateMarc(curBibId, changedBibs.get(curBibId));
-					logger.debug("Updated Bib " + curBibId);
-					//Update the database
-					try {
-						markGroupedWorkForBibAsChangedStmt.setLong(1, updateTime);
-						markGroupedWorkForBibAsChangedStmt.setString(2, curBibId);
-						markGroupedWorkForBibAsChangedStmt.executeUpdate();
-
-						numUpdates++;
-						if (numUpdates % 50 == 0){
-							vufindConn.commit();
-						}
-					}catch (SQLException e){
-						logger.error("Could not mark that " + curBibId + " was changed due to error ", e);
-						errorUpdatingDatabase = true;
-					}
-				}
-				//Turn auto commit back on
-				vufindConn.commit();
-				vufindConn.setAutoCommit(true);
-
-				//TODO: Process deleted records as well?
 			}
 
 			//Write any records that still haven't been processed
@@ -707,6 +998,11 @@ public class SierraExportMain{
 
 	private static void exportActiveOrders(String exportPath, Connection conn) throws SQLException, IOException {
 		addNoteToExportLog("Starting export of active orders");
+		//Load the orders we had last time
+		File orderRecordFile = new File(exportPath + "/active_orders.csv");
+		HashMap<String, Integer> existingBibsWithOrders = new HashMap<>();
+		readOrdersFile(orderRecordFile, existingBibsWithOrders);
+
 		String[] orderStatusesToExportVals = orderStatusesToExport.split("\\|");
 		String orderStatusCodesSQL = "";
 		for (String orderStatusesToExportVal : orderStatusesToExportVals){
@@ -736,13 +1032,52 @@ public class SierraExportMain{
 			loadError = true;
 		}
 		if (!loadError){
-			File orderRecordFile = new File(exportPath + "/active_orders.csv");
 			CSVWriter orderRecordWriter = new CSVWriter(new FileWriter(orderRecordFile));
 			orderRecordWriter.writeAll(activeOrdersRS, true);
 			orderRecordWriter.close();
 			activeOrdersRS.close();
+
+			HashMap<String, Integer> updatedBibsWithOrders = new HashMap<>();
+			readOrdersFile(orderRecordFile, updatedBibsWithOrders);
+
+			//Check to see which bibs either have new or deleted orders
+			for (String bibId : updatedBibsWithOrders.keySet()){
+				if (!existingBibsWithOrders.containsKey(bibId)){
+					//We didn't have a bib with an order before, update it
+					allBibsToUpdate.add(bibId);
+				}else{
+					if (!updatedBibsWithOrders.get(bibId).equals(existingBibsWithOrders.get(bibId))){
+						//Number of orders has changed, we should reindex.
+						allBibsToUpdate.add(bibId);
+					}
+					existingBibsWithOrders.remove(bibId);
+				}
+			}
+			//Now that all updated bibs are processed, look for any that we used to have that no longer exits
+			for (String bibId : existingBibsWithOrders.keySet()){
+				allBibsToUpdate.add(bibId);
+			}
 		}
 		addNoteToExportLog("Finished exporting active orders");
+	}
+
+	private static void readOrdersFile(File orderRecordFile, HashMap<String, Integer> bibsWithOrders) throws IOException {
+		if (orderRecordFile.exists()){
+			CSVReader orderReader = new CSVReader(new FileReader(orderRecordFile));
+			//Skip the header
+			orderReader.readNext();
+			String[] recordData = orderReader.readNext();
+			while (recordData != null){
+				if (bibsWithOrders.containsKey(recordData[0])){
+					bibsWithOrders.put(recordData[0], bibsWithOrders.get(recordData[0]) + 1);
+				}else{
+					bibsWithOrders.put(recordData[0], 1);
+				}
+
+				recordData = orderReader.readNext();
+			}
+			orderReader.close();
+		}
 	}
 
 	private static Ini loadConfigFile(String filename){
@@ -873,12 +1208,18 @@ public class SierraExportMain{
 					response.append(line);
 				}
 				rd.close();
-				JSONObject parser = new JSONObject(response.toString());
-				sierraAPIToken = parser.getString("access_token");
-				sierraAPITokenType = parser.getString("token_type");
-				//logger.debug("Token expires in " + parser.getLong("expires_in") + " seconds");
-				sierraAPIExpiration = new Date().getTime() + (parser.getLong("expires_in") * 1000) - 10000;
-				//logger.debug("Sierra token is " + sierraAPIToken);
+				try {
+					JSONObject parser = new JSONObject(response.toString());
+					sierraAPIToken = parser.getString("access_token");
+					sierraAPITokenType = parser.getString("token_type");
+					//logger.debug("Token expires in " + parser.getLong("expires_in") + " seconds");
+					sierraAPIExpiration = new Date().getTime() + (parser.getLong("expires_in") * 1000) - 10000;
+					//logger.debug("Sierra token is " + sierraAPIToken);
+				}catch (JSONException jse){
+					logger.error("Error parsing response to json " + response.toString(), jse);
+					return false;
+				}
+
 			} else {
 				logger.error("Received error " + conn.getResponseCode() + " connecting to sierra authentication service" );
 				// Get any errors
@@ -937,7 +1278,13 @@ public class SierraExportMain{
 					}
 					//logger.debug("  Finished reading response");
 					rd.close();
-					return new JSONObject(response.toString());
+					try{
+						return new JSONObject(response.toString());
+					}catch (JSONException jse){
+						logger.error("Error parsing response \n" + response.toString(), jse);
+						return null;
+					}
+
 				} else {
 					if (logErrors) {
 						logger.error("Received error " + conn.getResponseCode() + " calling sierra API " + sierraUrl);

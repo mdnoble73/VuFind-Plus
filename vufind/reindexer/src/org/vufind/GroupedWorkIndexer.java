@@ -145,6 +145,8 @@ public class GroupedWorkIndexer {
 
 			updateFullReindexRunning(true);
 		}else{
+			//TODO: Bypass this if called from an export process?
+
 			//Check to make sure that at least a couple of minutes have elapsed since the last index
 			//Periodically in the middle of the night we get indexes every minute or multiple times a minute
 			//which is annoying especially since it generally means nothing is changing.

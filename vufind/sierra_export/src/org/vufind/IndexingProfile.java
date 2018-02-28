@@ -36,7 +36,12 @@ public class IndexingProfile {
 	char callNumberSubfield;
 	char dateCreatedSubfield;
 	char dueDateSubfield;
-
+	boolean doAutomaticEcontentSuppression;
+	String recordNumberPrefix;
+	String formatSource;
+	char format;
+	char eContentDescriptor;
+	String specifiedFormatCategory;
 
 	private char getCharFromString(String stringValue) {
 		char result = ' ';
@@ -88,6 +93,14 @@ public class IndexingProfile {
 		this.shelvingLocationSubfield = getCharFromString(shelvingLocationSubfield);
 	}
 
+	private void setEContentDescriptor(String eContentDescriptorSubfield) {
+		this.shelvingLocationSubfield = getCharFromString(eContentDescriptorSubfield);
+	}
+
+	private void setFormatSubfield(String formatSubfield){
+		this.format = getCharFromString(formatSubfield);
+	}
+
 	private void setITypeSubfield(String iTypeSubfield) {
 		this.iTypeSubfield = getCharFromString(iTypeSubfield);
 	}
@@ -123,6 +136,15 @@ public class IndexingProfile {
 
 				indexingProfile.setShelvingLocationSubfield(indexingProfileRS.getString("shelvingLocation"));
 				indexingProfile.setITypeSubfield(indexingProfileRS.getString("iType"));
+				indexingProfile.doAutomaticEcontentSuppression = indexingProfileRS.getBoolean("doAutomaticEcontentSuppression");
+
+				indexingProfile.recordNumberTag = indexingProfileRS.getString("recordNumberTag");
+				indexingProfile.recordNumberPrefix = indexingProfileRS.getString("recordNumberPrefix");
+				indexingProfile.setEContentDescriptor(indexingProfileRS.getString("eContentDescriptor"));
+
+				indexingProfile.formatSource = indexingProfileRS.getString("formatSource");
+				indexingProfile.setFormatSubfield(indexingProfileRS.getString("format"));
+				indexingProfile.specifiedFormatCategory = indexingProfileRS.getString("specifiedFormatCategory");
 
 			} else {
 				logger.error("Unable to find " + profileToLoad + " indexing profile, please create a profile with the name ils.");
