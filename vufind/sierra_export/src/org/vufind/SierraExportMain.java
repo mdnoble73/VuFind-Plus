@@ -166,7 +166,11 @@ public class SierraExportMain{
 			e.printStackTrace();
 		}
 
-		updateBibs(ini);
+		boolean updateSucceeded = updateBibs(ini);
+
+		if (updateSucceeded){
+			updateLastExportTime(vufindConn, startTime.getTime());
+		}
 
 		addNoteToExportLog("Finished exporting sierra data " + new Date().toString());
 		long endTime = new Date().getTime();
@@ -201,6 +205,30 @@ public class SierraExportMain{
 		}
 		Date currentTime = new Date();
 		logger.info(currentTime.toString() + ": Finished Sierra Extract");
+	}
+
+	private static void updateLastExportTime(Connection vufindConn, long exportStartTime) {
+		try{
+			//Update the last extract time
+			if (lastSierraExtractTimeVariableId != null) {
+				PreparedStatement updateVariableStmt = vufindConn.prepareStatement("UPDATE variables set value = ? WHERE id = ?");
+				updateVariableStmt.setLong(1, exportStartTime);
+				updateVariableStmt.setLong(2, lastSierraExtractTimeVariableId);
+				updateVariableStmt.executeUpdate();
+				updateVariableStmt.close();
+			} else {
+				PreparedStatement insertVariableStmt = vufindConn.prepareStatement("INSERT INTO variables (`name`, `value`) VALUES ('last_sierra_extract_time', ?)");
+				insertVariableStmt.setString(1, Long.toString(exportStartTime));
+				insertVariableStmt.executeUpdate();
+				insertVariableStmt.close();
+			}
+			PreparedStatement setRemainingRecordsStmt = vufindConn.prepareStatement("INSERT INTO variables (`name`, `value`) VALUES ('remaining_sierra_records', ?) ON DUPLICATE KEY UPDATE value=VALUES(value)");
+			setRemainingRecordsStmt.setString(1, "0");
+			setRemainingRecordsStmt.executeUpdate();
+			setRemainingRecordsStmt.close();
+		}catch (Exception e){
+			logger.error("There was an error updating the database, not setting last extract time.", e);
+		}
 	}
 
 	private static void getBibsAndItemUpdatesFromSierra(Ini ini, Connection vufindConn, String exportPath) {
@@ -262,9 +290,10 @@ public class SierraExportMain{
 
 	}
 
-	private static void updateBibs(Ini ini) {
-		int batchSize = 100;
+	private static boolean updateBibs(Ini ini) {
+		int batchSize = 25;
 		boolean hasMoreIdsToProcess = true;
+		boolean hadErrors = false;
 		while (hasMoreIdsToProcess) {
 			hasMoreIdsToProcess = false;
 			String idsToProcess = "";
@@ -277,11 +306,14 @@ public class SierraExportMain{
 				idsToProcess += lastId;
 				allBibsToUpdate.remove(lastId);
 			}
-			updateMarcAndRegroupRecordIds(ini, idsToProcess);
+			if (!updateMarcAndRegroupRecordIds(ini, idsToProcess)){
+				hadErrors = true;
+			}
 			if (allBibsToUpdate.size() > 0){
 				hasMoreIdsToProcess = true;
 			}
 		}
+		return !hadErrors;
 	}
 
 	private static void exportHolds(Connection sierraConn, Connection vufindConn) {
@@ -738,9 +770,9 @@ public class SierraExportMain{
 		addNoteToExportLog("Finished processing deleted items found " + numDeletedItems);
 	}
 
-	private static void updateMarcAndRegroupRecordIds(Ini ini, String ids) {
+	private static boolean updateMarcAndRegroupRecordIds(Ini ini, String ids) {
 		try {
-			JSONObject marcResults = callSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/bibs/marc?id=" + ids, false);
+			JSONObject marcResults = callSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/bibs/marc?id=" + ids, true);
 			if (marcResults != null && marcResults.has("file")){
 				String dataFileUrl = marcResults.getString("file");
 				String marcData = getStringFromSierraApiURL(ini, apiBaseUrl, dataFileUrl, true);
@@ -765,11 +797,14 @@ public class SierraExportMain{
 					}
 				}
 			}else{
-				logger.error("Error exporting marc records for " + ids);
+				logger.error("Error exporting marc records for " + ids + " marc results did not have a file");
+				return false;
 			}
 		}catch (Exception e){
 			logger.error("Error processing newly created bibs", e);
+			return false;
 		}
+		return true;
 	}
 
 	private static void getChangedItemsFromAPI(Ini ini, Connection vufindConn, String exportPath, String dateUpdated, SimpleDateFormat dateFormatter, long updateTime) {
