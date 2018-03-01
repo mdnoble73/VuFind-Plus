@@ -141,7 +141,7 @@ public class SierraExportMain{
 		}
 
 		//Process MARC record changes
-		getBibsAndItemUpdatesFromSierra(ini, vufindConn, exportPath);
+		getBibsAndItemUpdatesFromSierra(ini, vufindConn);
 
 		//Connect to the sierra database
 		String url = ini.get("Catalog", "sierra_db");
@@ -231,7 +231,7 @@ public class SierraExportMain{
 		}
 	}
 
-	private static void getBibsAndItemUpdatesFromSierra(Ini ini, Connection vufindConn, String exportPath) {
+	private static void getBibsAndItemUpdatesFromSierra(Ini ini, Connection vufindConn) {
 		try {
 			PreparedStatement loadLastSierraExtractTimeStmt = vufindConn.prepareStatement("SELECT * from variables WHERE name = 'last_sierra_extract_time'", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet lastSierraExtractTimeRS = loadLastSierraExtractTimeStmt.executeQuery();
@@ -281,7 +281,7 @@ public class SierraExportMain{
 		}catch (Exception e){
 			logger.error("Error setting up prepared statements for deleting bibs", e);
 		}
-		processDeletedBibs(ini, vufindConn, lastExtractDateFormatted, updateTime);
+		processDeletedBibs(ini, lastExtractDateFormatted, updateTime);
 		getNewRecordsFromAPI(ini, lastExtractDateTimeFormatted, updateTime);
 		getChangedRecordsFromAPI(ini, lastExtractDateTimeFormatted, updateTime);
 		getNewItemsFromAPI(ini, lastExtractDateTimeFormatted);
@@ -291,9 +291,10 @@ public class SierraExportMain{
 	}
 
 	private static boolean updateBibs(Ini ini) {
-		int batchSize = 25;
-		boolean hasMoreIdsToProcess = true;
 		boolean hadErrors = false;
+		//This section uses the batch method which doesn't work in Sierra because we are limited to 100 exports per hour
+	/*	int batchSize = 25;
+		boolean hasMoreIdsToProcess = true;
 		while (hasMoreIdsToProcess) {
 			hasMoreIdsToProcess = false;
 			String idsToProcess = "";
@@ -311,6 +312,11 @@ public class SierraExportMain{
 			}
 			if (allBibsToUpdate.size() > 0){
 				hasMoreIdsToProcess = true;
+			}
+		}*/
+		for (String id : allBibsToUpdate) {
+			if (!updateMarcAndRegroupRecordId(ini, id)){
+				hadErrors = true;
 			}
 		}
 		return !hadErrors;
@@ -434,7 +440,7 @@ public class SierraExportMain{
 	private static PreparedStatement markGroupedWorkAsChangedStmt;
 	private static PreparedStatement deleteGroupedWorkStmt;
 	private static PreparedStatement getPermanentIdByWorkIdStmt;
-	private static void processDeletedBibs(Ini ini, Connection vufindConn, String lastExtractDateFormatted, long updateTime) {
+	private static void processDeletedBibs(Ini ini, String lastExtractDateFormatted, long updateTime) {
 		//Get a list of deleted bibs
 		addNoteToExportLog("Starting to process deleted records since " + lastExtractDateFormatted);
 
@@ -770,12 +776,51 @@ public class SierraExportMain{
 		addNoteToExportLog("Finished processing deleted items found " + numDeletedItems);
 	}
 
+	private static boolean updateMarcAndRegroupRecordId(Ini ini, String id) {
+		try {
+			String marcResults = getMarcFromSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/bibs/" + id + "/marc", true);
+			if (marcResults != null){
+				MarcReader marcReader = new MarcPermissiveStreamReader(new ByteArrayInputStream(marcResults.getBytes(StandardCharsets.UTF_8)), true, true);
+				while (marcReader.hasNext()){
+					try {
+						Record marcRecord = marcReader.next();
+						RecordIdentifier identifier = recordGroupingProcessor.getPrimaryIdentifierFromMarcRecord(marcRecord, indexingProfile.name, indexingProfile.doAutomaticEcontentSuppression);
+						File marcFile = indexingProfile.getFileForIlsRecord(identifier.getIdentifier());
+						if (!marcFile.getParentFile().exists()) {
+							if (!marcFile.getParentFile().mkdirs()) {
+								logger.error("Could not create directories for " + marcFile.getAbsolutePath());
+							}
+						}
+						MarcWriter marcWriter = new MarcStreamWriter(new FileOutputStream(marcFile));
+						marcWriter.write(marcRecord);
+						marcWriter.close();
+
+						//Setup the grouped work for the record.  This will take care of either adding it to the proper grouped work
+						//or creating a new grouped work
+						if (!recordGroupingProcessor.processMarcRecord(marcRecord, true)) {
+							logger.warn(identifier.getIdentifier() + " was suppressed");
+						}
+					}catch (MarcException mre){
+						logger.error("Error loading marc file", mre);
+					}
+				}
+			}else{
+				logger.error("Error exporting marc record for " + id + " call returned null");
+				return false;
+			}
+		}catch (Exception e){
+			logger.error("Error processing newly created bibs", e);
+			return false;
+		}
+		return true;
+	}
+
 	private static boolean updateMarcAndRegroupRecordIds(Ini ini, String ids) {
 		try {
 			JSONObject marcResults = callSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/bibs/marc?id=" + ids, true);
 			if (marcResults != null && marcResults.has("file")){
 				String dataFileUrl = marcResults.getString("file");
-				String marcData = getStringFromSierraApiURL(ini, apiBaseUrl, dataFileUrl, true);
+				String marcData = getMarcFromSierraApiURL(ini, apiBaseUrl, dataFileUrl, true);
 				MarcReader marcReader = new MarcPermissiveStreamReader(new ByteArrayInputStream(marcData.getBytes(StandardCharsets.UTF_8)), true, true);
 				while (marcReader.hasNext()){
 					try {
@@ -1353,7 +1398,7 @@ public class SierraExportMain{
 		return null;
 	}
 
-	private static String getStringFromSierraApiURL(Ini configIni, String baseUrl, String sierraUrl, boolean logErrors) {
+	private static String getMarcFromSierraApiURL(Ini configIni, String baseUrl, String sierraUrl, boolean logErrors) {
 		lastCallTimedOut = false;
 		if (connectToSierraAPI(configIni, baseUrl)){
 			//Connect to the API to get our token
@@ -1375,6 +1420,7 @@ public class SierraExportMain{
 				conn.setRequestMethod("GET");
 				conn.setRequestProperty("Accept-Charset", "UTF-8");
 				conn.setRequestProperty("Authorization", sierraAPITokenType + " " + sierraAPIToken);
+				conn.setRequestProperty("Content-Type", "application/marc-xml");
 				conn.setReadTimeout(20000);
 				conn.setConnectTimeout(5000);
 
