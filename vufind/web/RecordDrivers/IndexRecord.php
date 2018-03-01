@@ -1042,14 +1042,17 @@ class IndexRecord extends RecordInterface
 			global $timer;
 			require_once ROOT_DIR . '/sys/Grouping/GroupedWorkPrimaryIdentifier.php';
 			require_once ROOT_DIR . '/sys/Grouping/GroupedWork.php';
-			$groupedWork = new GroupedWork();
-			$query = "SELECT grouped_work.* FROM grouped_work INNER JOIN grouped_work_primary_identifiers ON grouped_work.id = grouped_work_id WHERE type='{$this->getRecordType()}' AND identifier = '{$this->getUniqueID()}'";
-			$groupedWork->query($query);
-
-			if ($groupedWork->N == 1){
-				$groupedWork->fetch();
-				$this->groupedWork = clone $groupedWork;
+			$groupedWorkPrimaryIdentifier = new GroupedWorkPrimaryIdentifier();
+			$groupedWorkPrimaryIdentifier->type = $this->getRecordType();
+			$groupedWorkPrimaryIdentifier->identifier = $this->getUniqueID();
+			if ($groupedWorkPrimaryIdentifier->find(true)){
+				$groupedWork = new GroupedWork();
+				$groupedWork->id = $groupedWorkPrimaryIdentifier->grouped_work_id;
+				if ($groupedWork->find(true)){
+					$this->groupedWork = clone $groupedWork;
+				}
 			}
+
 			$timer->logTime("Loaded Grouped Work for record");
 		}
 	}

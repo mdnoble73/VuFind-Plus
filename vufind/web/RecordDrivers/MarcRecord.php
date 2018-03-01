@@ -133,7 +133,7 @@ class MarcRecord extends IndexRecord
 
 	public function isValid()
 	{
-		if ($this->valid == null) {
+		if ($this->valid === null) {
 			$this->valid = MarcLoader::marcExistsForILSId($this->getIdWithSource());
 		}
 		return $this->valid;

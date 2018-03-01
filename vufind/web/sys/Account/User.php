@@ -102,9 +102,10 @@ class User extends DB_DataObject
 		require_once ROOT_DIR . '/sys/LocalEnrichment/UserTag.php';
 		$tagList = array();
 
+		$escapedId = $this->escape($this->id, false);
 		$sql = "SELECT id, groupedRecordPermanentId, tag, COUNT(groupedRecordPermanentId) AS cnt " .
 							 "FROM user_tags WHERE " .
-							 "userId = '{$this->id}' ";
+							 "userId = '{$escapedId}' ";
 		$sql .= "GROUP BY tag ORDER BY tag ASC";
 		$tag = new UserTag();
 		$tag->query($sql);
@@ -123,8 +124,9 @@ class User extends DB_DataObject
 
 		$lists = array();
 
+		$escapedId = $this->escape($this->id, false);
 		$sql = "SELECT user_list.* FROM user_list " .
-							 "WHERE user_list.user_id = '$this->id' " .
+							 "WHERE user_list.user_id = '$escapedId' " .
 							 "ORDER BY user_list.title";
 		$list = new UserList();
 		$list->query($sql);
@@ -213,7 +215,8 @@ class User extends DB_DataObject
 			$role = new Role();
 			$canUseTestRoles = false;
 			if ($this->id){
-				$role->query("SELECT roles.* FROM roles INNER JOIN user_roles ON roles.roleId = user_roles.roleId WHERE userId = " . $this->id . " ORDER BY name");
+				$escapedId = mysql_escape_string($this->id);
+				$role->query("SELECT roles.* FROM roles INNER JOIN user_roles ON roles.roleId = user_roles.roleId WHERE userId = " . $escapedId . " ORDER BY name");
 				while ($role->fetch()){
 					$this->roles[$role->roleId] = $role->name;
 					if ($role->name == 'userAdmin'){
@@ -307,7 +310,8 @@ class User extends DB_DataObject
 		if (isset($this->id) && isset($this->roles) && is_array($this->roles)){
 			require_once ROOT_DIR . '/sys/Administration/Role.php';
 			$role = new Role();
-			$role->query("DELETE FROM user_roles WHERE userId = " . $this->id);
+			$escapedId = $this->escape($this->id, false);
+			$role->query("DELETE FROM user_roles WHERE userId = " . $escapedId);
 			//Now add the new values.
 			if (count($this->roles) > 0){
 				$values = array();

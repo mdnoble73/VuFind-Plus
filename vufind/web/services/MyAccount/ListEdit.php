@@ -88,8 +88,8 @@ class MyAccount_ListEdit extends Action
 				return new PEAR_Error('list_edit_name_required');
 			}
 			$list = new UserList();
-			$list->title = $_REQUEST['title'];
-			$list->description = $_REQUEST['desc'];
+			$list->title = strip_tags($_REQUEST['title']);
+			$list->description = strip_tags($_REQUEST['desc']);
 			$list->public = $_REQUEST['public'];
 			$list->user_id = $this->user->id;
 			$list->insert();
