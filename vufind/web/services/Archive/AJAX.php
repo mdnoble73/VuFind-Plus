@@ -962,11 +962,21 @@ class Archive_AJAX extends Action {
 			$userList = new UserList();
 			$listOk = true;
 			if (empty($listId)){
-				$userList->title = "My Favorites";
-				$userList->user_id = UserAccount::getActiveUserId();
-				$userList->public = 0;
-				$userList->description = '';
-				$userList->insert();
+				$existingList = new UserList();
+				$existingList->user_id = UserAccount::getActiveUserId();
+				$existingList->title = "My Favorites";
+				$existingList->deleted = 0;
+				//Make sure we don't create duplicate My Favorites List
+				if ($existingList->find(true)){
+					$userList = $existingList;
+				}else{
+					$userList->title = "My Favorites";
+					$userList->user_id = UserAccount::getActiveUserId();
+					$userList->public = 0;
+					$userList->description = '';
+					$userList->insert();
+				}
+
 			}else{
 				$userList->id = $listId;
 				if (!$userList->find(true)){

@@ -67,7 +67,41 @@ class AnodeAPI extends Action {
 			$itemAPI = new ItemAPI();
 			$_GET['id'] = $groupedWork['id'];
 			$groupedWorkRecord = $itemAPI->loadSolrRecord($groupedWork['id']); 
-	
+			unset($groupedWork['ratingData']);
+			unset($groupedWork['shortId']);
+			unset($groupedWork['small_image']);
+			unset($groupedWork['titleURL']);
+			$groupedWork['contentRating'] = $groupedWorkRecord['rating'];
+			if (isset($groupedWorkRecord['series'][0])) {
+				$groupedWork['series'] = $groupedWorkRecord['series'][0];
+			}
+			if (isset($groupedWorkRecord['genre'])) {
+				$groupedWork['genre'] = $groupedWorkRecord['genre'];
+			}
+			if (isset($groupedWorkRecord['publisher'])) {
+				$groupedWork['publisher'] = $groupedWorkRecord['publisher'];
+			}
+			if (isset($groupedWorkRecord['language'])) {
+				$groupedWork['language'] = $groupedWorkRecord['language'];
+			}
+			if (isset($groupedWorkRecord['literary_form'])) {
+				$groupedWork['literary_form'] = $groupedWorkRecord['literary_form'];
+			}
+			if (isset($groupedWorkRecord['author2-role'])) {
+				$groupedWork['contributors'] = $groupedWorkRecord['author2-role'];
+			}
+			if (isset($groupedWorkRecord['edition'])) {
+				$groupedWork['edition'] = $groupedWorkRecord['edition'];
+			}
+			if (isset($groupedWorkRecord['publishDateSort'])) {
+				$groupedWork['published'] = $groupedWorkRecord['publishDateSort'];
+			}
+			if (isset($groupedWorkRecord['econtent_source_'.$branch])) {
+				$groupedWork['econtent_source'] = $groupedWorkRecord['econtent_source_'.$branch];
+			}
+			if (isset($groupedWorkRecord['econtent_device'])) {
+				$groupedWork['econtent_device'] = $groupedWorkRecord['econtent_device'];
+			}
 			$groupedWork['availableHere'] = false;
 			foreach ($groupedWorkRecord['scoping_details_' . $branch] as $item) {
 				$item = explode('|',$item);
@@ -77,18 +111,19 @@ class AnodeAPI extends Action {
 					$groupedWork['availableHere'] = true;
 				}
 				$groupedWork['items'][] = array(
-					'1_bibIdentifier'	=> $item[0],
-					'2_itemIdentifier'	=> $item[1],
-					'5_statusGrouped'	=> $item[2],
-					'6_status'		=> $item[3],
-					'7_availableHere'	=> $item['availableHere']
+					'01_bibIdentifier'	=> $item[0],
+					'02_itemIdentifier'	=> $item[1],
+					'05_statusGrouped'	=> $item[2],
+					'06_status'		=> $item[3],
+					'07_availableHere'	=> $item['availableHere']
 				);
 				foreach ($groupedWorkRecord['item_details'] as $itemDetail) {
 					if (strpos($itemDetail, $item[0] . '|' . $item[1]) === 0) {
 						$itemDetail = explode('|',$itemDetail);
 						$groupedWork['items'][count($groupedWork['items'])-1] += array(
-							'8_itemShelfLocation'		=> $itemDetail[2],
-							'9_itemLocationCode'		=> $itemDetail[15]
+							'08_itemShelfLocation'		=> $itemDetail[2],
+							'09_itemLocationCode'		=> $itemDetail[15],
+							'10_itemCallNumber'		=> $itemDetail[3]
 						);
 						break;
 					}
@@ -97,8 +132,8 @@ class AnodeAPI extends Action {
 					if (strpos($bibRecord, $item[0]) === 0) {
 						$bibRecord = explode('|', $bibRecord);
 						$groupedWork['items'][count($groupedWork['items'])-1] += array(
-							'3_bibFormat'		=> $bibRecord[1],
-							'4_bibFormatCategory'	=> $bibRecord[2]
+							'03_bibFormat'		=> $bibRecord[1],
+							'04_bibFormatCategory'	=> $bibRecord[2]
 						);
 						break;
 					}

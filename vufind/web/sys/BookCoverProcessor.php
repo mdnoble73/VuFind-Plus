@@ -132,14 +132,17 @@ class BookCoverProcessor{
 		}
 
 		$driver = new HooplaRecordDriver($id);
-		/** @var File_MARC_Data_Field[] $linkFields */
-		$linkFields = $driver->getMarcRecord()->getFields('856');
-		foreach($linkFields as $linkField){
-			if ($linkField->getIndicator(1) == 4 && $linkField->getIndicator(2) == 2){
-				$coverUrl = $linkField->getSubfield('u')->getData();
-				return $this->processImageURL($coverUrl, true);
+		if ($driver->isValid()){
+			/** @var File_MARC_Data_Field[] $linkFields */
+			$linkFields = $driver->getMarcRecord()->getFields('856');
+			foreach($linkFields as $linkField){
+				if ($linkField->getIndicator(1) == 4 && $linkField->getIndicator(2) == 2){
+					$coverUrl = $linkField->getSubfield('u')->getData();
+					return $this->processImageURL($coverUrl, true);
+				}
 			}
 		}
+
 		return false;
 	}
 
@@ -349,6 +352,7 @@ class BookCoverProcessor{
 			$this->error = "ISN, UPC, or id must be provided.";
 			return false;
 		}
+		$this->cacheName = preg_replace('/[^a-zA-Z0-9_.-]/', '', $this->cacheName);
 		$this->cacheFile = $this->bookCoverPath . '/' . $this->size . '/' . $this->cacheName . '.png';
 		$this->logTime("load parameters");
 		return true;
