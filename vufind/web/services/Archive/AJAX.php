@@ -955,57 +955,62 @@ class Archive_AJAX extends Action {
 			require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
 			$result['success'] = true;
 			$id = urldecode($_REQUEST['id']);
-			$listId = $_REQUEST['listId'];
-			$notes = $_REQUEST['notes'];
-
-			//Check to see if we need to create a list
-			$userList = new UserList();
-			$listOk = true;
-			if (empty($listId)){
-				$existingList = new UserList();
-				$existingList->user_id = UserAccount::getActiveUserId();
-				$existingList->title = "My Favorites";
-				$existingList->deleted = 0;
-				//Make sure we don't create duplicate My Favorites List
-				if ($existingList->find(true)){
-					$userList = $existingList;
-				}else{
-					$userList->title = "My Favorites";
-					$userList->user_id = UserAccount::getActiveUserId();
-					$userList->public = 0;
-					$userList->description = '';
-					$userList->insert();
-				}
-
+			if (!preg_match("/^[A-F0-9]{8}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{12}|[A-Z0-9_-]+:[A-Z0-9_-]+$/i",$id)){
+				$result['success'] = false;
+				$result['message'] = 'That is not a valid title to add to the list.';
 			}else{
-				$userList->id = $listId;
-				if (!$userList->find(true)){
-					$result['success'] = false;
-					$result['message'] = 'Sorry, we could not find that list in the system.';
-					$listOk = false;
-				}
-			}
+				$listId = $_REQUEST['listId'];
+				$notes = $_REQUEST['notes'];
 
-			if ($listOk){
-				$userListEntry = new UserListEntry();
-				$userListEntry->listId = $userList->id;
-				$userListEntry->groupedWorkPermanentId = $id;
+				//Check to see if we need to create a list
+				$userList = new UserList();
+				$listOk = true;
+				if (empty($listId)){
+					$existingList = new UserList();
+					$existingList->user_id = UserAccount::getActiveUserId();
+					$existingList->title = "My Favorites";
+					$existingList->deleted = 0;
+					//Make sure we don't create duplicate My Favorites List
+					if ($existingList->find(true)){
+						$userList = $existingList;
+					}else{
+						$userList->title = "My Favorites";
+						$userList->user_id = UserAccount::getActiveUserId();
+						$userList->public = 0;
+						$userList->description = '';
+						$userList->insert();
+					}
 
-				$existingEntry = false;
-				if ($userListEntry->find(true)){
-					$existingEntry = true;
-				}
-				$userListEntry->notes = $notes;
-				$userListEntry->dateAdded = time();
-				if ($existingEntry){
-					$userListEntry->update();
 				}else{
-					$userListEntry->insert();
+					$userList->id = $listId;
+					if (!$userList->find(true)){
+						$result['success'] = false;
+						$result['message'] = 'Sorry, we could not find that list in the system.';
+						$listOk = false;
+					}
 				}
-			}
 
-			$result['success'] = true;
-			$result['message'] = 'This title was saved to your list successfully.';
+				if ($listOk){
+					$userListEntry = new UserListEntry();
+					$userListEntry->listId = $userList->id;
+					$userListEntry->groupedWorkPermanentId = $id;
+
+					$existingEntry = false;
+					if ($userListEntry->find(true)){
+						$existingEntry = true;
+					}
+					$userListEntry->notes = strip_tags($notes);
+					$userListEntry->dateAdded = time();
+					if ($existingEntry){
+						$userListEntry->update();
+					}else{
+						$userListEntry->insert();
+					}
+				}
+
+				$result['success'] = true;
+				$result['message'] = 'This title was saved to your list successfully.';
+			}
 		}
 
 		return $result;
