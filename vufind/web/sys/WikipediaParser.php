@@ -61,11 +61,15 @@ class WikipediaParser {
 		//   It may contain nested blocks too, thus the recursion
 		preg_match_all('/\{([^{}]++|(?R))*\}/s', $body['*'], $matches);
 		// print "<p>".htmlentities($body['*'])."</p>\n";
+		$firstInfoBox = null;
 		foreach ($matches[1] as $m) {
 			// If this is the Infobox
 			if (substr($m, 0, 8) == "{Infobox") {
 				// Keep the string for later, we need the body block that follows it
 				$infoboxStr = "{".$m."}";
+				if ($firstInfoBox == null){
+					$firstInfoBox = $infoboxStr;
+				}
 				// Get rid of the last pair of braces and split
 				$infobox = explode("\n|", substr($m, 1, -1));
 				// Look through every row of the infobox
@@ -125,11 +129,11 @@ class WikipediaParser {
 		 *   Body
 		 *
 		 */
-		if (isset($infoboxStr)) {
+		if (isset($firstInfoBox)) {
 			// Start of the infobox
-			$start  = strpos($body['*'], $infoboxStr);
+			$start  = strpos($body['*'], $firstInfoBox);
 			// + the length of the infobox
-			$offset = strlen($infoboxStr);
+			$offset = strlen($firstInfoBox);
 			// Every after the infobox
 			$body   = substr($body['*'], $start + $offset);
 		} else {

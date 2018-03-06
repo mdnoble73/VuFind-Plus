@@ -34,7 +34,7 @@ class MyAccount_Edit extends Action
 		$userListEntry = new UserListEntry();
 		$userListEntry->id = $_REQUEST['listEntry'];
 		if ($userListEntry->find(true)){
-			$userListEntry->notes = $_REQUEST['notes'];
+			$userListEntry->notes = strip_tags($_REQUEST['notes']);
 			$userListEntry->update();
 		}
 	}

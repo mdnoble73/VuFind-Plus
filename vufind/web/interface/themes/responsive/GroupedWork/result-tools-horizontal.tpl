@@ -1,5 +1,5 @@
 {strip}
-	{if $showComments || $showFavorites || $showTextThis || $showEmailThis || $showShareOnExternalSites}
+	{if $showComments || $showFavorites || $showEmailThis || $showShareOnExternalSites}
 		<div class="result-tools-horizontal btn-toolbar" role="toolbar">
 			{* More Info Link, only if we are showing other data *}
 			{if $showMoreInfo || $showComments || $showFavorites}
