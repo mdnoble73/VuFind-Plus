@@ -751,7 +751,7 @@ class ListAPI extends Action {
 		if ($user && !PEAR_Singleton::isError($user)){
 			$list = new UserList();
 			$list->title = $_REQUEST['title'];
-			$list->description = isset($_REQUEST['description']) ? $_REQUEST['description'] : '';
+			$list->description = strip_tags(isset($_REQUEST['description']) ? $_REQUEST['description'] : '');
 			$list->public = isset($_REQUEST['public']) ? (($_REQUEST['public'] == true || $_REQUEST['public'] == 1)? 1 : 0) : 0;
 			$list->user_id = $user->id;
 			$list->insert();
