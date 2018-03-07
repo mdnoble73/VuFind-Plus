@@ -272,9 +272,13 @@ class SearchObject_Solr extends SearchObject_Base
 				// Remove our empty basic search (default)
 				$this->searchTerms = array();
 				// Prepare the search as a normal author search
+				$author = $_REQUEST['author'];
+				if (is_array($author)){
+					$author = array_pop($author);
+				}
 				$this->searchTerms[] = array(
                     'index'   => 'Author',
-                    'lookfor' => trim(strip_tags($_REQUEST['author']))
+                    'lookfor' => trim(strip_tags($author))
 				);
 			}
 
