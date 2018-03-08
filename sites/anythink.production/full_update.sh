@@ -14,7 +14,7 @@ PIKASERVER=anythink.production
 PIKADBNAME=pika
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
 
-MINFILE1SIZE=$((301000000))
+MINFILE1SIZE=$((302000000))
 
 # Check for conflicting processes currently running
 function checkConflictingProcesses() {

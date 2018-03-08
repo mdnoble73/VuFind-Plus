@@ -808,7 +808,11 @@ abstract class SearchObject_Base
 	protected function initPage()
 	{
 		if (isset($_REQUEST['page'])) {
-			$this->page = strip_tags($_REQUEST['page']);
+			$page = $_REQUEST['page'];
+			if (is_array($page)){
+				$page = array_pop($page);
+			}
+			$this->page = strip_tags($page);
 		}
 		$this->page = intval($this->page);
 		if ($this->page < 1) {
@@ -850,7 +854,12 @@ abstract class SearchObject_Base
 			}
 		}
 		if (isset($_REQUEST['sort'])) {
-			$this->sort = $_REQUEST['sort'];
+			if (is_array($_REQUEST['sort'])){
+				$sort = array_pop($_REQUEST['sort']);
+			}else{
+				$sort = $_REQUEST['sort'];
+			}
+			$this->sort = $sort;
 		}else if ($defaultSort != ''){
 			$this->sort = $defaultSort;
 		} else {
@@ -942,7 +951,11 @@ abstract class SearchObject_Base
 		if ($this->view != null) {
 			$params[] = "view=" . urlencode($this->view);
 		}else if (isset($_REQUEST['view'])){
-			$params[] = "view=" . urlencode(strip_tags($_REQUEST['view']));
+			$view = isset($_REQUEST['view']);
+			if (is_array($view)){
+				$view = array_pop($view);
+			}
+			$params[] = "view=" . urlencode($view);
 		}
 
 		if ($this->searchSource){

@@ -81,28 +81,15 @@
 							$('#campus').change(function(){
 								var users = $('option:selected', this).data('users'),
 										options = '';
-								$.each(users, function(indexIgnored,userId){
-										options += '<option value="'+userId+'">'+userNames[userId]+'</option>'
+								if (typeof(users) !== "undefined") {
+									$.each(users, function (indexIgnored, userId) {
+										options += '<option value="' + userId + '">' + userNames[userId] + '</option>';
 									});
-									$('#userOption select').html(options);
-							}).change(); /* trigger on initial load */
-						})
-						{/literal}
-						{* /* when hiding single account pick-up locations */
-						if (Array.isArray(users) && users.length > 1) {
-								$.each(users, function(indexIgnored,userId){
-										options += '<option value="'+userId+'">'+userNames[userId]+'</option>'
-									});
-									$('#userOption select').html(options);
-									$('#userOption').fadeIn();
-								} else {
-									/* Should be only one user in users; Hide and set to the appropriate user */
-									$('#userOption').fadeOut(function(){
-										$('#userOption select').html('<option selected value="'+users[0] +'" />');
-									})
 								}
-
-						 *}
+								$('#userOption select').html(options);
+							}).change(); /* trigger on initial load */
+						});
+						{/literal}
 					</script>
 				{if $showHoldCancelDate == 1}
 					<div id="cancelHoldDate" class="form-group">

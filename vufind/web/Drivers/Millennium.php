@@ -1745,7 +1745,7 @@ class Millennium extends ScreenScrapingDriver
 				$newList->user_id = $user->id;
 				$newList->title = $title;
 				if (!$newList->find(true)){
-					$newList->description = $description;
+					$newList->description = strip_tags($description);
 					$newList->insert();
 				}
 

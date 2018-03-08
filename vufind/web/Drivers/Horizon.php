@@ -71,7 +71,6 @@ abstract class Horizon extends ScreenScrapingDriver{
 	}
 
 	public function getMyFinesViaHIP($patron, $includeMessages){
-		$user = UserAccount::getLoggedInUser();
 		global $configArray;
 		global $logger;
 
@@ -120,8 +119,8 @@ abstract class Horizon extends ScreenScrapingDriver{
       'menu' => 'account',
       'profile' => $configArray['Catalog']['hipProfile'],
       'ri' => '',
-      'sec1' => $user->cat_username,
-      'sec2' => $user->cat_password,
+      'sec1' => $patron->cat_username,
+      'sec2' => $patron->cat_password,
       'session' => $sessionId,
 		);
 		$post_string = http_build_query($post_data);

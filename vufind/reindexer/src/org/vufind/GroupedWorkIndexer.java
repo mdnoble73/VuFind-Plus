@@ -230,6 +230,9 @@ public class GroupedWorkIndexer {
 						case "AACPL":
 							ilsRecordProcessors.put(curIdentifier, new AACPLRecordProcessor(this, vufindConn, indexingProfileRS, logger, fullReindex));
 							break;
+						case "Lion":
+							ilsRecordProcessors.put(curIdentifier, new LionRecordProcessor(this, vufindConn, indexingProfileRS, logger, fullReindex));
+							break;
 						case "SideLoadedEContent":
 							ilsRecordProcessors.put(curIdentifier, new SideLoadedEContentProcessor(this, vufindConn, indexingProfileRS, logger, fullReindex));
 							break;

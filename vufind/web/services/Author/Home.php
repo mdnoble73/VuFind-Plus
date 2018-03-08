@@ -169,11 +169,15 @@ class Author_Home extends Action
 
 		// Clean up author string
 		$author = $_GET['author'];
+		if (is_array($author)){
+			$author = array_pop($author);
+		}
 
 		$author = trim(str_replace('"', '', $author));
 		if (substr($author, strlen($author) - 1, 1) == ",") {
 			$author = substr($author, 0, strlen($author) - 1);
 		}
+		$authorRaw = $author;
 		$wikipediaAuthorName = $author;
 		$author = explode(',', $author);
 		$interface->assign('author', $author);
@@ -332,6 +336,6 @@ class Author_Home extends Action
 		$interface->assign('displayMode', $currentView);
 		$interface->assign('subpage', 'Search/list-' . $currentView .'.tpl');
 
-		$this->display('home.tpl', 'Author ' . $_GET['author'], 'Author/sidebar.tpl');
+		$this->display('home.tpl', 'Author ' . $authorRaw, 'Author/sidebar.tpl');
 	}
 }
