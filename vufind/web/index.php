@@ -273,7 +273,8 @@ if ($isLoggedIn) {
 	if (PEAR_Singleton::isError($user)) {
 		require_once ROOT_DIR . '/services/MyAccount/Login.php';
 		$launchAction = new MyAccount_Login();
-		$launchAction->launch();
+		$error_msg    = translate($user->getMessage());
+		$launchAction->launch($error_msg);
 		exit();
 	}elseif(!$user){
 		require_once ROOT_DIR . '/services/MyAccount/Login.php';
