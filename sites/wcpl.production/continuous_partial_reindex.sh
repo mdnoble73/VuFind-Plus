@@ -117,6 +117,15 @@ do
 	done
 	umount /mnt/ftp >> ${OUTPUT_FILE}
 
+	if test "`find /data/vufind-plus/${PIKASERVER}/marc_updates/ -name "*.mrc" -mtime +1`"; then
+		echo "Partial Exports older than a day found in marc_updates folder. Deleting." >> ${OUTPUT_FILE}
+		echo "" >> ${OUTPUT_FILE}
+		find /data/vufind-plus/${PIKASERVER}/marc_updates/ -name "*.mrc" -mtime +1 >> ${OUTPUT_FILE}
+
+		#Delete any partial exports older than a day
+		find /data/vufind-plus/${PIKASERVER}/marc_updates/ -name "*.mrc" -mtime +1 -delete >> ${OUTPUT_FILE}
+	fi
+
 	#merge the changes with the full extract
 	cd /usr/local/vufind-plus/vufind/horizon_export/
 	java -server -XX:+UseG1GC -jar horizon_export.jar ${PIKASERVER} >> ${OUTPUT_FILE}

@@ -94,7 +94,7 @@ class MyAccount_MyList extends MyAccount {
 					$list->update();
 				}elseif ($actionToPerform == 'saveList'){
 					$list->title = $_REQUEST['newTitle'];
-					$list->description = $_REQUEST['newDescription'];
+					$list->description = strip_tags($_REQUEST['newDescription']);
 					$list->defaultSort = $_REQUEST['defaultSort'];
 					$list->update();
 				}elseif ($actionToPerform == 'deleteList'){

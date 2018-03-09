@@ -8,7 +8,7 @@
 # CONFIGURATION
 # PLEASE SET CONFLICTING PROCESSES AND PROHIBITED TIMES IN FUNCTION CALLS IN SCRIPT MAIN DO LOOP
 # this version emails script output as a round finishes
-EMAIL=root@tethys
+EMAIL=root@tethys.marmot.org
 PIKASERVER=wcpl.test
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/extract_and_reindex_output.log"
 
@@ -115,6 +115,15 @@ do
 		fi
 	done
 	umount /mnt/ftp >> ${OUTPUT_FILE}
+
+	if test "`find /data/vufind-plus/${PIKASERVER}/marc_updates/ -name "*.mrc" -mtime +1`"; then
+		echo "Partial Exports older than a day found in marc_updates folder. Deleting." >> ${OUTPUT_FILE}
+		echo "" >> ${OUTPUT_FILE}
+		find /data/vufind-plus/${PIKASERVER}/marc_updates/ -name "*.mrc" -mtime +1 >> ${OUTPUT_FILE}
+
+		#Delete any partial exports older than a day
+		find /data/vufind-plus/${PIKASERVER}/marc_updates/ -name "*.mrc" -mtime +1 -delete >> ${OUTPUT_FILE}
+	fi
 
 	#merge the changes with the full extract
 	cd /usr/local/vufind-plus/vufind/horizon_export/

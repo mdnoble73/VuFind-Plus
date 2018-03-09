@@ -63,7 +63,7 @@ class MarmotRecordProcessor extends IIIRecordProcessor {
 		boolean available = false;
 		String status = itemInfo.getStatusCode();
 		String dueDate = itemInfo.getDueDate() == null ? "" : itemInfo.getDueDate();
-		String availableStatus = "-dowju";
+		String availableStatus = "-dowju(";
 		if (status.length() > 0 && availableStatus.indexOf(status.charAt(0)) >= 0) {
 			if (dueDate.length() == 0) {
 				available = true;

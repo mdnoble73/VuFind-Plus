@@ -672,7 +672,12 @@ if (!is_dir(ROOT_DIR . "/services/$module")){
 	$interface->assign('showBreadcrumbs', false);
 	$interface->assign('sidebar', 'Search/home-sidebar.tpl');
 	$requestURI = $_SERVER['REQUEST_URI'];
-	PEAR_Singleton::RaiseError(new PEAR_Error("Cannot Load Action '$action' for Module '$module' request '$requestURI'"));
+	$cleanedUrl = strip_tags(urldecode($_SERVER['REQUEST_URI']));
+	if ($cleanedUrl != $requestURI){
+		PEAR_Singleton::RaiseError(new PEAR_Error("Cannot Load Action and Module the URL provided is invalid"));
+	}else{
+		PEAR_Singleton::RaiseError(new PEAR_Error("Cannot Load Action '$action' for Module '$module' request '$requestURI'"));
+	}
 }
 $timer->logTime('Finished Index');
 $timer->writeTimings();

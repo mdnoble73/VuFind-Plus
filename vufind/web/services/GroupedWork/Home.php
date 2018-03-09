@@ -14,7 +14,7 @@ class GroupedWork_Home extends Action{
 		global $timer;
 		global $logger;
 
-		$id = $_REQUEST['id'];
+		$id = strip_tags($_REQUEST['id']);
 
 		require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
 		$recordDriver = new GroupedWorkDriver($id);

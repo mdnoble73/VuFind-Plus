@@ -751,7 +751,7 @@ class ListAPI extends Action {
 		if ($user && !PEAR_Singleton::isError($user)){
 			$list = new UserList();
 			$list->title = $_REQUEST['title'];
-			$list->description = isset($_REQUEST['description']) ? $_REQUEST['description'] : '';
+			$list->description = strip_tags(isset($_REQUEST['description']) ? $_REQUEST['description'] : '');
 			$list->public = isset($_REQUEST['public']) ? (($_REQUEST['public'] == true || $_REQUEST['public'] == 1)? 1 : 0) : 0;
 			$list->user_id = $user->id;
 			$list->insert();
@@ -827,26 +827,28 @@ class ListAPI extends Action {
 					require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
 					$userListEntry = new UserListEntry();
 					$userListEntry->listId = $list->id;
-					$userListEntry->groupedWorkPermanentId = $id;
+					if (preg_match("/^[A-F0-9]{8}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{12}|[A-Z0-9_-]+:[A-Z0-9_-]+$/i", $id)) {
+						$userListEntry->groupedWorkPermanentId = $id;
 
-					$existingEntry = false;
-					if ($userListEntry->find(true)){
-						$existingEntry = true;
-					}
+						$existingEntry = false;
+						if ($userListEntry->find(true)) {
+							$existingEntry = true;
+						}
 
-					if (isset($_REQUEST['notes'])){
-						$notes = $_REQUEST['notes'];
-					}else{
-						$notes = '';
+						if (isset($_REQUEST['notes'])) {
+							$notes = $_REQUEST['notes'];
+						} else {
+							$notes = '';
+						}
+						$userListEntry->notes = strip_tags($notes);
+						$userListEntry->dateAdded = time();
+						if ($existingEntry) {
+							$userListEntry->update();
+						} else {
+							$userListEntry->insert();
+						}
+						$numAdded++;
 					}
-					$userListEntry->notes = $notes;
-					$userListEntry->dateAdded = time();
-					if ($existingEntry){
-						$userListEntry->update();
-					}else{
-						$userListEntry->insert();
-					}
-					$numAdded++;
 				}
 				return array('success'=>true, 'listId'=>$list->id, 'numAdded' => $numAdded);
 			}

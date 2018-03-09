@@ -133,7 +133,7 @@ class MarcRecord extends IndexRecord
 
 	public function isValid()
 	{
-		if ($this->valid == null) {
+		if ($this->valid === null) {
 			$this->valid = MarcLoader::marcExistsForILSId($this->getIdWithSource());
 		}
 		return $this->valid;
@@ -2169,6 +2169,13 @@ class MarcRecord extends IndexRecord
 				'image' => $this->getBookcoverUrl('medium'),
 				"offers" => $linkedDataRecord->getOffers()
 		);
+
+		//Open graph data (goes in meta tags)
+		global $interface;
+		$interface->assign('og_title', $this->getTitle());
+		$interface->assign('og_type', $this->getGroupedWorkDriver()->getOGType());
+		$interface->assign('og_image', $this->getBookcoverUrl('medium'));
+		$interface->assign('og_url', $this->getAbsoluteUrl());
 		return $semanticData;
 	}
 

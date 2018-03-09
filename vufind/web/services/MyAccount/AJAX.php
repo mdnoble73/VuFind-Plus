@@ -570,7 +570,7 @@ class MyAccount_AJAX
 				if ($list->find(true)) {
 					$existingList = true;
 				}
-				$list->description = urldecode($_REQUEST['desc']);
+				$list->description = strip_tags(urldecode($_REQUEST['desc']));
 				$list->public = isset($_REQUEST['public']) && $_REQUEST['public'] == 'true';
 				if ($existingList) {
 					$list->update();
@@ -1291,15 +1291,19 @@ class MyAccount_AJAX
 					$update['id'] = str_replace('_', ':', $update['id']); // Rebuilt Islandora PIDs
 					$userListEntry                         = new UserListEntry();
 					$userListEntry->listId                 = $listId;
-					$userListEntry->groupedWorkPermanentId = $update['id'];
-					if ($userListEntry->find(true) && ctype_digit($update['newOrder'])) {
-						// check entry exists already and the new weight is a number
-						$userListEntry->weight = $update['newOrder'];
-						if (!$userListEntry->update()) {
+					if (!preg_match("/^[A-F0-9]{8}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{12}|[A-Z0-9_-]+:[A-Z0-9_-]+$/i", $update['id'])) {
+						$success = false;
+					}else{
+						$userListEntry->groupedWorkPermanentId = $update['id'];
+						if ($userListEntry->find(true) && ctype_digit($update['newOrder'])) {
+							// check entry exists already and the new weight is a number
+							$userListEntry->weight = $update['newOrder'];
+							if (!$userListEntry->update()) {
+								$success = false;
+							}
+						} else {
 							$success = false;
 						}
-					} else {
-						$success = false;
 					}
 				}
 			}

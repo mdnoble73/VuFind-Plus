@@ -712,23 +712,28 @@ class GroupedWork_AJAX {
 			if ($listOk){
 				$userListEntry = new UserListEntry();
 				$userListEntry->listId = $userList->id;
-				$userListEntry->groupedWorkPermanentId = $id;
+				if (!preg_match("/^[A-F0-9]{8}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{12}|[A-Z0-9_-]+:[A-Z0-9_-]+$/i", $id)) {
+					$result['success'] = false;
+					$result['message'] = 'Sorry, that is not a valid entry for the list.';
+				}else {
+					$userListEntry->groupedWorkPermanentId = $id;
 
-				$existingEntry = false;
-				if ($userListEntry->find(true)){
-					$existingEntry = true;
-				}
-				$userListEntry->notes = $notes;
-				$userListEntry->dateAdded = time();
-				if ($existingEntry){
-					$userListEntry->update();
-				}else{
-					$userListEntry->insert();
+					$existingEntry = false;
+					if ($userListEntry->find(true)) {
+						$existingEntry = true;
+					}
+					$userListEntry->notes = strip_tags($notes);
+					$userListEntry->dateAdded = time();
+					if ($existingEntry) {
+						$userListEntry->update();
+					} else {
+						$userListEntry->insert();
+					}
+					$result['success'] = true;
+					$result['message'] = 'This title was saved to your list successfully.';
 				}
 			}
 
-			$result['success'] = true;
-			$result['message'] = 'This title was saved to your list successfully.';
 		}
 
 		return json_encode($result);

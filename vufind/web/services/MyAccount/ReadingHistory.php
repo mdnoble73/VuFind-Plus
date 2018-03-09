@@ -101,6 +101,9 @@ class ReadingHistory extends MyAccount
 					$page = 1;
 				}
 
+				if (!$patron){
+					PEAR_Singleton::RaiseError(new PEAR_Error("The patron provided is invalid"));
+				}
 				$result = $patron->getReadingHistory($page, $recordsPerPage, $selectedSortOption);
 
 				$link = $_SERVER['REQUEST_URI'];
