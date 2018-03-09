@@ -4,6 +4,8 @@ import java.io.File;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.text.SimpleDateFormat;
+
 import org.apache.log4j.Logger;
 
 /**
@@ -25,7 +27,9 @@ public class IndexingProfile {
 	char itemRecordNumberSubfield;
 	String lastCheckinFormat;
 	String dateCreatedFormat;
+	SimpleDateFormat dateCreatedFormatter;
 	String dueDateFormat;
+	SimpleDateFormat dueDateFormatter;
 	char lastCheckinDateSubfield;
 	char locationSubfield;
 	char itemStatusSubfield;
@@ -33,6 +37,9 @@ public class IndexingProfile {
 	char shelvingLocationSubfield;
 	char yearToDateCheckoutsSubfield;
 	char totalCheckoutsSubfield;
+	char lastYearCheckoutsSubfield;
+	char totalRenewalsSubfield;
+	char iCode2Subfield;
 	char callNumberSubfield;
 	char dateCreatedSubfield;
 	char dueDateSubfield;
@@ -42,6 +49,7 @@ public class IndexingProfile {
 	char format;
 	char eContentDescriptor;
 	String specifiedFormatCategory;
+	char barcodeSubfield;
 
 	private char getCharFromString(String stringValue) {
 		char result = ' ';
@@ -123,8 +131,10 @@ public class IndexingProfile {
 				indexingProfile.setItemStatusSubfield(indexingProfileRS.getString("status"));
 				indexingProfile.setDueDateSubfield(indexingProfileRS.getString("dueDate"));
 				indexingProfile.dueDateFormat = indexingProfileRS.getString("dueDateFormat");
+				indexingProfile.dueDateFormatter = new SimpleDateFormat(indexingProfile.dueDateFormat);
 				indexingProfile.setDateCreatedSubfield(indexingProfileRS.getString("dateCreated"));
 				indexingProfile.dateCreatedFormat = indexingProfileRS.getString("dateCreatedFormat");
+				indexingProfile.dateCreatedFormatter = new SimpleDateFormat(indexingProfile.dateCreatedFormat);
 				indexingProfile.setCallNumberSubfield(indexingProfileRS.getString("callNumber"));
 				indexingProfile.setTotalCheckoutsSubfield(indexingProfileRS.getString("totalCheckouts"));
 				indexingProfile.setYearToDateCheckoutsSubfield(indexingProfileRS.getString("yearToDateCheckouts"));
