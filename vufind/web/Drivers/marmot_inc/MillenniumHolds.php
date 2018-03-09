@@ -524,6 +524,7 @@ class MillenniumHolds{
 
 					elseif (stripos($sKeys[$i],"STATUS") > -1) {
 						$status = trim(strip_tags($sCols[$i]));
+						$status = str_replace('You will be notified when your request/hold is ready for pickup.', '', $status); // strip out explainer text for LION
 						$status = strtolower($status);
 						$status = ucwords($status);
 						if ($status !="&nbsp"){
@@ -543,6 +544,8 @@ class MillenniumHolds{
 								$curHold['status'] = $status;
 							}elseif (preg_match('/Hold Being Shelved/i', $status, $matches)){
 								$curHold['status'] = $status;
+							}elseif ($status == 'Available ') {
+								$curHold['status'] = 'Ready';
 							}else{
 								#PK-778 - Don't attempt to show status for anything other than ready for pickup since Millennium/Sierra statuses are confusing
 								$curHold['status'] = 'Pending';
