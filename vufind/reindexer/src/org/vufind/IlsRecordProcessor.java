@@ -499,11 +499,12 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		if (recordInfo.getNumCopiesOnOrder() > 0 && !hasTangibleItems){
 			groupedWork.addKeywords("On Order");
 			groupedWork.addKeywords("Coming Soon");
+			/*//Don't do this anymore, see D-1893
 			HashSet<String> additionalOrderSubjects = new HashSet<>();
 			additionalOrderSubjects.add("On Order");
 			additionalOrderSubjects.add("Coming Soon");
 			groupedWork.addTopic(additionalOrderSubjects);
-			groupedWork.addTopicFacet(additionalOrderSubjects);
+			groupedWork.addTopicFacet(additionalOrderSubjects);*/
 		}
 	}
 

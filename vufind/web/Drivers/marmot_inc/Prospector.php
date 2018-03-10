@@ -159,6 +159,8 @@ class Prospector{
 		//$prospectorUrl = "http://prospector.coalliance.org/search/?searchtype=X&searcharg=" . urlencode($search) . "&Da=&Db=&SORT=R";
 		//Fix prospector url issue
 		$search = str_replace('+', '%20', urlencode(str_replace('/', '', $search)));
+		// Handle special exception: ? character in the search must be encoded specially
+		$search = str_replace('%3F', 'Pw%3D%3D', $search);
 		$prospectorUrl = "http://encore.coalliance.org/iii/encore/search/C__S" . $search ."__Orightresult__U1?lang=eng&amp;suite=def";
 		return $prospectorUrl;
 	}
