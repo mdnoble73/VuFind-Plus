@@ -14,7 +14,7 @@
 		</div>
 	{else}
 		<div class="alert alert-info">
-			You haven't created an account at Hoopla yet. Would you like to do so now?
+			{translate text="Hoopla_registration_prompt"}
 		</div>
 	{/if}
 {/strip}
