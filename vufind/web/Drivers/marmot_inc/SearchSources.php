@@ -346,6 +346,8 @@ class SearchSources{
 		}else if ($searchSource == 'prospector'){
 			$prospectorSearchType = $this->getProspectorSearchType($type);
 			$lookFor = str_replace('+', '%20', rawurlencode($lookFor));
+			// Handle special exception: ? character in the search must be encoded specially
+			$lookFor  = str_replace('%3F', 'Pw%3D%3D',$lookFor);
 			if ($prospectorSearchType != ' '){
 				$lookFor = "$prospectorSearchType:(" . $lookFor . ")";
 			}
