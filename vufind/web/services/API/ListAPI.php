@@ -373,7 +373,7 @@ class ListAPI extends Action {
 		if ($list->find(true)){
 			//Make sure the user has access to the list
 			if ($list->public == 0){
-				if (!$user){
+				if (!isset($user)){
 					return array('success'=>false, 'message'=>'The user was invalid.  A valid user must be provided for private lists.');
 				}elseif ($list->user_id != $user->id){
 					return array('success'=>false, 'message'=>'The user does not have access to this list.');
