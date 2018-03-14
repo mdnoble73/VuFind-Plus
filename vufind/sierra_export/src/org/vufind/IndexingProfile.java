@@ -26,6 +26,7 @@ public class IndexingProfile {
 	String itemTag ;
 	char itemRecordNumberSubfield;
 	String lastCheckinFormat;
+	SimpleDateFormat lastCheckinFormatter;
 	String dateCreatedFormat;
 	SimpleDateFormat dateCreatedFormatter;
 	String dueDateFormat;
@@ -127,6 +128,7 @@ public class IndexingProfile {
 				indexingProfile.setItemRecordNumberSubfield(indexingProfileRS.getString("itemRecordNumber"));
 				indexingProfile.setLastCheckinDateSubfield(indexingProfileRS.getString("lastCheckinDate"));
 				indexingProfile.lastCheckinFormat = indexingProfileRS.getString("lastCheckinFormat");
+				indexingProfile.lastCheckinFormatter = new SimpleDateFormat(indexingProfile.lastCheckinFormat);
 				indexingProfile.setLocationSubfield(indexingProfileRS.getString("location"));
 				indexingProfile.setItemStatusSubfield(indexingProfileRS.getString("status"));
 				indexingProfile.setDueDateSubfield(indexingProfileRS.getString("dueDate"));

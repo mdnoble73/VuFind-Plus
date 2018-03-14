@@ -844,7 +844,7 @@ public class SierraExportMain{
 	}
 
 
-	private static SimpleDateFormat sierraAPIDateFormatter = new SimpleDateFormat("yyyy-MM-ddTHH:mm:ssZ");
+	private static SimpleDateFormat sierraAPIDateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 	private static void getItemsForBib(Ini ini, String id, Record marcRecord) {
 		//Get a list of all items
 		JSONObject itemIds = callSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/items?limit=1000&deleted=false&suppressed=false&fields=id,updatedDate,createdDate,location,status,barcode,callNumber,itemType,fixedFields,varFields&bibIds=" + id, true);
@@ -914,7 +914,7 @@ public class SierraExportMain{
 					//last check in date
 					if (fixedFields.has("68")){
 						Date lastCheckin = sierraAPIDateFormatter.parse(fixedFields.getString("68"));
-						itemField.addSubfield(marcFactory.newSubfield(indexingProfile.iTypeSubfield, fixedFields.getJSONObject("68").getString("value")));
+						itemField.addSubfield(marcFactory.newSubfield(indexingProfile.lastCheckinDateSubfield, indexingProfile.lastCheckinFormatter.format(lastCheckin)));
 					}
 					//icode2
 					if (fixedFields.has("60")){
