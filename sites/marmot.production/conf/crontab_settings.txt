@@ -31,6 +31,8 @@
 ######################
 # backup important bits at 12:10am daily
 15 2 * * * /usr/local/vufind-plus/vufind/cron/nightly_mysql_dump.sh marmot.production 2>&1 >/dev/null
+# backup to backup server at 02:15am daily
+15 02 * * * /root/cron/backup 2>&1 >/dev/null
 
 #############
 # On Reboot #
