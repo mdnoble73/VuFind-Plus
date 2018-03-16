@@ -165,6 +165,7 @@ class MyAccount_MyList extends MyAccount {
 		$titleSearches[] = preg_split("/\\r\\n|\\r|\\n/", $titlesToAdd);
 
 		foreach ($titleSearches[0] as $titleSearch){
+			$titleSearch = trim($titleSearch);
 			if (!empty($titleSearch)) {
 				$_REQUEST['lookfor'] = $titleSearch;
 				$_REQUEST['type']    = 'Keyword';// Initialise from the current search globals

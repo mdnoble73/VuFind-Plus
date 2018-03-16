@@ -149,6 +149,10 @@ cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE
 #/usr/local/vufind-plus/sites/marmot.test/moveFullExport.sh  marmot/coloGovDocs colorado_gov_docs >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/vufind/cron/fetch_sideload_data.sh ${PIKASERVER} marmot/coloGovDocs colorado_gov_docs/marmot >> ${OUTPUT_FILE}
 
+# Naxos Fort Lewis
+/usr/local/vufind-plus/vufind/cron/fetch_sideload_data.sh ${PIKASERVER} fortlewis_sideload/naxos naxos/fortlewis >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/fetch_sideload_data.sh ${PIKASERVER} fortlewis_sideload/naxos_jazz naxos/jazz/fortlewis >> ${OUTPUT_FILE}
+
 #Extracts for sideloaded eContent; settings defined in config.pwd.ini [Sideload]
 cd /usr/local/vufind-plus/vufind/cron; ./sideload.sh ${PIKASERVER}
 

@@ -328,6 +328,15 @@ function getIndexingUpdates() {
 					)
 			),
 
+			'records_to_include_2018-03' => array(
+					'title' => 'Increase Records To Include URL Replacement Column',
+					'description' => 'Increase Records To Include URL Replacement Column to 255 characters.',
+					'sql' => array(
+							"ALTER TABLE `library_records_to_include` CHANGE COLUMN `urlReplacement` `urlReplacement` VARCHAR(255) NULL DEFAULT NULL",
+							"ALTER TABLE `location_records_to_include` CHANGE COLUMN `urlReplacement` `urlReplacement` VARCHAR(255) NULL DEFAULT NULL",
+					)
+			),
+
 	);
 }
 
