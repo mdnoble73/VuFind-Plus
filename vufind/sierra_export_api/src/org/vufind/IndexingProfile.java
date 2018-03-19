@@ -17,40 +17,48 @@ import org.apache.log4j.Logger;
  * Time: 10:38 PM
  */
 public class IndexingProfile {
+	//Used in record grouping
 	Long id;
+
 	String name;
-	String individualMarcPath;
-	int numCharsToCreateFolderFrom;
-	boolean createFolderFromLeadingCharacters;
+	private String individualMarcPath;
+	private int numCharsToCreateFolderFrom;
+	private boolean createFolderFromLeadingCharacters;
+	//Used in record grouping
 	String recordNumberTag;
+	String recordNumberPrefix;
+
 	String itemTag ;
 	char itemRecordNumberSubfield;
-	String lastCheckinFormat;
-	SimpleDateFormat lastCheckinFormatter;
-	String dateCreatedFormat;
-	SimpleDateFormat dateCreatedFormatter;
-	String dueDateFormat;
-	SimpleDateFormat dueDateFormatter;
-	char lastCheckinDateSubfield;
+	char barcodeSubfield;
 	char locationSubfield;
 	char itemStatusSubfield;
-	char iTypeSubfield;
-	char shelvingLocationSubfield;
-	char yearToDateCheckoutsSubfield;
+	char dueDateSubfield;
+	String dueDateFormat;
+	SimpleDateFormat dueDateFormatter;
 	char totalCheckoutsSubfield;
 	char lastYearCheckoutsSubfield;
+	char yearToDateCheckoutsSubfield;
 	char totalRenewalsSubfield;
+	char iTypeSubfield;
+	char dateCreatedSubfield;
+	private String dateCreatedFormat;
+	SimpleDateFormat dateCreatedFormatter;
+
+	char lastCheckinDateSubfield;
+	String lastCheckinFormat;
+	SimpleDateFormat lastCheckinFormatter;
+	char shelvingLocationSubfield;
 	char iCode2Subfield;
 	char callNumberSubfield;
-	char dateCreatedSubfield;
-	char dueDateSubfield;
+
+	//These are used from Record Grouping and Reindexing
 	boolean doAutomaticEcontentSuppression;
-	String recordNumberPrefix;
+
 	String formatSource;
 	char format;
 	char eContentDescriptor;
 	String specifiedFormatCategory;
-	char barcodeSubfield;
 
 	private char getCharFromString(String stringValue) {
 		char result = ' ';
@@ -98,6 +106,14 @@ public class IndexingProfile {
 		this.yearToDateCheckoutsSubfield = getCharFromString(yearToDateCheckoutsSubfield);
 	}
 
+	private void setLastYearCheckoutsSubfield(String lastYearCheckoutsSubfield){
+		this.lastYearCheckoutsSubfield = getCharFromString(lastYearCheckoutsSubfield);
+	}
+
+	private void setTotalRenewalsSubfield(String totalRenewalsSubfield){
+		this.totalRenewalsSubfield = getCharFromString(totalRenewalsSubfield);
+	}
+
 	private void setShelvingLocationSubfield(String shelvingLocationSubfield) {
 		this.shelvingLocationSubfield = getCharFromString(shelvingLocationSubfield);
 	}
@@ -126,28 +142,33 @@ public class IndexingProfile {
 
 				indexingProfile.itemTag = indexingProfileRS.getString("itemTag");
 				indexingProfile.setItemRecordNumberSubfield(indexingProfileRS.getString("itemRecordNumber"));
-				indexingProfile.setLastCheckinDateSubfield(indexingProfileRS.getString("lastCheckinDate"));
-				indexingProfile.lastCheckinFormat = indexingProfileRS.getString("lastCheckinFormat");
-				indexingProfile.lastCheckinFormatter = new SimpleDateFormat(indexingProfile.lastCheckinFormat);
+				indexingProfile.setBarcodeSubfield(indexingProfileRS.getString("barcode"));
 				indexingProfile.setLocationSubfield(indexingProfileRS.getString("location"));
+				indexingProfile.setCallNumberSubfield(indexingProfileRS.getString("callNumber"));
 				indexingProfile.setItemStatusSubfield(indexingProfileRS.getString("status"));
 				indexingProfile.setDueDateSubfield(indexingProfileRS.getString("dueDate"));
 				indexingProfile.dueDateFormat = indexingProfileRS.getString("dueDateFormat");
 				indexingProfile.dueDateFormatter = new SimpleDateFormat(indexingProfile.dueDateFormat);
+				indexingProfile.setTotalCheckoutsSubfield(indexingProfileRS.getString("totalCheckouts"));
+				indexingProfile.setLastYearCheckoutsSubfield(indexingProfileRS.getString("lastYearCheckouts"));
+				indexingProfile.setYearToDateCheckoutsSubfield(indexingProfileRS.getString("yearToDateCheckouts"));
+				indexingProfile.setTotalRenewalsSubfield(indexingProfileRS.getString("totalRenewals"));
+				indexingProfile.setITypeSubfield(indexingProfileRS.getString("iType"));
 				indexingProfile.setDateCreatedSubfield(indexingProfileRS.getString("dateCreated"));
 				indexingProfile.dateCreatedFormat = indexingProfileRS.getString("dateCreatedFormat");
 				indexingProfile.dateCreatedFormatter = new SimpleDateFormat(indexingProfile.dateCreatedFormat);
-				indexingProfile.setCallNumberSubfield(indexingProfileRS.getString("callNumber"));
-				indexingProfile.setTotalCheckoutsSubfield(indexingProfileRS.getString("totalCheckouts"));
-				indexingProfile.setYearToDateCheckoutsSubfield(indexingProfileRS.getString("yearToDateCheckouts"));
+				indexingProfile.setLastCheckinDateSubfield(indexingProfileRS.getString("lastCheckinDate"));
+				indexingProfile.lastCheckinFormat = indexingProfileRS.getString("lastCheckinFormat");
+				indexingProfile.lastCheckinFormatter = new SimpleDateFormat(indexingProfile.lastCheckinFormat);
+				indexingProfile.setICode2Subfield(indexingProfileRS.getString("iCode2"));
+
+				indexingProfile.setShelvingLocationSubfield(indexingProfileRS.getString("shelvingLocation"));
 
 				indexingProfile.individualMarcPath                 = indexingProfileRS.getString("individualMarcPath");
 				indexingProfile.name                        = indexingProfileRS.getString("name");
 				indexingProfile.numCharsToCreateFolderFrom         = indexingProfileRS.getInt("numCharsToCreateFolderFrom");
 				indexingProfile.createFolderFromLeadingCharacters  = indexingProfileRS.getBoolean("createFolderFromLeadingCharacters");
 
-				indexingProfile.setShelvingLocationSubfield(indexingProfileRS.getString("shelvingLocation"));
-				indexingProfile.setITypeSubfield(indexingProfileRS.getString("iType"));
 				indexingProfile.doAutomaticEcontentSuppression = indexingProfileRS.getBoolean("doAutomaticEcontentSuppression");
 
 				indexingProfile.recordNumberTag = indexingProfileRS.getString("recordNumberTag");
@@ -184,5 +205,13 @@ public class IndexingProfile {
 		String basePath           = individualMarcPath + "/" + subFolderName;
 		String individualFilename = basePath + "/" + shortId + ".mrc";
 		return new File(individualFilename);
+	}
+
+	private void setBarcodeSubfield(String barcodeSubfield) {
+		this.barcodeSubfield = getCharFromString(barcodeSubfield);
+	}
+
+	public void setICode2Subfield(String ICode2Subfield) {
+		this.iCode2Subfield = getCharFromString(ICode2Subfield);
 	}
 }
