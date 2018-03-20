@@ -170,7 +170,7 @@ public class SierraExportMain{
 		boolean updateSucceeded = updateBibs(ini);
 
 		if (updateSucceeded){
-			updateLastExportTime(vufindConn, startTime.getTime());
+			updateLastExportTime(vufindConn, startTime.getTime() / 1000);
 		}
 
 		addNoteToExportLog("Finished exporting sierra data " + new Date().toString());
@@ -252,8 +252,8 @@ public class SierraExportMain{
 		apiBaseUrl = ini.get("Catalog", "url") + "/iii/sierra-api/v" + apiVersion;
 
 		//Last Update in UTC
-		//Add a small buffer to be
-		Date lastExtractDate = new Date((lastSierraExtractTime - 120) * 1000);
+		//Add a small buffer to be safe, this was 2 minutes.  Reducing to 15 seconds, should be 0
+		Date lastExtractDate = new Date((lastSierraExtractTime - 15) * 1000);
 
 		Date now = new Date();
 		Date yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
@@ -294,33 +294,32 @@ public class SierraExportMain{
 	private static boolean updateBibs(Ini ini) {
 		boolean hadErrors = false;
 		//This section uses the batch method which doesn't work in Sierra because we are limited to 100 exports per hour
-	/*	int batchSize = 25;
+
+		logger.info("Found " + allBibsToUpdate.size() + " bib records that need to be updated with data from Sierra.");
+		int batchSize = 25;
 		boolean hasMoreIdsToProcess = true;
 		while (hasMoreIdsToProcess) {
 			hasMoreIdsToProcess = false;
 			String idsToProcess = "";
 			int maxIndex = Math.min(allBibsToUpdate.size(), batchSize);
+			ArrayList<String> ids = new ArrayList<>();
 			for (int i = 0; i < maxIndex; i++) {
 				if (idsToProcess.length() > 0){
 					idsToProcess += ",";
 				}
 				String lastId = allBibsToUpdate.last();
 				idsToProcess += lastId;
+				ids.add(lastId);
 				allBibsToUpdate.remove(lastId);
 			}
-			if (!updateMarcAndRegroupRecordIds(ini, idsToProcess)){
+			if (!updateMarcAndRegroupRecordIds(ini, idsToProcess, ids)){
 				hadErrors = true;
 			}
 			if (allBibsToUpdate.size() > 0){
 				hasMoreIdsToProcess = true;
 			}
-		}*/
-		logger.info("Found " + allBibsToUpdate.size() + " bib records that need to be updated with data from Sierra.");
-		for (String id : allBibsToUpdate) {
-			if (!updateMarcAndRegroupRecordId(ini, id)){
-				hadErrors = true;
-			}
 		}
+
 		return !hadErrors;
 	}
 
@@ -466,7 +465,8 @@ public class SierraExportMain{
 						String id = curBib.getString("id");
 						allDeletedIds.add(id);
 					}
-					if (deletedRecords.getLong("total") >= bufferSize){
+					//If nothing has been deleted, iii provides entries, but not a total
+					if (deletedRecords.has("total") && deletedRecords.getLong("total") >= bufferSize){
 						offset += deletedRecords.getLong("total");
 						hasMoreRecords = true;
 					}
@@ -785,7 +785,15 @@ public class SierraExportMain{
 		try {
 			JSONObject marcResults = getMarcJSONFromSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/bibs/" + id + "/marc", true);
 			if (marcResults != null){
-
+				if (marcResults.has("httpStatus")){
+					if (marcResults.getInt("code") == 107){
+						//This record was deleted
+						return true;
+					}else{
+						logger.error("Unknown error " + marcResults);
+						return false;
+					}
+				}
 				String leader = marcResults.has("leader") ? marcResults.getString("leader") : "";
 				Record marcRecord = marcFactory.newRecord(leader);
 				JSONArray fields = marcResults.getJSONArray("fields");
@@ -947,10 +955,11 @@ public class SierraExportMain{
 		}
 	}
 
-	private static boolean updateMarcAndRegroupRecordIds(Ini ini, String ids) {
+	private static boolean updateMarcAndRegroupRecordIds(Ini ini, String ids, ArrayList<String> idArray) {
 		try {
 			JSONObject marcResults = callSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/bibs/marc?id=" + ids, true);
 			if (marcResults != null && marcResults.has("file")){
+				ArrayList<String> processedIds = new ArrayList<>();
 				String dataFileUrl = marcResults.getString("file");
 				String marcData = getMarcFromSierraApiURL(ini, apiBaseUrl, dataFileUrl, true);
 				MarcReader marcReader = new MarcPermissiveStreamReader(new ByteArrayInputStream(marcData.getBytes(StandardCharsets.UTF_8)), true, true);
@@ -973,19 +982,35 @@ public class SierraExportMain{
 						if (!recordGroupingProcessor.processMarcRecord(marcRecord, true)) {
 							logger.warn(identifier.getIdentifier() + " was suppressed");
 						}
+						String shortId = identifier.getIdentifier().substring(2, identifier.getIdentifier().length() - 1);
+						processedIds.add(shortId);
 					}catch (MarcException mre){
-						logger.error("Error loading marc file", mre);
+						logger.info("Error loading marc record from file, will load manually");
 					}
 				}
+				boolean allPass = true;
+				for (String id : idArray){
+					if (!processedIds.contains(id)){
+						if (!updateMarcAndRegroupRecordId(ini, id)){
+							allPass = false;
+						}
+					}
+				}
+				return allPass;
 			}else{
 				logger.error("Error exporting marc records for " + ids + " marc results did not have a file");
-				return false;
+				boolean allPass = true;
+				for (String id : idArray) {
+					if (!updateMarcAndRegroupRecordId(ini, id)){
+						allPass = false;
+					}
+				}
+				return allPass;
 			}
 		}catch (Exception e){
 			logger.error("Error processing newly created bibs", e);
 			return false;
 		}
-		return true;
 	}
 
 	private static void getChangedItemsFromAPI(Ini ini, Connection vufindConn, String exportPath, String dateUpdated, SimpleDateFormat dateFormatter, long updateTime) {
@@ -1634,18 +1659,20 @@ public class SierraExportMain{
 					rd.close();
 					return new JSONObject(response.toString());
 				} else {
-					if (logErrors) {
-						logger.error("Received error " + conn.getResponseCode() + " calling sierra API " + sierraUrl);
-						// Get any errors
-						BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getErrorStream(), "UTF-8"));
-						String line;
-						while ((line = rd.readLine()) != null) {
-							response.append(line);
-						}
-						logger.error("  Finished reading response");
-						logger.error(response.toString());
+					// Get any errors
+					BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getErrorStream(), "UTF-8"));
+					String line;
+					while ((line = rd.readLine()) != null) {
+						response.append(line);
+					}
 
-						rd.close();
+					rd.close();
+
+					try{
+						return new JSONObject(response.toString());
+					}catch (JSONException jse){
+						logger.error("Received error " + conn.getResponseCode() + " calling sierra API " + sierraUrl);
+						logger.error(response.toString());
 					}
 				}
 
