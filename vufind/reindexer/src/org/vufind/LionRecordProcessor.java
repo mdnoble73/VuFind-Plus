@@ -55,4 +55,8 @@ class LionRecordProcessor extends IIIRecordProcessor {
 	protected boolean determineLibraryUseOnly(ItemInfo itemInfo, Scope curScope) {
 		return itemInfo.getStatusCode().equals("o");
 	}
+
+	//bcode3 suppress code is 998e = n
+	//icode2 suppress code is n
+
 }

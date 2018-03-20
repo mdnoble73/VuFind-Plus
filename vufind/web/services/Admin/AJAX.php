@@ -27,7 +27,7 @@ class Admin_AJAX extends Action {
 		global $timer;
 		$method = $_GET['method'];
 		$timer->logTime("Starting method $method");
-		if (in_array($method, array('getReindexNotes', 'getReindexProcessNotes', 'getCronNotes', 'getCronProcessNotes', 'getAddToWidgetForm', 'getRecordGroupingNotes', 'getHooplaExportNotes'))){
+		if (in_array($method, array('getReindexNotes', 'getReindexProcessNotes', 'getCronNotes', 'getCronProcessNotes', 'getAddToWidgetForm', 'getRecordGroupingNotes', 'getHooplaExportNotes', 'getSierraExportNotes'))){
 			//JSON Responses
 			header('Content-type: application/json');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
@@ -122,6 +122,29 @@ class Admin_AJAX extends Action {
 		}else{
 			$results['title'] = "Error";
 			$results['modalBody'] = "We could not find a hoopla extract log entry with that id.  No notes available.";
+		}
+		return json_encode($results);
+	}
+
+	function getSierraExportNotes(){
+		$id = $_REQUEST['id'];
+		$sierraExportProcess = new SierraExportLogEntry();
+		$sierraExportProcess->id = $id;
+		$results = array(
+				'title' => '',
+				'modalBody' => '',
+				'modalButtons' => ''
+		);
+		if ($sierraExportProcess->find(true)){
+			$results['title'] = "Sierra Export Notes";
+			if (strlen(trim($sierraExportProcess->notes)) == 0){
+				$results['modalBody'] = "No notes have been entered yet";
+			}else{
+				$results['modalBody'] = "<div class='helpText'>{$sierraExportProcess->notes}</div>";
+			}
+		}else{
+			$results['title'] = "Error";
+			$results['modalBody'] = "We could not find a sierra extract log entry with that id.  No notes available.";
 		}
 		return json_encode($results);
 	}
