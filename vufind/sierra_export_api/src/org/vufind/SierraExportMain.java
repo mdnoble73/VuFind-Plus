@@ -172,6 +172,9 @@ public class SierraExportMain{
 
 		if (updateSucceeded){
 			updateLastExportTime(vufindConn, startTime.getTime() / 1000);
+			addNoteToExportLog("Export successful!  Setting last export time to " + (startTime.getTime() / 1000));
+		}else{
+			addNoteToExportLog("Update failed, not setting last export time");
 		}
 
 		addNoteToExportLog("Finished exporting sierra data " + new Date().toString());
@@ -309,8 +312,9 @@ public class SierraExportMain{
 		boolean hadErrors = false;
 		//This section uses the batch method which doesn't work in Sierra because we are limited to 100 exports per hour
 
-		logger.info("Found " + allBibsToUpdate.size() + " bib records that need to be updated with data from Sierra.");
+		addNoteToExportLog("Found " + allBibsToUpdate.size() + " bib records that need to be updated with data from Sierra.");
 		int batchSize = 25;
+		int numProcessed = 0;
 		boolean hasMoreIdsToProcess = true;
 		while (hasMoreIdsToProcess) {
 			hasMoreIdsToProcess = false;
@@ -330,6 +334,10 @@ public class SierraExportMain{
 				hadErrors = true;
 			}
 			if (allBibsToUpdate.size() > 0){
+				numProcessed += maxIndex;
+				if (numProcessed % 1000 == 0){
+					addNoteToExportLog("Processed " + numProcessed);
+				}
 				hasMoreIdsToProcess = true;
 			}
 		}
