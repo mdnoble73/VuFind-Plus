@@ -253,6 +253,15 @@ function getIndexingUpdates() {
 				)
 		),
 
+		'indexing_profile_groupUnchangedFiles' => array(
+				'title' => 'Indexing Profiles - Group Unchanged Files',
+				'description' => 'Allow logic for whether or not files that haven\'t changed since the last grouping are regrouped',
+				'continueOnError' => true,
+				'sql' => array(
+						"ALTER TABLE indexing_profiles ADD COLUMN `groupUnchangedFiles` tinyint(1) DEFAULT 0",
+				)
+		),
+
 		'translation_map_regex' => array(
 			'title' => 'Translation Maps Regex',
 			'description' => 'Setup Translation Maps to use regular expressions',

@@ -29,6 +29,7 @@ public class IndexingProfile {
 	char eContentDescriptor;
 	String specifiedFormatCategory;
 	boolean doAutomaticEcontentSuppression;
+	boolean groupUnchangedFiles;
 
 	File getFileForIlsRecord(String recordNumber) {
 		String shortId = recordNumber.replace(".", "");
