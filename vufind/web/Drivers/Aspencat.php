@@ -279,14 +279,14 @@ class Aspencat implements DriverInterface{
 				require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
 				$recordDriver = new MarcRecord($transaction['recordId']);
 				if ($recordDriver->isValid()){
-					$transaction['coverUrl'] = $recordDriver->getBookcoverUrl('medium');
+					$transaction['coverUrl']      = $recordDriver->getBookcoverUrl('medium');
 					$transaction['groupedWorkId'] = $recordDriver->getGroupedWorkId();
-					$formats = $recordDriver->getFormats();
-					$transaction['format'] = reset($formats);
-					$transaction['author'] = $recordDriver->getPrimaryAuthor();
-					if (!isset($transaction['title']) || empty($transaction['title'])){
-						$transaction['title'] = $recordDriver->getTitle();
-					}
+					$transaction['ratingData']    = $recordDriver->getRatingData();
+					$transaction['format']        = $recordDriver->getPrimaryFormat();
+					$transaction['author']        = $recordDriver->getPrimaryAuthor();
+					$transaction['title']         = $recordDriver->getTitle();
+					$curTitle['title_sort']       = $recordDriver->getSortableTitle();
+					$transaction['link']          = $recordDriver->getLinkUrl();
 				}else{
 					$transaction['coverUrl'] = "";
 					$transaction['groupedWorkId'] = "";
