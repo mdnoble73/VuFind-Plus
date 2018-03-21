@@ -72,14 +72,14 @@ rm /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
 #Restart Solr
 cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 
-#Extract from ILS This isn't done for LION since they are using realtime via the API
-#/usr/local/vufind-plus/sites/${PIKASERVER}/copySierraExport.sh >> ${OUTPUT_FILE}
+#Extract from ILS this normally won't update anything since they don't have scheduler, but it could be used manually from time to time.
+/usr/local/vufind-plus/sites/${PIKASERVER}/copySierraExport.sh >> ${OUTPUT_FILE}
 
 #Get the updated volume information not needed for LION since they don't have volumes
 #cd /usr/local/vufind-plus/vufind/cron;
 #nice -n -10 java -jar cron.jar ${PIKASERVER} ExportSierraData >> ${OUTPUT_FILE}
 
-#Extract from Hoopla
+#Extract from Hoopla, this just needs to be done once a day
 cd /usr/local/vufind-plus/vufind/cron;./GetHooplaFromMarmot.sh >> ${OUTPUT_FILE}
 
 

@@ -54,6 +54,7 @@ public class SierraExportMain{
 	private static Long lastSierraExtractTime = null;
 	private static Long lastSierraExtractTimeVariableId = null;
 	private static String apiBaseUrl = null;
+	private static boolean allowFastExportMethod = true;
 
 	private static TreeSet<String> allBibsToUpdate = new TreeSet<>();
 	private static TreeSet<String> allDeletedIds = new TreeSet<>();
@@ -242,6 +243,19 @@ public class SierraExportMain{
 			}
 		}catch (Exception e){
 			logger.error("Unable to load last_sierra_extract_time from variables", e);
+			return;
+		}
+
+		try {
+			PreparedStatement allowFastExportMethodStmt = vufindConn.prepareStatement("SELECT * from variables WHERE name = 'allow_sierra_fast_export'", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			ResultSet allowFastExportMethodRS = allowFastExportMethodStmt.executeQuery();
+			if (allowFastExportMethodRS.next()) {
+				allowFastExportMethod = allowFastExportMethodRS.getBoolean("value");
+			}else{
+				vufindConn.prepareStatement("INSERT INTO variables (name, value) VALUES ('allow_sierra_fast_export', 1)").executeUpdate();
+			}
+		}catch (Exception e){
+			logger.error("Unable to load allow_sierra_fast_export from variables", e);
 			return;
 		}
 
@@ -957,7 +971,10 @@ public class SierraExportMain{
 
 	private static boolean updateMarcAndRegroupRecordIds(Ini ini, String ids, ArrayList<String> idArray) {
 		try {
-			JSONObject marcResults = callSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/bibs/marc?id=" + ids, true);
+			JSONObject marcResults = null;
+			if (allowFastExportMethod) {
+				marcResults = callSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/bibs/marc?id=" + ids, true);
+			}
 			if (marcResults != null && marcResults.has("file")){
 				ArrayList<String> processedIds = new ArrayList<>();
 				String dataFileUrl = marcResults.getString("file");
@@ -998,7 +1015,7 @@ public class SierraExportMain{
 				}
 				return allPass;
 			}else{
-				logger.error("Error exporting marc records for " + ids + " marc results did not have a file");
+				logger.info("Error exporting marc records for " + ids + " marc results did not have a file");
 				boolean allPass = true;
 				for (String id : idArray) {
 					if (!updateMarcAndRegroupRecordId(ini, id)){
