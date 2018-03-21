@@ -54,6 +54,7 @@ public class SierraExportMain{
 	private static Long lastSierraExtractTime = null;
 	private static Long lastSierraExtractTimeVariableId = null;
 	private static String apiBaseUrl = null;
+	private static boolean allowFastExportMethod = true;
 
 	private static TreeSet<String> allBibsToUpdate = new TreeSet<>();
 	private static TreeSet<String> allDeletedIds = new TreeSet<>();
@@ -171,6 +172,9 @@ public class SierraExportMain{
 
 		if (updateSucceeded){
 			updateLastExportTime(vufindConn, startTime.getTime() / 1000);
+			addNoteToExportLog("Export successful!  Setting last export time to " + (startTime.getTime() / 1000));
+		}else{
+			addNoteToExportLog("Update failed, not setting last export time");
 		}
 
 		addNoteToExportLog("Finished exporting sierra data " + new Date().toString());
@@ -245,6 +249,19 @@ public class SierraExportMain{
 			return;
 		}
 
+		try {
+			PreparedStatement allowFastExportMethodStmt = vufindConn.prepareStatement("SELECT * from variables WHERE name = 'allow_sierra_fast_export'", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			ResultSet allowFastExportMethodRS = allowFastExportMethodStmt.executeQuery();
+			if (allowFastExportMethodRS.next()) {
+				allowFastExportMethod = allowFastExportMethodRS.getBoolean("value");
+			}else{
+				vufindConn.prepareStatement("INSERT INTO variables (name, value) VALUES ('allow_sierra_fast_export', 1)").executeUpdate();
+			}
+		}catch (Exception e){
+			logger.error("Unable to load allow_sierra_fast_export from variables", e);
+			return;
+		}
+
 		String apiVersion = cleanIniValue(ini.get("Catalog", "api_version"));
 		if (apiVersion == null || apiVersion.length() == 0){
 			return;
@@ -295,8 +312,9 @@ public class SierraExportMain{
 		boolean hadErrors = false;
 		//This section uses the batch method which doesn't work in Sierra because we are limited to 100 exports per hour
 
-		logger.info("Found " + allBibsToUpdate.size() + " bib records that need to be updated with data from Sierra.");
+		addNoteToExportLog("Found " + allBibsToUpdate.size() + " bib records that need to be updated with data from Sierra.");
 		int batchSize = 25;
+		int numProcessed = 0;
 		boolean hasMoreIdsToProcess = true;
 		while (hasMoreIdsToProcess) {
 			hasMoreIdsToProcess = false;
@@ -316,6 +334,10 @@ public class SierraExportMain{
 				hadErrors = true;
 			}
 			if (allBibsToUpdate.size() > 0){
+				numProcessed += maxIndex;
+				if (numProcessed % 1000 == 0){
+					addNoteToExportLog("Processed " + numProcessed);
+				}
 				hasMoreIdsToProcess = true;
 			}
 		}
@@ -957,7 +979,10 @@ public class SierraExportMain{
 
 	private static boolean updateMarcAndRegroupRecordIds(Ini ini, String ids, ArrayList<String> idArray) {
 		try {
-			JSONObject marcResults = callSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/bibs/marc?id=" + ids, true);
+			JSONObject marcResults = null;
+			if (allowFastExportMethod) {
+				marcResults = callSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/bibs/marc?id=" + ids, true);
+			}
 			if (marcResults != null && marcResults.has("file")){
 				ArrayList<String> processedIds = new ArrayList<>();
 				String dataFileUrl = marcResults.getString("file");
@@ -998,7 +1023,7 @@ public class SierraExportMain{
 				}
 				return allPass;
 			}else{
-				logger.error("Error exporting marc records for " + ids + " marc results did not have a file");
+				logger.info("Error exporting marc records for " + ids + " marc results did not have a file");
 				boolean allPass = true;
 				for (String id : idArray) {
 					if (!updateMarcAndRegroupRecordId(ini, id)){
