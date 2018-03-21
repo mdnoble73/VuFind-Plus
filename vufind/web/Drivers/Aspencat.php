@@ -168,10 +168,10 @@ class Aspencat implements DriverInterface{
 					if ($headerLabels[$col] == 'title'){
 						//Title column contains title, author, and id link
 						if (preg_match('/biblionumber=(\\d+)">\\s*([^<]*)\\s*<\/a>.*?>\\s*(.*?)\\s*<\/span>/si', $tableCell, $cellDetails)) {
-							$transaction['id'] = $cellDetails[1];
+							$transaction['id']      = $cellDetails[1];
 							$transaction['shortId'] = $cellDetails[1];
-							$transaction['title'] = $cellDetails[2];
-							$transaction['author'] = $cellDetails[3];
+							$transaction['title']   = $cellDetails[2];
+							$transaction['author']  = $cellDetails[3];
 						}else{
 							$logger->log("Could not parse title for checkout", PEAR_LOG_WARNING);
 							$transaction['title'] = strip_tags($tableCell);
@@ -215,19 +215,19 @@ class Aspencat implements DriverInterface{
 					require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
 					$recordDriver = new MarcRecord($transaction['recordId']);
 					if ($recordDriver->isValid()){
-						$transaction['coverUrl'] = $recordDriver->getBookcoverUrl('medium');
+						$transaction['coverUrl']      = $recordDriver->getBookcoverUrl('medium');
 						$transaction['groupedWorkId'] = $recordDriver->getGroupedWorkId();
-						$formats = $recordDriver->getFormats();
-						$transaction['format'] = reset($formats);
-						$transaction['author'] = $recordDriver->getPrimaryAuthor();
-						if (!isset($transaction['title']) || empty($transaction['title'])){
-							$transaction['title'] = $recordDriver->getTitle();
-						}
+						$transaction['ratingData']    = $recordDriver->getRatingData();
+						$transaction['format']        = $recordDriver->getPrimaryFormat();
+						$transaction['author']        = $recordDriver->getPrimaryAuthor();
+						$transaction['title']         = $recordDriver->getTitle();
+						$curTitle['title_sort']       = $recordDriver->getSortableTitle();
+						$transaction['link']          = $recordDriver->getLinkUrl();
+
 					}else{
 						$transaction['coverUrl'] = "";
 						$transaction['groupedWorkId'] = "";
 						$transaction['format'] = "Unknown";
-						$transaction['author'] = "";
 					}
 				}
 				$transactions[] = $transaction;
@@ -291,7 +291,6 @@ class Aspencat implements DriverInterface{
 					$transaction['coverUrl'] = "";
 					$transaction['groupedWorkId'] = "";
 					$transaction['format'] = "Unknown";
-					$transaction['author'] = "";
 				}
 			}
 
