@@ -252,6 +252,9 @@ function loadSearchInformation(){
 
 	$searchSource = 'global';
 	if (isset($_GET['searchSource'])){
+		if (is_array($_GET['searchSource'])){
+			$_GET['searchSource'] = reset($_GET['searchSource']);
+		}
 		$searchSource = $_GET['searchSource'];
 		$_REQUEST['searchSource'] = $searchSource; //Update request since other check for it here
 		$_SESSION['searchSource'] = $searchSource; //Update the session so we can remember what the user was doing last.
