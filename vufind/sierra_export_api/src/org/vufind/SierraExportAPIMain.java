@@ -149,6 +149,16 @@ public class SierraExportAPIMain {
 		//Process MARC record changes
 		getBibsAndItemUpdatesFromSierra(ini, vufindConn, changedBibsFile);
 
+		//Write the number of updates to the log
+		try {
+			PreparedStatement setNumProcessedStmt = vufindConn.prepareStatement("UPDATE sierra_api_export_log SET numRecordsToProcess = ? WHERE id = ?", PreparedStatement.RETURN_GENERATED_KEYS);
+			setNumProcessedStmt.setLong(1, allBibsToUpdate.size());
+			setNumProcessedStmt.setLong(2, exportLogId);
+			setNumProcessedStmt.executeUpdate();
+		}catch (SQLException e) {
+			logger.error("Unable to update log entry with number of records that have changed", e);
+		}
+
 		//Connect to the sierra database
 		String url = ini.get("Catalog", "sierra_db");
 		if (url.startsWith("\"")){
@@ -172,7 +182,7 @@ public class SierraExportAPIMain {
 			e.printStackTrace();
 		}
 
-		boolean updateSucceeded = updateBibs(ini);
+		int numRecordsProcessed = updateBibs(ini);
 
 		//Write any records that still haven't been processed
 		try {
@@ -190,12 +200,20 @@ public class SierraExportAPIMain {
 			logger.error("Error saving remaining bibs to process", e);
 		}
 
-		if (updateSucceeded){
-			updateLastExportTime(vufindConn, startTime.getTime() / 1000);
-			addNoteToExportLog("Export successful!  Setting last export time to " + (startTime.getTime() / 1000));
-		}else{
-			addNoteToExportLog("Update failed, not setting last export time there were " + bibsWithErrors.size() + " failures." );
+		//Write stats to the log
+		try {
+			PreparedStatement setNumProcessedStmt = vufindConn.prepareStatement("UPDATE sierra_api_export_log SET numRecordsProcessed = ?, numErrors = ?, numRemainingRecords =? WHERE id = ?", PreparedStatement.RETURN_GENERATED_KEYS);
+			setNumProcessedStmt.setLong(1, numRecordsProcessed);
+			setNumProcessedStmt.setLong(2, bibsWithErrors.size());
+			setNumProcessedStmt.setLong(3, allBibsToUpdate.size());
+			setNumProcessedStmt.setLong(4, exportLogId);
+			setNumProcessedStmt.executeUpdate();
+		}catch (SQLException e) {
+			logger.error("Unable to update log entry with final stats", e);
 		}
+
+		updateLastExportTime(vufindConn, startTime.getTime() / 1000);
+		addNoteToExportLog("Setting last export time to " + (startTime.getTime() / 1000));
 
 		addNoteToExportLog("Finished exporting sierra data " + new Date().toString());
 		long endTime = new Date().getTime();
@@ -343,8 +361,7 @@ public class SierraExportAPIMain {
 
 	}
 
-	private static boolean updateBibs(Ini ini) {
-		boolean hadErrors = false;
+	private static int updateBibs(Ini ini) {
 		//This section uses the batch method which doesn't work in Sierra because we are limited to 100 exports per hour
 
 		addNoteToExportLog("Found " + allBibsToUpdate.size() + " bib records that need to be updated with data from Sierra.");
@@ -366,9 +383,7 @@ public class SierraExportAPIMain {
 				ids.add(lastId);
 				allBibsToUpdate.remove(lastId);
 			}
-			if (!updateMarcAndRegroupRecordIds(ini, idsToProcess.toString(), ids)){
-				hadErrors = true;
-			}
+			updateMarcAndRegroupRecordIds(ini, idsToProcess.toString(), ids);
 			if (allBibsToUpdate.size() > 0){
 				numProcessed += maxIndex;
 				if (numProcessed % 250 == 0){
@@ -382,7 +397,7 @@ public class SierraExportAPIMain {
 			}
 		}
 
-		return !hadErrors;
+		return numProcessed;
 	}
 
 	private static void exportHolds(Connection sierraConn, Connection vufindConn) {

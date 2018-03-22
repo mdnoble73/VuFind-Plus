@@ -12,6 +12,10 @@ class SierraExportLogEntry extends DB_DataObject
 	public $startTime;
 	public $lastUpdate;
 	public $endTime;
+	public $numRecordsToProcess;
+	public $numRecordsProcessed;
+	public $numErrors;
+	public $numRemainingRecords;
 	public $notes;
 
 	function keys() {

@@ -24,5 +24,16 @@ function getSierraAPIUpdates() {
 									) ENGINE = INNODB;",
 					)
 			),
+
+			'sierra_exportLog_stats' => array(
+					'title' => 'Sierra API export log stats',
+					'description' => 'Add stats to sierra export via api log.',
+					'sql' => array(
+							"ALTER TABLE sierra_api_export_log ADD COLUMN numRecordsToProcess INT(11)",
+							"ALTER TABLE sierra_api_export_log ADD COLUMN numRecordsProcessed INT(11)",
+							"ALTER TABLE sierra_api_export_log ADD COLUMN numErrors INT(11)",
+							"ALTER TABLE sierra_api_export_log ADD COLUMN numRemainingRecords INT(11)",
+					)
+			),
 	);
 }
