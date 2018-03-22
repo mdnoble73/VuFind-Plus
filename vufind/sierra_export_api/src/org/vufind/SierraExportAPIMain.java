@@ -38,8 +38,8 @@ import org.marc4j.marc.impl.SubfieldImpl;
  * Date: 10/15/13
  * Time: 8:59 AM
  */
-public class SierraExportMain{
-	private static Logger logger = Logger.getLogger(SierraExportMain.class);
+public class SierraExportAPIMain {
+	private static Logger logger = Logger.getLogger(SierraExportAPIMain.class);
 	private static String serverName;
 
 	private static IndexingProfile indexingProfile;
@@ -58,6 +58,7 @@ public class SierraExportMain{
 
 	private static TreeSet<String> allBibsToUpdate = new TreeSet<>();
 	private static TreeSet<String> allDeletedIds = new TreeSet<>();
+	private static TreeSet<String> bibsWithErrors = new TreeSet<>();
 
 	//Reporting information
 	private static long exportLogId;
@@ -174,7 +175,7 @@ public class SierraExportMain{
 			updateLastExportTime(vufindConn, startTime.getTime() / 1000);
 			addNoteToExportLog("Export successful!  Setting last export time to " + (startTime.getTime() / 1000));
 		}else{
-			addNoteToExportLog("Update failed, not setting last export time");
+			addNoteToExportLog("Update failed, not setting last export time there were " + bibsWithErrors.size() + " failures." );
 		}
 
 		addNoteToExportLog("Finished exporting sierra data " + new Date().toString());
@@ -1017,6 +1018,8 @@ public class SierraExportMain{
 				for (String id : idArray){
 					if (!processedIds.contains(id)){
 						if (!updateMarcAndRegroupRecordId(ini, id)){
+							addNoteToExportLog("Processing " + id + " failed");
+							bibsWithErrors.add(id);
 							allPass = false;
 						}
 					}
@@ -1027,6 +1030,8 @@ public class SierraExportMain{
 				boolean allPass = true;
 				for (String id : idArray) {
 					if (!updateMarcAndRegroupRecordId(ini, id)){
+						addNoteToExportLog("Processing " + id + " failed");
+						bibsWithErrors.add(id);
 						allPass = false;
 					}
 				}
