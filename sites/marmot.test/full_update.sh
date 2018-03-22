@@ -73,7 +73,8 @@ rm /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
 cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 
 #Extract from ILS
-/usr/local/vufind-plus/sites/${PIKASERVER}/copySierraExport.sh >> ${OUTPUT_FILE}
+#Do not copy the Sierra export, we will just
+#/usr/local/vufind-plus/sites/${PIKASERVER}/copySierraExport.sh >> ${OUTPUT_FILE}
 
 #Extract from Hoopla
 cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE}
@@ -181,13 +182,11 @@ cd /usr/local/vufind-plus/vufind/cron; java -server -XX:+UseG1GC -jar cron.jar $
 #Full Regroup
 cd /usr/local/vufind-plus/vufind/record_grouping; java -server -XX:+UseG1GC -jar record_grouping.jar ${PIKASERVER} fullRegroupingNoClear >> ${OUTPUT_FILE}
 
-#TODO: Determine if we should do a partial update from the ILS and OverDrive before running the reindex to grab last minute changes
-
 #Full Reindex
 cd /usr/local/vufind-plus/vufind/reindexer; nice -n -3 java -server -XX:+UseG1GC -jar reindexer.jar ${PIKASERVER} fullReindex >> ${OUTPUT_FILE}
 
 # Truncate Continuous Reindexing list of changed items
-cat /dev/null >| /data/vufind-plus/${PIKASERVER}/marc/changed_items_to_process.csv
+#cat /dev/null >| /data/vufind-plus/${PIKASERVER}/marc/changed_items_to_process.csv
 
 # Clean-up Solr Logs
 find /usr/local/vufind-plus/sites/default/solr/jetty/logs -name "solr_log_*" -mtime +7 -delete
