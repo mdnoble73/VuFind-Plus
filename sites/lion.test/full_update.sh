@@ -72,14 +72,14 @@ rm /data/vufind-plus/${PIKASERVER}/grouped_work_primary_identifiers.sql
 #Restart Solr
 cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 
-#Extract from ILS
+#Extract from ILS this normally won't update anything since they don't have scheduler, but it could be used manually from time to time.
 /usr/local/vufind-plus/sites/${PIKASERVER}/copySierraExport.sh >> ${OUTPUT_FILE}
 
-#Get the updated volume information
-cd /usr/local/vufind-plus/vufind/cron;
-nice -n -10 java -jar cron.jar ${PIKASERVER} ExportSierraData >> ${OUTPUT_FILE}
+#Get the updated volume information not needed for LION since they don't have volumes
+#cd /usr/local/vufind-plus/vufind/cron;
+#nice -n -10 java -jar cron.jar ${PIKASERVER} ExportSierraData >> ${OUTPUT_FILE}
 
-#Extract from Hoopla
+#Extract from Hoopla, this just needs to be done once a day
 cd /usr/local/vufind-plus/vufind/cron;./GetHooplaFromMarmot.sh >> ${OUTPUT_FILE}
 
 
@@ -91,7 +91,6 @@ cd /data/vufind-plus/; curl --remote-name --remote-time --silent --show-error --
 
 #Extract AR Data
 cd /data/vufind-plus/accelerated_reader; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/accelerated_reader/RLI-ARDataTAB.txt https://cassini.marmot.org/RLI-ARDataTAB.txt
-
 
 #Do a full extract from OverDrive just once a week to catch anything that doesn't
 #get caught in the regular extract

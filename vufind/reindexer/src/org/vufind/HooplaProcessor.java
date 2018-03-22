@@ -5,6 +5,7 @@ import org.marc4j.MarcPermissiveStreamReader;
 import org.marc4j.marc.Record;
 
 import java.io.ByteArrayInputStream;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.sql.ResultSet;
 import java.util.Date;
@@ -59,10 +60,12 @@ class HooplaProcessor extends MarcRecordProcessor {
 			InputStream inputStream = new ByteArrayInputStream(fileContents);
 			//FileInputStream inputStream = new FileInputStream(individualFile);
 			MarcPermissiveStreamReader marcReader = new MarcPermissiveStreamReader(inputStream, true, true, "UTF-8");
-			if (marcReader.hasNext()){
+			if (marcReader.hasNext()) {
 				record = marcReader.next();
 			}
 			inputStream.close();
+		} catch (FileNotFoundException fnfe){
+			logger.error("Hoopla file " + individualFilename + " did not exist");
 		} catch (Exception e) {
 			logger.error("Error reading data from hoopla file " + individualFilename, e);
 		}

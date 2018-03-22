@@ -20,16 +20,20 @@
 #-------------------------------------------------------------------------
 # declare variables
 #-------------------------------------------------------------------------
+
+FTPACCOUNT="vufind_covers"
+PIKASITENAME="marmot.production"
+
 REMOTE="10.1.2.7:/ftp"
-LOCAL="/mnt/ftp_covers"
-SRC="/mnt/ftp_covers/vufind_covers"
-DEST="/data/vufind-plus/marmot.production/covers/original"
+LOCAL="/mnt/ftp"
+SRC="/mnt/ftp/${FTPACCOUNT}"
+DEST="/data/vufind-plus/${PIKASITENAME}/covers/original"
 LOG="logger -t copyCovers "
 
 #-------------------------------------------------------------------------
 # main loop
 #-------------------------------------------------------------------------
-$LOG "~> starting copyCovers.sh"
+$LOG "~> starting copyCovers.sh ${PIKASITENAME}"
 
 #------------------------------------------------
 # mount external drive
@@ -46,10 +50,8 @@ fi
 #------------------------------------------------
 # copy new files from SRC to DEST
 #------------------------------------------------
-# reset intervals to 11 minutes to reflect crontab intervals. pascal 9-15-2014
 if [ -z "$1" ]
 then
-  #Grab Covers newer than 11 minutes
   $LOG "~> find $SRC -type f -exec /bin/cp {} $DEST \;"
   find $SRC -maxdepth 1 -type f -exec /bin/cp {} $DEST \;
   $LOG "~> exit code $?"
@@ -61,6 +63,7 @@ then
 else
 	#if a single parameter is passed this will copy over files without any time check.
   /bin/cp $SRC/* $DEST
+  #if a single parameter is passed this will copy over files without any time check.
 	if [ ! -d "$SRC/processed/" ]; then
 		mkdir $SRC/processed/
 	fi

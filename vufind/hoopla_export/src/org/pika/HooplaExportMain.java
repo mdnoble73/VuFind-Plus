@@ -468,7 +468,7 @@ public class HooplaExportMain {
 			addNoteToHooplaExportLogStmt.executeUpdate();
 			logger.info(note);
 		} catch (SQLException e) {
-			logger.error("Error adding note to Record Grouping Log", e);
+			logger.error("Error adding note to Export Log", e);
 		}
 	}
 

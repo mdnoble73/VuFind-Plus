@@ -616,7 +616,9 @@ abstract class SearchObject_Base
 		if (is_array($searchTerm)) {
 			if (count($searchTerm) == 1) {
 				$searchTerm = strip_tags(reset($searchTerm));
-				$_REQUEST['type'] = strip_tags(reset($_REQUEST['searchType']));
+				if (isset($_REQUEST['searchType'])){
+					$_REQUEST['type'] = strip_tags(reset($_REQUEST['searchType']));
+				}
 			} else {
 				return false;
 			}
