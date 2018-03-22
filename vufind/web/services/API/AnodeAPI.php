@@ -128,7 +128,8 @@ class AnodeAPI extends Action {
 						'02_itemIdentifier'	=> $item[1],
 						'05_statusGrouped'	=> $item[2],
 						'06_status'		=> $item[3],
-						'07_availableHere'	=> $item['availableHere']
+						'07_availableHere'	=> $item['availableHere'],
+						'11_available'		=> $item[5]
 					);
 					foreach ($groupedWorkRecord['item_details'] as $itemDetail) {
 						if (strpos($itemDetail, $item[0] . '|' . $item[1]) === 0) {
