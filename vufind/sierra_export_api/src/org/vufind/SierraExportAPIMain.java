@@ -896,7 +896,7 @@ public class SierraExportAPIMain {
 						logger.error("Could not create directories for " + marcFile.getAbsolutePath());
 					}
 				}
-				MarcWriter marcWriter = new MarcStreamWriter(new FileOutputStream(marcFile));
+				MarcWriter marcWriter = new MarcStreamWriter(new FileOutputStream(marcFile), true);
 				marcWriter.write(marcRecord);
 				marcWriter.close();
 
@@ -1053,29 +1053,29 @@ public class SierraExportAPIMain {
 						logger.info("Error loading marc record from file, will load manually");
 					}
 				}
-				boolean allPass = true;
 				for (String id : idArray){
 					if (!processedIds.contains(id)){
 						if (!updateMarcAndRegroupRecordId(ini, id)){
+							//Don't fail the entire process.  We will just reprocess next time the export runs
 							addNoteToExportLog("Processing " + id + " failed");
 							bibsWithErrors.add(id);
-							allPass = false;
+							//allPass = false;
 						}
 					}
 				}
-				return allPass;
+				return true;
 			}else{
 				//Don't need this message since it will happen regularly.
 				//logger.info("Error exporting marc records for " + ids + " marc results did not have a file");
-				boolean allPass = true;
 				for (String id : idArray) {
 					if (!updateMarcAndRegroupRecordId(ini, id)){
+						//Don't fail the entire process.  We will just reprocess next time the export runs
 						addNoteToExportLog("Processing " + id + " failed");
 						bibsWithErrors.add(id);
-						allPass = false;
+						//allPass = false;
 					}
 				}
-				return allPass;
+				return true;
 			}
 		}catch (Exception e){
 			logger.error("Error processing newly created bibs", e);
