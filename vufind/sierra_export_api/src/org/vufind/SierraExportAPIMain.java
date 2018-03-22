@@ -28,8 +28,6 @@ import org.marc4j.*;
 import org.marc4j.marc.DataField;
 import org.marc4j.marc.MarcFactory;
 import org.marc4j.marc.Record;
-import org.marc4j.marc.VariableField;
-import org.marc4j.marc.impl.SubfieldImpl;
 
 /**
  * Export data to
@@ -143,8 +141,13 @@ public class SierraExportAPIMain {
 			System.exit(0);
 		}
 
+		if (exportPath.startsWith("\"")){
+			exportPath = exportPath.substring(1, exportPath.length() - 1);
+		}
+		File changedBibsFile = new File(exportPath + "/changed_bibs_to_process.csv");
+
 		//Process MARC record changes
-		getBibsAndItemUpdatesFromSierra(ini, vufindConn);
+		getBibsAndItemUpdatesFromSierra(ini, vufindConn, changedBibsFile);
 
 		//Connect to the sierra database
 		String url = ini.get("Catalog", "sierra_db");
@@ -170,6 +173,22 @@ public class SierraExportAPIMain {
 		}
 
 		boolean updateSucceeded = updateBibs(ini);
+
+		//Write any records that still haven't been processed
+		try {
+			BufferedWriter itemsToProcessWriter = new BufferedWriter(new FileWriter(changedBibsFile, false));
+			for (String bibToUpdate : allBibsToUpdate) {
+				itemsToProcessWriter.write(bibToUpdate + "\r\n");
+			}
+			//Write any bibs that had errors
+			for (String bibToUpdate : bibsWithErrors) {
+				itemsToProcessWriter.write(bibToUpdate + "\r\n");
+			}
+			itemsToProcessWriter.flush();
+			itemsToProcessWriter.close();
+		}catch (Exception e){
+			logger.error("Error saving remaining bibs to process", e);
+		}
 
 		if (updateSucceeded){
 			updateLastExportTime(vufindConn, startTime.getTime() / 1000);
@@ -237,7 +256,22 @@ public class SierraExportAPIMain {
 		}
 	}
 
-	private static void getBibsAndItemUpdatesFromSierra(Ini ini, Connection vufindConn) {
+	private static void getBibsAndItemUpdatesFromSierra(Ini ini, Connection vufindConn, File changedBibsFile) {
+		//Load unprocessed transactions
+		try {
+			if (changedBibsFile.exists()) {
+				BufferedReader changedBibsReader = new BufferedReader(new FileReader(changedBibsFile));
+				String curLine = changedBibsReader.readLine();
+				while (curLine != null) {
+					allBibsToUpdate.add(curLine);
+					curLine = changedBibsReader.readLine();
+				}
+				changedBibsReader.close();
+			}
+		}catch (Exception e){
+			logger.error("Error loading changed bibs to process");
+		}
+
 		try {
 			PreparedStatement loadLastSierraExtractTimeStmt = vufindConn.prepareStatement("SELECT * from variables WHERE name = 'last_sierra_extract_time'", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet lastSierraExtractTimeRS = loadLastSierraExtractTimeStmt.executeQuery();
@@ -316,28 +350,33 @@ public class SierraExportAPIMain {
 		addNoteToExportLog("Found " + allBibsToUpdate.size() + " bib records that need to be updated with data from Sierra.");
 		int batchSize = 25;
 		int numProcessed = 0;
+		Long exportStartTime = new Date().getTime() / 1000;
 		boolean hasMoreIdsToProcess = true;
 		while (hasMoreIdsToProcess) {
 			hasMoreIdsToProcess = false;
-			String idsToProcess = "";
+			StringBuilder idsToProcess = new StringBuilder();
 			int maxIndex = Math.min(allBibsToUpdate.size(), batchSize);
 			ArrayList<String> ids = new ArrayList<>();
 			for (int i = 0; i < maxIndex; i++) {
 				if (idsToProcess.length() > 0){
-					idsToProcess += ",";
+					idsToProcess.append(",");
 				}
 				String lastId = allBibsToUpdate.last();
-				idsToProcess += lastId;
+				idsToProcess.append(lastId);
 				ids.add(lastId);
 				allBibsToUpdate.remove(lastId);
 			}
-			if (!updateMarcAndRegroupRecordIds(ini, idsToProcess, ids)){
+			if (!updateMarcAndRegroupRecordIds(ini, idsToProcess.toString(), ids)){
 				hadErrors = true;
 			}
 			if (allBibsToUpdate.size() > 0){
 				numProcessed += maxIndex;
-				if (numProcessed % 1000 == 0){
+				if (numProcessed % 250 == 0){
 					addNoteToExportLog("Processed " + numProcessed);
+					if ((new Date().getTime() / 1000) - exportStartTime >= 5 * 60){
+						addNoteToExportLog("Stopping export due to time constraints, there are " + allBibsToUpdate.size()  + " bibs remaining to be processed.");
+						break;
+					}
 				}
 				hasMoreIdsToProcess = true;
 			}
@@ -1026,7 +1065,8 @@ public class SierraExportAPIMain {
 				}
 				return allPass;
 			}else{
-				logger.info("Error exporting marc records for " + ids + " marc results did not have a file");
+				//Don't need this message since it will happen regularly.
+				//logger.info("Error exporting marc records for " + ids + " marc results did not have a file");
 				boolean allPass = true;
 				for (String id : idArray) {
 					if (!updateMarcAndRegroupRecordId(ini, id)){
@@ -1154,81 +1194,6 @@ public class SierraExportAPIMain {
 			System.exit(1);
 		}
 		addNoteToExportLog("Finished loading changed records from Sierra API");
-	}
-
-	private static void updateMarc(String curBibId, ArrayList<ItemChangeInfo> itemChangeInfo) {
-		//Load the existing marc record from file
-		try {
-			File marcFile = indexingProfile.getFileForIlsRecord(curBibId);
-			if (marcFile.exists()) {
-				FileInputStream inputStream = new FileInputStream(marcFile);
-				MarcPermissiveStreamReader marcReader = new MarcPermissiveStreamReader(inputStream, true, true, "UTF-8");
-				if (marcReader.hasNext()) {
-					Record marcRecord = marcReader.next();
-					inputStream.close();
-
-					//Loop through all item fields to see what has changed
-					List<VariableField> itemFields = marcRecord.getVariableFields(indexingProfile.itemTag);
-					for (VariableField itemFieldVar : itemFields) {
-						DataField itemField = (DataField) itemFieldVar;
-						if (itemField.getSubfield(indexingProfile.itemRecordNumberSubfield) != null) {
-							String itemRecordNumber = itemField.getSubfield(indexingProfile.itemRecordNumberSubfield).getData();
-							//Update the items
-							for (ItemChangeInfo curItem : itemChangeInfo) {
-								//Find the correct item
-								if (itemRecordNumber.equals(curItem.getItemId())) {
-									itemField.getSubfield(indexingProfile.locationSubfield).setData(curItem.getLocation());
-									itemField.getSubfield(indexingProfile.itemStatusSubfield).setData(curItem.getStatus());
-									if (curItem.getDueDate() == null) {
-										if (itemField.getSubfield(indexingProfile.dueDateSubfield) != null) {
-											if (indexingProfile.dueDateFormat.contains("-")){
-												itemField.getSubfield(indexingProfile.dueDateSubfield).setData("  -  -  ");
-											} else {
-												itemField.getSubfield(indexingProfile.dueDateSubfield).setData("      ");
-											}
-										}
-									} else {
-										if (itemField.getSubfield(indexingProfile.dueDateSubfield) == null) {
-											itemField.addSubfield(new SubfieldImpl(indexingProfile.dueDateSubfield, curItem.getDueDate()));
-										} else {
-											itemField.getSubfield(indexingProfile.dueDateSubfield).setData(curItem.getDueDate());
-										}
-									}
-									if (indexingProfile.lastCheckinDateSubfield != ' ') {
-										if (curItem.getLastCheckinDate() == null) {
-											if (itemField.getSubfield(indexingProfile.lastCheckinDateSubfield) != null) {
-												if (indexingProfile.lastCheckinFormat.contains("-")) {
-													itemField.getSubfield(indexingProfile.lastCheckinDateSubfield).setData("  -  -  ");
-												} else {
-													itemField.getSubfield(indexingProfile.lastCheckinDateSubfield).setData("      ");
-												}
-											}
-										} else {
-											if (itemField.getSubfield(indexingProfile.lastCheckinDateSubfield) == null) {
-												itemField.addSubfield(new SubfieldImpl(indexingProfile.lastCheckinDateSubfield, curItem.getLastCheckinDate()));
-											} else {
-												itemField.getSubfield(indexingProfile.lastCheckinDateSubfield).setData(curItem.getLastCheckinDate());
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-
-					//Write the new marc record
-					MarcWriter writer = new MarcStreamWriter(new FileOutputStream(marcFile, false), true);
-					writer.write(marcRecord);
-					writer.close();
-				} else {
-					logger.info("Could not read marc record for " + curBibId + " the bib was empty");
-				}
-			}else{
-				logger.debug("Marc Record does not exist for " + curBibId + " it is not part of the main extract yet.");
-			}
-		}catch (Exception e){
-			logger.error("Error updating marc record for bib " + curBibId, e);
-		}
 	}
 
 	private static void exportDueDates(String exportPath, Connection conn) throws SQLException, IOException {
