@@ -245,7 +245,7 @@ class Library extends DB_DataObject
 		'showISBNs'                => 'ISBNs',
 		'showArInfo'               => 'Show Accelerated Reader Information',
 		'showLexileInfo'           => 'Show Lexile Information',
-		'showFountasPinnell'       => 'Show Fountas &amp; Pinnell Information',
+		'showFountasPinnell'       => 'Show Fountas &amp; Pinnell Information  (This data must be present in MARC records)',
 	);
 
 	// Use this to set which details will be shown in the the Main Details section of the record in the search results.
@@ -260,7 +260,7 @@ class Library extends DB_DataObject
 		'showLanguages'            => 'Show Language',
 		'showArInfo'               => 'Show Accelerated Reader Information',
 		'showLexileInfo'           => 'Show Lexile Information',
-		'showFountasPinnell'       => 'Show Fountas &amp; Pinnell Information',
+		'showFountasPinnell'       => 'Show Fountas &amp; Pinnell Information  (This data must be present in MARC records)',
 	);
 
 	static $archiveRequestFormFieldOptions = array('Hidden', 'Optional', 'Required');
