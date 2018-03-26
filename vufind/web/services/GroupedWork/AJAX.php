@@ -13,13 +13,17 @@ class GroupedWork_AJAX {
 		global $timer;
 		global $analytics;
 		$analytics->disableTracking();
-		$method = $_GET['method'];
-		$timer->logTime("Starting method $method");
+		$method = (isset($_GET['method']) && !is_array($_GET['method'])) ? $_GET['method'] : '';
+		if (method_exists($this, $method)) {
+			$timer->logTime("Starting method $method");
 
-		header('Content-type: text/plain');
-		header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
-		header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
-		echo $this->$method();
+			header('Content-type: text/plain');
+			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
+			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
+			echo $this->$method();
+		}else{
+			echo json_encode(array('error'=>'invalid_method'));
+		}
 	}
 
 
@@ -264,7 +268,7 @@ class GroupedWork_AJAX {
 
 	function getGoDeeperData(){
 		require_once(ROOT_DIR . '/Drivers/marmot_inc/GoDeeperData.php');
-		$dataType = $_REQUEST['dataType'];
+		$dataType = strip_tags($_REQUEST['dataType']);
 
 		require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
 		$id = !empty($_REQUEST['id']) ? $_REQUEST['id'] : $_GET['id'];

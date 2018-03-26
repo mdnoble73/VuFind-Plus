@@ -725,20 +725,20 @@ class GoDeeperData{
 
 		// Use Syndetics Data
 		if (!empty($configArray['Syndetics']['key'])) {
-			switch ($dataType) {
+			switch (strtolower($dataType)) {
 				case 'summary' :
 					$data = GoDeeperData::getSummary($isbn, $upc);
 					$interface->assign('summaryData', $data);
 					return $interface->fetch('Record/view-syndetics-summary.tpl');
-				case 'tableOfContents' :
+				case 'tableofcontents' :
 					$data = GoDeeperData::getSyndeticsTableOfContents($isbn, $upc);
 					$interface->assign('tocData', $data);
 					return $interface->fetch('Record/view-syndetics-toc.tpl');
-				case 'fictionProfile' :
+				case 'fictionprofile' :
 					$data = GoDeeperData::getFictionProfile($isbn, $upc);
 					$interface->assign('fictionData', $data);
 					return $interface->fetch('Record/view-syndetics-fiction.tpl');
-				case 'authorNotes' :
+				case 'authornotes' :
 					$data = GoDeeperData::getSyndeticsAuthorNotes($isbn, $upc);
 					$interface->assign('authorData', $data);
 					return $interface->fetch('Record/view-syndetics-author-notes.tpl');
@@ -746,11 +746,11 @@ class GoDeeperData{
 					$data = GoDeeperData::getSyndeticsExcerpt($isbn, $upc);
 					$interface->assign('excerptData', $data);
 					return $interface->fetch('Record/view-syndetics-excerpt.tpl');
-				case 'avSummary' :
+				case 'avsummary' :
 					$data = GoDeeperData::getAVSummary($isbn, $upc);
 					$interface->assign('avSummaryData', $data);
 					return $interface->fetch('Record/view-syndetics-av-summary.tpl');
-				case 'videoClip' :
+				case 'videoclip' :
 					$data = GoDeeperData::getVideoClip($isbn, $upc);
 					$interface->assign('videoClipData', $data);
 					return $interface->fetch('Record/view-syndetics-video-clip.tpl');
@@ -761,8 +761,8 @@ class GoDeeperData{
 
 		// Use Content Cafe Data
 		elseif (!empty($configArray['Contentcafe']['pw'])) {
-			switch ($dataType) {
-				case 'tableOfContents' :
+			switch (strtolower($dataType)) {
+				case 'tableofcontents' :
 					$data = GoDeeperData::getContentCafeTableOfContents($isbn, $upc);
 					$interface->assign('tocData', $data);
 					return $interface->fetch('Record/view-contentcafe-toc.tpl');
