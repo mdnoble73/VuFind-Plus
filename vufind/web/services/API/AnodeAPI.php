@@ -28,8 +28,9 @@ class AnodeAPI extends Action {
 			header('Content-type: text/plain');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
-			if (is_callable(array($this, $_REQUEST['method']))) {
-				$output = json_encode(array('result'=>$this->$_REQUEST['method']()),JSON_PRETTY_PRINT);
+			$method = (isset($_GET['method']) && !is_array($_GET['method'])) ? $_GET['method'] : '';
+			if (method_exists($this, $method)) {
+				$output = json_encode(array('result'=>$this->$method()),JSON_PRETTY_PRINT);
 			} else {
 				$output = json_encode(array('error'=>'invalid_method'));
 			}
@@ -37,8 +38,8 @@ class AnodeAPI extends Action {
 	}
 
 	/**
-	 * Returns information about the titles within a list 
-	 * according to the parameters of 
+	 * Returns information about the titles within a list
+	 * according to the parameters of
 	 * Anode Pika API Description at
 	 * https://docs.google.com/document/d/1N_LiYaK56WLWXTIxzDvmwdVQ3WgogopTnHHixKc_2zk
 	 *
@@ -69,7 +70,7 @@ class AnodeAPI extends Action {
 			foreach ($result['titles'] as &$groupedWork) {
 				$itemAPI = new ItemAPI();
 				$_GET['id'] = $groupedWork['id'];
-				$groupedWorkRecord = $itemAPI->loadSolrRecord($groupedWork['id']); 
+				$groupedWorkRecord = $itemAPI->loadSolrRecord($groupedWork['id']);
 				unset($groupedWork['ratingData']);
 				unset($groupedWork['shortId']);
 				unset($groupedWork['small_image']);
@@ -141,7 +142,7 @@ class AnodeAPI extends Action {
 							);
 							break;
 						}
-					}		
+					}
 					foreach ($groupedWorkRecord['record_details'] as $bibRecord) {
 						if (strpos($bibRecord, $item[0]) === 0) {
 							$bibRecord = explode('|', $bibRecord);

@@ -26,12 +26,12 @@ class Union_AJAX extends Action {
 	{
 		global $analytics;
 		$analytics->disableTracking();
-		$method = $_REQUEST['method'];
+		$method = (isset($_GET['method']) && !is_array($_GET['method'])) ? $_GET['method'] : '';
 		header ('Content-type: application/json');
 		header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 		header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 
-		if (is_callable(array($this, $method))) {
+		if (method_exists($this, $method)) {
 			try{
 				$result = $this->$method();
 				require_once ROOT_DIR . '/sys/Utils/ArrayUtils.php';

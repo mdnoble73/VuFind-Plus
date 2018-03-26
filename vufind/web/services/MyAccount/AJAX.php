@@ -31,55 +31,54 @@ class MyAccount_AJAX
 			'cancelBooking', 'getCitationFormatsForm', 'getAddBrowseCategoryFromListForm'
 		  ,'getMasqueradeAsForm', 'initiateMasquerade', 'endMasquerade', 'getMenuData'
 		);
-		$method = $_GET['method'];
-		if (in_array($method, $valid_json_methods)) {
-			header('Content-type: application/json');
-			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
-			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
-			$result = $this->$method();
-			try {
-				require_once ROOT_DIR . '/sys/Utils/ArrayUtils.php';
-				$utf8EncodedValue = ArrayUtils::utf8EncodeArray($result);
-				$output           = json_encode($utf8EncodedValue);
-				$error            = json_last_error();
-				if ($error != JSON_ERROR_NONE || $output === FALSE) {
-					if (function_exists('json_last_error_msg')) {
-						$output = json_encode(array('error' => 'error_encoding_data', 'message' => json_last_error_msg()));
-					} else {
-						$output = json_encode(array('error' => 'error_encoding_data', 'message' => json_last_error()));
+		$method = (isset($_GET['method']) && !is_array($_GET['method'])) ? $_GET['method'] : '';
+		if (method_exists($this, $method)) {
+			if (in_array($method, $valid_json_methods)) {
+				header('Content-type: application/json');
+				header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
+				header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
+				$result = $this->$method();
+				try {
+					require_once ROOT_DIR . '/sys/Utils/ArrayUtils.php';
+					$utf8EncodedValue = ArrayUtils::utf8EncodeArray($result);
+					$output = json_encode($utf8EncodedValue);
+					$error = json_last_error();
+					if ($error != JSON_ERROR_NONE || $output === FALSE) {
+						if (function_exists('json_last_error_msg')) {
+							$output = json_encode(array('error' => 'error_encoding_data', 'message' => json_last_error_msg()));
+						} else {
+							$output = json_encode(array('error' => 'error_encoding_data', 'message' => json_last_error()));
+						}
+						global $configArray;
+						if ($configArray['System']['debug']) {
+							print_r($utf8EncodedValue);
+						}
 					}
-					global $configArray;
-					if ($configArray['System']['debug']) {
-						print_r($utf8EncodedValue);
-					}
+				} catch (Exception $e) {
+					$output = json_encode(array('error' => 'error_encoding_data', 'message' => $e));
+					global $logger;
+					$logger->log("Error encoding json data $e", PEAR_LOG_ERR);
 				}
-			}
-			catch (Exception $e){
-				$output = json_encode(array('error'=>'error_encoding_data', 'message' => $e));
-				global $logger;
-				$logger->log("Error encoding json data $e", PEAR_LOG_ERR);
-			}
-			echo $output;
+				echo $output;
 
-		} elseif (in_array($method, array('LoginForm', 'getBulkAddToListForm', 'getPinUpdateForm'))) {
-			header('Content-type: text/html');
-			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
-			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
-			echo $this->$method();
-		} else {
-			header('Content-type: text/xml');
-			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
-			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
-			$xml = '<?xml version="1.0" encoding="UTF-8"?' . ">\n" .
-				"<AJAXResponse>\n";
-			if (is_callable(array($this, $_GET['method']))) {
-				$xml .= $this->$_GET['method']();
+			} elseif (in_array($method, array('LoginForm', 'getBulkAddToListForm', 'getPinUpdateForm'))) {
+				header('Content-type: text/html');
+				header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
+				header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
+				echo $this->$method();
 			} else {
-				$xml .= '<Error>Invalid Method</Error>';
-			}
-			$xml .= '</AJAXResponse>';
+				header('Content-type: text/xml');
+				header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
+				header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
+				$xml = '<?xml version="1.0" encoding="UTF-8"?' . ">\n" .
+						"<AJAXResponse>\n";
+				$xml .= $this->$_GET['method']();
+				$xml .= '</AJAXResponse>';
 
-			echo $xml;
+				echo $xml;
+			}
+		}else {
+			echo json_encode(array('error'=>'invalid_method'));
 		}
 	}
 
@@ -557,7 +556,7 @@ class MyAccount_AJAX
 		if (UserAccount::isLoggedIn()) {
 			$user = UserAccount::getLoggedInUser();
 			require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
-			$title = isset($_REQUEST['title']) ? urldecode($_REQUEST['title']) : '';
+			$title = (isset($_REQUEST['title']) && !is_array($_REQUEST['title'])) ? urldecode($_REQUEST['title']) : '';
 			if (strlen(trim($title)) == 0) {
 				$return['success'] = "false";
 				$return['message'] = "You must provide a title for the list";
@@ -570,7 +569,11 @@ class MyAccount_AJAX
 				if ($list->find(true)) {
 					$existingList = true;
 				}
-				$list->description = strip_tags(urldecode($_REQUEST['desc']));
+				$desc = $_REQUEST['desc'];
+				if (is_array($desc)){
+					$desc = reset($desc);
+				}
+				$list->description = strip_tags(urldecode($desc));
 				$list->public = isset($_REQUEST['public']) && $_REQUEST['public'] == 'true';
 				if ($existingList) {
 					$list->update();
@@ -578,7 +581,7 @@ class MyAccount_AJAX
 					$list->insert();
 				}
 
-				if (isset($_REQUEST['recordId'])) {
+				if (isset($_REQUEST['recordId']) && !is_array($_REQUEST['recordId'])) {
 					$recordToAdd = urldecode($_REQUEST['recordId']);
 					require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
 					//Check to see if the user has already added the title to the list.

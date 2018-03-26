@@ -2,7 +2,7 @@
 /**
  * Handles AJAX related information for authors
  *
- * @category VuFind-Plus 
+ * @category VuFind-Plus
  * @author Mark Noble <mark@marmot.org>
  * Date: 7/23/13
  * Time: 8:37 AM
@@ -12,13 +12,15 @@ class Author_AJAX {
 	function launch() {
 		global $analytics;
 		$analytics->disableTracking();
-		$method = $_GET['method'];
-		if (true){
+		$method = (isset($_GET['method']) && !is_array($_GET['method'])) ? $_GET['method'] : '';
+		if (method_exists($this, $method)) {
 			//JSON Encoded data
 			header('Content-type: text/plain');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 			echo $this->$method();
+		}else {
+			echo json_encode(array('error'=>'invalid_method'));
 		}
 	}
 
@@ -36,7 +38,11 @@ class Author_AJAX {
 			// Only use first two characters of language string; Wikipedia
 			// uses language domains but doesn't break them up into regional
 			// variations like pt-br or en-gb.
-			$authorName = trim($_REQUEST['articleName']);
+			$authorName = $_REQUEST['articleName'];
+			if (is_array($authorName)){
+				$authorName = reset($authorName);
+			}
+			$authorName = trim($authorName);
 
 			//Check to see if we have an override
 			require_once ROOT_DIR . '/sys/LocalEnrichment/AuthorEnrichment.php';

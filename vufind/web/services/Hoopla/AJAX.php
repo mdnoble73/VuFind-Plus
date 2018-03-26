@@ -15,45 +15,44 @@ class Hoopla_AJAX extends Action
 		global $timer;
 		global $analytics;
 		$analytics->disableTracking();
-		$method = $_GET['method'];
-		$timer->logTime("Starting method $method");
+		$method = (isset($_GET['method']) && !is_array($_GET['method'])) ? $_GET['method'] : '';
+		if (method_exists($this, $method)) {
+			$timer->logTime("Starting method $method");
 
-		// Methods intend to return JSON data
-		if (in_array($method, array(
-			'reloadCover',
-			'checkOutHooplaTitle', 'getHooplaCheckOutPrompt', 'returnHooplaTitle'
-		))){
-			header('Content-type: text/plain');
-			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
-			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
-			echo json_encode($this->$method());
+			// Methods intend to return JSON data
+			if (in_array($method, array(
+					'reloadCover',
+					'checkOutHooplaTitle', 'getHooplaCheckOutPrompt', 'returnHooplaTitle'
+			))) {
+				header('Content-type: text/plain');
+				header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
+				header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
+				echo json_encode($this->$method());
 
-			// Methods that return HTML
-		}else if (in_array($method, array(
-		))){
-			header('Content-type: text/html');
-			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
-			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
-			echo $this->$method();
-		}else if ($method == 'downloadMarc'){
-			echo $this->$method();
+				// Methods that return HTML
+			} else if (in_array($method, array())) {
+				header('Content-type: text/html');
+				header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
+				header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
+				echo $this->$method();
+			} else if ($method == 'downloadMarc') {
+				echo $this->$method();
 
-			// Methods that return XML (default mode)
-		}else{
-			header ('Content-type: text/xml');
-			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
-			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
-
-			$xmlResponse = '<?xml version="1.0" encoding="UTF-8"?' . ">\n";
-			$xmlResponse .= "<AJAXResponse>\n";
-			if (is_callable(array($this, $_GET['method']))) {
-				$xmlResponse .= $this->$_GET['method']();
+				// Methods that return XML (default mode)
 			} else {
-				$xmlResponse .= '<Error>Invalid Method</Error>';
-			}
-			$xmlResponse .= '</AJAXResponse>';
+				header('Content-type: text/xml');
+				header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
+				header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 
-			echo $xmlResponse;
+				$xmlResponse = '<?xml version="1.0" encoding="UTF-8"?' . ">\n";
+				$xmlResponse .= "<AJAXResponse>\n";
+				$xmlResponse .= $this->$_GET['method']();
+				$xmlResponse .= '</AJAXResponse>';
+
+				echo $xmlResponse;
+			}
+		}else{
+			echo json_encode(array('error'=>'invalid_method'));
 		}
 	}
 

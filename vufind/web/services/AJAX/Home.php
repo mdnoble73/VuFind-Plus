@@ -30,7 +30,8 @@ class Home extends Action {
 
 		$output = '<?xml version="1.0" encoding="UTF-8"?' . ">\n" .
                   "<AJAXResponse>\n";
-		if (is_callable(array($this, $_GET['method']))) {
+		$method = (isset($_GET['method']) && !is_array($_GET['method'])) ? $_GET['method'] : '';
+		if (method_exists($this, $method)) {
 			$output .= '<result>' . $this->$_GET['method']() . "</result>\n";
 		} else {
 			$output .= '<Error>Invalid Method</Error>';

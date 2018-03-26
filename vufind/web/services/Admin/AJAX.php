@@ -25,35 +25,35 @@ class Admin_AJAX extends Action {
 
 	function launch() {
 		global $timer;
-		$method = $_GET['method'];
-		$timer->logTime("Starting method $method");
-		if (in_array($method, array('getReindexNotes', 'getReindexProcessNotes', 'getCronNotes', 'getCronProcessNotes', 'getAddToWidgetForm', 'getRecordGroupingNotes', 'getHooplaExportNotes', 'getSierraExportNotes'))){
-			//JSON Responses
-			header('Content-type: application/json');
-			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
-			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
-			echo $this->$method();
-		}else if (in_array($method, array('getOverDriveExtractNotes'))){
-			//HTML responses
-			header('Content-type: text/html');
-			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
-			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
-			echo $this->$method();
-		}else{
-			//XML responses
-			header ('Content-type: text/xml');
-			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
-			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
-			$xml = '<?xml version="1.0" encoding="UTF-8"?' . ">\n" .
-	               "<AJAXResponse>\n";
-			if (is_callable(array($this, $_GET['method']))) {
-				$xml .= $this->$_GET['method']();
+		$method = (isset($_GET['method']) && !is_array($_GET['method'])) ? $_GET['method'] : '';
+		if (method_exists($this, $method)) {
+			$timer->logTime("Starting method $method");
+			if (in_array($method, array('getReindexNotes', 'getReindexProcessNotes', 'getCronNotes', 'getCronProcessNotes', 'getAddToWidgetForm', 'getRecordGroupingNotes', 'getHooplaExportNotes', 'getSierraExportNotes'))) {
+				//JSON Responses
+				header('Content-type: application/json');
+				header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
+				header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
+				echo $this->$method();
+			} else if (in_array($method, array('getOverDriveExtractNotes'))) {
+				//HTML responses
+				header('Content-type: text/html');
+				header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
+				header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
+				echo $this->$method();
 			} else {
-				$xml .= '<Error>Invalid Method</Error>';
-			}
-			$xml .= '</AJAXResponse>';
+				//XML responses
+				header('Content-type: text/xml');
+				header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
+				header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
+				$xml = '<?xml version="1.0" encoding="UTF-8"?' . ">\n" .
+						"<AJAXResponse>\n";
+				$xml .= $this->$_GET['method']();
+				$xml .= '</AJAXResponse>';
 
-			echo $xml;
+				echo $xml;
+			}
+		}else {
+			echo json_encode(array('error'=>'invalid_method'));
 		}
 	}
 

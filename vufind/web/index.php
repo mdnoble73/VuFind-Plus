@@ -428,11 +428,13 @@ if (isset($_REQUEST['basicType'])){
 $interface->assign('curFormatCategory', 'Everything');
 if (isset($_REQUEST['filter'])){
 	foreach ($_REQUEST['filter'] as $curFilter){
-		$filterInfo = explode(":", $curFilter);
-		if ($filterInfo[0] == 'format_category'){
-			$curFormatCategory = str_replace('"', '', $filterInfo[1]);
-			$interface->assign('curFormatCategory', $curFormatCategory);
-			break;
+		if (!is_array($curFilter)){
+			$filterInfo = explode(":", $curFilter);
+			if ($filterInfo[0] == 'format_category'){
+				$curFormatCategory = str_replace('"', '', $filterInfo[1]);
+				$interface->assign('curFormatCategory', $curFormatCategory);
+				break;
+			}
 		}
 	}
 }
