@@ -490,6 +490,7 @@ if ($action == "AJAX" || $action == "JSON"){
 	if ($library->enableArchive){
 		$islandoraSearchObject = SearchObjectFactory::initSearchObject('Islandora');
 		$interface->assign('islandoraSearchTypes', is_object($islandoraSearchObject) ? $islandoraSearchObject->getBasicTypes() : array());
+		$interface->assign('enableArchive', true);
 	}
 
 	//TODO: Reenable once we do full EDS integration

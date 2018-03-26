@@ -245,7 +245,7 @@ class Library extends DB_DataObject
 		'showISBNs'                => 'ISBNs',
 		'showArInfo'               => 'Show Accelerated Reader Information',
 		'showLexileInfo'           => 'Show Lexile Information',
-		'showFountasPinnell'       => 'Show Fountas &amp; Pinnell Information',
+		'showFountasPinnell'       => 'Show Fountas &amp; Pinnell Information  (This data must be present in MARC records)',
 	);
 
 	// Use this to set which details will be shown in the the Main Details section of the record in the search results.
@@ -260,7 +260,7 @@ class Library extends DB_DataObject
 		'showLanguages'            => 'Show Language',
 		'showArInfo'               => 'Show Accelerated Reader Information',
 		'showLexileInfo'           => 'Show Lexile Information',
-		'showFountasPinnell'       => 'Show Fountas &amp; Pinnell Information',
+		'showFountasPinnell'       => 'Show Fountas &amp; Pinnell Information  (This data must be present in MARC records)',
 	);
 
 	static $archiveRequestFormFieldOptions = array('Hidden', 'Optional', 'Required');
@@ -599,7 +599,7 @@ class Library extends DB_DataObject
 			// Full Record Display //
 			'fullRecordSection' => array('property'=>'fullRecordSection', 'type' => 'section', 'label' =>'Full Record Display', 'hideInLists' => true,
 					'helpLink'=>'https://docs.google.com/document/d/1ZZsoKW2NOfGMad36BkWeF5ROqH5Wyg5up3eIhki5Lec', 'properties' => array(
-				'showTextThis'             => array('property'=>'showTextThis',             'type'=>'checkbox', 'label'=>'Show Text This',                    'description'=>'Whether or not the Text This link is shown', 'hideInLists' => true, 'default' => 1),
+// disabled				'showTextThis'             => array('property'=>'showTextThis',             'type'=>'checkbox', 'label'=>'Show Text This',                    'description'=>'Whether or not the Text This link is shown', 'hideInLists' => true, 'default' => 1),
 				'showEmailThis'            => array('property'=>'showEmailThis',            'type'=>'checkbox', 'label'=>'Show Email This',                   'description'=>'Whether or not the Email This link is shown', 'hideInLists' => true, 'default' => 1),
 				'showShareOnExternalSites' => array('property'=>'showShareOnExternalSites', 'type'=>'checkbox', 'label'=>'Show Sharing To External Sites',    'description'=>'Whether or not sharing on external sites (Twitter, Facebook, Pinterest, etc. is shown)', 'hideInLists' => true, 'default' => 1),
 				'showQRCode'               => array('property'=>'showQRCode',               'type'=>'checkbox', 'label'=>'Show QR Code',                      'description'=>'Whether or not the catalog should show a QR Code in full record view', 'hideInLists' => true, 'default' => 1),

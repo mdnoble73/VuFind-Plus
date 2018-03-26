@@ -441,7 +441,7 @@ class UInterface extends Smarty
 		if (isset($library) && $location != null){ // library and location
 			$this->assign('showFavorites', $location->showFavorites && $library->showFavorites);
 			$this->assign('showComments', $location->showComments && $library->showComments);
-			$this->assign('showTextThis', $location->showTextThis && $library->showTextThis);
+//			$this->assign('showTextThis', $location->showTextThis && $library->showTextThis);
 			$this->assign('showEmailThis', $location->showEmailThis && $library->showEmailThis);
 			$this->assign('showStaffView', $location->showStaffView && $library->showStaffView);
 			$this->assign('showShareOnExternalSites', $location->showShareOnExternalSites && $library->showShareOnExternalSites);
@@ -456,7 +456,7 @@ class UInterface extends Smarty
 		}elseif ($location != null){ // location only
 			$this->assign('showFavorites', $location->showFavorites);
 			$this->assign('showComments', $location->showComments);
-			$this->assign('showTextThis', $location->showTextThis);
+//			$this->assign('showTextThis', $location->showTextThis);
 			$this->assign('showEmailThis', $location->showEmailThis);
 			$this->assign('showShareOnExternalSites', $location->showShareOnExternalSites);
 			$this->assign('showStaffView', $location->showStaffView);
@@ -470,7 +470,7 @@ class UInterface extends Smarty
 			$showHoldButton = $library->showHoldButton;
 			$showHoldButtonInSearchResults = $library->showHoldButtonInSearchResults;
 			$this->assign('showComments', $library->showComments);
-			$this->assign('showTextThis', $library->showTextThis);
+//			$this->assign('showTextThis', $library->showTextThis);
 			$this->assign('showEmailThis', $library->showEmailThis);
 			$this->assign('showShareOnExternalSites', $library->showShareOnExternalSites);
 			$this->assign('showStaffView', $library->showStaffView);
@@ -481,7 +481,7 @@ class UInterface extends Smarty
 		}else{ // neither library nor location
 			$this->assign('showFavorites', 1);
 			$this->assign('showComments', 1);
-			$this->assign('showTextThis', 1);
+//			$this->assign('showTextThis', 1);
 			$this->assign('showEmailThis', 1);
 			$this->assign('showShareOnExternalSites', 1);
 			$this->assign('showQRCode', 1);
