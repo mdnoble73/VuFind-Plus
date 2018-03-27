@@ -75,7 +75,7 @@ public class SierraExportAPIMain {
 		logger.info(startTime.toString() + ": Starting Sierra Extract");
 
 		// Read the base INI file to get information about the server (current directory/cron/config.ini)
-		Ini ini = loadConfigFile("config.ini");
+		Ini ini = loadConfigFile();
 		String exportPath = ini.get("Reindex", "marcPath");
 		if (exportPath.startsWith("\"")){
 			exportPath = exportPath.substring(1, exportPath.length() - 1);
@@ -860,7 +860,7 @@ public class SierraExportAPIMain {
 	private static MarcFactory marcFactory = MarcFactory.newInstance();
 	private static boolean updateMarcAndRegroupRecordId(Ini ini, String id) {
 		try {
-			JSONObject marcResults = getMarcJSONFromSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/bibs/" + id + "/marc", true);
+			JSONObject marcResults = getMarcJSONFromSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/bibs/" + id + "/marc");
 			if (marcResults != null){
 				if (marcResults.has("httpStatus")){
 					if (marcResults.getInt("code") == 107){
@@ -1032,7 +1032,7 @@ public class SierraExportAPIMain {
 		}
 	}
 
-	private static boolean updateMarcAndRegroupRecordIds(Ini ini, String ids, ArrayList<String> idArray) {
+	private static void updateMarcAndRegroupRecordIds(Ini ini, String ids, ArrayList<String> idArray) {
 		try {
 			JSONObject marcResults = null;
 			if (allowFastExportMethod) {
@@ -1041,7 +1041,7 @@ public class SierraExportAPIMain {
 			if (marcResults != null && marcResults.has("file")){
 				ArrayList<String> processedIds = new ArrayList<>();
 				String dataFileUrl = marcResults.getString("file");
-				String marcData = getMarcFromSierraApiURL(ini, apiBaseUrl, dataFileUrl, true);
+				String marcData = getMarcFromSierraApiURL(ini, apiBaseUrl, dataFileUrl, false);
 				MarcReader marcReader = new MarcPermissiveStreamReader(new ByteArrayInputStream(marcData.getBytes(StandardCharsets.UTF_8)), true, true);
 				while (marcReader.hasNext()){
 					try {
@@ -1078,7 +1078,6 @@ public class SierraExportAPIMain {
 						}
 					}
 				}
-				return true;
 			}else{
 				//Don't need this message since it will happen regularly.
 				//logger.info("Error exporting marc records for " + ids + " marc results did not have a file");
@@ -1090,125 +1089,10 @@ public class SierraExportAPIMain {
 						//allPass = false;
 					}
 				}
-				return true;
 			}
 		}catch (Exception e){
 			logger.error("Error processing newly created bibs", e);
-			return false;
 		}
-	}
-
-	private static void getChangedItemsFromAPI(Ini ini, Connection vufindConn, String exportPath, String dateUpdated, SimpleDateFormat dateFormatter, long updateTime) {
-		//Get the time the last extract was done
-		try{
-			addNoteToExportLog("Starting to load changed records from Sierra using the API");
-
-			Long exportStartTime = new Date().getTime() / 1000;
-
-			HashSet<String> itemsThatNeedToBeProcessed = new HashSet<>();
-			File changedItemsFile = new File(exportPath + "/changed_items_to_process.csv");
-			if (changedItemsFile.exists()){
-				BufferedReader changedItemsReader = new BufferedReader(new FileReader(changedItemsFile));
-				String curLine = changedItemsReader.readLine();
-				while (curLine != null){
-					itemsThatNeedToBeProcessed.add(curLine);
-					curLine = changedItemsReader.readLine();
-				}
-				changedItemsReader.close();
-			}
-
-			//Only mark records as changed
-			boolean errorUpdatingDatabase = false;
-			if (lastSierraExtractTime != null){
-				//Extract the ids of all records that have changed.
-				long firstRecordIdToLoad = 1;
-				boolean moreToRead = true;
-				int bufferSize = 1000;
-
-				//Get a list of everything that has changed, loading a minimum of data so we can get the ids as quickly as possible
-				int recordOffset = 50000;
-				while (moreToRead){
-					//long lastRecord = firstRecordIdToLoad + recordOffset;
-					logger.info("Loading items with changes from " + firstRecordIdToLoad);
-					JSONObject changedRecords = null;
-					int numTries = 0;
-					while ((numTries == 0 || lastCallTimedOut) && numTries < 5){
-						numTries++;
-						//Try loading again
-						if (lastCallTimedOut) {
-							logger.info(" - timed out, retrying");
-							Thread.sleep(2500);
-						}
-						//changedRecords = callSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/items/?updatedDate=[" + dateUpdated + ",]&limit=" + bufferSize + "&fields=id,bibIds,location,status,fixedFields&deleted=false&suppressed=false&id=[" + firstRecordIdToLoad + "," + (lastRecord > 999999999 ? "" : lastRecord) + "]", false);
-						changedRecords = callSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/items/?updatedDate=[" + dateUpdated + ",]&limit=" + bufferSize + "&fields=id,bibIds&deleted=false&id=[" + firstRecordIdToLoad + ",]", false);
-					}
-					if (lastCallTimedOut){
-						logger.error(" - call " + numTries + " timed out, data will be lost!");
-					}
-					int numChangedIds = 0;
-					if (changedRecords != null && changedRecords.has("entries")){
-						//int numUpdates = changedRecords.getInt("total");
-						JSONArray changedIds = changedRecords.getJSONArray("entries");
-						numChangedIds = changedIds.length();
-						logger.info(" - Found " + numChangedIds + " changes");
-						int lastId = 0;
-						for(int i = 0; i < numChangedIds; i++){
-							JSONObject curItem = changedIds.getJSONObject(i);
-							String itemId = curItem.getString("id");
-							itemsThatNeedToBeProcessed.add(itemId);
-							lastId = Integer.parseInt(itemId) + 1;
-							logger.debug("   item " + itemId + " changed");
-						}
-						if (numChangedIds >= bufferSize){
-							firstRecordIdToLoad = lastId + 1;
-						}else{
-							firstRecordIdToLoad += recordOffset;
-						}
-					}else{
-						logger.info(" - Found no changes");
-						firstRecordIdToLoad += recordOffset;
-					}
-					//If we have the same number of records as the buffer that is ok.  Sierra does not return the correct total anymore
-					moreToRead = (numChangedIds >= bufferSize); // || firstRecordIdToLoad <= 999999999;
-				}
-
-			}
-
-			//Write any records that still haven't been processed
-			BufferedWriter itemsToProcessWriter = new BufferedWriter(new FileWriter(changedItemsFile, false));
-			for (String changedItem : itemsThatNeedToBeProcessed){
-				itemsToProcessWriter.write(changedItem + "\r\n");
-			}
-			itemsToProcessWriter.flush();
-			itemsToProcessWriter.close();
-			//logger.warn(itemsThatNeedToBeProcessed.size() + " items remain to be processed");
-
-			if (!errorUpdatingDatabase) {
-				//Update the last extract time
-				if (lastSierraExtractTimeVariableId != null) {
-					PreparedStatement updateVariableStmt = vufindConn.prepareStatement("UPDATE variables set value = ? WHERE id = ?");
-					updateVariableStmt.setLong(1, exportStartTime);
-					updateVariableStmt.setLong(2, lastSierraExtractTimeVariableId);
-					updateVariableStmt.executeUpdate();
-					updateVariableStmt.close();
-				} else {
-					PreparedStatement insertVariableStmt = vufindConn.prepareStatement("INSERT INTO variables (`name`, `value`) VALUES ('last_sierra_extract_time', ?)");
-					insertVariableStmt.setString(1, Long.toString(exportStartTime));
-					insertVariableStmt.executeUpdate();
-					insertVariableStmt.close();
-				}
-				PreparedStatement setRemainingRecordsStmt = vufindConn.prepareStatement("INSERT INTO variables (`name`, `value`) VALUES ('remaining_sierra_records', ?) ON DUPLICATE KEY UPDATE value=VALUES(value)");
-				setRemainingRecordsStmt.setString(1, Long.toString(itemsThatNeedToBeProcessed.size()));
-				setRemainingRecordsStmt.executeUpdate();
-				setRemainingRecordsStmt.close();
-			}else{
-				logger.error("There was an error updating the database, not setting last extract time.");
-			}
-		} catch (Exception e){
-			logger.error("Error loading changed records from Sierra API", e);
-			System.exit(1);
-		}
-		addNoteToExportLog("Finished loading changed records from Sierra API");
 	}
 
 	private static void exportDueDates(String exportPath, Connection conn) throws SQLException, IOException {
@@ -1255,12 +1139,12 @@ public class SierraExportAPIMain {
 		readOrdersFile(orderRecordFile, existingBibsWithOrders);
 
 		String[] orderStatusesToExportVals = orderStatusesToExport.split("\\|");
-		String orderStatusCodesSQL = "";
+		StringBuilder orderStatusCodesSQL = new StringBuilder();
 		for (String orderStatusesToExportVal : orderStatusesToExportVals){
 			if (orderStatusCodesSQL.length() > 0){
-				orderStatusCodesSQL += " or ";
+				orderStatusCodesSQL.append(" or ");
 			}
-			orderStatusCodesSQL += " order_status_code = '" + orderStatusesToExportVal + "'";
+			orderStatusCodesSQL.append(" order_status_code = '").append(orderStatusesToExportVal).append("'");
 		}
 		String activeOrderSQL = "select bib_view.record_num as bib_record_num, order_view.record_num as order_record_num, accounting_unit_code_num, order_status_code, copies, location_code, catalog_date_gmt, received_date_gmt " +
 				"from sierra_view.order_view " +
@@ -1304,10 +1188,8 @@ public class SierraExportAPIMain {
 					existingBibsWithOrders.remove(bibId);
 				}
 			}
-			//Now that all updated bibs are processed, look for any that we used to have that no longer exits
-			for (String bibId : existingBibsWithOrders.keySet()){
-				allBibsToUpdate.add(bibId);
-			}
+			//Now that all updated bibs are processed, look for any that we used to have that no longer exist
+			allBibsToUpdate.addAll(existingBibsWithOrders.keySet());
 		}
 		addNoteToExportLog("Finished exporting active orders");
 	}
@@ -1331,9 +1213,9 @@ public class SierraExportAPIMain {
 		}
 	}
 
-	private static Ini loadConfigFile(String filename){
+	private static Ini loadConfigFile(){
 		//First load the default config file
-		String configName = "../../sites/default/conf/" + filename;
+		String configName = "../../sites/default/conf/config.ini";
 		logger.info("Loading configuration from " + configName);
 		File configFile = new File(configName);
 		if (!configFile.exists()) {
@@ -1354,7 +1236,7 @@ public class SierraExportAPIMain {
 		}
 
 		//Now override with the site specific configuration
-		String siteSpecificFilename = "../../sites/" + serverName + "/conf/" + filename;
+		String siteSpecificFilename = "../../sites/" + serverName + "/conf/config.ini";
 		logger.info("Loading site specific config from " + siteSpecificFilename);
 		File siteSpecificFile = new File(siteSpecificFilename);
 		if (!siteSpecificFile.exists()) {
@@ -1631,7 +1513,7 @@ public class SierraExportAPIMain {
 		return null;
 	}
 
-	private static JSONObject getMarcJSONFromSierraApiURL(Ini configIni, String baseUrl, String sierraUrl, boolean logErrors) {
+	private static JSONObject getMarcJSONFromSierraApiURL(Ini configIni, String baseUrl, String sierraUrl) {
 		lastCallTimedOut = false;
 		if (connectToSierraAPI(configIni, baseUrl)){
 			//Connect to the API to get our token
@@ -1724,7 +1606,7 @@ public class SierraExportAPIMain {
 		try {
 			Date date = new Date();
 			notes.append("<br>").append(dateFormat.format(date)).append(": ").append(note);
-			addNoteToExportLogStmt.setString(1, trimTo(65535, notes.toString()));
+			addNoteToExportLogStmt.setString(1, trimLogNotes(notes.toString()));
 			addNoteToExportLogStmt.setLong(2, new Date().getTime() / 1000);
 			addNoteToExportLogStmt.setLong(3, exportLogId);
 			addNoteToExportLogStmt.executeUpdate();
@@ -1734,12 +1616,12 @@ public class SierraExportAPIMain {
 		}
 	}
 
-	private static String trimTo(int maxCharacters, String stringToTrim) {
+	private static String trimLogNotes(String stringToTrim) {
 		if (stringToTrim == null) {
 			return null;
 		}
-		if (stringToTrim.length() > maxCharacters) {
-			stringToTrim = stringToTrim.substring(0, maxCharacters);
+		if (stringToTrim.length() > 65535) {
+			stringToTrim = stringToTrim.substring(0, 65535);
 		}
 		return stringToTrim.trim();
 	}
