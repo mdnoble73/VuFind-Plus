@@ -101,32 +101,38 @@ public class RecordInfo {
 		return recordDetails;
 	}
 
+	String primaryFormat = null;
 	String getPrimaryFormat() {
-		HashMap<String, Integer> relatedFormats = new HashMap<>();
-		for (String format : formats){
-			relatedFormats.put(format, 1);
-		}
-		for (ItemInfo curItem : relatedItems){
-			if (curItem.getFormat() != null) {
-				if (relatedFormats.containsKey(curItem.getFormat())) {
-					relatedFormats.put(curItem.getFormat(), relatedFormats.get(curItem.getFormat()));
-				} else {
-					relatedFormats.put(curItem.getFormat(), 1);
+		if (primaryFormat == null){
+			HashMap<String, Integer> relatedFormats = new HashMap<>();
+			for (String format : formats){
+				relatedFormats.put(format, 1);
+			}
+			for (ItemInfo curItem : relatedItems){
+				if (curItem.getFormat() != null) {
+					if (relatedFormats.containsKey(curItem.getFormat())) {
+						relatedFormats.put(curItem.getFormat(), relatedFormats.get(curItem.getFormat()));
+					} else {
+						relatedFormats.put(curItem.getFormat(), 1);
+					}
 				}
 			}
-		}
-		int timesUsed = 0;
-		String mostUsedFormat = null;
-		for (String curFormat : relatedFormats.keySet()){
-			if (relatedFormats.get(curFormat) > timesUsed){
-				mostUsedFormat = curFormat;
-				timesUsed = relatedFormats.get(curFormat);
+			int timesUsed = 0;
+			String mostUsedFormat = null;
+			for (String curFormat : relatedFormats.keySet()){
+				if (relatedFormats.get(curFormat) > timesUsed){
+					mostUsedFormat = curFormat;
+					timesUsed = relatedFormats.get(curFormat);
+				}
+			}
+			if (mostUsedFormat == null){
+				return "Unknown";
+			}else{
+				primaryFormat = mostUsedFormat;
 			}
 		}
-		if (mostUsedFormat == null){
-			return "Unknown";
-		}
-		return mostUsedFormat;
+
+		return primaryFormat;
 	}
 
 	private String getPrimaryFormatCategory() {
