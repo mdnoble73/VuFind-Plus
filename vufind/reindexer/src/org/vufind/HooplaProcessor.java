@@ -172,7 +172,7 @@ class HooplaProcessor extends MarcRecordProcessor {
 		itemInfo.seteContentProtectionType("Always Available");
 		itemInfo.setDetailedStatus("Available Online");
 		loadEContentUrl(record, itemInfo);
-		Date dateAdded = indexer.getDateFirstDetected(identifier);
+		Date dateAdded = indexer.getDateFirstDetected("hoopla", identifier);
 		itemInfo.setDateAdded(dateAdded);
 
 		recordInfo.addItem(itemInfo);

@@ -116,7 +116,7 @@ class InclusionRule {
 			audiencesCache = new HashMap<>();
 			iTypeCache.put(iType, audiencesCache);
 		}
-		String audiencesKey = Util.getCsvSeparatedString(audiences);
+		String audiencesKey = audiences.toString();
 		HashMap<String, Boolean> formatCache = audiencesCache.get(audiencesKey);
 		if (formatCache == null){
 			hasCachedValue = false;

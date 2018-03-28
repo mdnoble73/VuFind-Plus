@@ -56,7 +56,32 @@ class LionRecordProcessor extends IIIRecordProcessor {
 		return itemInfo.getStatusCode().equals("o");
 	}
 
-	//bcode3 suppress code is 998e = n
-	//icode2 suppress code is n
+	protected boolean isItemSuppressed(DataField curItem) {
+		Subfield icode2Subfield = curItem.getSubfield(iCode2Subfield);
+		if (icode2Subfield != null) {
+			String icode2 = icode2Subfield.getData().toLowerCase().trim();
 
+			//Suppress icode2 of n
+			if (icode2.equals("n")) {
+				return true;
+			}
+		}
+
+		return super.isItemSuppressed(curItem);
+	}
+
+	protected boolean isBibSuppressed(Record record) {
+		DataField field907 = record.getDataField("998");
+		if (field907 != null){
+			Subfield suppressionSubfield = field907.getSubfield('e');
+			if (suppressionSubfield != null){
+				String bCode3 = suppressionSubfield.getData().toLowerCase().trim();
+				if (bCode3.equals("n")){
+					logger.debug("Bib record is suppressed due to bcode3 " + bCode3);
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 }
