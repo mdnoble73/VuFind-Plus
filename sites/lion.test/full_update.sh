@@ -107,8 +107,12 @@ cd /usr/local/vufind-plus/vufind/cron; java -server -XX:+UseG1GC -jar cron.jar $
 #Full Regroup
 cd /usr/local/vufind-plus/vufind/record_grouping; java -server -XX:+UseG1GC -jar record_grouping.jar ${PIKASERVER} fullRegroupingNoClear >> ${OUTPUT_FILE}
 
-#Full Reindex
+#Full Reindex - since this takes so long, just run the full index once a week and let Sierra Export keep it up to date the rest of the time.
+if [ "${DAYOFWEEK}" -eq 5 ];
+cd /usr/local/vufind-plus/vufind/reindexer; nice -n -3 java -server -XX:+UseG1GC -jar reindexer.jar ${PIKASERVER} >> ${OUTPUT_FILE}
+then
 cd /usr/local/vufind-plus/vufind/reindexer; nice -n -3 java -server -XX:+UseG1GC -jar reindexer.jar ${PIKASERVER} fullReindex >> ${OUTPUT_FILE}
+fi
 
 # Truncate Continuous Reindexing list of changed items
 cat /dev/null >| /data/vufind-plus/${PIKASERVER}/marc/changed_items_to_process.csv
