@@ -1176,23 +1176,22 @@ public class RecordGrouperMain {
 			//Check to see if we should process the profile
 			boolean processProfile = false;
 			ArrayList<File> filesToProcess = new ArrayList<>();
-			if (curProfile.groupUnchangedFiles){
-				processProfile = true;
-			}else{
-				//Check to see if we have any new files, if so we will process all of them to be sure deletes and overlays process properly
-				Pattern filesToMatchPattern = Pattern.compile(curProfile.filenamesToInclude, Pattern.CASE_INSENSITIVE);
-				File[] catalogBibFiles = new File(marcPath).listFiles();
-				if (catalogBibFiles != null) {
-					for (File curBibFile : catalogBibFiles) {
-						if (filesToMatchPattern.matcher(curBibFile.getName()).matches()) {
-							filesToProcess.add(curBibFile);
-							//If the file has changed since the last grouping time we should process it again
-							if (curBibFile.lastModified() > lastGroupingTime * 1000){
-								processProfile = true;
-							}
+			//Check to see if we have any new files, if so we will process all of them to be sure deletes and overlays process properly
+			Pattern filesToMatchPattern = Pattern.compile(curProfile.filenamesToInclude, Pattern.CASE_INSENSITIVE);
+			File[] catalogBibFiles = new File(marcPath).listFiles();
+			if (catalogBibFiles != null) {
+				for (File curBibFile : catalogBibFiles) {
+					if (filesToMatchPattern.matcher(curBibFile.getName()).matches()) {
+						filesToProcess.add(curBibFile);
+						//If the file has changed since the last grouping time we should process it again
+						if (curBibFile.lastModified() > lastGroupingTime * 1000){
+							processProfile = true;
 						}
 					}
 				}
+			}
+			if (curProfile.groupUnchangedFiles){
+				processProfile = true;
 			}
 
 			if (!processProfile) {
