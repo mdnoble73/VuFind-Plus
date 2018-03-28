@@ -1435,13 +1435,13 @@ public class SierraExportAPIMain {
 				}
 
 			} catch (java.net.SocketTimeoutException e) {
-				logger.debug("Socket timeout talking to to sierra API " + e.toString() );
+				logger.error("Socket timeout talking to to sierra API " + e.toString() );
 				lastCallTimedOut = true;
 			} catch (java.net.ConnectException e) {
-				logger.debug("Timeout connecting to sierra API " + e.toString() );
+				logger.error("Timeout connecting to sierra API " + e.toString() );
 				lastCallTimedOut = true;
 			} catch (Exception e) {
-				logger.debug("Error loading data from sierra API ", e );
+				logger.error("Error loading data from sierra API ", e );
 			}
 		}
 		return null;
@@ -1501,13 +1501,13 @@ public class SierraExportAPIMain {
 				}
 
 			} catch (java.net.SocketTimeoutException e) {
-				logger.debug("Socket timeout talking to to sierra API " + e.toString() );
+				logger.error("Socket timeout talking to to sierra API " + e.toString() );
 				lastCallTimedOut = true;
 			} catch (java.net.ConnectException e) {
-				logger.debug("Timeout connecting to sierra API " + e.toString() );
+				logger.error("Timeout connecting to sierra API " + e.toString() );
 				lastCallTimedOut = true;
 			} catch (Exception e) {
-				logger.debug("Error loading data from sierra API ", e );
+				logger.error("Error loading data from sierra API ", e );
 			}
 		}
 		return null;
@@ -1569,13 +1569,13 @@ public class SierraExportAPIMain {
 				}
 
 			} catch (java.net.SocketTimeoutException e) {
-				logger.debug("Socket timeout talking to to sierra API " + e.toString() );
+				logger.error("Socket timeout talking to to sierra API " + e.toString() );
 				lastCallTimedOut = true;
 			} catch (java.net.ConnectException e) {
-				logger.debug("Timeout connecting to sierra API " + e.toString() );
+				logger.error("Timeout connecting to sierra API " + e.toString() );
 				lastCallTimedOut = true;
 			} catch (Exception e) {
-				logger.debug("Error loading data from sierra API ", e );
+				logger.error("Error loading data from sierra API ", e );
 			}
 		}
 		return null;
