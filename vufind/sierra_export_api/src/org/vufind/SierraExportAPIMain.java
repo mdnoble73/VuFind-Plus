@@ -1036,7 +1036,8 @@ public class SierraExportAPIMain {
 		try {
 			JSONObject marcResults = null;
 			if (allowFastExportMethod) {
-				marcResults = callSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/bibs/marc?id=" + ids, true);
+				//Don't log errors since we get regular errors if we exceed the export rate.
+				marcResults = callSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/bibs/marc?id=" + ids, false);
 			}
 			if (marcResults != null && marcResults.has("file")){
 				ArrayList<String> processedIds = new ArrayList<>();
