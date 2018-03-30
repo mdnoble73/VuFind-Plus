@@ -934,7 +934,7 @@ public class GroupedWorkIndexer {
 					}catch (Exception e){
 						logger.warn("Error committing changes", e);
 					}*/
-					logger.warn("Processed " + numWorksProcessed + " grouped works processed.");
+					GroupedReindexMain.addNoteToReindexLog("Processed " + numWorksProcessed + " grouped works processed.");
 					GroupedReindexMain.updateNumWorksProcessed(numWorksProcessed);
 				}
 				if (maxWorksToProcess != -1 && numWorksProcessed >= maxWorksToProcess){
