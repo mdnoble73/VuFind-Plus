@@ -856,7 +856,7 @@ abstract class MarcRecordProcessor {
 		}
 
 		//title alt
-		groupedWork.addAlternateTitles(MarcUtil.getFieldList(record, "130adfgklnpst:240a:246a:700tnr:730adfgklnpst:740a"));
+		groupedWork.addAlternateTitles(MarcUtil.getFieldList(record, "130adfgklnpst:240a:246abnp:700tnr:730adfgklnpst:740a"));
 		//title old
 		groupedWork.addOldTitles(MarcUtil.getFieldList(record, "780ast"));
 		//title new
