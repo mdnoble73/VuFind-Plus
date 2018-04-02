@@ -20,6 +20,7 @@ require_once ROOT_DIR . '/Action.php';
 require_once ROOT_DIR . '/services/API/ItemAPI.php';
 require_once ROOT_DIR . '/services/API/ListAPI.php';
 require_once ROOT_DIR . '/services/API/SearchAPI.php';
+require_once ROOT_DIR . '/sys/Solr.php';
 
 class AnodeAPI extends Action {
 
@@ -56,14 +57,56 @@ class AnodeAPI extends Action {
 		} else {
 			$numTitlesToShow = $_REQUEST['numGroupedWorksToShow'];
 		}
-		if ($_GET['branch'] && in_array($_GET['branch'], array("bl","se"))) {
+		if (isset($_GET['branch']) && in_array($_GET['branch'], array("bl","se"))) {
 			$branch = $_GET['branch'];
 		} else {
 			$branch = "catalog";
 		}
 		$listAPI = new ListAPI();
 		$result = $listAPI->getListTitles($listId, $numGroupedWorksToShow);
+		$result = $this->getAnodeGroupedWorks($result,$branch);
+		return $result;
+	}
 
+	/**
+	 * Returns information about a grouped work's related titles ("More Like This")
+	 *
+	 * @param	string	$id - The initial grouped work
+	 * @var		array	$originalResult - The original record we are getting similar titles for.
+	 * @return	array
+	 */
+	function getAnodeRelatedGroupedWorks($id = NULL, $originalResult = NULL) {
+                global $configArray;
+		if (!isset($id)) {
+			$id = $_REQUEST['id'];
+		}
+		if (isset($_GET['branch']) && in_array($_GET['branch'], array("bl","se"))) {
+			$branch = $_GET['branch'];
+		} else {
+			$branch = "catalog";
+		}
+		//Load Similar titles (from Solr)
+		$class = $configArray['Index']['engine'];
+		$url = $configArray['Index']['url'];
+		/** @var Solr $db */
+		$db = new $class($url);
+//		$db->disableScoping();
+		$similar = $db->getMoreLikeThis2($id);
+		if (isset($similar) && count($similar['response']['docs']) > 0) {
+			$similarTitles = array();
+//			$similarTitles['titles'] = array();
+
+			foreach ($similar['response']['docs'] as $key => $similarTitle){
+				$similarTitles['titles'][] = $similarTitle;
+			}
+		}
+		$result = $this->getAnodeGroupedWorks($similarTitles,$branch);
+//var_dump($similarTitles);
+//var_dump($result);
+		return $result;
+	}
+
+	function getAnodeGroupedWorks($result,$branch) {
 		if (!isset($result['titles'])) {
 			$result['titles'] = array();
 		} else {
@@ -71,11 +114,15 @@ class AnodeAPI extends Action {
 				$itemAPI = new ItemAPI();
 				$_GET['id'] = $groupedWork['id'];
 				$groupedWorkRecord = $itemAPI->loadSolrRecord($groupedWork['id']);
-				unset($groupedWork['ratingData']);
-				unset($groupedWork['shortId']);
-				unset($groupedWork['small_image']);
-				unset($groupedWork['titleURL']);
-				$groupedWork['rating'] = $groupedWorkRecord['rating'];
+				if (isset($groupedWorkRecord['title_display'])) {
+					$groupedWork['title'] = $groupedWorkRecord['title_display'];
+				}
+				if (isset($groupedWorkRecord['display_description'])) {
+					$groupedWork['description'] = $groupedWorkRecord['display_description'];
+				}
+				if (isset($groupedWorkRecord['rating'])) {
+					$groupedWork['rating'] = $groupedWorkRecord['rating'];
+				}
 				if (isset($groupedWorkRecord['series'][0])) {
 					$groupedWork['series'] = $groupedWorkRecord['series'][0];
 				}
@@ -155,6 +202,32 @@ class AnodeAPI extends Action {
 					}
 					ksort($groupedWork['items'][count($groupedWork['items'])-1]);
 				}
+				unset($groupedWork['length']);
+				unset($groupedWork['ratingData']);
+				unset($groupedWork['shortId']);
+				unset($groupedWork['small_image']);
+				unset($groupedWork['titleURL']);
+				unset($groupedWork['publishDate']);
+				unset($groupedWork['title_display']);
+				unset($groupedWork['title_short']);
+				unset($groupedWork['title_full']);
+				unset($groupedWork['author_display']);
+				unset($groupedWork['publisherStr']);
+				unset($groupedWork['topic_facet']);
+				unset($groupedWork['subject_facet']);
+				unset($groupedWork['lexile_score']);
+				unset($groupedWork['accelerated_reader_interest_level']);
+				unset($groupedWork['primary_isbn']);
+				unset($groupedWork['display_description']);
+				unset($groupedWork['auth_author2']);
+				unset($groupedWork['author2-role']);
+				unset($groupedWork['series_with_volume']);
+				unset($groupedWork['literary_form_full']);
+				unset($groupedWork['record_details']);
+				unset($groupedWork['item_details']);
+				unset($groupedWork['accelerated_reader_point_value']);
+				unset($groupedWork['accelerated_reader_reading_level']);
+
 			}
 		}
 		return $result;
