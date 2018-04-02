@@ -1426,7 +1426,6 @@ class DBMaintenance extends Admin_Admin {
 						'RENAME TABLE nonHoldableLocations TO non_holdable_locations',
 						'RENAME TABLE pTypeRestrictedLocations TO ptype_restricted_locations',
 						'RENAME TABLE externalLinkTracking TO external_link_tracking',
-						'RENAME TABLE circulationStatus TO circulation_status',
 						'RENAME TABLE purchaseLinkTracking TO purchase_link_tracking'
 					),
 				),
