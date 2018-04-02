@@ -955,7 +955,7 @@ abstract class SearchObject_Base
 		if ($this->view != null) {
 			$params[] = "view=" . urlencode($this->view);
 		}else if (isset($_REQUEST['view'])){
-			$view = isset($_REQUEST['view']);
+			$view = $_REQUEST['view'];
 			if (is_array($view)){
 				$view = array_pop($view);
 			}
