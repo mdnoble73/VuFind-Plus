@@ -1571,6 +1571,7 @@ class SearchObject_Islandora extends SearchObject_Base
 		$filters[] = "fedora_datastreams_ms:MODS";
 		if ($library->hideAllCollectionsFromOtherLibraries && $library->archiveNamespace){
 			$filters[] = "RELS_EXT_isMemberOfCollection_uri_ms:info\\:fedora/{$library->archiveNamespace}\\:*
+			  OR RELS_EXT_isMemberOf_uri_ms:info\\:fedora/{$library->archiveNamespace}\\:*
 			  OR RELS_EXT_isMemberOfCollection_uri_ms:info\\:fedora/marmot\\:events
 			  OR RELS_EXT_isMemberOfCollection_uri_ms:info\\:fedora/marmot\\:organizations
 			  OR RELS_EXT_isMemberOfCollection_uri_ms:info\\:fedora/marmot\\:people
@@ -1594,12 +1595,16 @@ class SearchObject_Islandora extends SearchObject_Base
 			$filter = '';
 			$privateCollections = explode("\r\n", $privateCollectionsObj->privateCollections);
 			foreach ($privateCollections as $privateCollection){
-				if (strlen($library->archiveNamespace) == 0 || strpos($privateCollection, $library->archiveNamespace) !== 0){
-					if (strlen($filter) > 0){
-						$filter .= ' AND ';
+				$privateCollection = trim($privateCollection);
+				if (strlen($privateCollection) > 0){
+					if (strlen($library->archiveNamespace) == 0 || strpos($privateCollection, $library->archiveNamespace) !== 0){
+						if (strlen($filter) > 0){
+							$filter .= ' AND ';
+						}
+						$filter .= "!ancestors_ms:\"{$privateCollection}\"";
 					}
-					$filter .= "!ancestors_ms:\"{$privateCollection}\"";
 				}
+
 			}
 			if (strlen($filter) > 0){
 				$filters[] = $filter;
