@@ -1588,6 +1588,24 @@ class SearchObject_Islandora extends SearchObject_Base
 			}
 			$filters[] = $filter;
 		}
+		require_once ROOT_DIR . '/sys/ArchivePrivateCollection.php';
+		$privateCollectionsObj = new ArchivePrivateCollection();
+		if ($privateCollectionsObj->find(true)){
+			$filter = '';
+			$privateCollections = explode("\r\n", $privateCollectionsObj->privateCollections);
+			foreach ($privateCollections as $privateCollection){
+				if (strlen($library->archiveNamespace) == 0 || strpos($privateCollection, $library->archiveNamespace) !== 0){
+					if (strlen($filter) > 0){
+						$filter .= ' AND ';
+					}
+					$filter .= "!ancestors_ms:\"{$privateCollection}\"";
+				}
+			}
+			if (strlen($filter) > 0){
+				$filters[] = $filter;
+			}
+		}
+
 		if ($library->objectsToHide){
 			$objectsToHide = explode("\r\n", $library->objectsToHide);
 			$filter = '';

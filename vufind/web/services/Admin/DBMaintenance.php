@@ -2289,6 +2289,19 @@ class DBMaintenance extends Admin_Admin {
 					)
 				),
 
+					'archive_private_collections' => array(
+							'title' => 'Archive Private Collections',
+							'description' => 'Create a table to store information about collections that should be private to the owning library',
+							'continueOnError' => true,
+							'sql' => array(
+									"CREATE TABLE IF NOT EXISTS archive_private_collections (
+									  `id` int(11) NOT NULL AUTO_INCREMENT,
+									  privateCollections MEDIUMTEXT,
+									  PRIMARY KEY (`id`)
+									) ENGINE=InnoDB  DEFAULT CHARSET=utf8",
+							)
+					),
+
 					'archive_subjects' => array(
 							'title' => 'Archive Subjects',
 							'description' => 'Create a table to store information about what subjects should be ignored and restricted',

@@ -17,8 +17,8 @@ class Admin_ArchiveSubjects extends Admin_Admin{
 		$archiveSubjects = new ArchiveSubject();
 		$archiveSubjects->find(true);
 		if (isset($_POST['subjectsToIgnore'])){
-			$archiveSubjects->subjectsToIgnore = $_POST['subjectsToIgnore'];
-			$archiveSubjects->subjectsToRestrict = $_POST['subjectsToRestrict'];
+			$archiveSubjects->subjectsToIgnore = strip_tags($_POST['subjectsToIgnore']);
+			$archiveSubjects->subjectsToRestrict = strip_tags($_POST['subjectsToRestrict']);
 			if ($archiveSubjects->id){
 				$archiveSubjects->update();
 			}else{
