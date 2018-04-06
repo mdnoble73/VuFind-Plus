@@ -4,6 +4,7 @@ import com.sun.istack.internal.NotNull;
 import org.marc4j.marc.Record;
 
 import java.util.HashSet;
+import java.util.TreeSet;
 import java.util.regex.Pattern;
 
 /**
@@ -84,7 +85,7 @@ public class Scope implements Comparable<Scope>{
 	 * @param subLocationCode   The sub location code to check.  Set to blank if no sub location code
 	 * @return                  Whether or not the item is included within the scope
 	 */
-	InclusionResult isItemPartOfScope(@NotNull String recordType, @NotNull String locationCode, @NotNull String subLocationCode, String iType, HashSet<String> audiences, String format, boolean isHoldable, boolean isOnOrder, boolean isEContent, Record marcRecord, String econtentUrl){
+	InclusionResult isItemPartOfScope(@NotNull String recordType, @NotNull String locationCode, @NotNull String subLocationCode, String iType, TreeSet<String> audiences, String format, boolean isHoldable, boolean isOnOrder, boolean isEContent, Record marcRecord, String econtentUrl){
 		if (locationCode == null){
 			//No location code, skip this item
 			return new InclusionResult(false, econtentUrl);

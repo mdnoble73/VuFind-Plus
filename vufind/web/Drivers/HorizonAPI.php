@@ -740,40 +740,37 @@ abstract class HorizonAPI extends Horizon{
 			foreach ($lookupMyAccountInfoResponse->ItemsOutInfo as $itemOut){
 				$sCount++;
 				$bibId = (string)$itemOut->titleKey;
-				$curTitle['checkoutSource'] = 'ILS';
-				$curTitle['recordId'] = $bibId;
-				$curTitle['shortId'] = $bibId;
-				$curTitle['id'] = $bibId;
-				$curTitle['title'] = (string)$itemOut->title;
-				$curTitle['author'] = (string)$itemOut->author;
+				$curTitle['checkoutSource']  = 'ILS';
+				$curTitle['recordId']        = $bibId;
+				$curTitle['shortId']         = $bibId;
+				$curTitle['id']              = $bibId;
+				$curTitle['title']           = (string)$itemOut->title;
+				$curTitle['author']          = (string)$itemOut->author;
 
-				$curTitle['dueDate'] = strtotime((string)$itemOut->dueDate);
-				$curTitle['checkoutdate'] = (string)$itemOut->ckoDate;
-				$curTitle['renewCount'] = (string)$itemOut->renewals;
-				$curTitle['canrenew'] = true; //TODO: Figure out if the user can renew the title or not
-				$curTitle['renewIndicator'] = (string)$itemOut->itemBarcode;
-				$curTitle['barcode'] = (string)$itemOut->itemBarcode;
+				$curTitle['dueDate']         = strtotime((string)$itemOut->dueDate);
+				$curTitle['checkoutdate']    = (string)$itemOut->ckoDate;
+				$curTitle['renewCount']      = (string)$itemOut->renewals;
+				$curTitle['canrenew']        = true; //TODO: Figure out if the user can renew the title or not
+				$curTitle['renewIndicator']  = (string)$itemOut->itemBarcode;
+				$curTitle['barcode']         = (string)$itemOut->itemBarcode;
 				$curTitle['holdQueueLength'] = $this->getNumHolds($bibId);
 
-				$curTitle['format'] = 'Unknown';
+				$curTitle['format']          = 'Unknown';
 				if ($curTitle['id'] && strlen($curTitle['id']) > 0){
 					require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
 					$recordDriver = new MarcRecord($curTitle['id']);
 					if ($recordDriver->isValid()){
-						$curTitle['coverUrl'] = $recordDriver->getBookcoverUrl('medium');
+						$curTitle['coverUrl']      = $recordDriver->getBookcoverUrl('medium');
 						$curTitle['groupedWorkId'] = $recordDriver->getGroupedWorkId();
-						$curTitle['format'] = $recordDriver->getPrimaryFormat();
-						if (empty($curTitle['title'])){
-							$curTitle['title'] = $recordDriver->getTitle();
-							$curTitle['title_sort'] = $recordDriver->getSortableTitle();
-						}
-						if (empty($curTitle['author'])){
-							$curTitle['author'] = $recordDriver->getPrimaryAuthor();
-						}
+						$curTitle['ratingData']    = $recordDriver->getRatingData();
+						$curTitle['format']        = $recordDriver->getPrimaryFormat();
+						$curTitle['author']        = $recordDriver->getPrimaryAuthor();
+						$curTitle['title']         = $recordDriver->getTitle();
+						$curTitle['title_sort']    = $recordDriver->getSortableTitle();
+						$curTitle['link']          = $recordDriver->getLinkUrl();
 					}else{
 						$curTitle['coverUrl'] = "";
 					}
-					$curTitle['link'] = $recordDriver->getLinkUrl();
 				}
 				//TODO: Sort Keys Created in CheckedOut.php. Needed here?
 				$sortTitle = isset($curTitle['title_sort']) ? $curTitle['title_sort'] : $curTitle['title'];

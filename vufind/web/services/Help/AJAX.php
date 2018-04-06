@@ -13,7 +13,7 @@ class Help_AJAX extends Action {
 	function launch() {
 		global $analytics;
 		$analytics->disableTracking();
-		$method = $_GET['method'];
+		$method = (isset($_GET['method']) && !is_array($_GET['method'])) ? $_GET['method'] : '';
 		if (in_array($method, array('getSupportForm'))){
 			header('Content-type: application/json');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
@@ -26,7 +26,7 @@ class Help_AJAX extends Action {
 
 			$xmlResponse = '<?xml version="1.0" encoding="UTF-8"?' . ">\n";
 			$xmlResponse .= "<AJAXResponse>\n";
-			if (is_callable(array($this, $_GET['method']))) {
+			if (method_exists($this, $method)) {
 				$xmlResponse .= $this->$_GET['method']();
 			} else {
 				$xmlResponse .= '<Error>Invalid Method</Error>';

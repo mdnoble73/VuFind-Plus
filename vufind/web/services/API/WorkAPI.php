@@ -11,8 +11,8 @@
 class WorkAPI {
 	function launch()
 	{
-		$method = $_REQUEST['method'];
-		if (is_callable(array($this, $method))) {
+		$method = (isset($_GET['method']) && !is_array($_GET['method'])) ? $_GET['method'] : '';
+		if (method_exists($this, $method)) {
 			$output = json_encode(array('result'=>$this->$method()));
 		} else {
 			$output = json_encode(array('error'=>"invalid_method '$method'"));

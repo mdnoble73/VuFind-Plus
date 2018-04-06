@@ -253,6 +253,15 @@ function getIndexingUpdates() {
 				)
 		),
 
+		'indexing_profile_groupUnchangedFiles' => array(
+				'title' => 'Indexing Profiles - Group Unchanged Files',
+				'description' => 'Allow logic for whether or not files that haven\'t changed since the last grouping are regrouped',
+				'continueOnError' => true,
+				'sql' => array(
+						"ALTER TABLE indexing_profiles ADD COLUMN `groupUnchangedFiles` tinyint(1) DEFAULT 0",
+				)
+		),
+
 		'translation_map_regex' => array(
 			'title' => 'Translation Maps Regex',
 			'description' => 'Setup Translation Maps to use regular expressions',
@@ -325,6 +334,15 @@ function getIndexingUpdates() {
 							"ALTER TABLE location_records_to_include ADD COLUMN includeExcludeMatches TINYINT default 1",
 							"ALTER TABLE location_records_to_include ADD COLUMN urlToMatch VARCHAR(100)",
 							"ALTER TABLE location_records_to_include ADD COLUMN urlReplacement VARCHAR(100)",
+					)
+			),
+
+			'records_to_include_2018-03' => array(
+					'title' => 'Increase Records To Include URL Replacement Column',
+					'description' => 'Increase Records To Include URL Replacement Column to 255 characters.',
+					'sql' => array(
+							"ALTER TABLE `library_records_to_include` CHANGE COLUMN `urlReplacement` `urlReplacement` VARCHAR(255) NULL DEFAULT NULL",
+							"ALTER TABLE `location_records_to_include` CHANGE COLUMN `urlReplacement` `urlReplacement` VARCHAR(255) NULL DEFAULT NULL",
 					)
 			),
 

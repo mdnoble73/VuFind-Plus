@@ -94,13 +94,16 @@ do
 
 	#export from sierra (items, holds, and orders)
 	#echo "Starting Sierra Export - `date`" >> ${OUTPUT_FILE}
-	cd /usr/local/vufind-plus/vufind/sierra_export/
-	nice -n -10 java -server -XX:+UseG1GC -jar sierra_export.jar ${PIKASERVER} >> ${OUTPUT_FILE}
+	cd /usr/local/vufind-plus/vufind/sierra_export_api/
+	nice -n -10 java -server -XX:+UseG1GC -jar sierra_export_api.jar ${PIKASERVER} >> ${OUTPUT_FILE} &
 
 	#export from overdrive
 	#echo "Starting OverDrive Extract - `date`" >> ${OUTPUT_FILE}
 	cd /usr/local/vufind-plus/vufind/overdrive_api_extract/
-	nice -n -10 java -server -XX:+UseG1GC -jar overdrive_extract.jar ${PIKASERVER} >> ${OUTPUT_FILE}
+	nice -n -10 java -server -XX:+UseG1GC -jar overdrive_extract.jar ${PIKASERVER} >> ${OUTPUT_FILE} &
+
+    #wait for Sierra Export and overdrive export to finish
+	wait
 
 	#run reindex
 	#echo "Starting Reindexing - `date`" >> ${OUTPUT_FILE}

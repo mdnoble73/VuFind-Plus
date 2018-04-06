@@ -9,13 +9,13 @@ require_once ROOT_DIR . '/Action.php';
 
 class API_ArchiveAPI extends Action {
 	function launch(){
-		$method = $_REQUEST['method'];
+		$method = (isset($_GET['method']) && !is_array($_GET['method'])) ? $_GET['method'] : '';
 
 		header('Content-type: application/json');
 		header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 		header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 
-		if ($method != 'getDPLASearchResults' && is_callable(array($this, $method))) {
+		if ($method != 'getDPLASearchResults' && method_exists($this, $method)) {
 			$output = json_encode(array('result'=>$this->$method()));
 		} else {
 			$output = json_encode(array('error'=>"invalid_method '$method'"));

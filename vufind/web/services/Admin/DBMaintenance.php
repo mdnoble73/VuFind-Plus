@@ -92,6 +92,8 @@ class DBMaintenance extends Admin_Admin {
 		$islandora_updates = getIslandoraUpdates();
 		require_once ROOT_DIR . '/sys/DBMaintenance/hoopla_updates.php';
 		$hoopla_updates = getHooplaUpdates();
+		require_once ROOT_DIR . '/sys/DBMaintenance/sierra_api_updates.php';
+		$sierra_api_updates = getSierraAPIUpdates();
 
 		return array_merge(
 			$library_location_updates,
@@ -101,6 +103,7 @@ class DBMaintenance extends Admin_Admin {
 			$indexing_updates,
 			$islandora_updates,
 			$hoopla_updates,
+			$sierra_api_updates,
 			array(
 				'index_search_stats' => array(
 					'title' => 'Index search stats table',
@@ -1423,7 +1426,6 @@ class DBMaintenance extends Admin_Admin {
 						'RENAME TABLE nonHoldableLocations TO non_holdable_locations',
 						'RENAME TABLE pTypeRestrictedLocations TO ptype_restricted_locations',
 						'RENAME TABLE externalLinkTracking TO external_link_tracking',
-						'RENAME TABLE circulationStatus TO circulation_status',
 						'RENAME TABLE purchaseLinkTracking TO purchase_link_tracking'
 					),
 				),
@@ -2286,6 +2288,19 @@ class DBMaintenance extends Admin_Admin {
 						"ALTER TABLE `account_profiles` ADD `weight` int(11) NOT NULL",
 					)
 				),
+
+					'archive_private_collections' => array(
+							'title' => 'Archive Private Collections',
+							'description' => 'Create a table to store information about collections that should be private to the owning library',
+							'continueOnError' => true,
+							'sql' => array(
+									"CREATE TABLE IF NOT EXISTS archive_private_collections (
+									  `id` int(11) NOT NULL AUTO_INCREMENT,
+									  privateCollections MEDIUMTEXT,
+									  PRIMARY KEY (`id`)
+									) ENGINE=InnoDB  DEFAULT CHARSET=utf8",
+							)
+					),
 
 					'archive_subjects' => array(
 							'title' => 'Archive Subjects',

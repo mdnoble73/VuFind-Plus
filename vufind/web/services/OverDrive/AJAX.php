@@ -22,7 +22,7 @@ class OverDrive_AJAX extends Action {
 
 			$xmlResponse = '<?xml version="1.0" encoding="UTF-8"?' . ">\n";
 			$xmlResponse .= "<AJAXResponse>\n";
-			if (is_callable(array($this, $_GET['method']))) {
+			if (method_exists($this, $method)) {
 				$xmlResponse .= $this->$_GET['method']();
 			} else {
 				$xmlResponse .= '<Error>Invalid Method</Error>';

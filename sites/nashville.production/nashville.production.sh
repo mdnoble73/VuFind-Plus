@@ -7,7 +7,7 @@ fi
 
 if [[ $(hostname -s) == "HOBVMPLAP23" ]]
   then
-    SOLRMEM="20g"
+    SOLRMEM="26g"
 elif [[ $(hostname -s) == "HOBVMPLAPT23" ]]
     then
       SOLRMEM="20g"

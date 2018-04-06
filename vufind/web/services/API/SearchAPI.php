@@ -25,11 +25,12 @@ class SearchAPI extends Action {
 
 	function launch()
 	{
-		if (!empty($_REQUEST['method']) && is_callable(array($this, $_REQUEST['method']))) {
-			if (in_array($_REQUEST['method'] , array('getSearchBar', 'getListWidget'))){
-				$output = $this->$_GET['method']();
+		$method = (isset($_GET['method']) && !is_array($_GET['method'])) ? $_GET['method'] : '';
+		if (!empty($method) && method_exists($this, $method)) {
+			if (in_array($method , array('getSearchBar', 'getListWidget'))){
+				$output = $this->$method();
 			}else{
-				$jsonOutput = json_encode(array('result'=>$this->$_REQUEST['method']()));
+				$jsonOutput = json_encode(array('result'=>$this->$method()));
 			}
 		} else {
 			$jsonOutput = json_encode(array('error'=>'invalid_method'));

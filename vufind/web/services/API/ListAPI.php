@@ -27,31 +27,27 @@ require_once ROOT_DIR . '/sys/Utils/Pagination.php';
 class ListAPI extends Action {
 
 	function launch() {
-		$method = $_REQUEST['method'];
-		if ($method == 'getRSSFeed'){
-			header ('Content-type: text/xml');
-			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
-			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
-			$xml = '<?xml version="1.0" encoding="UTF-8"?' . ">\n";
-			if (is_callable(array($this, $_REQUEST['method']))) {
+		$method = (isset($_GET['method']) && !is_array($_GET['method'])) ? $_GET['method'] : '';
+		if (method_exists($this, $method)) {
+			if ($method == 'getRSSFeed'){
+				header ('Content-type: text/xml');
+				header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
+				header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
+				$xml = '<?xml version="1.0" encoding="UTF-8"?' . ">\n";
 				$xml .= $this->$_REQUEST['method']();
-			} else {
-				$xml .= '<Error>Invalid Method</Error>';
-			}
 
-			echo $xml;
+				echo $xml;
 
-		}else{
-			header('Content-type: text/plain');
-			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
-			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
-			if (is_callable(array($this, $_REQUEST['method']))) {
+			}else{
+				header('Content-type: text/plain');
+				header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
+				header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 				$output = json_encode(array('result'=>$this->$_REQUEST['method']()));
-			} else {
-				$output = json_encode(array('error'=>'invalid_method'));
-			}
 
-			echo $output;
+				echo $output;
+			}
+		} else {
+			echo json_encode(array('error'=>'invalid_method'));
 		}
 	}
 
@@ -373,7 +369,7 @@ class ListAPI extends Action {
 		if ($list->find(true)){
 			//Make sure the user has access to the list
 			if ($list->public == 0){
-				if (!$user){
+				if (!isset($user)){
 					return array('success'=>false, 'message'=>'The user was invalid.  A valid user must be provided for private lists.');
 				}elseif ($list->user_id != $user->id){
 					return array('success'=>false, 'message'=>'The user does not have access to this list.');

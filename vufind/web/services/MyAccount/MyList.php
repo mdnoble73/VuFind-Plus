@@ -165,35 +165,37 @@ class MyAccount_MyList extends MyAccount {
 		$titleSearches[] = preg_split("/\\r\\n|\\r|\\n/", $titlesToAdd);
 
 		foreach ($titleSearches[0] as $titleSearch){
-			$_REQUEST['lookfor'] = $titleSearch;
-			$_REQUEST['type'] = 'Keyword';
-			// Initialise from the current search globals
-			$searchObject = SearchObjectFactory::initSearchObject();
-			$searchObject->setLimit(1);
-			$searchObject->init();
-			$searchObject->clearFacets();
-			$results = $searchObject->processSearch(false, false);
-			if ($results['response'] && $results['response']['numFound'] >= 1){
-				$firstDoc = $results['response']['docs'][0];
-				//Get the id of the document
-				$id = $firstDoc['id'];
-				$numAdded++;
-				$userListEntry = new UserListEntry();
-				$userListEntry->listId = $list->id;
-				$userListEntry->groupedWorkPermanentId = $id;
-				$existingEntry = false;
-				if ($userListEntry->find(true)){
-					$existingEntry = true;
+			$titleSearch = trim($titleSearch);
+			if (!empty($titleSearch)) {
+				$_REQUEST['lookfor'] = $titleSearch;
+				$_REQUEST['type']    = 'Keyword';// Initialise from the current search globals
+				$searchObject        = SearchObjectFactory::initSearchObject();
+				$searchObject->setLimit(1);
+				$searchObject->init();
+				$searchObject->clearFacets();
+				$results = $searchObject->processSearch(false, false);
+				if ($results['response'] && $results['response']['numFound'] >= 1) {
+					$firstDoc = $results['response']['docs'][0];
+					//Get the id of the document
+					$id = $firstDoc['id'];
+					$numAdded++;
+					$userListEntry                         = new UserListEntry();
+					$userListEntry->listId                 = $list->id;
+					$userListEntry->groupedWorkPermanentId = $id;
+					$existingEntry                         = false;
+					if ($userListEntry->find(true)) {
+						$existingEntry = true;
+					}
+					$userListEntry->notes     = '';
+					$userListEntry->dateAdded = time();
+					if ($existingEntry) {
+						$userListEntry->update();
+					} else {
+						$userListEntry->insert();
+					}
+				} else {
+					$notes[] = "Could not find a title matching " . $titleSearch;
 				}
-				$userListEntry->notes = '';
-				$userListEntry->dateAdded = time();
-				if ($existingEntry){
-					$userListEntry->update();
-				}else{
-					$userListEntry->insert();
-				}
-			}else{
-				$notes[] = "Could not find a title matching " . $titleSearch;
 			}
 		}
 
@@ -202,6 +204,8 @@ class MyAccount_MyList extends MyAccount {
 
 		if ($numAdded > 0){
 			$notes[] = "Added $numAdded titles to the list";
+		} elseif ($numAdded === 0) {
+			$notes[] = 'No titles were added to the list';
 		}
 
 		return $notes;

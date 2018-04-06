@@ -43,10 +43,10 @@ public class GroupedWorkIndexer {
 	private PreparedStatement getRatingStmt;
 	private Connection vufindConn;
 
-	private int availableAtLocationBoostValue = 50;
-	private int ownedByLocationBoostValue = 10;
+	private int availableAtLocationBoostValue;
+	private int ownedByLocationBoostValue;
 
-	private boolean fullReindex = false;
+	private boolean fullReindex;
 	private long lastReindexTime;
 	private Long lastReindexTimeVariableId;
 	private boolean partialReindexRunning;
@@ -123,7 +123,7 @@ public class GroupedWorkIndexer {
 			//TODO: Restore functionality to not include any identifiers that aren't tagged as valid for enrichment
 			//getGroupedWorkIdentifiers = vufindConn.prepareStatement("SELECT * FROM grouped_work_identifiers inner join grouped_work_identifiers_ref on identifier_id = grouped_work_identifiers.id where grouped_work_id = ? and valid_for_enrichment = 1", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 
-			getDateFirstDetectedStmt = vufindConn.prepareStatement("SELECT dateFirstDetected FROM ils_marc_checksums WHERE ilsId = ?", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+			getDateFirstDetectedStmt = vufindConn.prepareStatement("SELECT dateFirstDetected FROM ils_marc_checksums WHERE source = ? AND ilsId = ?", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 		} catch (Exception e){
 			logger.error("Could not load statements to get identifiers ", e);
 		}
@@ -145,6 +145,8 @@ public class GroupedWorkIndexer {
 
 			updateFullReindexRunning(true);
 		}else{
+			//TODO: Bypass this if called from an export process?
+
 			//Check to make sure that at least a couple of minutes have elapsed since the last index
 			//Periodically in the middle of the night we get indexes every minute or multiple times a minute
 			//which is annoying especially since it generally means nothing is changing.
@@ -273,8 +275,7 @@ public class GroupedWorkIndexer {
 	}
 
 	private void setupIndexingStats() {
-		ArrayList<String> recordProcessorNames = new ArrayList<>();
-		recordProcessorNames.addAll(ilsRecordProcessors.keySet());
+		ArrayList<String> recordProcessorNames = new ArrayList<>(ilsRecordProcessors.keySet());
 		recordProcessorNames.add("overdrive");
 
 		for (Scope curScope : scopes){
@@ -447,7 +448,7 @@ public class GroupedWorkIndexer {
 		}
 	}
 
-	PreparedStatement libraryRecordInclusionRulesStmt;
+	private PreparedStatement libraryRecordInclusionRulesStmt;
 	private void loadLibraryScopes() throws SQLException {
 		PreparedStatement libraryInformationStmt = vufindConn.prepareStatement("SELECT libraryId, ilsCode, subdomain, " +
 				"displayName, facetLabel, pTypes, enableOverdriveCollection, restrictOwningBranchesAndSystems, publicListsToInclude, " +
@@ -933,7 +934,7 @@ public class GroupedWorkIndexer {
 					}catch (Exception e){
 						logger.warn("Error committing changes", e);
 					}*/
-					logger.info("Processed " + numWorksProcessed + " grouped works processed.");
+					GroupedReindexMain.addNoteToReindexLog("Processed " + numWorksProcessed + " grouped works processed.");
 					GroupedReindexMain.updateNumWorksProcessed(numWorksProcessed);
 				}
 				if (maxWorksToProcess != -1 && numWorksProcessed >= maxWorksToProcess){
@@ -1159,16 +1160,18 @@ public class GroupedWorkIndexer {
 			}
 		});
 
-		for (File curFile : defaultTranslationMapFiles){
-			String mapName = curFile.getName().replace(".properties", "");
-			mapName = mapName.replace("_map", "");
-			translationMaps.put(mapName, loadSystemTranslationMap(curFile));
-		}
-		if (serverTranslationMapFiles != null) {
-			for (File curFile : serverTranslationMapFiles) {
+		if (defaultTranslationMapFiles != null) {
+			for (File curFile : defaultTranslationMapFiles) {
 				String mapName = curFile.getName().replace(".properties", "");
 				mapName = mapName.replace("_map", "");
 				translationMaps.put(mapName, loadSystemTranslationMap(curFile));
+			}
+			if (serverTranslationMapFiles != null) {
+				for (File curFile : serverTranslationMapFiles) {
+					String mapName = curFile.getName().replace(".properties", "");
+					mapName = mapName.replace("_map", "");
+					translationMaps.put(mapName, loadSystemTranslationMap(curFile));
+				}
 			}
 		}
 	}
@@ -1251,10 +1254,11 @@ public class GroupedWorkIndexer {
 		return this.scopes;
 	}
 
-	Date getDateFirstDetected(String recordId){
+	Date getDateFirstDetected(String source, String recordId){
 		Long dateFirstDetected = null;
 		try {
-			getDateFirstDetectedStmt.setString(1, recordId);
+			getDateFirstDetectedStmt.setString(1, source);
+			getDateFirstDetectedStmt.setString(2, recordId);
 			ResultSet dateFirstDetectedRS = getDateFirstDetectedStmt.executeQuery();
 			if (dateFirstDetectedRS.next()) {
 				dateFirstDetected = dateFirstDetectedRS.getLong("dateFirstDetected");

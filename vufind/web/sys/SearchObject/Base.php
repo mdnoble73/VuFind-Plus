@@ -616,7 +616,9 @@ abstract class SearchObject_Base
 		if (is_array($searchTerm)) {
 			if (count($searchTerm) == 1) {
 				$searchTerm = strip_tags(reset($searchTerm));
-				$_REQUEST['type'] = strip_tags(reset($_REQUEST['searchType']));
+				if (isset($_REQUEST['searchType'])){
+					$_REQUEST['type'] = strip_tags(reset($_REQUEST['searchType']));
+				}
 			} else {
 				return false;
 			}
@@ -731,7 +733,7 @@ abstract class SearchObject_Base
 						$group[] = array(
 	                        'field'   => $type,
 	                        'lookfor' => $lookfor,
-	                        'bool'    => strip_tags($_REQUEST['bool'.$groupCount][0])
+	                        'bool'    => isset($_REQUEST['bool'.$groupCount]) ? strip_tags($_REQUEST['bool'.$groupCount][0]) : 'AND'
 						);
 					}
 				}
@@ -741,7 +743,7 @@ abstract class SearchObject_Base
 					// Add the completed group to the list
 					$this->searchTerms[] = array(
 	                    'group' => $group,
-	                    'join'  => strip_tags($_REQUEST['join'])
+	                    'join'  => isset($_REQUEST['join']) ? (is_array($_REQUEST['join']) ? strip_tags(reset($_REQUEST['join'])) : strip_tags($_REQUEST['join'])) : 'AND'
 					);
 				}
 
@@ -892,7 +894,9 @@ abstract class SearchObject_Base
 		if (isset($_REQUEST['filter'])) {
 			if (is_array($_REQUEST['filter'])) {
 				foreach($_REQUEST['filter'] as $filter) {
-					$this->addFilter(strip_tags($filter));
+					if (!is_array($filter)) {
+						$this->addFilter(strip_tags($filter));
+					}
 				}
 			} else {
 				$this->addFilter(strip_tags($_REQUEST['filter']));
@@ -951,7 +955,7 @@ abstract class SearchObject_Base
 		if ($this->view != null) {
 			$params[] = "view=" . urlencode($this->view);
 		}else if (isset($_REQUEST['view'])){
-			$view = isset($_REQUEST['view']);
+			$view = $_REQUEST['view'];
 			if (is_array($view)){
 				$view = array_pop($view);
 			}

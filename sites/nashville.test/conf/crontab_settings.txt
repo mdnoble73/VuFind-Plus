@@ -85,6 +85,9 @@
 # Hoopla extract from API
 0 19 * * * cd /usr/local/vufind-plus/vufind/hoopla_export; java -jar hoopla_export.jar nashville.test
 
+#Lynda weekly update
+17 9 * * Tue /usr/local/vufind-plus/vufind/cron/fetch_lynda.sh
+
 # Download Lexile and AR files triggered in full_update.sh
 
 ###############################

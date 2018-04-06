@@ -26,68 +26,63 @@ class AJAX extends Action {
 	{
 		global $analytics;
 		$analytics->disableTracking();
-		$method = $_REQUEST['method'];
-		$text_methods = array('GetAutoSuggestList', 'SysListTitles', 'getEmailForm', 'sendEmail', 'getDplaResults');
-		//TODO reconfig to use the JSON outputting here.
-		$json_methods = array('getMoreSearchResults', 'GetListTitles', 'loadExploreMoreBar');
-		// Plain Text Methods //
-		if (in_array($method, $text_methods)) {
-			header('Content-type: text/plain');
-			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
-			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
-			$this->$method();
-		}
-		// JSON Methods //
-		elseif (in_array($method, $json_methods)) {
-//			$response = $this->$method();
+		$method = (isset($_GET['method']) && !is_array($_GET['method'])) ? $_GET['method'] : '';
+		if (method_exists($this, $method)) {
+			$text_methods = array('GetAutoSuggestList', 'SysListTitles', 'getEmailForm', 'sendEmail', 'getDplaResults');
+			//TODO reconfig to use the JSON outputting here.
+			$json_methods = array('getMoreSearchResults', 'GetListTitles', 'loadExploreMoreBar');
+			// Plain Text Methods //
+			if (in_array($method, $text_methods)) {
+				header('Content-type: text/plain');
+				header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
+				header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
+				$this->$method();
+			} // JSON Methods //
+			elseif (in_array($method, $json_methods)) {
+				//			$response = $this->$method();
 
-//			header ('Content-type: application/json');
-			header('Content-type: text/html');
-			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
-			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
+				//			header ('Content-type: application/json');
+				header('Content-type: text/html');
+				header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
+				header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 
-			if (is_callable(array($this, $method))) {
-				try{
+				try {
 					$result = $this->$method();
 					require_once ROOT_DIR . '/sys/Utils/ArrayUtils.php';
-//					$utf8EncodedValue = ArrayUtils::utf8EncodeArray(array('result'=>$result));
+					//					$utf8EncodedValue = ArrayUtils::utf8EncodeArray(array('result'=>$result));
 					$utf8EncodedValue = ArrayUtils::utf8EncodeArray($result);
 					$output = json_encode($utf8EncodedValue);
 					$error = json_last_error();
-					if ($error != JSON_ERROR_NONE || $output === FALSE){
-						if (function_exists('json_last_error_msg')){
-							$output = json_encode(array('error'=>'error_encoding_data', 'message' => json_last_error_msg()));
-						}else{
-							$output = json_encode(array('error'=>'error_encoding_data', 'message' => json_last_error()));
+					if ($error != JSON_ERROR_NONE || $output === FALSE) {
+						if (function_exists('json_last_error_msg')) {
+							$output = json_encode(array('error' => 'error_encoding_data', 'message' => json_last_error_msg()));
+						} else {
+							$output = json_encode(array('error' => 'error_encoding_data', 'message' => json_last_error()));
 						}
 						global $configArray;
-						if ($configArray['System']['debug']){
+						if ($configArray['System']['debug']) {
 							print_r($utf8EncodedValue);
 						}
 					}
-				}catch (Exception $e){
-					$output = json_encode(array('error'=>'error_encoding_data', 'message' => $e));
+				} catch (Exception $e) {
+					$output = json_encode(array('error' => 'error_encoding_data', 'message' => $e));
 					global $logger;
 					$logger->log("Error encoding json data $e", PEAR_LOG_ERR);
 				}
 
+				echo $output;
 			} else {
-				$output = json_encode(array('error'=>'invalid_method'));
-			}
-
-			echo $output;
-		}else{
-			header('Content-type: text/xml');
-			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
-			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
-			echo '<?xml version="1.0" encoding="UTF-8"?' . ">\n";
-			echo "<AJAXResponse>\n";
-			if (is_callable(array($this, $method))) {
+				header('Content-type: text/xml');
+				header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
+				header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
+				echo '<?xml version="1.0" encoding="UTF-8"?' . ">\n";
+				echo "<AJAXResponse>\n";
 				$this->$method();
-			} else {
-				echo '<Error>Invalid Method</Error>';
+				echo '</AJAXResponse>';
 			}
-			echo '</AJAXResponse>';
+		}else {
+			$output = json_encode(array('error'=>'invalid_method'));
+			echo $output;
 		}
 	}
 
@@ -396,7 +391,11 @@ class AJAX extends Action {
 		global $interface;
 
 		$section = $_REQUEST['section'];
-		$searchTerm = urldecode(html_entity_decode($_REQUEST['searchTerm']));
+		$searchTerm = $_REQUEST['searchTerm'];
+		if (is_array($searchTerm)){
+			$searchTerm = reset($searchTerm);
+		}
+		$searchTerm = urldecode(html_entity_decode($searchTerm));
 
 		//Load explore more data
 		require_once ROOT_DIR . '/sys/ExploreMore.php';

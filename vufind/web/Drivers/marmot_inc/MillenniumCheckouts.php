@@ -194,18 +194,18 @@ class MillenniumCheckouts {
 							$curTitle['coverUrl']      = $recordDriver->getBookcoverUrl('medium');
 							$curTitle['groupedWorkId'] = $recordDriver->getGroupedWorkId();
 							$curTitle['ratingData']    = $recordDriver->getRatingData();
-							$formats                   = $recordDriver->getFormats();
-							$curTitle['format']        = reset($formats);
+							$curTitle['format']        = $recordDriver->getPrimaryFormat();
 							$curTitle['author']        = $recordDriver->getPrimaryAuthor();
 							//Always use title from the index since classic will show 240 rather than 245
 							$curTitle['title']         = $recordDriver->getTitle();
+							$curTitle['title_sort']    = $recordDriver->getSortableTitle();
+							$curTitle['link']          = $recordDriver->getLinkUrl();
 						} else {
 							$curTitle['coverUrl']      = "";
 							$curTitle['groupedWorkId'] = "";
 							$curTitle['format']        = "Unknown";
 							$curTitle['author']        = "";
 						}
-						$curTitle['link'] = $recordDriver->getLinkUrl();
 					}
 					$checkedOutTitles[] = $curTitle;
 				}

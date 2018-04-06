@@ -3,7 +3,6 @@
 # James Staub, Nashville Public Library
 # 20150218
 # Script executes continuous re-indexing.
-# Millennium 1.6_3
 
 # CONFIGURATION
 # PLEASE SET CONFLICTING PROCESSES AND PROHIBITED TIMES IN FUNCTION CALLS IN SCRIPT MAIN DO LOOP
@@ -19,7 +18,7 @@ function checkConflictingProcesses() {
 	#subtract one to get rid of our grep command
 	countConflictingProcesses=$((countConflictingProcesses-1))
 
-	let numInitialConflicts=countConflictingProcesses
+	numInitialConflicts=${countConflictingProcesses}
 	#Wait until the conflict is gone.
 	until ((${countConflictingProcesses} == 0)); do
 		countConflictingProcesses=$(ps aux | grep -v sudo | grep -c "$1")
@@ -76,14 +75,6 @@ do
 		continue
 	fi
 
-	# Do not run while the export from Sierra is running to prevent inconsistencies with MARC records
-	# export starts at 10 pm the file is copied to the FTP server at about 11:40
-	hasConflicts=$(checkProhibitedTimes "21:50" "23:40")
-	#If we did get a conflict, restart the loop to make sure that all tests run
-	if (($? != 0)); then
-		continue
-	fi
-
 	#####
 	# Start of the actual indexing code
 	#####
@@ -92,15 +83,19 @@ do
 	: > $OUTPUT_FILE;
 	# reset the output file each round
 
+    #Note: Sierra Export and OverDrive export run in parallel
 	#export from sierra (items, holds, and orders)
 	#echo "Starting Sierra Export - `date`" >> ${OUTPUT_FILE}
-	cd /usr/local/vufind-plus/vufind/sierra_export/
-	nice -n -10 java -server -XX:+UseG1GC -jar sierra_export.jar ${PIKASERVER} >> ${OUTPUT_FILE}
+	cd /usr/local/vufind-plus/vufind/sierra_export_api/
+	nice -n -10 java -server -XX:+UseG1GC -jar sierra_export_api.jar ${PIKASERVER} >> ${OUTPUT_FILE} &
 
 	#export from overdrive
 	#echo "Starting OverDrive Extract - `date`" >> ${OUTPUT_FILE}
 	cd /usr/local/vufind-plus/vufind/overdrive_api_extract/
-	nice -n -10 java -server -XX:+UseG1GC -jar overdrive_extract.jar ${PIKASERVER} >> ${OUTPUT_FILE}
+	nice -n -10 java -server -XX:+UseG1GC -jar overdrive_extract.jar ${PIKASERVER} >> ${OUTPUT_FILE} &
+
+	#wait for Sierra Export and overdrive export to finish
+	wait
 
 	#run reindex
 	#echo "Starting Reindexing - `date`" >> ${OUTPUT_FILE}
