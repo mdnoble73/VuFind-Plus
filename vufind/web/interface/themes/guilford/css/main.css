@@ -10806,9 +10806,6 @@ fieldset[disabled] .btn-masquerade.active {
   border-bottom: 0;
   box-shadow: 2px 2px 5px #fff;
 }
-#header-logo {
-  padding-top: 0;
-}
 #browse-label {
   background-color: #ffffff;
   border-bottom: 1px solid #130840;
