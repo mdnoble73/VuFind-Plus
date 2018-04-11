@@ -211,6 +211,7 @@ public class GroupedWorkSolr implements Cloneable {
 		SolrInputDocument doc = new SolrInputDocument();
 		//Main identification
 		doc.addField("id", id);
+		doc.addField("last_indexed", new Date());
 		doc.addField("alternate_ids", alternateIds);
 		doc.addField("recordtype", "grouped_work");
 
@@ -1571,16 +1572,10 @@ public class GroupedWorkSolr implements Cloneable {
 		HashSet<ItemInfo> relatedItems = new HashSet<>();
 		loadRelatedRecordsAndItemsForScope(scope, relatedRecordsForScope, relatedItems);
 		if (relatedRecordsForScope.size() > 0){
-			if (isLibraryOwned(relatedItems, scope)){
-				return true;
-			}
+			return isLibraryOwned(relatedItems, scope);
 		}
 		return false;
 	}
-
-
-
-
 
 	int getNumRecords() {
 		return this.relatedRecords.size();

@@ -875,22 +875,24 @@ class GroupedWorkDriver extends RecordInterface{
 	{
 		global $interface;
 
+		$fields = $this->fields;
+		ksort($fields);
+		$interface->assign('details', $fields);
+
 		require_once ROOT_DIR . '/sys/Grouping/GroupedWork.php';
 		$groupedWork = new GroupedWork();
 		$groupedWork->permanent_id = $this->getPermanentId();
 		if ($groupedWork->find(true)){
 			$groupedWorkDetails = array();
-			$groupedWorkDetails['full_title'] = $groupedWork->full_title;
-			$groupedWorkDetails['author'] = $groupedWork->author;
-			$groupedWorkDetails['grouping_category'] = $groupedWork->grouping_category;
-			$groupedWorkDetails['lastUpdate'] = date('Y-m-d H:i:sA', $groupedWork->date_updated);
+			$groupedWorkDetails['Full title'] = $groupedWork->full_title;
+			$groupedWorkDetails['Author'] = $groupedWork->author;
+			$groupedWorkDetails['Grouping Category'] = $groupedWork->grouping_category;
+			$groupedWorkDetails['Last Update'] = date('Y-m-d H:i:sA', $groupedWork->date_updated);
+			if (array_key_exists('last_indexed', $fields)){
+				$groupedWorkDetails['Last Indexed'] = date('Y-m-d H:i:sA', strtotime($fields['last_indexed']));
+			}
 			$interface->assign('groupedWorkDetails', $groupedWorkDetails);
 		}
-
-
-		$fields = $this->fields;
-		ksort($fields);
-		$interface->assign('details', $fields);
 
 		return 'RecordDrivers/GroupedWork/staff-view.tpl';
 	}
