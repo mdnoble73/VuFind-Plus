@@ -1436,13 +1436,13 @@ public class SierraExportAPIMain {
 				}
 
 			} catch (java.net.SocketTimeoutException e) {
-				logger.error("Socket timeout talking to to sierra API " + e.toString() );
+				logger.error("Socket timeout talking to to sierra API (callSierraApiURL) " + sierraUrl + " - " + e.toString() );
 				lastCallTimedOut = true;
 			} catch (java.net.ConnectException e) {
-				logger.error("Timeout connecting to sierra API " + e.toString() );
+				logger.error("Timeout connecting to sierra API (callSierraApiURL) " + sierraUrl + " - "  + e.toString() );
 				lastCallTimedOut = true;
 			} catch (Exception e) {
-				logger.error("Error loading data from sierra API ", e );
+				logger.error("Error loading data from sierra API (callSierraApiURL) " + sierraUrl + " - " , e );
 			}
 		}
 		return null;
@@ -1502,13 +1502,13 @@ public class SierraExportAPIMain {
 				}
 
 			} catch (java.net.SocketTimeoutException e) {
-				logger.error("Socket timeout talking to to sierra API " + e.toString() );
+				logger.error("Socket timeout talking to to sierra API (getMarcFromSierraApiURL) " + e.toString() );
 				lastCallTimedOut = true;
 			} catch (java.net.ConnectException e) {
-				logger.error("Timeout connecting to sierra API " + e.toString() );
+				logger.error("Timeout connecting to sierra API (getMarcFromSierraApiURL) " + e.toString() );
 				lastCallTimedOut = true;
 			} catch (Exception e) {
-				logger.error("Error loading data from sierra API ", e );
+				logger.error("Error loading data from sierra API (getMarcFromSierraApiURL) ", e );
 			}
 		}
 		return null;
@@ -1570,13 +1570,13 @@ public class SierraExportAPIMain {
 				}
 
 			} catch (java.net.SocketTimeoutException e) {
-				logger.error("Socket timeout talking to to sierra API " + e.toString() );
+				logger.error("Socket timeout talking to to sierra API (getMarcJSONFromSierraApiURL) " + e.toString() );
 				lastCallTimedOut = true;
 			} catch (java.net.ConnectException e) {
-				logger.error("Timeout connecting to sierra API " + e.toString() );
+				logger.error("Timeout connecting to sierra API (getMarcJSONFromSierraApiURL) " + e.toString() );
 				lastCallTimedOut = true;
 			} catch (Exception e) {
-				logger.error("Error loading data from sierra API ", e );
+				logger.error("Error loading data from sierra API (getMarcJSONFromSierraApiURL) ", e );
 			}
 		}
 		return null;
