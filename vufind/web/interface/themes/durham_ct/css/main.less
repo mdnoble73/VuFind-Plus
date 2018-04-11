@@ -5,10 +5,10 @@
 // Always include the base .less file
 @import "../../responsive/css/responsive_base.less";
 
-.header-login-button-mixin(@header-buttons-background-color);
+.header-login-button-mixin(@header-buttons-background-color, #333);
 
 #header-logo {
-  padding-top: 0;
+  padding-top: 5px;
   height: @header-logo-height;
 }
 
@@ -32,7 +32,6 @@
     font-weight: 600;
   }
 }
-
 
 // the category text
 .browse-category {

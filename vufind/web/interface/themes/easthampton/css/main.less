@@ -12,6 +12,7 @@
   height: @header-logo-height;
 }
 
+
 // Browse Category customizations based on AnyThink
 
 // mixin to select all the typical states of <a> like tags
@@ -22,7 +23,7 @@
 }
 
 #browse-label {
-  background-color: #ffffff;
+  background-color: @easthampton-main-content-light-brown;
   //  background: linear-gradient(to bottom, #fff, #fff 98%, @browse-label-text-color 99%);
   border-bottom: 1px solid @browse-label-text-color;
   margin: 25px 0 15px;
@@ -53,7 +54,7 @@
     border: none;
     background-color: @selectedCategoryColor;
     background: @selectedCategoryColor;
-    background: linear-gradient(to bottom, @selectedCategoryColor 0%, @selectedCategoryColor 75%, #fff 75%, #fff 80%, #CCCCCC 80%, #fff 100%);
+    background: linear-gradient(to bottom, @selectedCategoryColor 0%, @selectedCategoryColor 75%, @easthampton-main-content-light-brown 75%, @easthampton-main-content-light-brown 80%, #CCCCCC 80%, @easthampton-main-content-light-brown 100%);
     div {
       color: #fff;
     }
@@ -63,7 +64,8 @@
 // Left/Right Arrows on browse category carousel
 #browse-category-picker {
   .jcarousel-control-prev, .jcarousel-control-next {
-    background-color: @content-bg;
+    //background-color: @content-bg;
+    background-color: @easthampton-main-content-light-brown;
     color: @browseCarouselControlColor;
     &:active, &:hover {
       color: @selectedCategoryColor;
@@ -89,6 +91,9 @@
     }
     @detached-outline-ruleset: {outline: none};
     .allLinkStates(@detached-outline-ruleset)
+  }
+  li {
+    border-color: @easthampton-main-content-light-brown;
   }
 }
 
