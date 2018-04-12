@@ -82,9 +82,12 @@ cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 #Extract from Hoopla, this just needs to be done once a day
 cd /usr/local/vufind-plus/vufind/cron;./GetHooplaFromMarmot.sh >> ${OUTPUT_FILE}
 
+# Kanopy Marc Updates
+/usr/local/vufind-plus/vufind/cron/fetch_sideload_data.sh ${PIKASERVER} lion/kanopy kanopy/lion >> ${OUTPUT_FILE}
 
-#Extracts for sideloaded eContent; settings defined in config.pwd.ini [Sideload]
-#cd /usr/local/vufind-plus/vufind/cron; ./sideload.sh ${PIKASERVER}
+# RBDigital Marc Updates
+/usr/local/vufind-plus/vufind/cron/fetch_sideload_data.sh ${PIKASERVER} lion/rbdigital_audio/lion rbdigital_audio/lion >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/fetch_sideload_data.sh ${PIKASERVER} lion/rbdigital_magazine/lion rbdigital_magazine/lion >> ${OUTPUT_FILE}
 
 #Extract Lexile Data
 cd /data/vufind-plus/; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/lexileTitles.txt https://cassini.marmot.org/lexileTitles.txt
