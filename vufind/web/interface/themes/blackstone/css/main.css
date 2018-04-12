@@ -8400,7 +8400,7 @@ hr.menu {
   color: #ccc;
 }
 #system-message-header {
-  background-color: #ffffff;
+  background-color: #95548E;
   color: black;
   text-align: center;
   padding: 3px;
@@ -8408,9 +8408,9 @@ hr.menu {
 #header-container {
   padding-top: 0;
   height: 150px;
-  background-color: #ffffff;
-  background: linear-gradient(to bottom, #ffffff, #ffffff 85%, #ffffff);
-  border-bottom: 8px solid #7C3B7B;
+  background-color: #95548E;
+  background: linear-gradient(to bottom, #95548E, #95548E 85%, #95548E);
+  border-bottom: 8px solid #95548E;
   margin-bottom: 0;
   min-height: 110px;
 }
@@ -8428,7 +8428,7 @@ hr.menu {
   text-shadow: 1px 1px #fff;
   vertical-align: middle;
   line-height: 142px !important;
-  border-bottom: 4px solid #ffffff;
+  border-bottom: 4px solid #95548E;
   color: #8b8b8b !important;
 }
 .header-button:hover {
@@ -10796,7 +10796,7 @@ fieldset[disabled] .btn-masquerade.active {
   border: 0;
   border-radius: 0.5em;
   color: #fff !important;
-  background-color: #95548E;
+  background-color: #7C3B7B;
   margin-top: 20px;
   line-height: 60px !important;
   text-shadow: none;
@@ -10807,8 +10807,10 @@ fieldset[disabled] .btn-masquerade.active {
   box-shadow: 2px 2px 5px #fff;
 }
 #header-logo {
-  padding-top: 0;
   height: 140px;
+}
+#system-message-header {
+  background-color: #E1EAE5;
 }
 #browse-label {
   background-color: #ffffff;
