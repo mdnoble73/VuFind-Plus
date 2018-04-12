@@ -8410,7 +8410,7 @@ hr.menu {
   height: 150px;
   background-color: #015d82;
   background: linear-gradient(to bottom, #015d82, #015d82 85%, #015d82);
-  border-bottom: 8px solid #015d82;
+  border-bottom: 2px solid #fff;
   margin-bottom: 0;
   min-height: 110px;
 }
