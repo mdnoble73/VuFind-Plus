@@ -384,9 +384,9 @@ public class SierraExportAPIMain {
 				allBibsToUpdate.remove(lastId);
 			}
 			updateMarcAndRegroupRecordIds(ini, idsToProcess.toString(), ids);
-			if (allBibsToUpdate.size() > 0){
+			if (allBibsToUpdate.size() >= 0){
 				numProcessed += maxIndex;
-				if (numProcessed % 250 == 0){
+				if (numProcessed % 250 == 0 || allBibsToUpdate.size() == 0){
 					addNoteToExportLog("Processed " + numProcessed);
 					if ((new Date().getTime() / 1000) - exportStartTime >= 5 * 60){
 						addNoteToExportLog("Stopping export due to time constraints, there are " + allBibsToUpdate.size()  + " bibs remaining to be processed.");
