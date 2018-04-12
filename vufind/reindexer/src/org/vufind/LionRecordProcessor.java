@@ -152,4 +152,8 @@ class LionRecordProcessor extends IIIRecordProcessor {
 		groupedWork.addTargetAudiences(translatedAudiences);
 		groupedWork.addTargetAudiencesFull(translatedAudiences);
 	}
+
+	protected boolean isOrderItemValid(String status, String code3) {
+		return status.equals("o") || status.equals("1") || status.equals("q");
+	}
 }
