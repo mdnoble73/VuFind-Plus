@@ -9374,7 +9374,7 @@ a.browse-thumbnail-sorted.active {
   margin-right: 5px;
 }
 #browse-sub-category-menu button.selected {
-  color: #fff;
+  color: #780d0d;
   background-color: #FFF;
 }
 #browse-sub-category-menu button:focus {
@@ -10879,7 +10879,7 @@ fieldset[disabled] .btn-masquerade.active {
   background: #FFF;
 }
 .browse-category.selected div {
-  color: #000;
+  color: #780d0d;
 }
 #browse-category-picker .jcarousel-control-prev,
 #browse-category-picker .jcarousel-control-next {
@@ -10930,5 +10930,6 @@ fieldset[disabled] .btn-masquerade.active {
   text-transform: uppercase;
 }
 #browse-sub-category-menu button.selected {
+  border: 2px solid #000;
   background-color: #FFF;
 }
