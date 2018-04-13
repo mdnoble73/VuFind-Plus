@@ -10795,7 +10795,7 @@ fieldset[disabled] .btn-masquerade.active {
 .header-button {
   border: 0;
   border-radius: 0.5em;
-  color: #B0C9D9 !important;
+  color: #000 !important;
   background-color: #fff;
   margin-top: 20px;
   line-height: 60px !important;
