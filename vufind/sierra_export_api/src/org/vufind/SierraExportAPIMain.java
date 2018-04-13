@@ -865,6 +865,7 @@ public class SierraExportAPIMain {
 				if (marcResults.has("httpStatus")){
 					if (marcResults.getInt("code") == 107){
 						//This record was deleted
+						logger.debug("id " + id + " was deleted");
 						return true;
 					}else{
 						logger.error("Unknown error " + marcResults);
@@ -899,11 +900,13 @@ public class SierraExportAPIMain {
 						}
 					}
 				}
+				logger.debug("Converted JSON to MARC for Bib");
 
 				//Add the identifier
 				marcRecord.addVariableField(marcFactory.newDataField(indexingProfile.recordNumberTag, ' ', ' ',  "a", ".b" + id + getCheckDigit(id)));
 				//Get Items for the bib record
 				getItemsForBib(ini, id, marcRecord);
+				logger.debug("Processed items for Bib");
 				RecordIdentifier identifier = recordGroupingProcessor.getPrimaryIdentifierFromMarcRecord(marcRecord, indexingProfile.name, indexingProfile.doAutomaticEcontentSuppression);
 				File marcFile = indexingProfile.getFileForIlsRecord(identifier.getIdentifier());
 				if (!marcFile.getParentFile().exists()) {
@@ -1037,12 +1040,15 @@ public class SierraExportAPIMain {
 			JSONObject marcResults = null;
 			if (allowFastExportMethod) {
 				//Don't log errors since we get regular errors if we exceed the export rate.
+				logger.debug("Loading marc records with fast method " + apiBaseUrl + "/bibs/marc?id=" + ids);
 				marcResults = callSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/bibs/marc?id=" + ids, false);
 			}
 			if (marcResults != null && marcResults.has("file")){
+				logger.debug("Got results with fast method");
 				ArrayList<String> processedIds = new ArrayList<>();
 				String dataFileUrl = marcResults.getString("file");
 				String marcData = getMarcFromSierraApiURL(ini, apiBaseUrl, dataFileUrl, false);
+				logger.debug("Got marc record file");
 				MarcReader marcReader = new MarcPermissiveStreamReader(new ByteArrayInputStream(marcData.getBytes(StandardCharsets.UTF_8)), true, true);
 				while (marcReader.hasNext()){
 					try {
@@ -1064,6 +1070,7 @@ public class SierraExportAPIMain {
 							logger.warn(identifier.getIdentifier() + " was suppressed");
 						}
 						String shortId = identifier.getIdentifier().substring(2, identifier.getIdentifier().length() - 1);
+						logger.debug("Processed " + shortId);
 						processedIds.add(shortId);
 					}catch (MarcException mre){
 						logger.info("Error loading marc record from file, will load manually");
@@ -1076,6 +1083,8 @@ public class SierraExportAPIMain {
 							addNoteToExportLog("Processing " + id + " failed");
 							bibsWithErrors.add(id);
 							//allPass = false;
+						}else{
+							logger.debug("Processed " + id);
 						}
 					}
 				}
