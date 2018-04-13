@@ -555,7 +555,7 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 						boolean libraryOwned = scope.getLibraryScope().isItemOwnedByScope(profileType, location, "");
 						scopingInfo.setLibraryOwned(libraryOwned);
 					}else{
-						logger.warn("Location scope " + scope.getScopeName() + " does not have an associated library");
+						logger.warn("Location scope " + scope.getScopeName() + " does not have an associated library getting scope for order item " + itemInfo.getItemIdentifier() + " - " + itemInfo.getFullRecordIdentifier());
 						continue;
 					}
 				}
