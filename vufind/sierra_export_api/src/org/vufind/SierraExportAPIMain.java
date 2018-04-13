@@ -1089,9 +1089,11 @@ public class SierraExportAPIMain {
 					}
 				}
 			}else{
+				logger.debug("No results with fast method available, loading with slow method");
 				//Don't need this message since it will happen regularly.
 				//logger.info("Error exporting marc records for " + ids + " marc results did not have a file");
 				for (String id : idArray) {
+					logger.debug("starting to process " + id);
 					if (!updateMarcAndRegroupRecordId(ini, id)){
 						//Don't fail the entire process.  We will just reprocess next time the export runs
 						addNoteToExportLog("Processing " + id + " failed");
@@ -1099,6 +1101,7 @@ public class SierraExportAPIMain {
 						//allPass = false;
 					}
 				}
+				logger.debug("finished processing " + idArray.size() + " records with the slow method");
 			}
 		}catch (Exception e){
 			logger.error("Error processing newly created bibs", e);
