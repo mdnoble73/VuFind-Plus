@@ -187,6 +187,15 @@ public class SierraExportAPIMain {
 			e.printStackTrace();
 		}
 
+		try {
+			PreparedStatement setNumProcessedStmt = vufindConn.prepareStatement("UPDATE sierra_api_export_log SET numRecordsToProcess = ? WHERE id = ?", PreparedStatement.RETURN_GENERATED_KEYS);
+			setNumProcessedStmt.setLong(1, allBibsToUpdate.size());
+			setNumProcessedStmt.setLong(2, exportLogId);
+			setNumProcessedStmt.executeUpdate();
+		}catch (SQLException e) {
+			logger.error("Unable to update log entry with number of records that have changed", e);
+		}
+
 		int numRecordsProcessed = updateBibs(ini);
 
 		//Write any records that still haven't been processed
@@ -398,7 +407,9 @@ public class SierraExportAPIMain {
 						break;
 					}
 				}
-				hasMoreIdsToProcess = true;
+				if (allBibsToUpdate.size() > 0) {
+					hasMoreIdsToProcess = true;
+				}
 			}
 		}
 
