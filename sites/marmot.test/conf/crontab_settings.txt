@@ -70,7 +70,7 @@
 # Hoopla
 0 20 * * * cd /usr/local/vufind-plus/vufind/hoopla_export; java -jar hoopla_export.jar marmot.test
 #Lynda weekly update
-17 9 * * Tue /usr/local/vufind-plus/vufind/cron/fetch_lynda.sh marmot
+23 0 * * Fri /usr/local/vufind-plus/vufind/cron/fetch_lynda.sh marmot
 
 ############################################
 # New York Times Bestseller Lists Updating #
