@@ -47,6 +47,7 @@ public class SierraExportAPIMain {
 	private static boolean exportItemHolds = true;
 	private static boolean suppressOrderRecordsThatAreReceivedAndCatalogged = false;
 	private static boolean suppressOrderRecordsThatAreCatalogged = false;
+	private static boolean suppressOrderRecordsThatAreReceived = false;
 	private static String orderStatusesToExport;
 
 	private static Long lastSierraExtractTime = null;
@@ -91,6 +92,10 @@ public class SierraExportAPIMain {
 		String suppressOrderRecordsThatAreCataloggedStr = ini.get("Catalog", "suppressOrderRecordsThatAreCatalogged");
 		if (suppressOrderRecordsThatAreCataloggedStr != null){
 			suppressOrderRecordsThatAreCatalogged = suppressOrderRecordsThatAreCataloggedStr.equalsIgnoreCase("true");
+		}
+		String suppressOrderRecordsThatAreReceivedStr = ini.get("Catalog", "suppressOrderRecordsThatAreReceived");
+		if (suppressOrderRecordsThatAreReceivedStr != null){
+			suppressOrderRecordsThatAreReceived = suppressOrderRecordsThatAreReceivedStr.equalsIgnoreCase("true");
 		}
 
 		//Connect to the vufind database
@@ -1169,6 +1174,8 @@ public class SierraExportAPIMain {
 			activeOrderSQL += " and (catalog_date_gmt IS NULL or received_date_gmt IS NULL) ";
 		}else if (suppressOrderRecordsThatAreCatalogged){
 			activeOrderSQL += " and (catalog_date_gmt IS NULL) ";
+		}else if (suppressOrderRecordsThatAreReceived){
+			activeOrderSQL += " and (received_date_gmt IS NULL) ";
 		}
 		PreparedStatement getActiveOrdersStmt = conn.prepareStatement(activeOrderSQL, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 		ResultSet activeOrdersRS = null;
