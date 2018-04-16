@@ -10811,7 +10811,8 @@ fieldset[disabled] .btn-masquerade.active {
   height: 150px;
 }
 #system-message-header,
-#system-message-header ~ .breadcrumbs {
+#system-message-header ~ .breadcrumbs,
+.container > div:nth-child(1).breadcrumbs {
   background-color: #E1DBCF;
 }
 #browse-label {

@@ -11,7 +11,10 @@
   padding-top: 0;
   height: @header-logo-height;
 }
-#system-message-header~.breadcrumbs {
+#system-message-header,
+#system-message-header~.breadcrumbs,   // the google translate box
+.container > div:nth-child(1).breadcrumbs // the google translate box when there is no system message
+{
   background-color: @body-bg-resp;
 }
 // Override button corner rounding
