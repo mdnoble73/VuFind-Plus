@@ -10810,6 +10810,10 @@ fieldset[disabled] .btn-masquerade.active {
   padding-top: 5px;
   height: 150px;
 }
+#system-message-header,
+#system-message-header ~ .breadcrumbs {
+  background-color: #E1DBCF;
+}
 #browse-label {
   background-color: #ffffff;
   border-bottom: 1px solid #333;

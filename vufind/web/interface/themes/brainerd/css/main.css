@@ -10814,6 +10814,9 @@ fieldset[disabled] .btn-masquerade.active {
   padding-top: 0;
   height: 150px;
 }
+#system-message-header ~ .breadcrumbs {
+  background-color: #E5D7B0;
+}
 .btn-sm,
 .btn-xs,
 .btn,
