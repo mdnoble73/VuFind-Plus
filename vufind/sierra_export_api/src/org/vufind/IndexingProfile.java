@@ -60,6 +60,9 @@ public class IndexingProfile {
 	char eContentDescriptor;
 	String specifiedFormatCategory;
 
+	String bcode3DestinationField;
+	char bcode3DestinationSubfield;
+
 	private char getCharFromString(String stringValue) {
 		char result = ' ';
 		if (stringValue != null && stringValue.length() > 0){
@@ -130,6 +133,10 @@ public class IndexingProfile {
 		this.iTypeSubfield = getCharFromString(iTypeSubfield);
 	}
 
+	private void setBcode3DestinationSubfield(String bcode3DestinationSubfield) {
+		this.bcode3DestinationSubfield = getCharFromString(bcode3DestinationSubfield);
+	}
+
 	static IndexingProfile loadIndexingProfile(Connection vufindConn, String profileToLoad, Logger logger) {
 		//Get the Indexing Profile from the database
 		IndexingProfile indexingProfile = new IndexingProfile();
@@ -179,6 +186,14 @@ public class IndexingProfile {
 				indexingProfile.setFormatSubfield(indexingProfileRS.getString("format"));
 				indexingProfile.specifiedFormatCategory = indexingProfileRS.getString("specifiedFormatCategory");
 
+				PreparedStatement getSierraFieldMappingsStmt = vufindConn.prepareStatement("SELECT * FROM sierra_export_field_mapping where indexingProfileId =" + indexingProfile.id);
+				ResultSet getSierraFieldMappingsRS = getSierraFieldMappingsStmt.executeQuery();
+				if (getSierraFieldMappingsRS.next()){
+					indexingProfile.bcode3DestinationField = getSierraFieldMappingsRS.getString("bcode3DestinationField");
+					indexingProfile.setBcode3DestinationSubfield(getSierraFieldMappingsRS.getString("bcode3DestinationSubfield"));
+					getSierraFieldMappingsRS.close();
+				}
+				getSierraFieldMappingsStmt.close();
 			} else {
 				logger.error("Unable to find " + profileToLoad + " indexing profile, please create a profile with the name ils.");
 			}

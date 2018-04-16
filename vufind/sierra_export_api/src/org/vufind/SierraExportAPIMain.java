@@ -920,6 +920,14 @@ public class SierraExportAPIMain {
 
 				//Add the identifier
 				marcRecord.addVariableField(marcFactory.newDataField(indexingProfile.recordNumberTag, ' ', ' ',  "a", ".b" + id + getCheckDigit(id)));
+
+				//Load BCode3
+				JSONObject fixedFieldResults = getMarcJSONFromSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/bibs/" + id + "?fields=fixedFields");
+				String bCode3 = fixedFieldResults.getJSONObject("fixedFields").getJSONObject("31").getString("value");
+				DataField bCode3Field = marcFactory.newDataField(indexingProfile.bcode3DestinationField, ' ', ' ');
+				bCode3Field.addSubfield(marcFactory.newSubfield(indexingProfile.bcode3DestinationSubfield, bCode3));
+				marcRecord.addVariableField(bCode3Field);
+
 				//Get Items for the bib record
 				getItemsForBib(ini, id, marcRecord);
 				logger.debug("Processed items for Bib");
@@ -944,7 +952,7 @@ public class SierraExportAPIMain {
 				return false;
 			}
 		}catch (Exception e){
-			logger.error("Error processing newly created bibs", e);
+			logger.error("Error in updateMarcAndRegroupRecordId processing bib from Sierra API", e);
 			return false;
 		}
 		return true;

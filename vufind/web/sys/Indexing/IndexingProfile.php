@@ -10,6 +10,7 @@
 
 require_once ROOT_DIR . '/sys/Indexing/TranslationMap.php';
 require_once ROOT_DIR . '/sys/Indexing/TimeToReshelve.php';
+require_once ROOT_DIR . '/sys/Indexing/SierraExportFieldMapping.php';
 class IndexingProfile extends DB_DataObject{
 	public $__table = 'indexing_profiles';    // table name
 
@@ -81,6 +82,9 @@ class IndexingProfile extends DB_DataObject{
 	function getObjectStructure(){
 		$translationMapStructure = TranslationMap::getObjectStructure();
 		unset($translationMapStructure['indexingProfileId']);
+
+		$sierraMappingStructure = SierraExportFieldMapping::getObjectStructure();
+		unset($sierraMappingStructure['indexingProfileId']);
 
 		$structure = array(
 			'id' => array('property'=>'id', 'type'=>'label', 'label'=>'Id', 'description'=>'The unique id within the database'),
@@ -182,6 +186,21 @@ class IndexingProfile extends DB_DataObject{
 						'allowEdit' => true,
 						'canEdit' => false,
 				),
+
+				'sierraFieldMappings' => array(
+						'property' => 'sierraFieldMappings',
+						'type'=> 'oneToMany',
+						'label' => 'Sierra Field Mappings (Sierra Systems only)',
+						'description' => 'Field Mappings for exports from Sierra.',
+						'keyThis' => 'id',
+						'keyOther' => 'indexingProfileId',
+						'subObjectType' => 'SierraExportFieldMapping',
+						'structure' => $sierraMappingStructure,
+						'sortable' => false,
+						'storeDb' => true,
+						'allowEdit' => true,
+						'canEdit' => false,
+				),
 		);
 		return $structure;
 	}
@@ -217,6 +236,20 @@ class IndexingProfile extends DB_DataObject{
 				}
 			}
 			return $this->timeToReshelve;
+		}else if ($name == "sierraFieldMappings") {
+			if (!isset($this->sierraFieldMappings)) {
+				//Get the list of translation maps
+				$this->sierraFieldMappings = array();
+				if ($this->id) { // When this is a new Indexing Profile, there are no maps yet.
+					$sierraFieldMapping = new SierraExportFieldMapping();
+					$sierraFieldMapping->indexingProfileId = $this->id;
+					$sierraFieldMapping->find();
+					while ($sierraFieldMapping->fetch()) {
+						$this->sierraFieldMappings[$sierraFieldMapping->id] = clone($sierraFieldMapping);
+					}
+				}
+			}
+			return $this->sierraFieldMappings;
 		}
 		return null;
 	}
@@ -226,6 +259,8 @@ class IndexingProfile extends DB_DataObject{
 			$this->translationMaps = $value;
 		}else if ($name == "timeToReshelve") {
 			$this->timeToReshelve = $value;
+		}else if ($name == "sierraFieldMappings") {
+			$this->sierraFieldMappings = $value;
 		}
 	}
 
@@ -243,6 +278,7 @@ class IndexingProfile extends DB_DataObject{
 		}else{
 			$this->saveTranslationMaps();
 			$this->saveTimeToReshelve();
+			$this->saveSierraFieldMappings();
 		}
 		/** @var Memcache $memCache */
 		global $memCache;
@@ -268,6 +304,7 @@ class IndexingProfile extends DB_DataObject{
 		}else{
 			$this->saveTranslationMaps();
 			$this->saveTimeToReshelve();
+			$this->saveSierraFieldMappings();
 		}
 		/** @var Memcache $memCache */
 		global $memCache;
@@ -314,6 +351,25 @@ class IndexingProfile extends DB_DataObject{
 			}
 			//Clear the translation maps so they are reloaded the next time
 			unset($this->timeToReshelve);
+		}
+	}
+
+	public function saveSierraFieldMappings(){
+		if (isset ($this->sierraFieldMappings)){
+			foreach ($this->sierraFieldMappings as $sierraFieldMapping){
+				if (isset($sierraFieldMapping->deleteOnSave) && $sierraFieldMapping->deleteOnSave == true){
+					$sierraFieldMapping->delete();
+				}else{
+					if (isset($sierraFieldMapping->id) && is_numeric($sierraFieldMapping->id)){
+						$sierraFieldMapping->update();
+					}else{
+						$sierraFieldMapping->indexingProfileId = $this->id;
+						$sierraFieldMapping->insert();
+					}
+				}
+			}
+			//Clear the translation maps so they are reloaded the next time
+			unset($this->sierraFieldMappings);
 		}
 	}
 

@@ -35,5 +35,19 @@ function getSierraAPIUpdates() {
 							"ALTER TABLE sierra_api_export_log ADD COLUMN numRemainingRecords INT(11)",
 					)
 			),
+
+			'sierra_export_field_mapping' => array(
+					'title' => 'Sierra API export field mapping',
+					'description' => 'Setup field mappings for sierra export via api.',
+					'sql' => array(
+							"CREATE TABLE IF NOT EXISTS sierra_export_field_mapping(
+											`id` INT NOT NULL AUTO_INCREMENT COMMENT 'The id of field mapping', 
+											`indexingProfileId` INT(11) NOT NULL COMMENT 'The indexing profile this field mapping is associated with',
+											`bcode3DestinationField` CHAR(3) NOT NULL COMMENT 'The field to place bcode3 into', 
+											`bcode3DestinationSubfield` CHAR(1) NULL COMMENT 'The subfield to place bcode3 into', 
+											PRIMARY KEY ( `id` )
+											) ENGINE = INNODB;",
+					)
+			),
 	);
 }
