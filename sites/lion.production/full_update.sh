@@ -86,8 +86,8 @@ cd /usr/local/vufind-plus/vufind/cron;./GetHooplaFromMarmot.sh >> ${OUTPUT_FILE}
 /usr/local/vufind-plus/vufind/cron/fetch_sideload_data.sh ${PIKASERVER} lion/kanopy kanopy/lion >> ${OUTPUT_FILE}
 
 # RBDigital Marc Updates
-/usr/local/vufind-plus/vufind/cron/fetch_sideload_data.sh ${PIKASERVER} lion/rbdigital_audio/lion rbdigital_audio/lion >> ${OUTPUT_FILE}
-/usr/local/vufind-plus/vufind/cron/fetch_sideload_data.sh ${PIKASERVER} lion/rbdigital_magazine/lion rbdigital_magazine/lion >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/fetch_sideload_data.sh ${PIKASERVER} lion/rbdigital_audio rbdigital_audio/lion >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/fetch_sideload_data.sh ${PIKASERVER} lion/rbdigital_magazine rbdigital_magazine/lion >> ${OUTPUT_FILE}
 
 #Extract Lexile Data
 cd /data/vufind-plus/; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/lexileTitles.txt https://cassini.marmot.org/lexileTitles.txt
