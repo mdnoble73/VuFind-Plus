@@ -988,9 +988,9 @@ public class SierraExportAPIMain {
 						itemField.addSubfield(marcFactory.newSubfield(indexingProfile.locationSubfield, locationCode));
 					}
 					//call number (can we get prestamp cutter, poststamp?
-					if (curItem.has("callNumber") && indexingProfile.callNumberSubfield != ' '){
+					/*if (curItem.has("callNumber") && indexingProfile.callNumberSubfield != ' '){
 						itemField.addSubfield(marcFactory.newSubfield(indexingProfile.callNumberSubfield, curItem.getString("callNumber")));
-					}
+					}*/
 					//status
 					if (curItem.has("status")){
 						String statusCode = curItem.getJSONObject("status").getString("code");
@@ -1043,10 +1043,49 @@ public class SierraExportAPIMain {
 					for (int j = 0; j < varFields.length(); j++){
 						JSONObject curVarField = varFields.getJSONObject(j);
 						String fieldTag = curVarField.getString("fieldTag");
-						//volume
+						StringBuilder allFieldContent = new StringBuilder();
+						JSONArray subfields = null;
+						if (curVarField.has("subfields")){
+							subfields = curVarField.getJSONArray("subfields");
+							for (int k = 0; k < subfields.length(); k++){
+								JSONObject subfield = subfields.getJSONObject(k);
+								allFieldContent.append(subfield.getString("content"));
+							}
+						}else{
+							allFieldContent.append(curVarField.getString("content"));
+						}
 
-						//url
-
+						if (fieldTag.equals(indexingProfile.callNumberExportFieldTag)){
+							if (subfields != null){
+								for (int k = 0; k < subfields.length(); k++){
+									JSONObject subfield = subfields.getJSONObject(k);
+									String tag = subfield.getString("tag");
+									String content = subfield.getString("content");
+									if (indexingProfile.callNumberPrestampExportSubfield.length() > 0 && tag.equalsIgnoreCase(indexingProfile.callNumberPrestampExportSubfield)){
+										itemField.addSubfield(marcFactory.newSubfield(indexingProfile.callNumberPrestampSubfield, content));
+									}else if (indexingProfile.callNumberExportSubfield.length() > 0 && tag.equalsIgnoreCase(indexingProfile.callNumberExportSubfield)){
+										itemField.addSubfield(marcFactory.newSubfield(indexingProfile.callNumberSubfield, content));
+									}else if (indexingProfile.callNumberCutterExportSubfield.length() > 0 && tag.equalsIgnoreCase(indexingProfile.callNumberCutterExportSubfield)){
+										itemField.addSubfield(marcFactory.newSubfield(indexingProfile.callNumberCutterSubfield, content));
+									}else if (indexingProfile.callNumberPoststampExportSubfield.length() > 0 && tag.indexOf(indexingProfile.callNumberPoststampExportSubfield) > 0){
+										itemField.addSubfield(marcFactory.newSubfield(indexingProfile.callNumberPoststampSubfield, content));
+									//}else{
+										//logger.debug("Unhandled call number subfield " + tag);
+									}
+								}
+							}else{
+								String content = curVarField.getString("content");
+								itemField.addSubfield(marcFactory.newSubfield(indexingProfile.callNumberSubfield, content));
+							}
+						}else if (indexingProfile.volumeExportFieldTag.length() > 0 && fieldTag.equals(indexingProfile.volumeExportFieldTag)){
+							itemField.addSubfield(marcFactory.newSubfield(indexingProfile.volume, allFieldContent.toString()));
+						}else if (indexingProfile.urlExportFieldTag.length() > 0 && fieldTag.equals(indexingProfile.urlExportFieldTag)){
+							itemField.addSubfield(marcFactory.newSubfield(indexingProfile.itemUrl, allFieldContent.toString()));
+						}else if (indexingProfile.eContentExportFieldTag.length() > 0 && fieldTag.equals(indexingProfile.eContentExportFieldTag)){
+							itemField.addSubfield(marcFactory.newSubfield(indexingProfile.eContentDescriptor, allFieldContent.toString()));
+						}else{
+							logger.debug("Unhandled item variable field " + fieldTag);
+						}
 					}
 					marcRecord.addVariableField(itemField);
 				}

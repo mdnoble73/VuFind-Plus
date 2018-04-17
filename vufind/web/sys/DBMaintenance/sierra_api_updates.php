@@ -49,5 +49,20 @@ function getSierraAPIUpdates() {
 											) ENGINE = INNODB;",
 					)
 			),
+
+			'sierra_export_field_mapping_item_fields' => array(
+					'title' => 'Sierra API export item field mapping',
+					'description' => 'Add item export information for sierra export.',
+					'sql' => array(
+							"ALTER TABLE sierra_export_field_mapping ADD COLUMN callNumberExportFieldTag CHAR(1)",
+							"ALTER TABLE sierra_export_field_mapping ADD COLUMN callNumberPrestampExportSubfield CHAR(1)",
+							"ALTER TABLE sierra_export_field_mapping ADD COLUMN callNumberExportSubfield CHAR(1)",
+							"ALTER TABLE sierra_export_field_mapping ADD COLUMN callNumberCutterExportSubfield CHAR(1)",
+							"ALTER TABLE sierra_export_field_mapping ADD COLUMN callNumberPoststampExportSubfield CHAR(5)",
+							"ALTER TABLE sierra_export_field_mapping ADD COLUMN volumeExportFieldTag CHAR(1)",
+							"ALTER TABLE sierra_export_field_mapping ADD COLUMN urlExportFieldTag CHAR(1)",
+							"ALTER TABLE sierra_export_field_mapping ADD COLUMN eContentExportFieldTag CHAR(1)",
+					)
+			),
 	);
 }

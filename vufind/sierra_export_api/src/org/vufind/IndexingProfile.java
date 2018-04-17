@@ -50,7 +50,12 @@ public class IndexingProfile {
 	SimpleDateFormat lastCheckinFormatter;
 	char shelvingLocationSubfield;
 	char iCode2Subfield;
+	char callNumberPrestampSubfield;
 	char callNumberSubfield;
+	char callNumberCutterSubfield;
+	char callNumberPoststampSubfield;
+	char volume;
+	char itemUrl;
 
 	//These are used from Record Grouping and Reindexing
 	boolean doAutomaticEcontentSuppression;
@@ -62,6 +67,14 @@ public class IndexingProfile {
 
 	String bcode3DestinationField;
 	char bcode3DestinationSubfield;
+	String callNumberExportFieldTag;
+	String callNumberPrestampExportSubfield;
+	String callNumberExportSubfield;
+	String callNumberCutterExportSubfield;
+	String callNumberPoststampExportSubfield;
+	String volumeExportFieldTag;
+	String urlExportFieldTag;
+	String eContentExportFieldTag;
 
 	private char getCharFromString(String stringValue) {
 		char result = ' ';
@@ -97,8 +110,20 @@ public class IndexingProfile {
 		this.dateCreatedSubfield = getCharFromString(dateCreatedSubfield);
 	}
 
+	private void setCallNumberPrestampSubfield(String callNumberPrestampSubfield) {
+		this.callNumberPrestampSubfield = getCharFromString(callNumberPrestampSubfield);
+	}
+
 	private void setCallNumberSubfield(String callNumberSubfield) {
 		this.callNumberSubfield = getCharFromString(callNumberSubfield);
+	}
+
+	private void setCallNumberCutterSubfield(String callNumberCutterSubfield) {
+		this.callNumberCutterSubfield = getCharFromString(callNumberCutterSubfield);
+	}
+
+	private void setCallNumberPoststampSubfield(String callNumberPoststampSubfield) {
+		this.callNumberPoststampSubfield = getCharFromString(callNumberPoststampSubfield);
 	}
 
 	private void setTotalCheckoutsSubfield(String totalCheckoutsSubfield) {
@@ -122,7 +147,15 @@ public class IndexingProfile {
 	}
 
 	private void setEContentDescriptor(String eContentDescriptorSubfield) {
-		this.shelvingLocationSubfield = getCharFromString(eContentDescriptorSubfield);
+		this.eContentDescriptor = getCharFromString(eContentDescriptorSubfield);
+	}
+
+	private void setVolume(String subfield) {
+		this.volume = getCharFromString(subfield);
+	}
+
+	private void setItemUrl(String subfield) {
+		this.itemUrl = getCharFromString(subfield);
 	}
 
 	private void setFormatSubfield(String formatSubfield){
@@ -151,7 +184,10 @@ public class IndexingProfile {
 				indexingProfile.setItemRecordNumberSubfield(indexingProfileRS.getString("itemRecordNumber"));
 				indexingProfile.setBarcodeSubfield(indexingProfileRS.getString("barcode"));
 				indexingProfile.setLocationSubfield(indexingProfileRS.getString("location"));
+				indexingProfile.setCallNumberPrestampSubfield(indexingProfileRS.getString("callNumberPrestamp"));
 				indexingProfile.setCallNumberSubfield(indexingProfileRS.getString("callNumber"));
+				indexingProfile.setCallNumberCutterSubfield(indexingProfileRS.getString("callNumberCutter"));
+				indexingProfile.setCallNumberPoststampSubfield(indexingProfileRS.getString("callNumberPoststamp"));
 				indexingProfile.setItemStatusSubfield(indexingProfileRS.getString("status"));
 				indexingProfile.setDueDateSubfield(indexingProfileRS.getString("dueDate"));
 				indexingProfile.dueDateFormat = indexingProfileRS.getString("dueDateFormat");
@@ -168,6 +204,8 @@ public class IndexingProfile {
 				indexingProfile.lastCheckinFormat = indexingProfileRS.getString("lastCheckinFormat");
 				indexingProfile.lastCheckinFormatter = new SimpleDateFormat(indexingProfile.lastCheckinFormat);
 				indexingProfile.setICode2Subfield(indexingProfileRS.getString("iCode2"));
+				indexingProfile.setVolume(indexingProfileRS.getString("volume"));
+				indexingProfile.setItemUrl(indexingProfileRS.getString("itemUrl"));
 
 				indexingProfile.setShelvingLocationSubfield(indexingProfileRS.getString("shelvingLocation"));
 
@@ -191,6 +229,15 @@ public class IndexingProfile {
 				if (getSierraFieldMappingsRS.next()){
 					indexingProfile.bcode3DestinationField = getSierraFieldMappingsRS.getString("bcode3DestinationField");
 					indexingProfile.setBcode3DestinationSubfield(getSierraFieldMappingsRS.getString("bcode3DestinationSubfield"));
+					indexingProfile.callNumberExportFieldTag = getSierraFieldMappingsRS.getString("callNumberExportFieldTag");
+					indexingProfile.callNumberPrestampExportSubfield = getSierraFieldMappingsRS.getString("callNumberPrestampExportSubfield");
+					indexingProfile.callNumberExportSubfield = getSierraFieldMappingsRS.getString("callNumberExportSubfield");
+					indexingProfile.callNumberCutterExportSubfield = getSierraFieldMappingsRS.getString("callNumberCutterExportSubfield");
+					indexingProfile.callNumberPoststampExportSubfield = getSierraFieldMappingsRS.getString("callNumberPoststampExportSubfield");
+					indexingProfile.volumeExportFieldTag = getSierraFieldMappingsRS.getString("volumeExportFieldTag");
+					indexingProfile.urlExportFieldTag = getSierraFieldMappingsRS.getString("urlExportFieldTag");
+					indexingProfile.eContentExportFieldTag = getSierraFieldMappingsRS.getString("eContentExportFieldTag");
+
 					getSierraFieldMappingsRS.close();
 				}
 				getSierraFieldMappingsStmt.close();
