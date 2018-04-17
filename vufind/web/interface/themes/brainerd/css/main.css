@@ -10861,7 +10861,7 @@ fieldset[disabled] .btn-masquerade.active {
   background: linear-gradient(to bottom, #E5D7B0 0%, #E5D7B0 75%, #fff 75%, #fff 80%, #CCCCCC 80%, #fff 100%);
 }
 .browse-category.selected div {
-  color: #fff;
+  color: #b41f40;
 }
 #browse-category-picker .jcarousel-control-prev,
 #browse-category-picker .jcarousel-control-next {
