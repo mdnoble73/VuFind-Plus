@@ -8407,7 +8407,7 @@ hr.menu {
 }
 #header-container {
   padding-top: 0;
-  height: 136px;
+  height: 150px;
   background-color: #ACC9C9;
   background: linear-gradient(to bottom, #ACC9C9, #ACC9C9 85%, #ACC9C9);
   border-bottom: 8px solid #ACC9C9;
@@ -8427,7 +8427,7 @@ hr.menu {
   text-align: center;
   text-shadow: 1px 1px #fff;
   vertical-align: middle;
-  line-height: 128px !important;
+  line-height: 142px !important;
   border-bottom: 4px solid #ACC9C9;
   color: #8b8b8b !important;
 }
@@ -10807,8 +10807,7 @@ fieldset[disabled] .btn-masquerade.active {
   box-shadow: 2px 2px 5px #fff;
 }
 #header-logo {
-  padding-top: 0;
-  height: 136px;
+  height: 150px;
 }
 #browse-label {
   background-color: #EBE4DE;
