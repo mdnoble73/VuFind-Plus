@@ -30,8 +30,9 @@
 #############
 # On Reboot #
 #############
+@reboot cd /usr/local/vufind-plus/sites/nashville.test/; ./nashville.test.sh start
 # Continuous Re-Indexing
-#@reboot sleep 300 &&  /usr/local/VuFind-Plus/sites/nashville.test/continuous_partial_reindex.sh
+@reboot sleep 300 &&  /usr/local/VuFind-Plus/sites/nashville.test/continuous_partial_reindex.sh
 
 ######################
 # MySQL Nightly Dump #
