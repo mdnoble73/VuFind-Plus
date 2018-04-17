@@ -2,11 +2,17 @@
 @lion-dark-blue: #130840;
 @lion-menu-blue: #74C1F2;
 
-@hamden-tan: #F9F2DE;
-@hamden-green:#36b087;
-@hamden-menu-text-black: #3b3b3b;
-@hamden-header-text-blue: #089bc3;
-@hamden-header-text-purple: #9966CC;
+// Colors from previous site
+//@hamden-tan: #F9F2DE;
+//@hamden-green:#36b087;
+//@hamden-menu-text-black: #3b3b3b;
+//@hamden-header-text-blue: #089bc3;
+//@hamden-header-text-purple: #9966CC;
+
+@hamden-orange: #FBA03C;
+@hamden-red: #B71739;
+
+@hamden-menu-text-black: #000;
 
 @header-height: 150px;
 @header-logo-height: 125px;
@@ -14,33 +20,32 @@
 // Page Background Variables
 //@body-bg: @santafe-easier-to-read-white;
 //@content-bg: @santafe-easier-to-read-white;
-@body-bg-resp: @hamden-tan;
+//@body-bg-resp: @hamden-tan;
 
-@home-search-label-color: @hamden-menu-text-black;
+//@home-search-label-color: @hamden-menu-text-black;
 
-@home-search-top-color: @hamden-tan; //Top color for background gradient in header
-@home-search-bottom-color: @hamden-tan;
+@home-search-top-color: @hamden-red;
+@home-search-bottom-color: @hamden-red;
+//@home-search-top-color: #fff;
+//@home-search-bottom-color: #fff;
 
 //@sidebar-link-color: @lion-light-blue;
-@menu-bar-background-color: @hamden-header-text-blue;
-@menu-bar-selected-background-color: @hamden-green;
+@menu-bar-background-color: @hamden-red;
+@menu-bar-selected-background-color: @hamden-orange;
 
-@header-top-color: @hamden-tan;
-@header-middle-color: @hamden-tan;
-@header-bottom-color: @hamden-tan;
-
-//@header-top-color: #ffc28e; //Top color for background gradient in header
-//@header-middle-color: lighten(#ffc28e, 50%); //middle color for background gradient in header @80% of header height from bottom
-//@header-bottom-color: #ffffff; //Bottom color for background gradient in header
-
-@header-bottom-border-width: 1px;
-@header-bottom-border-color: #b2b2b2;
-@footer-top-border-color: #222;
+@header-top-color: #fff;
+@header-middle-color: #fff;
+@header-bottom-color: #fff;
 
 
-@header-buttons-background-color : @hamden-header-text-blue;
+@header-bottom-border-width: 0;
+@header-bottom-border-color: @hamden-red;
+@footer-top-border-color: @hamden-orange;
 
-@btn-primary-bg: @hamden-header-text-blue;
+
+@header-buttons-background-color : @hamden-orange;
+
+@btn-primary-bg: @hamden-orange;
 
 @category1MainColor: #ffffff;
 @categoryLineColor: #ffffff;
@@ -49,10 +54,10 @@
 
 @browse-header-background-color: #ffffff;
 @browseCarouselControlBackgroundColor: #ffffff;
-@browseCarouselControlColor: @hamden-header-text-blue;
+@browseCarouselControlColor: @hamden-orange;
 
 // Selected Category color to give a highlighted appearance
-@selectedCategoryColor: @lion-dark-blue;
+@selectedCategoryColor: @hamden-red;
 @selectedSubCategoryBackgroundColor: @selectedCategoryColor;
 
 
@@ -72,4 +77,4 @@
 @browse-category-font-size: 30px;
 
 // set opened accordions color
-@accordion-active-header-backgroundcolor: @hamden-header-text-blue;
+@accordion-active-header-backgroundcolor: @hamden-red;
