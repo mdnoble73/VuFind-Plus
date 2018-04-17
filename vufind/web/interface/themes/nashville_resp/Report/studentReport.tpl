@@ -83,13 +83,16 @@
 		display: table-cell !important;
 	}
 	div.SYSTEM {
-		width: .75in !important;
+		width: .5in !important;
+	}
+	div.ITEM_ID {
+		width: 1.25in !important;
 	}
 	div.CALL_NUMBER {
-		width: 1.75in !important;;
+		width: 1.25in !important;;
 	}
 	div.TITLE {
-		width: 3in !important;
+		width: 2.5in !important;
 	}
 	div.DUE_DATE {
 		width: .75in !important;
@@ -119,6 +122,7 @@
 				</div>
 				<div class="overdueRecord">
                                         <div class="SYSTEM">SYSTEM</div>
+                                        <div class="ITEM_ID">BARCODE</div>
                                         <div class="CALL_NUMBER">CALL NUMBER</div>
                                         <div class="TITLE">TITLE</div>
                                         <div class="DUE_DATE">DUE DATE</div>
@@ -128,6 +132,7 @@
 	{/if}
 			<div class="overdueRecord">
 				<div class="SYSTEM">{$dataRow[7]|replace:"1":"NPL"|replace:"2":"MNPS"}</div>
+                                <div class="ITEM_ID">{$dataRow[13]}</div>
 				<div class="CALL_NUMBER">{$dataRow[8]}</div>
 				<div class="TITLE">{$dataRow[9]|regex_replace:"/ *\/ *$/":""}</div>
 				<div class="DUE_DATE">{$dataRow[10]}</div>
