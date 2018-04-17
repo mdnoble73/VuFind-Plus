@@ -8403,7 +8403,7 @@ hr.menu {
   color: #ccc;
 }
 #system-message-header {
-  background-color: #E5D7B0;
+  background-color: #F4EBCE;
   color: black;
   text-align: center;
   padding: 3px;
@@ -8411,8 +8411,8 @@ hr.menu {
 #header-container {
   padding-top: 0;
   height: 150px;
-  background-color: #E5D7B0;
-  background: linear-gradient(to bottom, #E5D7B0, #E5D7B0 85%, #E5D7B0);
+  background-color: #F4EBCE;
+  background: linear-gradient(to bottom, #F4EBCE, #F4EBCE 85%, #F4EBCE);
   border-bottom: 8px solid #130840;
   margin-bottom: 0;
   min-height: 110px;
@@ -8431,7 +8431,7 @@ hr.menu {
   text-shadow: 1px 1px #fff;
   vertical-align: middle;
   line-height: 142px !important;
-  border-bottom: 4px solid #E5D7B0;
+  border-bottom: 4px solid #F4EBCE;
   color: #8b8b8b !important;
 }
 .header-button:hover {
@@ -10812,7 +10812,7 @@ fieldset[disabled] .btn-masquerade.active {
 }
 #header-logo {
   padding-top: 0;
-  height: 150px;
+  height: 140px;
 }
 #system-message-header,
 #system-message-header ~ .breadcrumbs,
