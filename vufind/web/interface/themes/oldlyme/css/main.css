@@ -10810,7 +10810,8 @@ fieldset[disabled] .btn-masquerade.active {
   height: 140px;
 }
 #system-message-header,
-#system-message-header ~ .breadcrumbs {
+#system-message-header ~ .breadcrumbs,
+.container > div:nth-child(1).breadcrumbs {
   background-color: #ddd8cf;
 }
 #footer-container {
