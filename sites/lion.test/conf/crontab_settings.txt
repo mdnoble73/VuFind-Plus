@@ -38,7 +38,8 @@
 #####################
 # Daily full update #
 #####################
-10 22 * * * cd /usr/local/vufind-plus/sites/lion.test; ./full_update.sh
+# This must run before full update on production to ensure sideloads are copied properly
+0 22 * * * cd /usr/local/vufind-plus/sites/lion.test; ./full_update.sh
 
 ######################
 # MySQL Nightly Dump #

@@ -38,6 +38,7 @@
 #####################
 # Daily full update #
 #####################
+# This must run after full update on test to ensure sideloads are copied properly
 10 22 * * * cd /usr/local/vufind-plus/sites/lion.production; ./full_update.sh
 
 ######################
