@@ -1028,6 +1028,14 @@ public class GroupedWorkIndexer {
 		}else{
 			//Log that this record did not have primary identifiers after
 			logger.debug("Grouped work " + permanentId + " did not have any primary identifiers for it, suppressing");
+			if (!fullReindex){
+				try {
+					updateServer.deleteById(permanentId);
+				}catch (Exception e){
+					logger.error("Error deleting suppressed record", e);
+				}
+			}
+
 		}
 
 
