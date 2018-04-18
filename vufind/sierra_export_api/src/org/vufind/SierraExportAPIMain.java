@@ -1126,15 +1126,18 @@ public class SierraExportAPIMain {
 						MarcWriter marcWriter = new MarcStreamWriter(new FileOutputStream(marcFile));
 						marcWriter.write(marcRecord);
 						marcWriter.close();
+						logger.debug("Wrote marc record for " + identifier.getIdentifier());
 
 						//Setup the grouped work for the record.  This will take care of either adding it to the proper grouped work
 						//or creating a new grouped work
 						if (!recordGroupingProcessor.processMarcRecord(marcRecord, true)) {
 							logger.warn(identifier.getIdentifier() + " was suppressed");
+						}else{
+							logger.debug("Finished record grouping for " + identifier.getIdentifier());
 						}
 						String shortId = identifier.getIdentifier().substring(2, identifier.getIdentifier().length() - 1);
-						logger.debug("Processed " + shortId);
 						processedIds.add(shortId);
+						logger.debug("Processed " + identifier.getIdentifier());
 					}catch (MarcException mre){
 						logger.info("Error loading marc record from file, will load manually");
 					}
