@@ -94,7 +94,7 @@ class SearchAPI extends Action {
 		if ($lastFullIndexVariable->find(true)){
 			$fullIndexWarningInterval = self::FULL_INDEX_INTERVAL_WARN;
 			$fullIndexWarningIntervalVar = new Variable();
-			$fullIndexWarningIntervalVar->name = 'lastFullReindexWarningInterval';
+			$fullIndexWarningIntervalVar->name = 'fullReindexIntervalWarning';
 			if ($fullIndexWarningIntervalVar->find(true)){
 				$fullIndexWarningInterval = $fullIndexWarningIntervalVar->value;
 			}
@@ -102,7 +102,7 @@ class SearchAPI extends Action {
 			if ($lastFullIndexVariable->value < ($currentTime - $fullIndexWarningInterval)){
 				$fullIndexCriticalInterval = self::FULL_INDEX_INTERVAL_CRITICAL;
 				$fullIndexCriticalIntervalVar = new Variable();
-				$fullIndexCriticalIntervalVar->name = 'fullIndexCriticalInterval';
+				$fullIndexCriticalIntervalVar->name = 'fullReindexIntervalCritical';
 				if ($fullIndexCriticalIntervalVar->find(true)){
 					$fullIndexCriticalInterval = $fullIndexCriticalIntervalVar->value;
 				}

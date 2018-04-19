@@ -950,6 +950,14 @@ class DBMaintenance extends Admin_Admin {
 						),
 				),
 
+					'variables_full_index_warnings' => array(
+							'title' => 'Variables for how long of an interval to allow between full indexes',
+							'description' => 'Add a variable to allow setting offline mode from the Pika interface, as long as offline logins are allowed.',
+							'sql' => array(
+									"INSERT INTO variables (name, value) VALUES ('fullReindexIntervalWarning', '86400')",
+									"INSERT INTO variables (name, value) VALUES ('fullReindexIntervalCritical', '129600')",
+							),
+					),
 
 				'utf8_update' => array(
 					'title' => 'Update to UTF-8',
