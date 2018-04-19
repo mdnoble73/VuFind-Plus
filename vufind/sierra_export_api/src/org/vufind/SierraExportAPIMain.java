@@ -941,11 +941,14 @@ public class SierraExportAPIMain {
 				MarcWriter marcWriter = new MarcStreamWriter(new FileOutputStream(marcFile), true);
 				marcWriter.write(marcRecord);
 				marcWriter.close();
+				logger.debug("Wrote marc record for " + identifier.getIdentifier());
 
 				//Setup the grouped work for the record.  This will take care of either adding it to the proper grouped work
 				//or creating a new grouped work
 				if (!recordGroupingProcessor.processMarcRecord(marcRecord, true)) {
 					logger.warn(identifier.getIdentifier() + " was suppressed");
+				}else{
+					logger.debug("Finished record grouping for " + identifier.getIdentifier());
 				}
 			}else{
 				logger.error("Error exporting marc record for " + id + " call returned null");
