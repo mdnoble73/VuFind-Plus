@@ -371,7 +371,7 @@ public class RecordGrouperMain {
 		}
 	}
 
-	private static HashMap<String, String> altNameToOriginalName = new HashMap<>();
+	//private static HashMap<String, String> altNameToOriginalName = new HashMap<>();
 	private static TreeMap<String, String> authoritiesWithSpecialHandling = new TreeMap<>();
 	private static void addAlternateAuthoritiesForWorkToAuthoritiesFile(HashMap<String, String> currentAuthorities, HashMap<String, String> manualAuthorities, CSVWriter authoritiesWriter, GroupedWorkBase work) {
 		String normalizedAuthor = work.getAuthor();
@@ -382,7 +382,7 @@ public class RecordGrouperMain {
 					if (curAltName != null && curAltName.length() > 0) {
 						//Make sure the authority doesn't link to multiple normalized names
 						if (!currentAuthorities.containsKey(curAltName)) {
-							altNameToOriginalName.put(curAltName, work.getOriginalAuthor());
+							//altNameToOriginalName.put(curAltName, work.getOriginalAuthor());
 							currentAuthorities.put(curAltName, normalizedAuthor);
 							authoritiesWriter.writeNext(new String[]{curAltName, normalizedAuthor});
 						} else {
@@ -730,6 +730,7 @@ public class RecordGrouperMain {
 					profile.itemTag = indexingProfilesRS.getString("itemTag");
 					profile.eContentDescriptor = getCharFromRecordSet(indexingProfilesRS, "eContentDescriptor");
 					profile.doAutomaticEcontentSuppression = indexingProfilesRS.getBoolean("doAutomaticEcontentSuppression");
+					profile.groupUnchangedFiles = indexingProfilesRS.getBoolean("groupUnchangedFiles");
 
 					indexingProfiles.add(profile);
 				}
@@ -1168,147 +1169,153 @@ public class RecordGrouperMain {
 	private static void groupIlsRecords(Ini configIni, Connection dbConnection, ArrayList<IndexingProfile> indexingProfiles, boolean explodeMarcsOnly) {
 		//Get indexing profiles
 		for (IndexingProfile curProfile : indexingProfiles) {
-			loadIlsChecksums(dbConnection, curProfile.name);
-			loadExistingPrimaryIdentifiers(dbConnection, curProfile.name);
-
-			MarcRecordGrouper recordGroupingProcessor;
-			switch (curProfile.groupingClass) {
-				case "MarcRecordGrouper":
-					recordGroupingProcessor = new MarcRecordGrouper(dbConnection, curProfile, logger, fullRegrouping);
-					break;
-				case "SideLoadedRecordGrouper":
-					recordGroupingProcessor = new SideLoadedRecordGrouper(dbConnection, curProfile, logger, fullRegrouping);
-					break;
-				case "HooplaRecordGrouper":
-					recordGroupingProcessor = new HooplaRecordGrouper(dbConnection, curProfile, logger, fullRegrouping);
-					break;
-				default:
-					logger.error("Unknown class for record grouping " + curProfile.groupingClass);
-					continue;
-			}
-
 			addNoteToGroupingLog("Processing profile " + curProfile.name);
 
 			String marcPath = curProfile.marcPath;
 
-			String marcEncoding = curProfile.marcEncoding;
-
-			//Load all files in the individual marc path.  This allows us to list directories rather than doing millions of
-			//individual look ups
-			/*String individualMarcPath = curProfile.individualMarcPath;
-			HashSet<String> existingMarcFiles = new HashSet<>();
-			File individualMarcFile = new File(individualMarcPath);
-			logger.debug("Starting to read existing marc files for ILS from disc");
-			loadExistingMarcFiles(individualMarcFile, existingMarcFiles);
-			logger.debug("Finished reading existing marc files for ILS from disc");*/
-
-			TreeSet<String> recordNumbersInExport = new TreeSet<>();
-			TreeSet<String> suppressedRecordNumbersInExport = new TreeSet<>();
-			TreeSet<String> suppressedControlNumbersInExport = new TreeSet<>();
-			TreeSet<String> marcRecordsOverwritten = new TreeSet<>();
-			TreeSet<String> marcRecordsWritten = new TreeSet<>();
-			TreeSet<String> recordNumbersToIndex = new TreeSet<>();
-
-			File[] catalogBibFiles = new File(marcPath).listFiles();
+			//Check to see if we should process the profile
+			boolean processProfile = false;
+			ArrayList<File> filesToProcess = new ArrayList<>();
+			//Check to see if we have any new files, if so we will process all of them to be sure deletes and overlays process properly
 			Pattern filesToMatchPattern = Pattern.compile(curProfile.filenamesToInclude, Pattern.CASE_INSENSITIVE);
+			File[] catalogBibFiles = new File(marcPath).listFiles();
 			if (catalogBibFiles != null) {
-				String lastRecordProcessed = "";
 				for (File curBibFile : catalogBibFiles) {
 					if (filesToMatchPattern.matcher(curBibFile.getName()).matches()) {
-						int numRecordsProcessed = 0;
-						int numRecordsRead = 0;
-						try {
-							FileInputStream marcFileStream = new FileInputStream(curBibFile);
-							MarcReader catalogReader = new MarcPermissiveStreamReader(marcFileStream, true, true, marcEncoding);
-							while (catalogReader.hasNext()) {
-								try{
-									Record curBib = catalogReader.next();
-									RecordIdentifier recordIdentifier = recordGroupingProcessor.getPrimaryIdentifierFromMarcRecord(curBib, curProfile.name, curProfile.doAutomaticEcontentSuppression);
-									if (recordIdentifier == null) {
-										//logger.debug("Record with control number " + curBib.getControlNumber() + " was suppressed or is eContent");
-										String controlNumber = curBib.getControlNumber();
-										if (controlNumber != null) {
-											suppressedControlNumbersInExport.add(controlNumber);
-										}else{
-											logger.warn("Bib did not have control number or identifier");
-										}
-									}else if (recordIdentifier.isSuppressed()) {
-										//logger.debug("Record with control number " + curBib.getControlNumber() + " was suppressed or is eContent");
-										suppressedControlNumbersInExport.add(recordIdentifier.getIdentifier());
-									}else{
-										String recordNumber = recordIdentifier.getIdentifier();
-
-										boolean marcUpToDate = writeIndividualMarc(curProfile, curBib, recordNumber, marcRecordsWritten, marcRecordsOverwritten);
-										recordNumbersInExport.add(recordIdentifier.toString());
-										if (!explodeMarcsOnly) {
-											if (!marcUpToDate || fullRegroupingNoClear) {
-												if (recordGroupingProcessor.processMarcRecord(curBib, !marcUpToDate)) {
-													recordNumbersToIndex.add(recordIdentifier.toString());
-												} else {
-													suppressedRecordNumbersInExport.add(recordIdentifier.toString());
-												}
-												numRecordsProcessed++;
-											}
-											//Mark that the record was processed
-											String fullId = curProfile.name + ":" + recordNumber;
-											fullId = fullId.toLowerCase().trim();
-											if (marcRecordIdsInDatabase.remove(fullId) == null) {
-												//This should only happen for newly added records
-												//logger.debug("Did not find " + fullId + " in marcRecordIdsInDatabase");
-											}
-											if (primaryIdentifiersInDatabase.remove(fullId) == null){
-												//This should only happen for newly added records
-												//logger.debug("Did not find " + fullId + " in primaryIdentifiersInDatabase");
-											}
-										}
-										lastRecordProcessed = recordNumber;
-									}
-								}catch (MarcException me){
-									logger.warn("Error processing individual record  on record " + numRecordsRead + " of " + curBibFile.getAbsolutePath() + " the last record processed was " + lastRecordProcessed + " trying to continue", me);
-								}
-								numRecordsRead++;
-								if (numRecordsRead % 100000 == 0) {
-									recordGroupingProcessor.dumpStats();
-								}
-								if (numRecordsRead % 5000 == 0) {
-									updateLastUpdateTimeInLog();
-									//Let the hard drives rest a bit so other things can happen.
-									Thread.sleep(100);
-								}
-							}
-							marcFileStream.close();
-						} catch (Exception e) {
-							logger.error("Error loading catalog bibs on record " + numRecordsRead + " in profile " +  curProfile.name + " the last record processed was " + lastRecordProcessed, e);
+						filesToProcess.add(curBibFile);
+						//If the file has changed since the last grouping time we should process it again
+						if (curBibFile.lastModified() > lastGroupingTime * 1000){
+							processProfile = true;
 						}
-						logger.info("Finished grouping " + numRecordsRead + " records with " + numRecordsProcessed + " actual changes from the ils file " + curBibFile.getName() + " in profile " + curProfile.name);
-						addNoteToGroupingLog("&nbsp;&nbsp; - Finished grouping " + numRecordsRead + " records from the ils file " + curBibFile.getName());
 					}
 				}
 			}
-			addNoteToGroupingLog("&nbsp;&nbsp; - Records Processed:" + recordNumbersInExport.size());
-			addNoteToGroupingLog("&nbsp;&nbsp; - Records Suppressed:" + suppressedRecordNumbersInExport.size());
-			addNoteToGroupingLog("&nbsp;&nbsp; - Records Written:" + marcRecordsWritten.size());
-			addNoteToGroupingLog("&nbsp;&nbsp; - Records Overwritten:" + marcRecordsOverwritten.size());
+			if (curProfile.groupUnchangedFiles){
+				processProfile = true;
+			}
 
-			removeDeletedRecords(curProfile.name);
+			if (!processProfile) {
+				addNoteToGroupingLog("Skipping processing profile " + curProfile.name + " because nothing has changed");
+			}else{
+				loadIlsChecksums(dbConnection, curProfile.name);
+				loadExistingPrimaryIdentifiers(dbConnection, curProfile.name);
 
-			String profileName = curProfile.name.replaceAll(" ", "_");
-			writeExistingRecordsFile(configIni, recordNumbersInExport, "record_grouping_" + profileName + "_bibs_in_export");
-			if (suppressedRecordNumbersInExport.size() > 0) {
-				writeExistingRecordsFile(configIni, suppressedRecordNumbersInExport, "record_grouping_" + profileName + "_bibs_to_ignore");
+				MarcRecordGrouper recordGroupingProcessor;
+				switch (curProfile.groupingClass) {
+					case "MarcRecordGrouper":
+						recordGroupingProcessor = new MarcRecordGrouper(dbConnection, curProfile, logger, fullRegrouping);
+						break;
+					case "SideLoadedRecordGrouper":
+						recordGroupingProcessor = new SideLoadedRecordGrouper(dbConnection, curProfile, logger, fullRegrouping);
+						break;
+					case "HooplaRecordGrouper":
+						recordGroupingProcessor = new HooplaRecordGrouper(dbConnection, curProfile, logger, fullRegrouping);
+						break;
+					default:
+						logger.error("Unknown class for record grouping " + curProfile.groupingClass);
+						continue;
+				}
+
+				String marcEncoding = curProfile.marcEncoding;
+				TreeSet<String> recordNumbersInExport = new TreeSet<>();
+				TreeSet<String> suppressedRecordNumbersInExport = new TreeSet<>();
+				TreeSet<String> suppressedControlNumbersInExport = new TreeSet<>();
+				TreeSet<String> marcRecordsOverwritten = new TreeSet<>();
+				TreeSet<String> marcRecordsWritten = new TreeSet<>();
+				TreeSet<String> recordNumbersToIndex = new TreeSet<>();
+
+
+				String lastRecordProcessed = "";
+				for (File curBibFile : filesToProcess) {
+					int numRecordsProcessed = 0;
+					int numRecordsRead = 0;
+					try {
+						FileInputStream marcFileStream = new FileInputStream(curBibFile);
+						MarcReader catalogReader = new MarcPermissiveStreamReader(marcFileStream, true, true, marcEncoding);
+						while (catalogReader.hasNext()) {
+							try{
+								Record curBib = catalogReader.next();
+								RecordIdentifier recordIdentifier = recordGroupingProcessor.getPrimaryIdentifierFromMarcRecord(curBib, curProfile.name, curProfile.doAutomaticEcontentSuppression);
+								if (recordIdentifier == null) {
+									//logger.debug("Record with control number " + curBib.getControlNumber() + " was suppressed or is eContent");
+									String controlNumber = curBib.getControlNumber();
+									if (controlNumber != null) {
+										suppressedControlNumbersInExport.add(controlNumber);
+									}else{
+										logger.warn("Bib did not have control number or identifier");
+									}
+								}else if (recordIdentifier.isSuppressed()) {
+									//logger.debug("Record with control number " + curBib.getControlNumber() + " was suppressed or is eContent");
+									suppressedControlNumbersInExport.add(recordIdentifier.getIdentifier());
+								}else{
+									String recordNumber = recordIdentifier.getIdentifier();
+
+									boolean marcUpToDate = writeIndividualMarc(curProfile, curBib, recordNumber, marcRecordsWritten, marcRecordsOverwritten);
+									recordNumbersInExport.add(recordIdentifier.toString());
+									if (!explodeMarcsOnly) {
+										if (!marcUpToDate || fullRegroupingNoClear) {
+											if (recordGroupingProcessor.processMarcRecord(curBib, !marcUpToDate)) {
+												recordNumbersToIndex.add(recordIdentifier.toString());
+											} else {
+												suppressedRecordNumbersInExport.add(recordIdentifier.toString());
+											}
+											numRecordsProcessed++;
+										}
+										//Mark that the record was processed
+										String fullId = curProfile.name + ":" + recordNumber;
+										fullId = fullId.toLowerCase().trim();
+										marcRecordIdsInDatabase.remove(fullId);
+										primaryIdentifiersInDatabase.remove(fullId);
+									}
+									lastRecordProcessed = recordNumber;
+								}
+							}catch (MarcException me){
+								logger.warn("Error processing individual record  on record " + numRecordsRead + " of " + curBibFile.getAbsolutePath() + " the last record processed was " + lastRecordProcessed + " trying to continue", me);
+							}
+							numRecordsRead++;
+							if (numRecordsRead % 100000 == 0) {
+								recordGroupingProcessor.dumpStats();
+							}
+							if (numRecordsRead % 5000 == 0) {
+								updateLastUpdateTimeInLog();
+								//Let the hard drives rest a bit so other things can happen.
+								Thread.sleep(100);
+							}
+						}
+						marcFileStream.close();
+					} catch (Exception e) {
+						logger.error("Error loading catalog bibs on record " + numRecordsRead + " in profile " +  curProfile.name + " the last record processed was " + lastRecordProcessed, e);
+					}
+					logger.info("Finished grouping " + numRecordsRead + " records with " + numRecordsProcessed + " actual changes from the ils file " + curBibFile.getName() + " in profile " + curProfile.name);
+					addNoteToGroupingLog("&nbsp;&nbsp; - Finished grouping " + numRecordsRead + " records from the ils file " + curBibFile.getName());
+				}
+
+				addNoteToGroupingLog("&nbsp;&nbsp; - Records Processed:" + recordNumbersInExport.size());
+				addNoteToGroupingLog("&nbsp;&nbsp; - Records Suppressed:" + suppressedRecordNumbersInExport.size());
+				addNoteToGroupingLog("&nbsp;&nbsp; - Records Written:" + marcRecordsWritten.size());
+				addNoteToGroupingLog("&nbsp;&nbsp; - Records Overwritten:" + marcRecordsOverwritten.size());
+
+				removeDeletedRecords(curProfile.name);
+
+				String profileName = curProfile.name.replaceAll(" ", "_");
+				writeExistingRecordsFile(configIni, recordNumbersInExport, "record_grouping_" + profileName + "_bibs_in_export");
+				if (suppressedRecordNumbersInExport.size() > 0) {
+					writeExistingRecordsFile(configIni, suppressedRecordNumbersInExport, "record_grouping_" + profileName + "_bibs_to_ignore");
+				}
+				if (suppressedControlNumbersInExport.size() > 0) {
+					writeExistingRecordsFile(configIni, suppressedControlNumbersInExport, "record_grouping_" + profileName + "_ccontrol_numbers_to_ignore");
+				}
+				if (recordNumbersToIndex.size() > 0) {
+					writeExistingRecordsFile(configIni, recordNumbersToIndex, "record_grouping_" + profileName + "_bibs_to_index");
+				}
+				if (marcRecordsWritten.size() > 0) {
+					writeExistingRecordsFile(configIni, marcRecordsWritten, "record_grouping_" + profileName + "_new_bibs_written");
+				}
+				if (marcRecordsOverwritten.size() > 0) {
+					writeExistingRecordsFile(configIni, marcRecordsOverwritten, "record_grouping_" + profileName + "_changed_bibs_written");
+				}
 			}
-			if (suppressedControlNumbersInExport.size() > 0) {
-				writeExistingRecordsFile(configIni, suppressedControlNumbersInExport, "record_grouping_" + profileName + "_ccontrol_numbers_to_ignore");
-			}
-			if (recordNumbersToIndex.size() > 0) {
-				writeExistingRecordsFile(configIni, recordNumbersToIndex, "record_grouping_" + profileName + "_bibs_to_index");
-			}
-			if (marcRecordsWritten.size() > 0) {
-				writeExistingRecordsFile(configIni, marcRecordsWritten, "record_grouping_" + profileName + "_new_bibs_written");
-			}
-			if (marcRecordsOverwritten.size() > 0) {
-				writeExistingRecordsFile(configIni, marcRecordsOverwritten, "record_grouping_" + profileName + "_changed_bibs_written");
-			}
+
 		}
 	}
 
@@ -1328,10 +1335,10 @@ public class RecordGrouperMain {
 		}
 	}*/
 
-	private static int groupOverDriveRecords(Ini configIni, Connection vufindConn, Connection econtentConnection, RecordGroupingProcessor recordGroupingProcessor, boolean explodeMarcsOnly) {
+	private static void groupOverDriveRecords(Ini configIni, Connection vufindConn, Connection econtentConnection, RecordGroupingProcessor recordGroupingProcessor, boolean explodeMarcsOnly) {
 		if (explodeMarcsOnly){
 			//Nothing to do since we don't have marc records to process
-			return 0;
+			return;
 		}
 		addNoteToGroupingLog("Starting to group overdrive records");
 		loadIlsChecksums(vufindConn, "overdrive");
@@ -1412,7 +1419,6 @@ public class RecordGrouperMain {
 			System.out.println("Error loading OverDrive records: " + e.toString());
 			e.printStackTrace();
 		}
-		return numRecordsProcessed;
 	}
 
 	private static SimpleDateFormat oo8DateFormat = new SimpleDateFormat("yyMMdd");
@@ -1430,7 +1436,7 @@ public class RecordGrouperMain {
 			//Check to see if the record needs to be written before writing it.
 			if (!fullRegrouping){
 				boolean checksumUpToDate = existingChecksum != null && existingChecksum.equals(checksum);
-				boolean fileExists = checkIfIndividualMarcFileExists(true, individualFile);
+				boolean fileExists = individualFile.exists();
 				marcRecordUpToDate = fileExists && checksumUpToDate;
 				if (!fileExists){
 					marcRecordsWritten.add(recordNumber);
@@ -1524,13 +1530,6 @@ public class RecordGrouperMain {
 				logger.debug("Error loading creation time for " + filePath, e);
 			}
 		}
-	}
-
-	private static boolean checkIfIndividualMarcFileExists(Boolean marcRecordUpToDate, File individualFile) {
-		if (!individualFile.exists()){
-			marcRecordUpToDate = false;
-		}
-		return marcRecordUpToDate;
 	}
 
 	private static Long getExistingChecksum(String recordNumber) {
@@ -1657,7 +1656,7 @@ public class RecordGrouperMain {
 		try {
 			Date date = new Date();
 			notes.append("<br>").append(dateFormat.format(date)).append(": ").append(note);
-			addNoteToGroupingLogStmt.setString(1, trimTo(65535, notes.toString()));
+			addNoteToGroupingLogStmt.setString(1, trimLogEntry(notes.toString()));
 			addNoteToGroupingLogStmt.setLong(2, new Date().getTime() / 1000);
 			addNoteToGroupingLogStmt.setLong(3, groupingLogId);
 			addNoteToGroupingLogStmt.executeUpdate();
@@ -1669,7 +1668,7 @@ public class RecordGrouperMain {
 
 	private static void updateLastUpdateTimeInLog() {
 		try {
-			addNoteToGroupingLogStmt.setString(1, trimTo(65535, notes.toString()));
+			addNoteToGroupingLogStmt.setString(1, trimLogEntry(notes.toString()));
 			addNoteToGroupingLogStmt.setLong(2, new Date().getTime() / 1000);
 			addNoteToGroupingLogStmt.setLong(3, groupingLogId);
 			addNoteToGroupingLogStmt.executeUpdate();
@@ -1678,12 +1677,12 @@ public class RecordGrouperMain {
 		}
 	}
 
-	private static String trimTo(int maxCharacters, String stringToTrim) {
+	private static String trimLogEntry(String stringToTrim) {
 		if (stringToTrim == null) {
 			return null;
 		}
-		if (stringToTrim.length() > maxCharacters) {
-			stringToTrim = stringToTrim.substring(0, maxCharacters);
+		if (stringToTrim.length() > 65535) {
+			stringToTrim = stringToTrim.substring(0, 65535);
 		}
 		return stringToTrim.trim();
 	}

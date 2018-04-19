@@ -81,7 +81,7 @@ public class Util {
 		return crSeparatedString.toString();
 	}
 
-	static String getCsvSeparatedString(HashSet<String> values) {
+	static String getCsvSeparatedString(Set<String> values) {
 		if (values.size() == 0){
 			return "";
 		}else if (values.size() == 1){
@@ -97,7 +97,7 @@ public class Util {
 		return crSeparatedString.toString();
 	}
 
-	static String getCsvSeparatedStringFromLongs(HashSet<Long> values) {
+	static String getCsvSeparatedStringFromLongs(Set<Long> values) {
 		StringBuilder crSeparatedString = new StringBuilder();
 		for (Long curValue : values) {
 			if (crSeparatedString.length() > 0) {

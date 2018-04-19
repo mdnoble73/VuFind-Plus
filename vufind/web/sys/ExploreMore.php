@@ -316,16 +316,19 @@ class ExploreMore {
 			$searchTerm = '';
 		}
 		if (!$searchTerm){
+			//No search term found, try to get a search term based on applied filters (just one)
 			if (isset($_REQUEST['filter'])){
 				foreach ($_REQUEST['filter'] as $filter){
-					if (strlen($filter) > 0) {
-						$filterVals = explode(':', $filter);
-						if ($filterVals[0] != 'mods_genre_s' &&
-								$filterVals[0] != 'literary_form' && $filterVals[0] != 'literary_form_full' &&
-								$filterVals[0] != 'target_audience' && $filterVals[0] != 'target_audience_full'
-						) {
-							$searchTerm = str_replace('"', '', $filterVals[1]);
-							break;
+					if (!is_array($filter) && strlen($filter) > 0) {
+						if (strpos($filter, ':') !== false){
+							$filterVals = explode(':', $filter, 2);
+							if ($filterVals[0] != 'mods_genre_s' &&
+									$filterVals[0] != 'literary_form' && $filterVals[0] != 'literary_form_full' &&
+									$filterVals[0] != 'target_audience' && $filterVals[0] != 'target_audience_full'
+							) {
+								$searchTerm = str_replace('"', '', $filterVals[1]);
+								break;
+							}
 						}
 					}
 				}

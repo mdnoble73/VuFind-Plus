@@ -670,22 +670,19 @@ class CarlX extends SIP2Driver{
 						$curTitle['coverUrl']      = $recordDriver->getBookcoverUrl('medium');
 						$curTitle['groupedWorkId'] = $recordDriver->getGroupedWorkId();
 						$curTitle['format']        = $recordDriver->getPrimaryFormat();
-						if (empty($curTitle['title'])){
-							$curTitle['title']       = $recordDriver->getTitle();
-							$curTitle['title_sort']  = $recordDriver->getSortableTitle();
-						} else {
-							$curTitle['title_sort']  = $curTitle['title']; // TODO: Always use getSortableTitle?? set to all lower case
-						}
-						if (empty($curTitle['author'])){
-							$curTitle['author']     = $recordDriver->getPrimaryAuthor();
-						}
+						$curTitle['ratingData']    = $recordDriver->getRatingData();
+						$curTitle['link']          = $recordDriver->getLinkUrl();
+						$curTitle['title']         = $recordDriver->getTitle();
+						$curTitle['title_sort']    = $recordDriver->getSortableTitle();
+						$curTitle['author']        = $recordDriver->getPrimaryAuthor();
 					}else{
 						$curTitle['coverUrl']     = "";
 					}
-					$curTitle['link']           = $recordDriver->getLinkUrl();
+				}
+				if (empty($curTitle['title_sort'])){
+					$curTitle['title_sort']  = preg_replace('/^The\s|^A\s/i', '',$curTitle['title']);
 				}
 				$checkedOutTitles[] = $curTitle;
-
 			}
 		}
 

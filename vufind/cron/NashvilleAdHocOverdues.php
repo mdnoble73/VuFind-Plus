@@ -80,6 +80,7 @@ foreach ($aSchool as $sSchool) {
       , to_char(jts.todate(transitem_v.dueornotneededafterdate),'MM/DD/YYYY') AS Due_Date
       , item_v.price AS Owed
       , to_char(jts.todate(transitem_v.dueornotneededafterdate),'MM/DD/YYYY') AS Due_Date_Dup
+      , item_v.item AS Item
     from 
       bbibmap_v
       , branch_v patronbranch

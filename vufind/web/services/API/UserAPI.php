@@ -45,7 +45,8 @@ class UserAPI extends Action {
 		header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 		header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 
-		if (is_callable(array($this, $_REQUEST['method']))) {
+		$method = (isset($_GET['method']) && !is_array($_GET['method'])) ? $_GET['method'] : '';
+		if (method_exists($this, $method)) {
 			try{
 				$result = $this->$_REQUEST['method']();
 				require_once ROOT_DIR . '/sys/Utils/ArrayUtils.php';
@@ -235,8 +236,8 @@ class UserAPI extends Action {
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function validateAccount(){
-		$username = $_REQUEST['username'];
-		$password = $_REQUEST['password'];
+		list($username, $password) = $this->loadUsernameAndPassword();
+
 		$result = UserAccount::validateAccount($username, $password);
 		if ($result != null){
 			//get rid of data object fields before returning the result
@@ -354,8 +355,8 @@ class UserAPI extends Action {
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function getPatronProfile(){
-		$username = $_REQUEST['username'];
-		$password = $_REQUEST['password'];
+		list($username, $password) = $this->loadUsernameAndPassword();
+
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
 			//Remove a bunch of junk from the user data
@@ -473,8 +474,7 @@ class UserAPI extends Action {
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function getPatronHolds(){
-		$username = $_REQUEST['username'];
-		$password = $_REQUEST['password'];
+		list($username, $password) = $this->loadUsernameAndPassword();
 
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
@@ -549,8 +549,7 @@ class UserAPI extends Action {
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function getPatronHoldsOverDrive(){
-		$username = $_REQUEST['username'];
-		$password = $_REQUEST['password'];
+		list($username, $password) = $this->loadUsernameAndPassword();
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
 			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
@@ -601,8 +600,7 @@ class UserAPI extends Action {
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function getPatronCheckedOutItemsOverDrive(){
-		$username = $_REQUEST['username'];
-		$password = $_REQUEST['password'];
+		list($username, $password) = $this->loadUsernameAndPassword();
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
 			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
@@ -649,8 +647,7 @@ class UserAPI extends Action {
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function getPatronOverDriveSummary(){
-		$username = $_REQUEST['username'];
-		$password = $_REQUEST['password'];
+		list($username, $password) = $this->loadUsernameAndPassword();
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
 			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
@@ -699,8 +696,7 @@ class UserAPI extends Action {
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function getPatronFines(){
-		$username = $_REQUEST['username'];
-		$password = $_REQUEST['password'];
+		list($username, $password) = $this->loadUsernameAndPassword();
 		$includeMessages = isset($_REQUEST['includeMessages']) ? $_REQUEST['includeMessages'] : false;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
@@ -717,8 +713,7 @@ class UserAPI extends Action {
 	 * @return array
 	 */
 	function getOverDriveLendingOptions(){
-		$username = $_REQUEST['username'];
-		$password = $_REQUEST['password'];
+		list($username, $password) = $this->loadUsernameAndPassword();
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
 			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
@@ -780,16 +775,7 @@ class UserAPI extends Action {
 		if ($offlineMode) {
 			return array('success'=>false, 'message'=>'Circulation system is offline');
 		} else {
-			if (isset($_REQUEST['username'])){
-				$username = $_REQUEST['username'];
-			}else{
-				$username = '';
-			}
-			if (isset($_REQUEST['password'])){
-				$password = $_REQUEST['password'];
-			}else{
-				$password = '';
-			}
+			list($username, $password) = $this->loadUsernameAndPassword();
 			$user = UserAccount::validateAccount($username, $password);
 			if ($user && !PEAR_Singleton::isError($user)) {
 				$allCheckedOut = $user->getMyCheckouts(false);
@@ -843,8 +829,7 @@ class UserAPI extends Action {
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function renewItem(){
-		$username = $_REQUEST['username'];
-		$password = $_REQUEST['password'];
+		list($username, $password) = $this->loadUsernameAndPassword();
 		$itemBarcode = $_REQUEST['itemBarcode'];
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
@@ -881,8 +866,7 @@ class UserAPI extends Action {
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function renewAll(){
-		$username = $_REQUEST['username'];
-		$password = $_REQUEST['password'];
+		list($username, $password) = $this->loadUsernameAndPassword();
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
 			$renewalMessage = $this->getCatalogConnection()->renewAll($user->cat_username);
@@ -934,8 +918,7 @@ class UserAPI extends Action {
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function placeHold(){
-		$username = $_REQUEST['username'];
-		$password = $_REQUEST['password'];
+		list($username, $password) = $this->loadUsernameAndPassword();
 		$bibId = $_REQUEST['bibId'];
 
 		$patron = UserAccount::validateAccount($username, $password);
@@ -953,8 +936,7 @@ class UserAPI extends Action {
 	}
 
 	function placeItemHold(){
-		$username = $_REQUEST['username'];
-		$password = $_REQUEST['password'];
+		list($username, $password) = $this->loadUsernameAndPassword();
 		$bibId = $_REQUEST['bibId'];
 		$itemId = $_REQUEST['itemId'];
 
@@ -973,8 +955,7 @@ class UserAPI extends Action {
 	}
 
 	function changeHoldPickUpLocation(){
-		$username = $_REQUEST['username'];
-		$password = $_REQUEST['password'];
+		list($username, $password) = $this->loadUsernameAndPassword();
 		$holdId = $_REQUEST['holdId'];
 		$newLocation = $_REQUEST['location'];
 		$patron = UserAccount::validateAccount($username, $password);
@@ -1022,8 +1003,7 @@ class UserAPI extends Action {
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function placeOverDriveHold(){
-		$username = $_REQUEST['username'];
-		$password = $_REQUEST['password'];
+		list($username, $password) = $this->loadUsernameAndPassword();
 		$overDriveId = $_REQUEST['overDriveId'];
 		$format = $_REQUEST['format'];
 
@@ -1072,8 +1052,7 @@ class UserAPI extends Action {
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function cancelOverDriveHold(){
-		$username = $_REQUEST['username'];
-		$password = $_REQUEST['password'];
+		list($username, $password) = $this->loadUsernameAndPassword();
 		$overDriveId = $_REQUEST['overDriveId'];
 		$format = $_REQUEST['format'];
 
@@ -1132,8 +1111,7 @@ class UserAPI extends Action {
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function addItemToOverDriveCart(){
-		$username = $_REQUEST['username'];
-		$password = $_REQUEST['password'];
+		list($username, $password) = $this->loadUsernameAndPassword();
 		$overDriveId = $_REQUEST['overDriveId'];
 		$format = $_REQUEST['format'];
 
@@ -1183,8 +1161,7 @@ class UserAPI extends Action {
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function checkoutOverDriveItem(){
-		$username = $_REQUEST['username'];
-		$password = $_REQUEST['password'];
+		list($username, $password) = $this->loadUsernameAndPassword();
 		$overDriveId = $_REQUEST['overDriveId'];
 		$format = $_REQUEST['format'];
 
@@ -1232,8 +1209,7 @@ class UserAPI extends Action {
 	 *
 	 */
 	function processOverDriveCart(){
-		$username = $_REQUEST['username'];
-		$password = $_REQUEST['password'];
+		list($username, $password) = $this->loadUsernameAndPassword();
 
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
@@ -1292,8 +1268,7 @@ class UserAPI extends Action {
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function cancelHold(){
-		$username = $_REQUEST['username'];
-		$password = $_REQUEST['password'];
+		list($username, $password) = $this->loadUsernameAndPassword();
 
 		// Cancel Hold requires one of these, which one depends on the ILS
 		$recordId = $cancelId = null;
@@ -1348,8 +1323,7 @@ class UserAPI extends Action {
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function freezeHold(){
-		$username = $_REQUEST['username'];
-		$password = $_REQUEST['password'];
+		list($username, $password) = $this->loadUsernameAndPassword();
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
 			$holdMessage = $this->getCatalogConnection()->updateHoldDetailed('', $user->cat_username, 'update', '', null, null, 'on');
@@ -1393,8 +1367,7 @@ class UserAPI extends Action {
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function activateHold(){
-		$username = $_REQUEST['username'];
-		$password = $_REQUEST['password'];
+		list($username, $password) = $this->loadUsernameAndPassword();
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
 			$holdMessage = $this->getCatalogConnection()->updateHoldDetailed('', $user->cat_username, 'update', '', null, null, 'off');
@@ -1467,8 +1440,7 @@ class UserAPI extends Action {
 		if ($offlineMode) {
 			return array('success'=>false, 'message'=>'Circulation system is offline');
 		} else {
-			$username = $_REQUEST['username'];
-			$password = $_REQUEST['password'];
+			list($username, $password) = $this->loadUsernameAndPassword();
 			$user = UserAccount::validateAccount($username, $password);
 			if ($user && !PEAR_Singleton::isError($user)) {
 				$readingHistory = $this->getCatalogConnection()->getReadingHistory($user);
@@ -1508,8 +1480,7 @@ class UserAPI extends Action {
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function optIntoReadingHistory(){
-		$username = $_REQUEST['username'];
-		$password = $_REQUEST['password'];
+		list($username, $password) = $this->loadUsernameAndPassword();
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
 			$this->getCatalogConnection()->doReadingHistoryAction('optIn', array());
@@ -1546,8 +1517,7 @@ class UserAPI extends Action {
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function optOutOfReadingHistory(){
-		$username = $_REQUEST['username'];
-		$password = $_REQUEST['password'];
+		list($username, $password) = $this->loadUsernameAndPassword();
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
 			$this->getCatalogConnection()->doReadingHistoryAction('optOut', array());
@@ -1584,8 +1554,7 @@ class UserAPI extends Action {
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function deleteAllFromReadingHistory(){
-		$username = $_REQUEST['username'];
-		$password = $_REQUEST['password'];
+		list($username, $password) = $this->loadUsernameAndPassword();
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
 			$this->getCatalogConnection()->doReadingHistoryAction('deleteAll', array());
@@ -1623,8 +1592,7 @@ class UserAPI extends Action {
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function deleteSelectedFromReadingHistory(){
-		$username = $_REQUEST['username'];
-		$password = $_REQUEST['password'];
+		list($username, $password) = $this->loadUsernameAndPassword();
 		$selectedTitles = $_REQUEST['selected'];
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
@@ -1633,5 +1601,29 @@ class UserAPI extends Action {
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
+	}
+
+	/**
+	 * @return array
+	 */
+	private function loadUsernameAndPassword()
+	{
+		if (isset($_REQUEST['username'])){
+			$username = $_REQUEST['username'];
+		}else{
+			$username = '';
+		}
+		if (isset($_REQUEST['password'])) {
+			$password = $_REQUEST['password'];
+		}else{
+			$password = '';
+		}
+		if (is_array($username)) {
+			$username = reset($username);
+		}
+		if (is_array($password)) {
+			$password = reset($password);
+		}
+		return array($username, $password);
 	}
 }

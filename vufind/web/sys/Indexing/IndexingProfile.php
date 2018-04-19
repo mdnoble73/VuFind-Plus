@@ -10,6 +10,7 @@
 
 require_once ROOT_DIR . '/sys/Indexing/TranslationMap.php';
 require_once ROOT_DIR . '/sys/Indexing/TimeToReshelve.php';
+require_once ROOT_DIR . '/sys/Indexing/SierraExportFieldMapping.php';
 class IndexingProfile extends DB_DataObject{
 	public $__table = 'indexing_profiles';    // table name
 
@@ -76,16 +77,21 @@ class IndexingProfile extends DB_DataObject{
 	public $orderCopies;
 	public $orderCode3;
 	public $doAutomaticEcontentSuppression;
+	public $groupUnchangedFiles;
 
 	function getObjectStructure(){
 		$translationMapStructure = TranslationMap::getObjectStructure();
 		unset($translationMapStructure['indexingProfileId']);
+
+		$sierraMappingStructure = SierraExportFieldMapping::getObjectStructure();
+		unset($sierraMappingStructure['indexingProfileId']);
 
 		$structure = array(
 			'id' => array('property'=>'id', 'type'=>'label', 'label'=>'Id', 'description'=>'The unique id within the database'),
 			'name' => array('property' => 'name', 'type' => 'text', 'label' => 'Name', 'maxLength' => 50, 'description' => 'A name for this indexing profile', 'required' => true),
 			'marcPath' => array('property' => 'marcPath', 'type' => 'text', 'label' => 'MARC Path', 'maxLength' => 100, 'description' => 'The path on the server where MARC records can be found', 'required' => true),
 			'filenamesToInclude' => array('property' => 'filenamesToInclude', 'type' => 'text', 'label' => 'Filenames to Include', 'maxLength' => 250, 'description' => 'A regular expression to determine which files should be grouped and indexed', 'required' => true, 'default' => '.*\.ma?rc'),
+			'groupUnchangedFiles' => array('property' => 'groupUnchangedFiles', 'type' => 'checkbox', 'label' => 'Group unchanged files', 'description' => 'Whether or not files that have not changed since the last time grouping has run will be processed.'),
 			'marcEncoding' => array('property' => 'marcEncoding', 'type' => 'enum', 'label' => 'MARC Encoding', 'values' => array('MARC8' => 'MARC8', 'UTF8' => 'UTF8', 'UNIMARC' => 'UNIMARC', 'ISO8859_1' => 'ISO8859_1', 'BESTGUESS' => 'BESTGUESS'), 'default' => 'MARC8'),
 			'individualMarcPath' => array('property' => 'individualMarcPath', 'type' => 'text', 'label' => 'Individual MARC Path', 'maxLength' => 100, 'description' => 'The path on the server where individual MARC records can be found', 'required' => true),
 			'numCharsToCreateFolderFrom' => array('property' => 'numCharsToCreateFolderFrom', 'type' => 'integer', 'label' => 'Number of characters to create folder from', 'maxLength' => 50, 'description' => 'The number of characters to use when building a sub folder for individual marc records', 'required' => false, 'default' => '4'),
@@ -180,6 +186,21 @@ class IndexingProfile extends DB_DataObject{
 						'allowEdit' => true,
 						'canEdit' => false,
 				),
+
+				'sierraFieldMappings' => array(
+						'property' => 'sierraFieldMappings',
+						'type'=> 'oneToMany',
+						'label' => 'Sierra Field Mappings (Sierra Systems only)',
+						'description' => 'Field Mappings for exports from Sierra.',
+						'keyThis' => 'id',
+						'keyOther' => 'indexingProfileId',
+						'subObjectType' => 'SierraExportFieldMapping',
+						'structure' => $sierraMappingStructure,
+						'sortable' => false,
+						'storeDb' => true,
+						'allowEdit' => true,
+						'canEdit' => false,
+				),
 		);
 		return $structure;
 	}
@@ -215,6 +236,20 @@ class IndexingProfile extends DB_DataObject{
 				}
 			}
 			return $this->timeToReshelve;
+		}else if ($name == "sierraFieldMappings") {
+			if (!isset($this->sierraFieldMappings)) {
+				//Get the list of translation maps
+				$this->sierraFieldMappings = array();
+				if ($this->id) { // When this is a new Indexing Profile, there are no maps yet.
+					$sierraFieldMapping = new SierraExportFieldMapping();
+					$sierraFieldMapping->indexingProfileId = $this->id;
+					$sierraFieldMapping->find();
+					while ($sierraFieldMapping->fetch()) {
+						$this->sierraFieldMappings[$sierraFieldMapping->id] = clone($sierraFieldMapping);
+					}
+				}
+			}
+			return $this->sierraFieldMappings;
 		}
 		return null;
 	}
@@ -224,6 +259,8 @@ class IndexingProfile extends DB_DataObject{
 			$this->translationMaps = $value;
 		}else if ($name == "timeToReshelve") {
 			$this->timeToReshelve = $value;
+		}else if ($name == "sierraFieldMappings") {
+			$this->sierraFieldMappings = $value;
 		}
 	}
 
@@ -241,6 +278,7 @@ class IndexingProfile extends DB_DataObject{
 		}else{
 			$this->saveTranslationMaps();
 			$this->saveTimeToReshelve();
+			$this->saveSierraFieldMappings();
 		}
 		/** @var Memcache $memCache */
 		global $memCache;
@@ -266,6 +304,7 @@ class IndexingProfile extends DB_DataObject{
 		}else{
 			$this->saveTranslationMaps();
 			$this->saveTimeToReshelve();
+			$this->saveSierraFieldMappings();
 		}
 		/** @var Memcache $memCache */
 		global $memCache;
@@ -312,6 +351,25 @@ class IndexingProfile extends DB_DataObject{
 			}
 			//Clear the translation maps so they are reloaded the next time
 			unset($this->timeToReshelve);
+		}
+	}
+
+	public function saveSierraFieldMappings(){
+		if (isset ($this->sierraFieldMappings)){
+			foreach ($this->sierraFieldMappings as $sierraFieldMapping){
+				if (isset($sierraFieldMapping->deleteOnSave) && $sierraFieldMapping->deleteOnSave == true){
+					$sierraFieldMapping->delete();
+				}else{
+					if (isset($sierraFieldMapping->id) && is_numeric($sierraFieldMapping->id)){
+						$sierraFieldMapping->update();
+					}else{
+						$sierraFieldMapping->indexingProfileId = $this->id;
+						$sierraFieldMapping->insert();
+					}
+				}
+			}
+			//Clear the translation maps so they are reloaded the next time
+			unset($this->sierraFieldMappings);
 		}
 	}
 

@@ -39,7 +39,7 @@ class AJAX_JSON extends Action {
 		header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 
 		$method = $_GET['method'];
-		if (is_callable(array($this, $method))) {
+		if (method_exists($this, $method)) {
 			if ($method == 'getHoursAndLocations'){
 				$output = $this->$method();
 			}elseif (in_array($method, array('getAutoLogoutPrompt', 'getReturnToHomePrompt', 'getPayFinesAfterAction'))) {

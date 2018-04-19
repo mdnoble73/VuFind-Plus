@@ -353,9 +353,9 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 					break;
 				}
 			}
-			if (primaryFormat == null || primaryFormat.equals("Unknown")) {
+			if (primaryFormat == null/* || primaryFormat.equals("Unknown")*/) {
 				primaryFormat = "Unknown";
-				logger.info("No primary format for " + recordInfo.getRecordIdentifier() + " found setting to unknown to load standard marc data");
+				//logger.info("No primary format for " + recordInfo.getRecordIdentifier() + " found setting to unknown to load standard marc data");
 			}
 			updateGroupedWorkSolrDataBasedOnStandardMarcData(groupedWork, record, recordInfo.getRelatedItems(), identifier, primaryFormat);
 
@@ -499,11 +499,12 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		if (recordInfo.getNumCopiesOnOrder() > 0 && !hasTangibleItems){
 			groupedWork.addKeywords("On Order");
 			groupedWork.addKeywords("Coming Soon");
+			/*//Don't do this anymore, see D-1893
 			HashSet<String> additionalOrderSubjects = new HashSet<>();
 			additionalOrderSubjects.add("On Order");
 			additionalOrderSubjects.add("Coming Soon");
 			groupedWork.addTopic(additionalOrderSubjects);
-			groupedWork.addTopicFacet(additionalOrderSubjects);
+			groupedWork.addTopicFacet(additionalOrderSubjects);*/
 		}
 	}
 
@@ -535,7 +536,7 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		return true;
 	}
 
-	private void loadScopeInfoForOrderItem(String location, String format, HashSet<String> audiences, ItemInfo itemInfo, Record record) {
+	private void loadScopeInfoForOrderItem(String location, String format, TreeSet<String> audiences, ItemInfo itemInfo, Record record) {
 		//Shelf Location also include the name of the ordering branch if possible
 		boolean hasLocationBasedShelfLocation = false;
 		boolean hasSystemBasedShelfLocation = false;
@@ -554,8 +555,11 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 						boolean libraryOwned = scope.getLibraryScope().isItemOwnedByScope(profileType, location, "");
 						scopingInfo.setLibraryOwned(libraryOwned);
 					}else{
-						logger.warn("Location scope " + scope.getScopeName() + " does not have an associated library");
-						continue;
+						//Check to see if the scope is both a library and location scope
+						if (!scope.isLibraryScope()){
+							logger.warn("Location scope " + scope.getScopeName() + " does not have an associated library getting scope for order item " + itemInfo.getItemIdentifier() + " - " + itemInfo.getFullRecordIdentifier());
+							continue;
+						}
 					}
 				}
 				if (scope.isLibraryScope()) {
@@ -824,7 +828,8 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			}
 		}
 
-		loadScopeInfoForPrintIlsItem(recordInfo, groupedWork.getTargetAudiences(), itemInfo, record);
+		//This is done later so we don't need to do it here.
+		//loadScopeInfoForPrintIlsItem(recordInfo, groupedWork.getTargetAudiences(), itemInfo, record);
 
 		groupedWork.addKeywords(itemLocation);
 		if (itemSublocation.length() > 0){
@@ -892,7 +897,7 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		}
 	}
 
-	private void loadScopeInfoForPrintIlsItem(RecordInfo recordInfo, HashSet<String> audiences, ItemInfo itemInfo, Record record) {
+	private void loadScopeInfoForPrintIlsItem(RecordInfo recordInfo, TreeSet<String> audiences, ItemInfo itemInfo, Record record) {
 		//Determine Availability
 		boolean available = isItemAvailable(itemInfo);
 
@@ -910,11 +915,12 @@ abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		HoldabilityInformation isHoldableUnscoped = isItemHoldableUnscoped(itemInfo);
 		BookabilityInformation isBookableUnscoped = isItemBookableUnscoped();
 		String originalUrl = itemInfo.geteContentUrl();
+		String primaryFormat = recordInfo.getPrimaryFormat();
 		for (Scope curScope : indexer.getScopes()) {
 			//Check to see if the record is holdable for this scope
 			HoldabilityInformation isHoldable = isItemHoldable(itemInfo, curScope, isHoldableUnscoped);
 
-			Scope.InclusionResult result = curScope.isItemPartOfScope(profileType, itemLocation, itemSublocation, itemInfo.getITypeCode(), audiences, recordInfo.getPrimaryFormat(), isHoldable.isHoldable(), false, false, record, originalUrl);
+			Scope.InclusionResult result = curScope.isItemPartOfScope(profileType, itemLocation, itemSublocation, itemInfo.getITypeCode(), audiences, primaryFormat, isHoldable.isHoldable(), false, false, record, originalUrl);
 			if (result.isIncluded){
 				BookabilityInformation isBookable = isItemBookable(itemInfo, curScope, isBookableUnscoped);
 				ScopingInfo scopingInfo = itemInfo.addScope(curScope);

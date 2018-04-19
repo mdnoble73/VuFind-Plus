@@ -29,37 +29,37 @@ class Record_AJAX extends Action {
 		global $timer;
 		global $analytics;
 		$analytics->disableTracking();
-		$method = $_GET['method'];
+		$method = (isset($_GET['method']) && !is_array($_GET['method'])) ? $_GET['method'] : '';
 		$timer->logTime("Starting method $method");
+		if (method_exists($this, $method)) {
+			// Methods intend to return JSON data
+			if (in_array($method, array('getPlaceHoldForm', 'getPlaceHoldEditionsForm', 'getBookMaterialForm', 'placeHold', 'reloadCover', 'bookMaterial'))){
+				header('Content-type: text/plain');
+				header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
+				header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
+				echo $this->json_utf8_encode($this->$method());
+			}else if (in_array($method, array('getBookingCalendar'))){
+				header('Content-type: text/html');
+				header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
+				header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
+				echo $this->$method();
+			}else if ($method == 'downloadMarc'){
+				echo $this->$method();
+			}else{
+				header ('Content-type: text/xml');
+				header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
+				header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 
-		// Methods intend to return JSON data
-		if (in_array($method, array('getPlaceHoldForm', 'getPlaceHoldEditionsForm', 'getBookMaterialForm', 'placeHold', 'reloadCover', 'bookMaterial'))){
-			header('Content-type: text/plain');
-			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
-			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
-			echo $this->json_utf8_encode($this->$method());
-		}else if (in_array($method, array('getBookingCalendar'))){
-			header('Content-type: text/html');
-			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
-			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
-			echo $this->$method();
-		}else if ($method == 'downloadMarc'){
-			echo $this->$method();
-		}else{
-			header ('Content-type: text/xml');
-			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
-			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
-
-			$xmlResponse = '<?xml version="1.0" encoding="UTF-8"?' . ">\n";
-			$xmlResponse .= "<AJAXResponse>\n";
-			if (is_callable(array($this, $_GET['method']))) {
+				$xmlResponse = '<?xml version="1.0" encoding="UTF-8"?' . ">\n";
+				$xmlResponse .= "<AJAXResponse>\n";
 				$xmlResponse .= $this->$_GET['method']();
-			} else {
-				$xmlResponse .= '<Error>Invalid Method</Error>';
-			}
-			$xmlResponse .= '</AJAXResponse>';
+				$xmlResponse .= '</AJAXResponse>';
 
-			echo $xmlResponse;
+				echo $xmlResponse;
+			}
+		} else {
+			$output = json_encode(array('error'=>'invalid_method'));
+			echo $output;
 		}
 	}
 

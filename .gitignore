@@ -129,9 +129,9 @@ sites/*.flatironslibrary.org
 sites/*.boulderlibrary.org
 sites/*.flatironsconsortium.org
 
-# Specific files on Venus #
-###########################
-vufind/web/code_club_*.mp4
+# Lion Symbolic Links #
+#######################
+sites/*.lionlibraries.org
 
 # Nashville Symbolic Links #
 ############################
@@ -152,3 +152,4 @@ sites/marmot.localhost/sql_backup/marmot_vufind.sql
 sites/arlington.localhost/sql_backup/arlington_econtent.sql
 *.sql
 vufind/web/interface/themes/pitkin_resp/images/Winter.JPG
+main.tmpcss

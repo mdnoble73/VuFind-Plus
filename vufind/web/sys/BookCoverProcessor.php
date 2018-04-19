@@ -305,18 +305,33 @@ class BookCoverProcessor{
 			$this->error = "No size provided, please specify small, medium, or large.";
 			return false;
 		}
+		if (is_array($_GET['isn'])){
+			$_GET['isn'] = array_pop($_GET['isn']);
+		}
 		$this->isn = isset($_GET['isn']) ? preg_replace('/[^0-9xX]/', '', $_GET['isn']) : null;
 		if (strlen($this->isn) == 0){
 			$this->isn = null;
+		}
+
+		if (is_array($_GET['upc'])){
+			$_GET['upc'] = array_pop($_GET['upc']);
 		}
 		$this->upc = isset($_GET['upc']) ? ltrim(preg_replace('/[^0-9xX]/', '', $_GET['upc']), '0') : null;
 		if (strlen($this->upc) == 0){
 			//Strip any leading zeroes
 			$this->upc = null;
 		}
+
+		if (is_array($_GET['issn'])){
+			$_GET['issn'] = array_pop($_GET['issn']);
+		}
 		$this->issn = isset($_GET['issn']) ? preg_replace('/[^0-9xX]/', '', $_GET['issn']) : null;
 		if (strlen($this->issn) == 0){
 			$this->issn = null;
+		}
+
+		if (is_array($_GET['id'])){
+			$_GET['id'] = array_pop($_GET['id']);
 		}
 		$this->id = isset($_GET['id']) ? $_GET['id'] : null;
 		if (isset($_GET['type'])){

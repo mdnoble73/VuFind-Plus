@@ -18,7 +18,6 @@
  *
  */
 require_once ROOT_DIR . '/sys/Proxy_Request.php';
-require_once ROOT_DIR . '/Drivers/marmot_inc/CirculationStatus.php';
 require_once ROOT_DIR . '/Drivers/marmot_inc/LoanRule.php';
 require_once ROOT_DIR . '/Drivers/marmot_inc/LoanRuleDeterminer.php';
 require_once ROOT_DIR . '/Drivers/ScreenScrapingDriver.php';
@@ -44,39 +43,6 @@ class Millennium extends ScreenScrapingDriver
 	var $availableStatiRegex = null;
 	/** @var  Solr */
 	public $db;
-
-	/**
-	 * Load information about circulation statuses from the database
-	 * so we can perform translations easily and so we can determine
-	 * what is available and what is not available
-	 *
-	 * @return void
-	 */
-	protected function loadCircStatusInfo(){
-		if (is_null($this->holdableStatiRegex)){
-			$circStatus = new CirculationStatus();
-			$circStatus->find();
-			$holdableStati = array();
-			$availableStati = array();
-			if ($circStatus->N > 0){
-				while ($circStatus->fetch()){
-					if ($circStatus->holdable == 1){
-						$holdableStati[] = $circStatus->millenniumName;
-					}
-					if ($circStatus->available == 1){
-						$availableStati[] = $circStatus->millenniumName;
-					}
-					if (isset($circStatus->displayName) && is_string($circStatus->displayName) && strlen($circStatus->displayName) > 0){
-						$this->statusTranslations[$circStatus->millenniumName] = $circStatus->displayName;
-					}
-				}
-			}
-			//Holdable statuses are statuses where the patron could get the item in a reasonable amount of time if they place a hold.
-			$this->holdableStatiRegex = implode('|', $holdableStati);
-			//Available statuses are statuses where the patron can walk into the library and get it pretty much immediately.
-			$this->availableStatiRegex = implode('|', $availableStati);
-		}
-	}
 
 	/** @var LoanRule[] $loanRules  */
 	var $loanRules = null;
@@ -1745,7 +1711,7 @@ class Millennium extends ScreenScrapingDriver
 				$newList->user_id = $user->id;
 				$newList->title = $title;
 				if (!$newList->find(true)){
-					$newList->description = $description;
+					$newList->description = strip_tags($description);
 					$newList->insert();
 				}
 

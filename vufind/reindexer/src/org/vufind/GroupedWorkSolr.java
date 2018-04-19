@@ -1,6 +1,5 @@
 package org.vufind;
 
-import com.sun.deploy.panel.PathEditor;
 import com.sun.istack.internal.NotNull;
 import org.apache.log4j.Logger;
 import org.apache.solr.common.SolrInputDocument;
@@ -86,7 +85,7 @@ public class GroupedWorkSolr implements Cloneable {
 	private HashSet<String> seriesWithVolume = new HashSet<>();
 	private String subTitle;
 	private HashSet<String> targetAudienceFull = new HashSet<>();
-	private HashSet<String> targetAudience = new HashSet<>();
+	private TreeSet<String> targetAudience = new TreeSet<>();
 	private String title;
 	private HashSet<String> titleAlt = new HashSet<>();
 	private HashSet<String> titleOld = new HashSet<>();
@@ -187,7 +186,7 @@ public class GroupedWorkSolr implements Cloneable {
 		// noinspection unchecked
 		clonedWork.targetAudienceFull = (HashSet<String>) targetAudienceFull.clone();
 		// noinspection unchecked
-		clonedWork.targetAudience = (HashSet<String>) targetAudience.clone();
+		clonedWork.targetAudience = (TreeSet<String>) targetAudience.clone();
 		// noinspection unchecked
 		clonedWork.titleAlt = (HashSet<String>) titleAlt.clone();
 		// noinspection unchecked
@@ -212,6 +211,7 @@ public class GroupedWorkSolr implements Cloneable {
 		SolrInputDocument doc = new SolrInputDocument();
 		//Main identification
 		doc.addField("id", id);
+		doc.addField("last_indexed", new Date());
 		doc.addField("alternate_ids", alternateIds);
 		doc.addField("recordtype", "grouped_work");
 
@@ -892,7 +892,7 @@ public class GroupedWorkSolr implements Cloneable {
 		return false;
 	}
 
-	private void checkDefaultValue(HashSet<String> valuesCollection, String defaultValue) {
+	private void checkDefaultValue(Set<String> valuesCollection, String defaultValue) {
 		//Remove the default value if we get something more specific
 		if (valuesCollection.contains(defaultValue) && valuesCollection.size() > 1){
 			valuesCollection.remove(defaultValue);
@@ -901,7 +901,7 @@ public class GroupedWorkSolr implements Cloneable {
 		}
 	}
 
-	private void checkDefaultValue(HashMap<String, Integer> valuesCollection, String defaultValue) {
+	private void checkDefaultValue(Map<String, Integer> valuesCollection, String defaultValue) {
 		//Remove the default value if we get something more specific
 		if (valuesCollection.containsKey(defaultValue) && valuesCollection.size() > 1){
 			valuesCollection.remove(defaultValue);
@@ -1572,22 +1572,16 @@ public class GroupedWorkSolr implements Cloneable {
 		HashSet<ItemInfo> relatedItems = new HashSet<>();
 		loadRelatedRecordsAndItemsForScope(scope, relatedRecordsForScope, relatedItems);
 		if (relatedRecordsForScope.size() > 0){
-			if (isLibraryOwned(relatedItems, scope)){
-				return true;
-			}
+			return isLibraryOwned(relatedItems, scope);
 		}
 		return false;
 	}
-
-
-
-
 
 	int getNumRecords() {
 		return this.relatedRecords.size();
 	}
 
-	HashSet<String> getTargetAudiences() {
+	TreeSet<String> getTargetAudiences() {
 		return targetAudience;
 	}
 }

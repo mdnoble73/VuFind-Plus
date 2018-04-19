@@ -265,6 +265,10 @@ public class GroupedReindexMain {
 	private static StringBuffer reindexNotes = new StringBuffer();
 	private static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	static void addNoteToReindexLog(String note) {
+		if (addNoteToReindexLogStmt == null){
+			//This happens when called from another system (i.e. from Sierra Export)
+			return;
+		}
 		try {
 			Date date = new Date();
 			reindexNotes.append("<br>").append(dateFormat.format(date)).append(note);

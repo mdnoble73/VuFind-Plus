@@ -53,23 +53,22 @@ class MyAccount_Edit extends Action
 		}
 
 		// Save Data
-		$listId = $_REQUEST['list_id'];
-		if (isset($_POST['submit'])) {
-			$this->saveChanges($user);
-
-			// After changes are saved, send the user back to an appropriate page;
-			// either the list they were viewing when they started editing, or the
-			// overall favorites list.
-			if (isset($listId)) {
-				$nextAction = 'MyList/' . $listId;
-			} else {
-				$nextAction = 'Home';
-			}
-			header('Location: ' . $configArray['Site']['path'] . '/MyAccount/' . $nextAction);
-			exit();
-		}
-
 		if (!empty($listId) && ctype_digit($listId)) {
+			$listId = $_REQUEST['list_id'];
+			if (isset($_POST['submit'])) {
+				$this->saveChanges($user);
+
+				// After changes are saved, send the user back to an appropriate page;
+				// either the list they were viewing when they started editing, or the
+				// overall favorites list.
+				if (isset($listId)) {
+					$nextAction = 'MyList/' . $listId;
+				} else {
+					$nextAction = 'Home';
+				}
+				header('Location: ' . $configArray['Site']['path'] . '/MyAccount/' . $nextAction);
+				exit();
+			}
 
 			require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
 			$userList     = new UserList();

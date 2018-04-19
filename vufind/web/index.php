@@ -273,7 +273,8 @@ if ($isLoggedIn) {
 	if (PEAR_Singleton::isError($user)) {
 		require_once ROOT_DIR . '/services/MyAccount/Login.php';
 		$launchAction = new MyAccount_Login();
-		$launchAction->launch();
+		$error_msg    = translate($user->getMessage());
+		$launchAction->launch($error_msg);
 		exit();
 	}elseif(!$user){
 		require_once ROOT_DIR . '/services/MyAccount/Login.php';
@@ -427,11 +428,13 @@ if (isset($_REQUEST['basicType'])){
 $interface->assign('curFormatCategory', 'Everything');
 if (isset($_REQUEST['filter'])){
 	foreach ($_REQUEST['filter'] as $curFilter){
-		$filterInfo = explode(":", $curFilter);
-		if ($filterInfo[0] == 'format_category'){
-			$curFormatCategory = str_replace('"', '', $filterInfo[1]);
-			$interface->assign('curFormatCategory', $curFormatCategory);
-			break;
+		if (!is_array($curFilter)){
+			$filterInfo = explode(":", $curFilter);
+			if ($filterInfo[0] == 'format_category'){
+				$curFormatCategory = str_replace('"', '', $filterInfo[1]);
+				$interface->assign('curFormatCategory', $curFormatCategory);
+				break;
+			}
 		}
 	}
 }
@@ -489,6 +492,7 @@ if ($action == "AJAX" || $action == "JSON"){
 	if ($library->enableArchive){
 		$islandoraSearchObject = SearchObjectFactory::initSearchObject('Islandora');
 		$interface->assign('islandoraSearchTypes', is_object($islandoraSearchObject) ? $islandoraSearchObject->getBasicTypes() : array());
+		$interface->assign('enableArchive', true);
 	}
 
 	//TODO: Reenable once we do full EDS integration
@@ -672,7 +676,12 @@ if (!is_dir(ROOT_DIR . "/services/$module")){
 	$interface->assign('showBreadcrumbs', false);
 	$interface->assign('sidebar', 'Search/home-sidebar.tpl');
 	$requestURI = $_SERVER['REQUEST_URI'];
-	PEAR_Singleton::RaiseError(new PEAR_Error("Cannot Load Action '$action' for Module '$module' request '$requestURI'"));
+	$cleanedUrl = strip_tags(urldecode($_SERVER['REQUEST_URI']));
+	if ($cleanedUrl != $requestURI){
+		PEAR_Singleton::RaiseError(new PEAR_Error("Cannot Load Action and Module the URL provided is invalid"));
+	}else{
+		PEAR_Singleton::RaiseError(new PEAR_Error("Cannot Load Action '$action' for Module '$module' request '$requestURI'"));
+	}
 }
 $timer->logTime('Finished Index');
 $timer->writeTimings();

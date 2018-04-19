@@ -88,7 +88,7 @@
 # Export of data to EBSCO #
 ###########################
 #Fetch western ebrary from pika production server
-00 23 * * * scp pascal@10.1.2.11:/data/vufind-plus/ebrary/western/marc/*.mrc /data/vufind-plus/ebrary/western/marc/
+00 23 * * * scp pascal@10.1.2.51:/data/vufind-plus/ebrary/western/marc/*.mrc /data/vufind-plus/ebrary/western/marc/
 
 # send marc records to ebsco at 1am daily (for general ebsco catalog (western and cmc)
 # this script also delivers western's ebrary records to ebsco.
@@ -110,7 +110,7 @@
 25 2 * * * /root/cron/adams.exp
 
 #Fetch adams ebrary from pika production server
-02 2 * * * scp pascal@10.1.2.11:/data/vufind-plus/ebrary/adams/marc/*.mrc /data/vufind-plus/ebrary/adams/marc/
+02 2 * * * scp pascal@10.1.2.51:/data/vufind-plus/ebrary/adams/marc/*.mrc /data/vufind-plus/ebrary/adams/marc/
 #
 # ftp adams marc records to ebsco at 2.45am daily
 45 2 * * * /root/cron/adams_ebrary.exp

@@ -31,13 +31,15 @@
 ######################
 # backup important bits at 12:10am daily
 15 2 * * * /usr/local/vufind-plus/vufind/cron/nightly_mysql_dump.sh marmot.production 2>&1 >/dev/null
+# backup to backup server at 02:15am daily
+15 02 * * * /root/cron/backup 2>&1 >/dev/null
 
 #############
 # On Reboot #
 #############
 @reboot cd /usr/local/vufind-plus/sites/marmot.production/; ./marmot.production.sh start
 # Continuous Re-Indexing
-@reboot /usr/local/vufind-plus/sites/marmot.production/continuous_partial_reindex.sh
+@reboot sleep 300 && /usr/local/vufind-plus/sites/marmot.production/continuous_partial_reindex.sh
 
 #####################
 # Daily full update #
@@ -83,5 +85,7 @@
 ###################################
 # Library supplied covers
 */10 * * * * /usr/local/vufind-plus/sites/marmot.production/copyCovers.sh
+#Lynda weekly update
+17 0 * * Fri /usr/local/vufind-plus/vufind/cron/fetch_lynda.sh marmot
 
 #final end of line character needed for crontab to be read

@@ -11,7 +11,7 @@ else
 	LOG="logger -t $0"
 	if [ -d "$SIDELOADDIR/" ]; then
 		if [ -d "$SIDELOADDIR/merge/marc" ]; then
-			if [ "$(ls -A $SIDELOADDIR/merge/marc)" ] || [ "$(ls -A $SIDELOADDIR/deletes/marc)" ]; then
+			if [ "$(ls $SIDELOADDIR/merge/marc)" ] || [ "$(ls $SIDELOADDIR/deletes/marc)" ]; then
 				if [ -r "$SIDELOADDIR/mergeConfig.ini" ]; then
 					cd /usr/local/vufind-plus/vufind/marcMergeUtility
 					java -jar MarcMergeUtility.jar "$SIDELOADDIR/mergeConfig.ini"

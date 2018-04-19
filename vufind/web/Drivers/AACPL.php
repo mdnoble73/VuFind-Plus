@@ -86,7 +86,7 @@ class AACPL extends SirsiDynixROA {
 		$location->libraryId = $library->libraryId;
 		$location->validHoldPickupBranch = 1;
 
-		if ($location->find(true)) {
+		if ($location->find()) {
 			$pickupLocations = array();
 			while($location->fetch()) {
 				$pickupLocations[$location->code] = $location->displayName;

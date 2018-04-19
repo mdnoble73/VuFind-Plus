@@ -139,7 +139,7 @@ public abstract class GroupedWorkBase {
 
 	private static void loadAuthorities() {
 		try {
-			CSVReader csvReader = new CSVReader(new FileReader(new File("./author_authorities.properties")));
+			CSVReader csvReader = new CSVReader(new FileReader(new File("../record_grouping/author_authorities.properties")));
 			String[] curLine = csvReader.readNext();
 			while (curLine != null){
 				if (curLine.length >= 2){
@@ -151,7 +151,7 @@ public abstract class GroupedWorkBase {
 			logger.error("Unable to load author authorities", e);
 		}
 		try {
-			CSVReader csvReader = new CSVReader(new FileReader(new File("./title_authorities.properties")));
+			CSVReader csvReader = new CSVReader(new FileReader(new File("../record_grouping/title_authorities.properties")));
 			String[] curLine = csvReader.readNext();
 			while (curLine != null){
 				if (curLine.length >= 2){
