@@ -80,6 +80,7 @@
 				<div class="row" id="more-browse-results">
 					<span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span>
 				</div>
+			</a>
 		{/if}
 	{else}
 		{if $pageLinks.all}<div class="text-center">{$pageLinks.all}</div>{/if}
