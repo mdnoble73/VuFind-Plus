@@ -90,8 +90,8 @@ class AACPL extends SirsiDynixROA {
 			$pickupLocations = array();
 			while($location->fetch()) {
 				$pickupLocations[$location->code] = $location->displayName;
-
 			}
+			sort($pickupLocations);
 			$fields[] = array('property' => 'pickupLocation', 'type' => 'enum', 'label' => 'Preferred Library', 'description' => 'Please choose the Library location you would prefer to use', 'values' => $pickupLocations, 'required' => true);
 		}
 
