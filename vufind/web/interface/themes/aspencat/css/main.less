@@ -150,3 +150,13 @@
     background-color: @selectedCategoryColor;
   }
 }
+
+#more-details-accordion {
+  .panel-heading {
+    background: linear-gradient(to bottom, @accordion-active-header-backgroundcolor, darken(@accordion-active-header-backgroundcolor, 10%));
+  }
+  .panel-title{
+    color: #fff;
+    text-shadow: 1px 1px @gray;
+  }
+}
