@@ -81,8 +81,8 @@ public class GroupedWorkSolr implements Cloneable {
 	private HashSet<String> publicationDates = new HashSet<>();
 	private float rating = 2.5f;
 	private HashMap<String, String> series = new HashMap<>();
-	private HashSet<String> series2 = new HashSet<>();
-	private HashSet<String> seriesWithVolume = new HashSet<>();
+	private HashMap<String, String> series2 = new HashMap<>();
+	private HashMap<String, String> seriesWithVolume = new HashMap<>();
 	private String subTitle;
 	private HashSet<String> targetAudienceFull = new HashSet<>();
 	private TreeSet<String> targetAudience = new TreeSet<>();
@@ -180,9 +180,9 @@ public class GroupedWorkSolr implements Cloneable {
 		// noinspection unchecked
 		clonedWork.series = (HashMap<String,String>) series.clone();
 		// noinspection unchecked
-		clonedWork.series2 = (HashSet<String>) series2.clone();
+		clonedWork.series2 = (HashMap<String, String>) series2.clone();
 		// noinspection unchecked
-		clonedWork.seriesWithVolume = (HashSet<String>) seriesWithVolume.clone();
+		clonedWork.seriesWithVolume = (HashMap<String, String>) seriesWithVolume.clone();
 		// noinspection unchecked
 		clonedWork.targetAudienceFull = (HashSet<String>) targetAudienceFull.clone();
 		// noinspection unchecked
@@ -263,8 +263,8 @@ public class GroupedWorkSolr implements Cloneable {
 		doc.addField("edition", editions);
 		doc.addField("dateSpan", dateSpans);
 		doc.addField("series", series.values());
-		doc.addField("series2", series2);
-		doc.addField("series_with_volume", seriesWithVolume);
+		doc.addField("series2", series2.values());
+		doc.addField("series_with_volume", seriesWithVolume.values());
 		doc.addField("topic", topics);
 		doc.addField("topic_facet", topicFacets);
 		doc.addField("subject_facet", subjects);
@@ -1192,38 +1192,76 @@ public class GroupedWorkSolr implements Cloneable {
 
 	void addSeries(Set<String> fieldList) {
 		for(String curField : fieldList){
-			if (!curField.equalsIgnoreCase("none")){
-				this.addSeries(curField);
-			}
+			this.addSeries(curField);
 		}
 	}
 
 	void addSeries(String series) {
-		if (series != null && !series.equalsIgnoreCase("none")){
-			series = Util.trimTrailingPunctuation(series);
-			//Remove anything in parens since it's normally just the format
-			series = series.replaceAll("\\s+\\(.*?\\)", "");
-			//Remove the word series at the end since this gets cataloged inconsistently
-			series = series.replaceAll("(?i)\\s+series$", "");
-			String normalizedSeries = series.toLowerCase().replaceAll("\\W", "");
-			if (!this.series.containsKey(normalizedSeries)){
-				this.series.put(normalizedSeries, series);
-			}
-		}
+		addSeriesInfoToField(series, this.series);
 	}
 	void addSeriesWithVolume(Set<String> fieldList){
-		seriesWithVolume.addAll(fieldList);
+		for(String curField : fieldList){
+			this.addSeriesWithVolume(curField);
+		}
 	}
 
 	void addSeriesWithVolume(String series){
 		if (series != null) {
-			seriesWithVolume.add(series);
+			addSeriesInfoToField(series, this.seriesWithVolume);
 		}
 	}
 
 	void addSeries2(Set<String> fieldList) {
-		this.series2.addAll(fieldList);
+		for(String curField : fieldList){
+			this.addSeries2(curField);
+		}
 	}
+
+	void addSeries2(String series2){
+		if (series != null) {
+			addSeriesInfoToField(series2, this.series2);
+		}
+	}
+
+	private void addSeriesInfoToField(String seriesInfo, HashMap<String, String> seriesField) {
+		if (seriesInfo != null && !seriesInfo.equalsIgnoreCase("none")) {
+			seriesInfo = getNormalizedSeries(seriesInfo, true);
+			String normalizedSeries = seriesInfo.toLowerCase();
+			if (!seriesField.containsKey(normalizedSeries)) {
+				boolean okToAdd = true;
+				for (String existingSeries2 : seriesField.keySet()) {
+					if (existingSeries2.indexOf(normalizedSeries) != -1) {
+						okToAdd = false;
+						break;
+					} else if (normalizedSeries.indexOf(existingSeries2) != -1) {
+						seriesField.remove(existingSeries2);
+						break;
+					}
+				}
+				if (okToAdd) {
+					seriesField.put(normalizedSeries, seriesInfo);
+				}
+			}
+		}
+	}
+
+	String getNormalizedSeries(String series, boolean removeVolume){
+		series = Util.trimTrailingPunctuation(series);
+		if (removeVolume){
+			series = series.replaceAll("[#|]\\s*\\d+$", "");
+		}
+		//Remove anything in parens since it's normally just the format
+		series = series.replaceAll("\\s+\\(.*?\\)", "");
+		series = series.replaceAll(" & ", " and ");
+		series = series.replaceAll("--", " ");
+		series = series.replaceAll(":", "");
+		series = series.replaceAll(",\\s+(the|an)$", "");
+		//Remove the word series at the end since this gets cataloged inconsistently
+		series = series.replaceAll("(?i)\\s+series$", "");
+
+		return Util.trimTrailingPunctuation(series);
+	}
+
 
 	void addPhysical(Set<String> fieldList) {
 		this.physicals.addAll(fieldList);
