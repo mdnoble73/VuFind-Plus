@@ -74,6 +74,15 @@ class MergedGroupedWork extends DB_DataObject {
 					'validatedOk' => false,
 					'errors' => array("The format of the source {$this->sourceGroupedWorkId} is not a valid work id"),
 			);
+		} else {
+			$destination_check = new MergedGroupedWork();
+			$destination_check->destinationGroupedWorkId = $this->sourceGroupedWorkId;
+			if ($destination_check->find()) {
+				$validationResults = array(
+					'validatedOk' => false,
+					'errors' => array("The source {$this->sourceGroupedWorkId} is a destination work for another manual merging entry. A Destination work can not be the source work in another manual merging."),
+				);
+			}
 		}
 		return $validationResults;
 	}
