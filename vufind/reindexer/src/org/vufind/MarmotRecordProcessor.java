@@ -79,7 +79,8 @@ class MarmotRecordProcessor extends IIIRecordProcessor {
 			Subfield suppressionSubfield = field907.getSubfield('e');
 			if (suppressionSubfield != null){
 				String bCode3 = suppressionSubfield.getData().toLowerCase().trim();
-				if (bCode3.equals("n")){
+				String suppressedCodes = "2me1w";
+				if (bCode3.length() > 0 && suppressedCodes.contains(bCode3)){
 					logger.debug("Bib record is suppressed due to bcode3 " + bCode3);
 					return true;
 				}
