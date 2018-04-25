@@ -1216,7 +1216,7 @@ public class GroupedWorkSolr implements Cloneable {
 			}
 			String seriesInfoLower = seriesInfo.toLowerCase();
 			String volumeLower = volume.toLowerCase();
-			String seriesInfoWithVolume = seriesInfo + "|" + (volume.length() > 0 ? ("#" + volume) : "");
+			String seriesInfoWithVolume = seriesInfo + "|" + (volume.length() > 0 ? volume : "");
 			String normalizedSeriesInfoWithVolume = seriesInfoWithVolume.toLowerCase();
 
 			if (!this.seriesWithVolume.containsKey(normalizedSeriesInfoWithVolume)) {
@@ -1238,6 +1238,9 @@ public class GroupedWorkSolr implements Cloneable {
 							if (volumeLower.equals(existingVolume)) {
 								okToAdd = false;
 								break;
+							}else if (volumeLower.length() == 0){
+								okToAdd = false;
+								break;
 							}
 						}
 					} else if (seriesInfoLower.indexOf(existingSeriesName) != -1) {
@@ -1247,6 +1250,9 @@ public class GroupedWorkSolr implements Cloneable {
 							break;
 						}else if (volume.length() == 0 && existingVolume.length() > 0){
 							okToAdd = false;
+							break;
+						}else if (volume.length() == 0 && existingVolume.length() == 0){
+							this.seriesWithVolume.remove(existingSeries2);
 							break;
 						}
 					}
@@ -1295,8 +1301,18 @@ public class GroupedWorkSolr implements Cloneable {
 	String getNormalizedSeriesVolume(String volume){
 		volume = Util.trimTrailingPunctuation(volume);
 		volume = volume.replaceAll("(bk\\.?|book)", "");
-		volume = volume.replaceAll("(volume|vol.)", "");
-		volume = volume.trim();
+		volume = volume.replaceAll("(volume|vol\\.|v\\.)", "");
+		volume = volume.replaceAll("libro", "");
+		volume = volume.replaceAll("one", "1");
+		volume = volume.replaceAll("two", "2");
+		volume = volume.replaceAll("three", "3");
+		volume = volume.replaceAll("four", "4");
+		volume = volume.replaceAll("five", "5");
+		volume = volume.replaceAll("six", "6");
+		volume = volume.replaceAll("seven", "7");
+		volume = volume.replaceAll("eight", "8");
+		volume = volume.replaceAll("nine", "9");
+		volume = Util.trimTrailingPunctuation(volume.trim());
 		return volume;
 	}
 
