@@ -44,8 +44,9 @@
 ######################
 # MySQL Nightly Dump #
 ######################
-# backup important bits at 2:10am local daily
 10 0 * * * /usr/local/vufind-plus/vufind/cron/nightly_mysql_dump.sh lion.production 2>&1 >/dev/null
+# server back up
+11 01 * * * /root/cron/backup 2>&1 >/dev/null
 
 ################
 # Pika Cleanup #
