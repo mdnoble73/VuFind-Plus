@@ -1207,7 +1207,54 @@ public class GroupedWorkSolr implements Cloneable {
 
 	void addSeriesWithVolume(String series){
 		if (series != null) {
-			addSeriesInfoToField(series, this.seriesWithVolume);
+			String[] seriesParts = series.split("\\|",2);
+			String seriesName = seriesParts[0];
+			String seriesInfo = getNormalizedSeries(seriesName, true);
+			String volume= "";
+			if (seriesParts.length > 1){
+				volume = getNormalizedSeriesVolume(seriesParts[1]);
+			}
+			String seriesInfoLower = seriesInfo.toLowerCase();
+			String volumeLower = volume.toLowerCase();
+			String seriesInfoWithVolume = seriesInfo + "|" + (volume.length() > 0 ? ("#" + volume) : "");
+			String normalizedSeriesInfoWithVolume = seriesInfoWithVolume.toLowerCase();
+
+			if (!this.seriesWithVolume.containsKey(normalizedSeriesInfoWithVolume)) {
+				boolean okToAdd = true;
+				for (String existingSeries2 : this.seriesWithVolume.keySet()) {
+					String[] existingSeriesInfo = existingSeries2.split("\\|", 2);
+					String existingSeriesName = existingSeriesInfo[0];
+					String existingVolume = "";
+					if (existingSeriesInfo.length > 1){
+						existingVolume = existingSeriesInfo[1];
+					}
+					//Get the longer series name
+					if (existingSeriesName.indexOf(seriesInfoLower) != -1) {
+						//Use the old one unless it doesn't have a volume
+						if (existingVolume.length() == 0){
+							this.seriesWithVolume.remove(existingSeries2);
+							break;
+						}else{
+							if (volumeLower.equals(existingVolume)) {
+								okToAdd = false;
+								break;
+							}
+						}
+					} else if (seriesInfoLower.indexOf(existingSeriesName) != -1) {
+						//Before removing the old series, make sure the new one has a volume
+						if (existingVolume.length() > 0 && existingVolume.equals(volumeLower)){
+							this.seriesWithVolume.remove(existingSeries2);
+							break;
+						}else if (volume.length() == 0 && existingVolume.length() > 0){
+							okToAdd = false;
+							break;
+						}
+					}
+				}
+				if (okToAdd) {
+					this.seriesWithVolume.put(normalizedSeriesInfoWithVolume, seriesInfoWithVolume);
+				}
+			}
 		}
 	}
 
@@ -1243,6 +1290,14 @@ public class GroupedWorkSolr implements Cloneable {
 				}
 			}
 		}
+	}
+
+	String getNormalizedSeriesVolume(String volume){
+		volume = Util.trimTrailingPunctuation(volume);
+		volume = volume.replaceAll("(bk\\.?|book)", "");
+		volume = volume.replaceAll("(volume|vol.)", "");
+		volume = volume.trim();
+		return volume;
 	}
 
 	String getNormalizedSeries(String series, boolean removeVolume){
