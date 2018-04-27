@@ -44,6 +44,8 @@
 ############################
 17 00 * * * cp /ftp/sierra/fullexport.marc /data/vufind-plus/marmot.ftp/marc/fullexport.mrc;cd /usr/local/vufind-plus/vufind/cron; java -jar cron.jar marmot.ftp SplitMarcExport
 
+# Monitor that the marc splitter is updating files
+19 03 * * * /usr/local/vufind-plus/sites/marmot.ftp/marc_split_check.sh
 
 ##########################
 # Check for Hoopla updates

@@ -25,9 +25,8 @@ public class SplitMarcExport implements IProcessHandler{
 
 	@Override
 	public void doCronProcess(String servername, Ini configIni, Profile.Section processSettings, Connection vufindConn, Connection econtentConn, CronLogEntry cronEntry, Logger logger) {
-//  Commenting out the log entries to remove dependency on
-//		CronProcessLogEntry processLog = new CronProcessLogEntry(cronEntry.getLogEntryId(), "Split Marc Records");
-//		processLog.saveToDatabase(vufindConn, logger);
+		CronProcessLogEntry processLog = new CronProcessLogEntry(cronEntry.getLogEntryId(), "Split Marc Records");
+		processLog.saveToDatabase(vufindConn, logger);
 		try{
 			String marcPath = Util.cleanIniValue(configIni.get("Reindex", "marcPath"));
 			String splitMarcPath = Util.cleanIniValue(processSettings.get("splitMarcPath"));
@@ -85,10 +84,10 @@ public class SplitMarcExport implements IProcessHandler{
 			}
 		} catch (Exception e) {
 			logger.error("Error splitting marc records", e);
-//			processLog.addNote("Error splitting marc records " + e.toString());
+			processLog.addNote("Error splitting marc records " + e.toString());
 		}finally{
-//			processLog.setFinished();
-//			processLog.saveToDatabase(vufindConn, logger);
+			processLog.setFinished();
+			processLog.saveToDatabase(vufindConn, logger);
 		}
 	}
 }
