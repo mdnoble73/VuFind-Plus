@@ -8407,7 +8407,7 @@ hr.menu {
 }
 #header-container {
   padding-top: 0;
-  height: 150px;
+  height: 121px;
   background-color: #015d82;
   background: linear-gradient(to bottom, #015d82, #015d82 85%, #015d82);
   border-bottom: 2px solid #fff;
@@ -8427,7 +8427,7 @@ hr.menu {
   text-align: center;
   text-shadow: 1px 1px #fff;
   vertical-align: middle;
-  line-height: 142px !important;
+  line-height: 113px !important;
   border-bottom: 4px solid #015d82;
   color: #8b8b8b !important;
 }
@@ -10807,8 +10807,11 @@ fieldset[disabled] .btn-masquerade.active {
   box-shadow: 2px 2px 5px #fff;
 }
 #header-logo {
-  padding-top: 0;
-  height: 150px;
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #fff;
+  height: 101px;
+  border-radius: 0.5em;
 }
 #system-message-header {
   background-color: #fff;
