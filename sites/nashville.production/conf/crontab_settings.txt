@@ -83,9 +83,6 @@
 # SIDELOADED ECONTENT MARC triggered HERE (and commented out in full_update.sh)
 0 22 * * * cd /usr/local/vufind-plus/vufind/cron; ./sideload.sh nashville.production
 
-#Lynda weekly update
-13 9 * * Tue /usr/local/vufind-plus/vufind/cron/fetch_lynda.sh
-
 # Download Lexile and AR files triggered in full_update.sh
 
 ###############################
