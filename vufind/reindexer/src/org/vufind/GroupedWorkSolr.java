@@ -1196,6 +1196,11 @@ public class GroupedWorkSolr implements Cloneable {
 		}
 	}
 
+	void clearSeriesData(){
+		this.series.clear();
+		this.seriesWithVolume.clear();
+	}
+
 	void addSeries(String series) {
 		addSeriesInfoToField(series, this.series);
 	}
