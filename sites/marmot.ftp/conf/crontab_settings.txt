@@ -31,8 +31,8 @@
 00 00 * * * /root/cron/newuploads
 #
 #--------------------------------------------------------------
-# kick off back off backup at 12:15am everday
-15 00 * * * /root/cron/backup
+# kick off back off backup at 1:01am everday; about 45 minutes after the marc splitter to avoid memory conflicts pascal 4/30/2018
+01 01 * * * /root/cron/backup
 
 #--------------------------------------------------------------
 # purge /ftp directory at 1.30am daily
