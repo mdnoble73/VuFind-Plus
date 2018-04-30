@@ -1317,6 +1317,7 @@ public class GroupedWorkSolr implements Cloneable {
 		volume = volume.replaceAll("seven", "7");
 		volume = volume.replaceAll("eight", "8");
 		volume = volume.replaceAll("nine", "9");
+		volume = volume.replaceAll("[\\[\\]#]", "");
 		volume = Util.trimTrailingPunctuation(volume.trim());
 		return volume;
 	}
@@ -1330,8 +1331,8 @@ public class GroupedWorkSolr implements Cloneable {
 		series = series.replaceAll("\\s+\\(.*?\\)", "");
 		series = series.replaceAll(" & ", " and ");
 		series = series.replaceAll("--", " ");
-		series = series.replaceAll(":", "");
 		series = series.replaceAll(",\\s+(the|an)$", "");
+		series = series.replaceAll("[:,]\\s", " ");
 		//Remove the word series at the end since this gets cataloged inconsistently
 		series = series.replaceAll("(?i)\\s+series$", "");
 

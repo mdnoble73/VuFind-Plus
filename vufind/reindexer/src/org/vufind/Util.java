@@ -220,7 +220,7 @@ public class Util {
 		return retVal;
 	}
 
-	private static Pattern trimPunctuationPattern = Pattern.compile("^(.*?)[\\s/,\\.;|]+$");
+	private static Pattern trimPunctuationPattern = Pattern.compile("^(.*?)[\\s/,.;|]+$");
 	static String trimTrailingPunctuation(String format) {
 		if (format == null){
 			return "";
