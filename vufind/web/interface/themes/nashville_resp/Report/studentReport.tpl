@@ -18,10 +18,11 @@
 
 				<input type="submit" name="showData" value="Show Data" class="btn btn-sm btn-primary"/>
 				&nbsp;
-				<input type="button" name="printReport" value="Print Report" class="btn btn-sm btn-primary" onclick="window.print();" />
+				<input type="button" name="printSlips" value="Print Slips" class="btn btn-sm btn-primary" onclick="{literal} var x = document.querySelectorAll('.overdueSlip'); var i; for (i = 0; i < x.length; i++) { x[i].style.pageBreakBefore = 'auto'; } window.print(); {/literal}" />
+				&nbsp;
+				<input type="button" name="printPages" value="Print Pages" class="btn btn-sm btn-primary" onclick="{literal} var x = document.querySelectorAll('.overdueSlip'); var i; for (i = 0; i < x.length; i++) { x[i].style.pageBreakBefore = 'always'; } window.print(); {/literal}" />
 				&nbsp;
 			</form>
-
 			{if $reportData}
 				<br/>
 				<p>
