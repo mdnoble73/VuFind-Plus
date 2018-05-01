@@ -561,18 +561,33 @@ class MyAccount_AJAX
 				$return['success'] = "false";
 				$return['message'] = "You must provide a title for the list";
 			} else {
+				//If the record is not valid, skip the whole thing since the title could be bad too
+				if (isset($_REQUEST['recordId']) && !is_array($_REQUEST['recordId'])) {
+					$recordToAdd = urldecode($_REQUEST['recordId']);
+					if (!preg_match("/^[A-F0-9]{8}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{12}|[A-Z0-9_-]+:[A-Z0-9_-]+$/i", $recordToAdd)) {
+						$return['success'] = false;
+						$return['message'] = 'The title provided is not valid';
+						return $return;
+					}
+				}
+
 				$list = new UserList();
-				$list->title = $title;
+				$list->title = strip_tags($title);
 				$list->user_id = $user->id;
 				//Check to see if there is already a list with this id
 				$existingList = false;
 				if ($list->find(true)) {
 					$existingList = true;
 				}
-				$desc = $_REQUEST['desc'];
-				if (is_array($desc)){
-					$desc = reset($desc);
+				if (isset($_REQUEST['desc'])){
+					$desc = $_REQUEST['desc'];
+					if (is_array($desc)){
+						$desc = reset($desc);
+					}
+				}else{
+					$desc = "";
 				}
+
 				$list->description = strip_tags(urldecode($desc));
 				$list->public = isset($_REQUEST['public']) && $_REQUEST['public'] == 'true';
 				if ($existingList) {
