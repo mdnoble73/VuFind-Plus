@@ -916,6 +916,20 @@ class Millennium extends ScreenScrapingDriver
 				}
 			}
 
+			//Validate we have required info for notices
+			if (isset($extraPostInfo['notices'])){
+				if ($extraPostInfo['notices'] == 'z' && strlen($extraPostInfo['email']) == 0){
+					$updateErrors[] = 'To receive notices by e-mail you must set an e-mail address.';
+				}elseif ($extraPostInfo['notices'] == 'p' && strlen($extraPostInfo['tele1']) == 0){
+					$updateErrors[] = 'To receive notices by phone you must provide a telephone number.';
+				}elseif (strlen($extraPostInfo['addr1a']) == 0 || strlen($extraPostInfo['addr1b']) == 0){
+					$updateErrors[] = 'To receive notices by mail you must provide a complete mailing address.';
+				}
+				if (count($updateErrors) > 0){
+					return $updateErrors;
+				}
+			}
+
 			//Login to the patron's account
 			$this->_curl_login($user);
 
