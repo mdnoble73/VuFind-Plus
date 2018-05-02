@@ -262,4 +262,24 @@ class HooplaRecordDriver extends MarcRecord {
 	function getNumHolds(){
 		return 0;
 	}
+
+	public function getStaffView()
+	{
+		parent::getStaffView();
+		$hooplaExtract = new HooplaExtract();
+//		$hooplaId = preg_replace('/^MWT/', '', $this->id);
+		$hooplaId = HooplaDriver::recordIDtoHooplaID($this->id);
+		if ($hooplaExtract->get('hooplaId', $hooplaId) == 1) {
+			$hooplaData = array();
+			foreach ($hooplaExtract->table() as $fieldName => $value_ignored) {
+				$hooplaData[$fieldName] = $hooplaExtract->$fieldName;
+			}
+			global $interface;
+			$interface->assign('hooplaExtract', $hooplaData);
+		}
+		return 'RecordDrivers/Hoopla/staff-view.tpl';
+
+	}
+
+
 }

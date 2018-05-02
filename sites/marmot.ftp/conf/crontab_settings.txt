@@ -31,8 +31,8 @@
 00 00 * * * /root/cron/newuploads
 #
 #--------------------------------------------------------------
-# kick off back off backup at 12:15am everday
-15 00 * * * /root/cron/backup
+# kick off back off backup at 1:01am everday; about 45 minutes after the marc splitter to avoid memory conflicts pascal 4/30/2018
+01 01 * * * /root/cron/backup
 
 #--------------------------------------------------------------
 # purge /ftp directory at 1.30am daily
@@ -44,6 +44,8 @@
 ############################
 17 00 * * * cp /ftp/sierra/fullexport.marc /data/vufind-plus/marmot.ftp/marc/fullexport.mrc;cd /usr/local/vufind-plus/vufind/cron; java -jar cron.jar marmot.ftp SplitMarcExport
 
+# Monitor that the marc splitter is updating files
+19 03 * * * /usr/local/vufind-plus/sites/marmot.ftp/marc_split_check.sh
 
 ##########################
 # Check for Hoopla updates

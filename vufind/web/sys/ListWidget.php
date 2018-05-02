@@ -57,7 +57,7 @@ class ListWidget extends DB_DataObject
 			while ($library->fetch()){
 				$libraryList[$library->libraryId] = $library->displayName;
 			}
-		}elseif (UserAccount::userHasRole('libraryAdmin') || UserAccount::userHasRole('contentEditor')){
+		}elseif (UserAccount::userHasRole('libraryAdmin') || UserAccount::userHasRole('libraryManager') || UserAccount::userHasRole('locationManager') || UserAccount::userHasRole('contentEditor')){
 			$homeLibrary = Library::getPatronHomeLibrary();
 			$libraryList[$homeLibrary->libraryId] = $homeLibrary->displayName;
 		}

@@ -56,10 +56,11 @@ class Admin_NonGroupedRecords extends ObjectEditor
 		return array('opacAdmin', 'cataloging');
 	}
 	function getInstructions(){
-		return 'For more information on how to ungroup works, see the <a href="https://docs.google.com/document/d/1fTjDQ04gctT6GpTmKU8uGZyZRgLW6z09eE4DwNsOxOw">online documentation</a>.';
+		global $interface;
+		return $interface->fetch('Admin/ungrouping_work_instructions.tpl');
 	}
 	function getListInstructions(){
-		return $this->getInstructions();
+		return 'For more information on how to ungroup works, see the <a href="https://docs.google.com/document/d/1fTjDQ04gctT6GpTmKU8uGZyZRgLW6z09eE4DwNsOxOw">online documentation</a>.';
 	}
 
 

@@ -53,8 +53,11 @@ class MyAccount_Edit extends Action
 		}
 
 		// Save Data
+		$listId = isset($_REQUEST['list_id']) ? $_REQUEST['list_id'] : null;
+		if (is_array($listId)){
+			$listId = array_pop($listId);
+		}
 		if (!empty($listId) && ctype_digit($listId)) {
-			$listId = $_REQUEST['list_id'];
 			if (isset($_POST['submit'])) {
 				$this->saveChanges($user);
 

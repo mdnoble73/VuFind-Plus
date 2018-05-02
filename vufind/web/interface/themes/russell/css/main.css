@@ -9374,7 +9374,7 @@ a.browse-thumbnail-sorted.active {
   margin-right: 5px;
 }
 #browse-sub-category-menu button.selected {
-  color: #fff;
+  color: #660000;
   background-color: #E5D4BE;
 }
 #browse-sub-category-menu button:focus {

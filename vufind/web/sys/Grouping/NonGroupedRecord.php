@@ -38,6 +38,7 @@ class NonGroupedRecord extends DB_DataObject{
 				'values' => $availableSources,
 				'label' => 'Source of the Record Id',
 				'description' => 'The source of the record to avoid merging.',
+				'default' => 'ils',
 				'storeDb' => true,
 				'required' => true,
 			),

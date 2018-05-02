@@ -8407,7 +8407,7 @@ hr.menu {
 }
 #header-container {
   padding-top: 0;
-  height: 115px;
+  height: 150px;
   background-color: #0b727a;
   background: linear-gradient(to bottom, #0b727a, #0b727a 85%, #0b727a);
   border-bottom: 2px solid #fff;
@@ -8427,7 +8427,7 @@ hr.menu {
   text-align: center;
   text-shadow: 1px 1px #fff;
   vertical-align: middle;
-  line-height: 107px !important;
+  line-height: 142px !important;
   border-bottom: 4px solid #0b727a;
   color: #8b8b8b !important;
 }
@@ -10807,9 +10807,13 @@ fieldset[disabled] .btn-masquerade.active {
   box-shadow: 2px 2px 5px #fff;
 }
 #header-logo {
-  padding: 0;
-  height: 95px;
-  border-radius: 3px;
+  height: 140px;
+}
+#header-container {
+  background-image: url('/interface/themes/acton/images/header_background.png');
+  background-position: left;
+  background-repeat: no-repeat;
+  height: 150px;
 }
 #system-message-header,
 #system-message-header ~ .breadcrumbs,
