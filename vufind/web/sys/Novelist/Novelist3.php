@@ -772,6 +772,8 @@ class Novelist3{
 		if (function_exists('disableErrorHandler')){
 			disableErrorHandler();
 		}
+
+		//Get all of the records that could match based on ISBN
 		$allIsbns = "";
 		foreach ($items as $item){
 			if (count($item->isbns) > 0){
@@ -798,11 +800,6 @@ class Novelist3{
 					$timer->logTime("Create driver");
 
 					if ($recordDriver->isValid){
-						if (!isset($series)){
-							if (isset($ownedRecord['series'])){
-								$series = $ownedRecord['series'][0];
-							}
-						}
 						//Load data about the record
 						$ratingData = $recordDriver->getRatingData();
 						$timer->logTime("Get Rating data");
@@ -840,42 +837,71 @@ class Novelist3{
 		}
 
 		//Loop through items an match to records we found in the catalog.
-		foreach ($items as $item){
+		$titleList = array();
+		foreach ($items as $index => $item){
+			$titleList[$index] = null;
+		}
+		//Do 2 passes, one to check based on primary_isbn only and one to check based on all isbns
+		foreach ($items as $index => $item){
 			$isInCatalog = false;
 			$titleFromCatalog = null;
-			foreach ($titlesFromCatalog as $titleFromCatalog){
-				foreach ($item->isbns as $isbn){
-					if (in_array($isbn, $titleFromCatalog['allIsbns'])){
-						$isInCatalog = true;
-						break;
-					}
+			foreach ($titlesFromCatalog as $titleIndex => $titleFromCatalog){
+				if (in_array($item->primary_isbn, $titleFromCatalog['allIsbns'])){
+					$isInCatalog = true;
 				}
+
 				if ($isInCatalog) break;
 			}
 			if ($isInCatalog){
-				$curTitle = $titleFromCatalog;
-			}else{
-				$isbn = reset($item->isbns);
-				$isbn13 = strlen($isbn) == 13 ? $isbn : ISBNConverter::convertISBN10to13($isbn);
-				$isbn10 = strlen($isbn) == 10 ? $isbn : ISBNConverter::convertISBN13to10($isbn);
-				$curTitle = array(
-						'title' => $item->full_title,
-						'author' => $item->author,
-					//'publicationDate' => (string)$item->PublicationDate,
-						'isbn' => $isbn13,
-						'isbn10' => $isbn10,
-						'recordId' => -1,
-						'libraryOwned' => false,
-						'smallCover' => $cover = $configArray['Site']['coverUrl'] . "/bookcover.php?size=small&isn=" . $isbn13,
-						'mediumCover' => $cover = $configArray['Site']['coverUrl'] . "/bookcover.php?size=medium&isn=" . $isbn13,
-				);
+				$titleList = $this->addTitleToTitleList($currentId, $titleList, $seriesName, $titleFromCatalog, $titlesFromCatalog, $titleIndex, $item, $configArray, $index);
 			}
-			$curTitle['isCurrent'] = $currentId == $curTitle['recordId'];
-			$curTitle['series'] = isset($seriesName) ? $seriesName : '';;
-			$curTitle['volume'] = isset($item->volume) ? $item->volume : '';
-			$curTitle['reason'] = isset($item->reason) ? $item->reason : '';
+		}
 
-			$titleList[] = $curTitle;
+		foreach ($titleList as $index => $title){
+			if ($titleList[$index] == null){
+				$isInCatalog = false;
+				$item = $items[$index];
+				foreach ($titlesFromCatalog as $titleIndex => $titleFromCatalog) {
+					foreach ($item->isbns as $isbn) {
+						if (in_array($isbn, $titleFromCatalog['allIsbns'])) {
+							$isInCatalog = true;
+							break;
+						}
+					}
+					if ($isInCatalog){
+						break;
+					}
+				}
+
+				if ($isInCatalog) {
+					$titleList = $this->addTitleToTitleList($currentId, $titleList, $seriesName, $titleFromCatalog, $titlesFromCatalog, $titleIndex, $item, $configArray, $index);
+					unset($titlesFromCatalog[$titleIndex]);
+				}else{
+					$isbn = reset($item->isbns);
+					$isbn13 = strlen($isbn) == 13 ? $isbn : ISBNConverter::convertISBN10to13($isbn);
+					$isbn10 = strlen($isbn) == 10 ? $isbn : ISBNConverter::convertISBN13to10($isbn);
+					$curTitle = array(
+							'title' => $item->full_title,
+							'author' => $item->author,
+						//'publicationDate' => (string)$item->PublicationDate,
+							'isbn' => $isbn13,
+							'isbn10' => $isbn10,
+							'recordId' => -1,
+							'libraryOwned' => false,
+							'smallCover' => $cover = $configArray['Site']['coverUrl'] . "/bookcover.php?size=small&isn=" . $isbn13,
+							'mediumCover' => $cover = $configArray['Site']['coverUrl'] . "/bookcover.php?size=medium&isn=" . $isbn13,
+					);
+
+					$curTitle['isCurrent'] = $currentId == $curTitle['recordId'];
+					$curTitle['series'] = isset($seriesName) ? $seriesName : '';;
+					$curTitle['volume'] = isset($item->volume) ? $item->volume : '';
+					$curTitle['reason'] = isset($item->reason) ? $item->reason : '';
+
+					$titleList[$index] = $curTitle;
+				}
+
+			}
+
 		}
 
 	}
@@ -910,5 +936,34 @@ class Novelist3{
 			'sampleReviewsUrl' => $goodReads->links[0]->url,
 		);
 		$enrichment->goodReads = $goodReadsInfo;
+	}
+
+	/**
+	 * @param $currentId
+	 * @param $titleList
+	 * @param $seriesName
+	 * @param $isInCatalog
+	 * @param $titleFromCatalog
+	 * @param $titlesFromCatalog
+	 * @param $titleIndex
+	 * @param $item
+	 * @param $configArray
+	 * @param $index
+	 * @return array titleList
+	 */
+	private function addTitleToTitleList($currentId, &$titleList, $seriesName, $titleFromCatalog, &$titlesFromCatalog, $titleIndex, $item, $configArray, $index)
+	{
+
+		$curTitle = $titleFromCatalog;
+		//Only use each title once if possible
+		unset($titlesFromCatalog[$titleIndex]);
+
+		$curTitle['isCurrent'] = $currentId == $curTitle['recordId'];
+		$curTitle['series'] = isset($seriesName) ? $seriesName : '';;
+		$curTitle['volume'] = isset($item->volume) ? $item->volume : '';
+		$curTitle['reason'] = isset($item->reason) ? $item->reason : '';
+
+		$titleList[$index] = $curTitle;
+		return $titleList;
 	}
 }
