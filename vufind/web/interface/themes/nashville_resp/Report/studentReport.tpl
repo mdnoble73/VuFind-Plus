@@ -6,7 +6,6 @@
 				<div class="error">{$error}</div>
 			{/foreach}
 			<form class="form form-inline">
-				<label for="selectedReport" class="control-label">Available Reports&nbsp;</label>
 {* TO DO: SORT REPORT LABELS *}
 {* TO DO: ADD SCHOOL NAMES TO  REPORT LABELS *}
 				<select name="selectedReport" id="selectedReport" class="form-control input-sm">
@@ -16,6 +15,11 @@
 				</select>
 				&nbsp;
 
+				<select name="showOverdueOnly" id="showOverdueOnly" class="form-control input-sm">
+					<option value="overdue" {if $showOverdueOnly}selected="selected"{/if}>Overdue Items</option>
+					<option value="checkedOut" {if !$showOverdueOnly}selected="selected"{/if}>All Checked Out</option>
+				</select>
+				&nbsp;
 				<input type="submit" name="showData" value="Show Data" class="btn btn-sm btn-primary"/>
 				&nbsp;
 				<input type="button" name="printSlips" value="Print Slips" class="btn btn-sm btn-primary" onclick="{literal} var x = document.querySelectorAll('.overdueSlip'); var i; for (i = 0; i < x.length; i++) { x[i].style.pageBreakBefore = 'auto'; } window.print(); {/literal}" />
@@ -118,7 +122,11 @@
 			</div>
 			<div class="overdueRecordTable">
 				<div class="overdueRecordTableMessage">
-					The items below are overdue. Please return them to your library. This notice was created {$reportDateTime}<br>
+					The items below are
+					{if $showOverdueOnly}&nbsp;overdue{/if}
+					{if !$showOverdueOnly}&nbsp;checked out{/if}
+					. &nbsp; 
+					Please return them to your library. This notice was created {$reportDateTime}<br>
 					Check your account online at https://school.library.nashville.org/
 				</div>
 				<div class="overdueRecord">
