@@ -8,13 +8,16 @@
 .header-login-button-mixin(@header-buttons-background-color);
 
 #header-logo {
-  padding-top: 0;
+  //padding-top: 0;
   height: @header-logo-height;
 }
-
-#system-message-header {
+#system-message-header,
+#system-message-header~.breadcrumbs,   // the google translate box
+.container > div:nth-child(1).breadcrumbs // the google translate box when there is no system message
+{
   background-color: @body-bg-resp;
 }
+
 
 a.btn-primary {
   color: @btn-primary-color;
