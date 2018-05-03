@@ -2691,4 +2691,15 @@ class DBMaintenance extends Admin_Admin {
 			}
 		}
 	}
+
+	function updateShowSeriesInMainDetails(){
+		$library = new Library();
+		$library->find();
+		while ($library->fetch()){
+			if (!count($library->showInMainDetails) == 0){
+				$library->showInMainDetails[] = 'showSeries';
+				$library->update();
+			}
+		}
+	}
 }

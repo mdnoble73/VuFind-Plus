@@ -43,7 +43,7 @@
 
 				{assign var=indexedSeries value=$recordDriver->getIndexedSeries()}
 				{assign var=series value=$recordDriver->getSeries()}
-				{if $series || $indexedSeries}
+				{if $showSeries && ($series || $indexedSeries)}
 					<div class="series row">
 						<div class="result-label col-tn-3">{translate text='Series'}:</div>
 						<div class="col-tn-9 result-value">
