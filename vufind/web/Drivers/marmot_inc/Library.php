@@ -238,6 +238,7 @@ class Library extends DB_DataObject
 	// You should be able to add options here without needing to change the database.
 	// set the key to the desired SMARTY template variable name, set the value to the label to show in the library configuration page
 	static $showInMainDetailsOptions = array(
+		'showSeries'               => 'Series',
 		'showPublicationDetails'   => 'Published',
 		'showFormats'              => 'Formats',
 		'showEditions'             => 'Editions',
@@ -1361,8 +1362,14 @@ class Library extends DB_DataObject
 		if ($return) {
 			if (isset($this->showInMainDetails) && is_string($this->showInMainDetails) && !empty($this->showInMainDetails)) {
 				// convert to array retrieving from database
-				$this->showInMainDetails = unserialize($this->showInMainDetails);
-				if (!$this->showInMainDetails) $this->showInMainDetails = array();
+				try{
+					$this->showInMainDetails = unserialize($this->showInMainDetails);
+					if (!$this->showInMainDetails) $this->showInMainDetails = array();
+				}catch (Exception $e){
+					global $logger;
+					$logger->log("Error loading $this->libraryId $e", PEAR_LOG_DEBUG);
+				}
+
 			}
 			elseif (empty($this->showInMainDetails)) {
 				// when a value is not set, assume set to show all options, eg null = all
