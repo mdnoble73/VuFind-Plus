@@ -876,9 +876,9 @@ class CarlX extends SIP2Driver{
 
 
 				// DENY REGISTRATION IF EMAIL MATCHES @LOAOA.COM
-				if (substr(strtolower($email),-10,10) == '@loaoa.com') {
+				if (substr(strtolower($email),-10,10) == '@loaoa.com' || substr(strtolower($email),-9,9) == 'zamte.com') {
 					global $logger;
-					$logger->log('Online Registration used forbidden loaoa.com. Email: ' . $email . ' IP: ' . $active_ip, PEAR_LOG_ERR);
+					$logger->log('Online Registration used forbidden email: ' . $email . ' IP: ' . $active_ip, PEAR_LOG_ERR);
 					return array(
 						'success' => false,
 						'barcode' => $tempPatronID,
