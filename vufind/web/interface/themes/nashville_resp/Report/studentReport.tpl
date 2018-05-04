@@ -6,7 +6,6 @@
 				<div class="error">{$error}</div>
 			{/foreach}
 			<form class="form form-inline">
-				<label for="selectedReport" class="control-label">Available Reports&nbsp;</label>
 {* TO DO: SORT REPORT LABELS *}
 {* TO DO: ADD SCHOOL NAMES TO  REPORT LABELS *}
 				<select name="selectedReport" id="selectedReport" class="form-control input-sm">
@@ -16,12 +15,18 @@
 				</select>
 				&nbsp;
 
+				<select name="showOverdueOnly" id="showOverdueOnly" class="form-control input-sm">
+					<option value="overdue" {if $showOverdueOnly}selected="selected"{/if}>Overdue Items</option>
+					<option value="checkedOut" {if !$showOverdueOnly}selected="selected"{/if}>All Checked Out</option>
+				</select>
+				&nbsp;
 				<input type="submit" name="showData" value="Show Data" class="btn btn-sm btn-primary"/>
 				&nbsp;
-				<input type="button" name="printReport" value="Print Report" class="btn btn-sm btn-primary" onclick="window.print();" />
+				<input type="button" name="printSlips" value="Print Slips" class="btn btn-sm btn-primary" onclick="{literal} var x = document.querySelectorAll('.overdueSlip'); var i; for (i = 0; i < x.length; i++) { x[i].style.pageBreakBefore = 'auto'; } window.print(); {/literal}" />
+				&nbsp;
+				<input type="button" name="printPages" value="Print Pages" class="btn btn-sm btn-primary" onclick="{literal} var x = document.querySelectorAll('.overdueSlip'); var i; for (i = 0; i < x.length; i++) { x[i].style.pageBreakBefore = 'always'; } window.print(); {/literal}" />
 				&nbsp;
 			</form>
-
 			{if $reportData}
 				<br/>
 				<p>
@@ -83,13 +88,16 @@
 		display: table-cell !important;
 	}
 	div.SYSTEM {
-		width: .75in !important;
+		width: .5in !important;
+	}
+	div.ITEM_ID {
+		width: 1.25in !important;
 	}
 	div.CALL_NUMBER {
-		width: 1.75in !important;;
+		width: 1.25in !important;;
 	}
 	div.TITLE {
-		width: 3in !important;
+		width: 2.5in !important;
 	}
 	div.DUE_DATE {
 		width: .75in !important;
@@ -114,11 +122,16 @@
 			</div>
 			<div class="overdueRecordTable">
 				<div class="overdueRecordTableMessage">
-					The items below are overdue. Please return them to your library. This notice was created {$reportDateTime}<br>
+					The items below are
+					{if $showOverdueOnly}&nbsp;overdue{/if}
+					{if !$showOverdueOnly}&nbsp;checked out{/if}
+					. &nbsp; 
+					Please return them to your library. This notice was created {$reportDateTime}<br>
 					Check your account online at https://school.library.nashville.org/
 				</div>
 				<div class="overdueRecord">
                                         <div class="SYSTEM">SYSTEM</div>
+                                        <div class="ITEM_ID">BARCODE</div>
                                         <div class="CALL_NUMBER">CALL NUMBER</div>
                                         <div class="TITLE">TITLE</div>
                                         <div class="DUE_DATE">DUE DATE</div>
@@ -128,6 +141,7 @@
 	{/if}
 			<div class="overdueRecord">
 				<div class="SYSTEM">{$dataRow[7]|replace:"1":"NPL"|replace:"2":"MNPS"}</div>
+                                <div class="ITEM_ID">{$dataRow[13]}</div>
 				<div class="CALL_NUMBER">{$dataRow[8]}</div>
 				<div class="TITLE">{$dataRow[9]|regex_replace:"/ *\/ *$/":""}</div>
 				<div class="DUE_DATE">{$dataRow[10]}</div>

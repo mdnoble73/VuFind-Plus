@@ -82,9 +82,12 @@ cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 #Extract from Hoopla, this just needs to be done once a day
 cd /usr/local/vufind-plus/vufind/cron;./GetHooplaFromMarmot.sh >> ${OUTPUT_FILE}
 
+# Kanopy Marc Updates
+/usr/local/vufind-plus/vufind/cron/fetch_sideload_data.sh ${PIKASERVER} lion/kanopy kanopy/lion >> ${OUTPUT_FILE}
 
-#Extracts for sideloaded eContent; settings defined in config.pwd.ini [Sideload]
-#cd /usr/local/vufind-plus/vufind/cron; ./sideload.sh ${PIKASERVER}
+# RBDigital Marc Updates
+/usr/local/vufind-plus/vufind/cron/fetch_sideload_data.sh ${PIKASERVER} lion/rbdigital_audio rbdigital_audio/lion >> ${OUTPUT_FILE}
+/usr/local/vufind-plus/vufind/cron/fetch_sideload_data.sh ${PIKASERVER} lion/rbdigital_magazine rbdigital_magazine/lion >> ${OUTPUT_FILE}
 
 #Extract Lexile Data
 cd /data/vufind-plus/; curl --remote-name --remote-time --silent --show-error --compressed --time-cond /data/vufind-plus/lexileTitles.txt https://cassini.marmot.org/lexileTitles.txt
@@ -108,11 +111,13 @@ cd /usr/local/vufind-plus/vufind/cron; java -server -XX:+UseG1GC -jar cron.jar $
 cd /usr/local/vufind-plus/vufind/record_grouping; java -server -XX:+UseG1GC -jar record_grouping.jar ${PIKASERVER} fullRegroupingNoClear >> ${OUTPUT_FILE}
 
 #Full Reindex - since this takes so long, just run the full index once a week and let Sierra Export keep it up to date the rest of the time.
-if [ "${DAYOFWEEK}" -eq 5 ];
-cd /usr/local/vufind-plus/vufind/reindexer; nice -n -3 java -server -XX:+UseG1GC -jar reindexer.jar ${PIKASERVER} >> ${OUTPUT_FILE}
-then
+#MDN 4/12/2018 run everyday while we are changing settings
+#if [ "${DAYOFWEEK}" -eq 5 ];
+#then
 cd /usr/local/vufind-plus/vufind/reindexer; nice -n -3 java -server -XX:+UseG1GC -jar reindexer.jar ${PIKASERVER} fullReindex >> ${OUTPUT_FILE}
-fi
+#else
+#cd /usr/local/vufind-plus/vufind/reindexer; nice -n -3 java -server -XX:+UseG1GC -jar reindexer.jar ${PIKASERVER} >> ${OUTPUT_FILE}
+#fi
 
 # Truncate Continuous Reindexing list of changed items
 cat /dev/null >| /data/vufind-plus/${PIKASERVER}/marc/changed_items_to_process.csv

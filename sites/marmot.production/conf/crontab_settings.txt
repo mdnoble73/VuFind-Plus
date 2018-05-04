@@ -85,5 +85,7 @@
 ###################################
 # Library supplied covers
 */10 * * * * /usr/local/vufind-plus/sites/marmot.production/copyCovers.sh
+#Lynda weekly update
+17 0 * * Fri /usr/local/vufind-plus/vufind/cron/fetch_lynda.sh marmot
 
 #final end of line character needed for crontab to be read

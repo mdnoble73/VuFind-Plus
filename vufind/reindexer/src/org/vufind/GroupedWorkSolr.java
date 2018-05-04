@@ -81,8 +81,8 @@ public class GroupedWorkSolr implements Cloneable {
 	private HashSet<String> publicationDates = new HashSet<>();
 	private float rating = 2.5f;
 	private HashMap<String, String> series = new HashMap<>();
-	private HashSet<String> series2 = new HashSet<>();
-	private HashSet<String> seriesWithVolume = new HashSet<>();
+	private HashMap<String, String> series2 = new HashMap<>();
+	private HashMap<String, String> seriesWithVolume = new HashMap<>();
 	private String subTitle;
 	private HashSet<String> targetAudienceFull = new HashSet<>();
 	private TreeSet<String> targetAudience = new TreeSet<>();
@@ -180,9 +180,9 @@ public class GroupedWorkSolr implements Cloneable {
 		// noinspection unchecked
 		clonedWork.series = (HashMap<String,String>) series.clone();
 		// noinspection unchecked
-		clonedWork.series2 = (HashSet<String>) series2.clone();
+		clonedWork.series2 = (HashMap<String, String>) series2.clone();
 		// noinspection unchecked
-		clonedWork.seriesWithVolume = (HashSet<String>) seriesWithVolume.clone();
+		clonedWork.seriesWithVolume = (HashMap<String, String>) seriesWithVolume.clone();
 		// noinspection unchecked
 		clonedWork.targetAudienceFull = (HashSet<String>) targetAudienceFull.clone();
 		// noinspection unchecked
@@ -211,6 +211,7 @@ public class GroupedWorkSolr implements Cloneable {
 		SolrInputDocument doc = new SolrInputDocument();
 		//Main identification
 		doc.addField("id", id);
+		doc.addField("last_indexed", new Date());
 		doc.addField("alternate_ids", alternateIds);
 		doc.addField("recordtype", "grouped_work");
 
@@ -262,8 +263,8 @@ public class GroupedWorkSolr implements Cloneable {
 		doc.addField("edition", editions);
 		doc.addField("dateSpan", dateSpans);
 		doc.addField("series", series.values());
-		doc.addField("series2", series2);
-		doc.addField("series_with_volume", seriesWithVolume);
+		doc.addField("series2", series2.values());
+		doc.addField("series_with_volume", seriesWithVolume.values());
 		doc.addField("topic", topics);
 		doc.addField("topic_facet", topicFacets);
 		doc.addField("subject_facet", subjects);
@@ -1191,38 +1192,153 @@ public class GroupedWorkSolr implements Cloneable {
 
 	void addSeries(Set<String> fieldList) {
 		for(String curField : fieldList){
-			if (!curField.equalsIgnoreCase("none")){
-				this.addSeries(curField);
-			}
+			this.addSeries(curField);
 		}
 	}
 
+	void clearSeriesData(){
+		this.series.clear();
+		this.seriesWithVolume.clear();
+	}
+
 	void addSeries(String series) {
-		if (series != null && !series.equalsIgnoreCase("none")){
-			series = Util.trimTrailingPunctuation(series);
-			//Remove anything in parens since it's normally just the format
-			series = series.replaceAll("\\s+\\(.*?\\)", "");
-			//Remove the word series at the end since this gets cataloged inconsistently
-			series = series.replaceAll("(?i)\\s+series$", "");
-			String normalizedSeries = series.toLowerCase().replaceAll("\\W", "");
-			if (!this.series.containsKey(normalizedSeries)){
-				this.series.put(normalizedSeries, series);
-			}
-		}
+		addSeriesInfoToField(series, this.series);
 	}
 	void addSeriesWithVolume(Set<String> fieldList){
-		seriesWithVolume.addAll(fieldList);
+		for(String curField : fieldList){
+			this.addSeriesWithVolume(curField);
+		}
 	}
 
 	void addSeriesWithVolume(String series){
 		if (series != null) {
-			seriesWithVolume.add(series);
+			String[] seriesParts = series.split("\\|",2);
+			String seriesName = seriesParts[0];
+			String seriesInfo = getNormalizedSeries(seriesName, true);
+			String volume= "";
+			if (seriesParts.length > 1){
+				volume = getNormalizedSeriesVolume(seriesParts[1]);
+			}
+			String seriesInfoLower = seriesInfo.toLowerCase();
+			String volumeLower = volume.toLowerCase();
+			String seriesInfoWithVolume = seriesInfo + "|" + (volume.length() > 0 ? volume : "");
+			String normalizedSeriesInfoWithVolume = seriesInfoWithVolume.toLowerCase();
+
+			if (!this.seriesWithVolume.containsKey(normalizedSeriesInfoWithVolume)) {
+				boolean okToAdd = true;
+				for (String existingSeries2 : this.seriesWithVolume.keySet()) {
+					String[] existingSeriesInfo = existingSeries2.split("\\|", 2);
+					String existingSeriesName = existingSeriesInfo[0];
+					String existingVolume = "";
+					if (existingSeriesInfo.length > 1){
+						existingVolume = existingSeriesInfo[1];
+					}
+					//Get the longer series name
+					if (existingSeriesName.indexOf(seriesInfoLower) != -1) {
+						//Use the old one unless it doesn't have a volume
+						if (existingVolume.length() == 0){
+							this.seriesWithVolume.remove(existingSeries2);
+							break;
+						}else{
+							if (volumeLower.equals(existingVolume)) {
+								okToAdd = false;
+								break;
+							}else if (volumeLower.length() == 0){
+								okToAdd = false;
+								break;
+							}
+						}
+					} else if (seriesInfoLower.indexOf(existingSeriesName) != -1) {
+						//Before removing the old series, make sure the new one has a volume
+						if (existingVolume.length() > 0 && existingVolume.equals(volumeLower)){
+							this.seriesWithVolume.remove(existingSeries2);
+							break;
+						}else if (volume.length() == 0 && existingVolume.length() > 0){
+							okToAdd = false;
+							break;
+						}else if (volume.length() == 0 && existingVolume.length() == 0){
+							this.seriesWithVolume.remove(existingSeries2);
+							break;
+						}
+					}
+				}
+				if (okToAdd) {
+					this.seriesWithVolume.put(normalizedSeriesInfoWithVolume, seriesInfoWithVolume);
+				}
+			}
 		}
 	}
 
 	void addSeries2(Set<String> fieldList) {
-		this.series2.addAll(fieldList);
+		for(String curField : fieldList){
+			this.addSeries2(curField);
+		}
 	}
+
+	void addSeries2(String series2){
+		if (series != null) {
+			addSeriesInfoToField(series2, this.series2);
+		}
+	}
+
+	private void addSeriesInfoToField(String seriesInfo, HashMap<String, String> seriesField) {
+		if (seriesInfo != null && !seriesInfo.equalsIgnoreCase("none")) {
+			seriesInfo = getNormalizedSeries(seriesInfo, true);
+			String normalizedSeries = seriesInfo.toLowerCase();
+			if (!seriesField.containsKey(normalizedSeries)) {
+				boolean okToAdd = true;
+				for (String existingSeries2 : seriesField.keySet()) {
+					if (existingSeries2.indexOf(normalizedSeries) != -1) {
+						okToAdd = false;
+						break;
+					} else if (normalizedSeries.indexOf(existingSeries2) != -1) {
+						seriesField.remove(existingSeries2);
+						break;
+					}
+				}
+				if (okToAdd) {
+					seriesField.put(normalizedSeries, seriesInfo);
+				}
+			}
+		}
+	}
+
+	String getNormalizedSeriesVolume(String volume){
+		volume = Util.trimTrailingPunctuation(volume);
+		volume = volume.replaceAll("(bk\\.?|book)", "");
+		volume = volume.replaceAll("(volume|vol\\.|v\\.)", "");
+		volume = volume.replaceAll("libro", "");
+		volume = volume.replaceAll("one", "1");
+		volume = volume.replaceAll("two", "2");
+		volume = volume.replaceAll("three", "3");
+		volume = volume.replaceAll("four", "4");
+		volume = volume.replaceAll("five", "5");
+		volume = volume.replaceAll("six", "6");
+		volume = volume.replaceAll("seven", "7");
+		volume = volume.replaceAll("eight", "8");
+		volume = volume.replaceAll("nine", "9");
+		volume = volume.replaceAll("[\\[\\]#]", "");
+		volume = Util.trimTrailingPunctuation(volume.trim());
+		return volume;
+	}
+
+	String getNormalizedSeries(String series, boolean removeVolume){
+		series = Util.trimTrailingPunctuation(series);
+		if (removeVolume){
+			series = series.replaceAll("[#|]\\s*\\d+$", "");
+		}
+		//Remove anything in parens since it's normally just the format
+		series = series.replaceAll("\\s+\\(.*?\\)", "");
+		series = series.replaceAll(" & ", " and ");
+		series = series.replaceAll("--", " ");
+		series = series.replaceAll(",\\s+(the|an)$", "");
+		series = series.replaceAll("[:,]\\s", " ");
+		//Remove the word series at the end since this gets cataloged inconsistently
+		series = series.replaceAll("(?i)\\s+series$", "");
+
+		return Util.trimTrailingPunctuation(series);
+	}
+
 
 	void addPhysical(Set<String> fieldList) {
 		this.physicals.addAll(fieldList);
@@ -1571,16 +1687,10 @@ public class GroupedWorkSolr implements Cloneable {
 		HashSet<ItemInfo> relatedItems = new HashSet<>();
 		loadRelatedRecordsAndItemsForScope(scope, relatedRecordsForScope, relatedItems);
 		if (relatedRecordsForScope.size() > 0){
-			if (isLibraryOwned(relatedItems, scope)){
-				return true;
-			}
+			return isLibraryOwned(relatedItems, scope);
 		}
 		return false;
 	}
-
-
-
-
 
 	int getNumRecords() {
 		return this.relatedRecords.size();

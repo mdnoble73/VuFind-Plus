@@ -355,9 +355,11 @@ class SearchSources{
 		}else if ($searchSource == 'amazon'){
 			return "http://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=" . urlencode($lookFor);
 		}else if ($searchSource == 'course-reserves-course-name'){
-			return "http://sierra.marmot.org/search~S{$library->scope}/r?SEARCH=" . urlencode($lookFor);
+			$linkingUrl = $configArray['Catalog']['linking_url'];
+			return "$linkingUrl/search~S{$library->scope}/r?SEARCH=" . urlencode($lookFor);
 		}else if ($searchSource == 'course-reserves-instructor'){
-			return "http://sierra.marmot.org/search~S{$library->scope}/p?SEARCH=" . urlencode($lookFor);
+			$linkingUrl = $configArray['Catalog']['linking_url'];
+			return "$linkingUrl/search~S{$library->scope}/p?SEARCH=" . urlencode($lookFor);
 		}else{
 			return "";
 		}

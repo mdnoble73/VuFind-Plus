@@ -246,15 +246,39 @@ class GroupedWork_AJAX {
 		}
 
 		if (isset($record['id'])){
-			$formattedTitle = "<div id=\"scrollerTitle{$scrollerName}{$index}\" class=\"scrollerTitle\">" .
-					'<a href="' . $record['fullRecordLink'] . '" id="descriptionTrigger' . $record['id'] . '">' .
-					"<img src=\"{$cover}\" class=\"scrollerTitleCover\" alt=\"{$title} Cover\"/>" .
-					"</a></div>" .
-					"<div id='descriptionPlaceholder{$record['id']}' style='display:none'></div>";
+			global $interface;
+			$interface->assign('index', $index);
+			$interface->assign('scrollerName', $scrollerName);
+			$interface->assign('id', $record['id']);
+			$interface->assign('title', $title);
+			$interface->assign('linkUrl', $record['fullRecordLink'] );
+			$interface->assign('bookCoverUrl', $record['mediumCover']);
+			$interface->assign('bookCoverUrlMedium', $record['mediumCover']);
+			$formattedTitle = $interface->fetch('RecordDrivers/GroupedWork/scroller-title.tpl');
 		}else{
-			$formattedTitle = "<div id=\"scrollerTitle{$scrollerName}{$index}\" class=\"scrollerTitle\">" .
+			$originalId = $_REQUEST['id'];
+			$formattedTitle = "<div id=\"scrollerTitle{$scrollerName}{$index}\" class=\"scrollerTitle\" onclick=\"return VuFind.showElementInPopup('$title', '#noResults{$index}')\">" .
 					"<img src=\"{$cover}\" class=\"scrollerTitleCover\" alt=\"{$title} Cover\"/>" .
 					"</div>";
+			$formattedTitle .= "<div id=\"noResults{$index}\" style=\"display:none\">
+					<div class=\"row\">
+						<div class=\"result-label col-md-3\">Author: </div>
+						<div class=\"col-md-9 result-value notranslate\">
+							<a href='/Author/Home?author=\"{$record['author']}\"'>{$record['author']}</a>
+						</div>
+					</div>
+					<div class=\"series row\">
+						<div class=\"result-label col-md-3\">Series: </div>
+						<div class=\"col-md-9 result-value\">
+							<a href=\"/GroupedWork/{$originalId}/Series\">{$series}</a>
+						</div>
+					</div>
+					<div class=\"row related-manifestation\">
+						<div class=\"col-sm-12\">
+							The library does not own any copies of this title.
+						</div>
+					</div>
+				</div>";
 		}
 
 		return array(

@@ -35,5 +35,34 @@ function getSierraAPIUpdates() {
 							"ALTER TABLE sierra_api_export_log ADD COLUMN numRemainingRecords INT(11)",
 					)
 			),
+
+			'sierra_export_field_mapping' => array(
+					'title' => 'Sierra API export field mapping',
+					'description' => 'Setup field mappings for sierra export via api.',
+					'sql' => array(
+							"CREATE TABLE IF NOT EXISTS sierra_export_field_mapping(
+											`id` INT NOT NULL AUTO_INCREMENT COMMENT 'The id of field mapping', 
+											`indexingProfileId` INT(11) NOT NULL COMMENT 'The indexing profile this field mapping is associated with',
+											`bcode3DestinationField` CHAR(3) NOT NULL COMMENT 'The field to place bcode3 into', 
+											`bcode3DestinationSubfield` CHAR(1) NULL COMMENT 'The subfield to place bcode3 into', 
+											PRIMARY KEY ( `id` )
+											) ENGINE = INNODB;",
+					)
+			),
+
+			'sierra_export_field_mapping_item_fields' => array(
+					'title' => 'Sierra API export item field mapping',
+					'description' => 'Add item export information for sierra export.',
+					'sql' => array(
+							"ALTER TABLE sierra_export_field_mapping ADD COLUMN callNumberExportFieldTag CHAR(1)",
+							"ALTER TABLE sierra_export_field_mapping ADD COLUMN callNumberPrestampExportSubfield CHAR(1)",
+							"ALTER TABLE sierra_export_field_mapping ADD COLUMN callNumberExportSubfield CHAR(1)",
+							"ALTER TABLE sierra_export_field_mapping ADD COLUMN callNumberCutterExportSubfield CHAR(1)",
+							"ALTER TABLE sierra_export_field_mapping ADD COLUMN callNumberPoststampExportSubfield CHAR(5)",
+							"ALTER TABLE sierra_export_field_mapping ADD COLUMN volumeExportFieldTag CHAR(1)",
+							"ALTER TABLE sierra_export_field_mapping ADD COLUMN urlExportFieldTag CHAR(1)",
+							"ALTER TABLE sierra_export_field_mapping ADD COLUMN eContentExportFieldTag CHAR(1)",
+					)
+			),
 	);
 }

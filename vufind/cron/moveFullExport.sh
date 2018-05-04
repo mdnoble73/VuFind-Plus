@@ -42,6 +42,7 @@ else
 						echo "$FILE1 file was copied."
 						if [[ ! $PIKASERVER =~ ".test" ]]; then
 							# Only move marc files to processed folder for production servers
+							# The test server MUST run before production or the file won't exist
 							if [ ! -d "$LOCAL/$SOURCE/processed/" ]; then
 								mkdir $LOCAL/$SOURCE/processed/
 							fi

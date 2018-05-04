@@ -73,6 +73,22 @@ class MarmotRecordProcessor extends IIIRecordProcessor {
 		return available;
 	}
 
+	protected boolean isBibSuppressed(Record record) {
+		DataField field907 = record.getDataField("998");
+		if (field907 != null){
+			Subfield suppressionSubfield = field907.getSubfield('e');
+			if (suppressionSubfield != null){
+				String bCode3 = suppressionSubfield.getData().toLowerCase().trim();
+				String suppressedCodes = "2me1w";
+				if (bCode3.length() > 0 && suppressedCodes.contains(bCode3)){
+					logger.debug("Bib record is suppressed due to bcode3 " + bCode3);
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
 	protected boolean isItemSuppressed(DataField curItem) {
 		boolean suppressed = false;
 		Subfield icode2Subfield = curItem.getSubfield(iCode2Subfield);

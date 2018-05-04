@@ -92,9 +92,21 @@ class SearchAPI extends Action {
 		$lastFullIndexVariable = new Variable();
 		$lastFullIndexVariable->name = 'lastFullReindexFinish';
 		if ($lastFullIndexVariable->find(true)){
+			$fullIndexWarningInterval = self::FULL_INDEX_INTERVAL_WARN;
+			$fullIndexWarningIntervalVar = new Variable();
+			$fullIndexWarningIntervalVar->name = 'fullReindexIntervalWarning';
+			if ($fullIndexWarningIntervalVar->find(true)){
+				$fullIndexWarningInterval = $fullIndexWarningIntervalVar->value;
+			}
 			//Check to see if the last full index finished more than FULL_INDEX_INTERVAL seconds ago
-			if ($lastFullIndexVariable->value < ($currentTime - self::FULL_INDEX_INTERVAL_WARN)){
-				$status[] = ($lastFullIndexVariable->value < ($currentTime - self::FULL_INDEX_INTERVAL_CRITICAL)) ? self::STATUS_CRITICAL : self::STATUS_WARN;
+			if ($lastFullIndexVariable->value < ($currentTime - $fullIndexWarningInterval)){
+				$fullIndexCriticalInterval = self::FULL_INDEX_INTERVAL_CRITICAL;
+				$fullIndexCriticalIntervalVar = new Variable();
+				$fullIndexCriticalIntervalVar->name = 'fullReindexIntervalCritical';
+				if ($fullIndexCriticalIntervalVar->find(true)){
+					$fullIndexCriticalInterval = $fullIndexCriticalIntervalVar->value;
+				}
+				$status[] = ($lastFullIndexVariable->value < ($currentTime - $fullIndexCriticalInterval)) ? self::STATUS_CRITICAL : self::STATUS_WARN;
 				$notes[]  = 'Full Index last finished ' . date('m-d-Y H:i:s', $lastFullIndexVariable->value) . ' - ' . round(($currentTime - $lastFullIndexVariable->value) / 3600, 2) . ' hours ago';
 			}
 		}else{

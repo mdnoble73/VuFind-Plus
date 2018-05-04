@@ -28,6 +28,7 @@ class RecordGroupingProcessor {
 	boolean useEContentSubfield = false;
 	char eContentDescriptor = ' ';
 	private PreparedStatement insertGroupedWorkStmt;
+	private PreparedStatement groupedWorkForIdentifierStmt;
 	private PreparedStatement updateDateUpdatedForGroupedWorkStmt;
 	private PreparedStatement addPrimaryIdentifierForWorkStmt;
 	private PreparedStatement removePrimaryIdentifiersForWorkStmt;
@@ -87,6 +88,7 @@ class RecordGroupingProcessor {
 			updateDateUpdatedForGroupedWorkStmt = dbConnection.prepareStatement("UPDATE grouped_work SET date_updated = ? where id = ?");
 			addPrimaryIdentifierForWorkStmt = dbConnection.prepareStatement("INSERT INTO grouped_work_primary_identifiers (grouped_work_id, type, identifier) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id), grouped_work_id = VALUES(grouped_work_id)", Statement.RETURN_GENERATED_KEYS);
 			removePrimaryIdentifiersForWorkStmt = dbConnection.prepareStatement("DELETE FROM grouped_work_primary_identifiers where grouped_work_id = ?");
+			groupedWorkForIdentifierStmt = dbConnection.prepareStatement("SELECT grouped_work.id, grouped_work.permanent_id FROM grouped_work inner join grouped_work_primary_identifiers on grouped_work_primary_identifiers.grouped_work_id = grouped_work.id where type = ? and identifier = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 
 			if (!fullRegrouping){
 				PreparedStatement loadExistingGroupedWorksStmt = dbConnection.prepareStatement("SELECT id, permanent_id from grouped_work");
@@ -332,6 +334,25 @@ class RecordGroupingProcessor {
 		//Check to see if we are doing a manual merge of the work
 		if (mergedGroupedWorks.containsKey(groupedWorkPermanentId)){
 			groupedWorkPermanentId = handleMergedWork(groupedWork, groupedWorkPermanentId);
+		}
+
+		//Check to see if the record is already on an existing work.  If so, remove from the old work.
+		try {
+			groupedWorkForIdentifierStmt.setString(1, primaryIdentifier.getType());
+			groupedWorkForIdentifierStmt.setString(2, primaryIdentifier.getIdentifier());
+
+			ResultSet groupedWorkForIdentifierRS = groupedWorkForIdentifierStmt.executeQuery();
+			if (groupedWorkForIdentifierRS.next()){
+				//We have an existing grouped work
+				String existingGroupedWorkPermanentId = groupedWorkForIdentifierRS.getString("permanent_id");
+				Long existingGroupedWorkId = groupedWorkForIdentifierRS.getLong("id");
+				if (!existingGroupedWorkPermanentId.equals(groupedWorkPermanentId)){
+					markWorkUpdated(existingGroupedWorkId);
+				}
+			}
+			groupedWorkForIdentifierRS.close();
+		}catch(SQLException e){
+			logger.error("Error determining existing grouped work for identifier", e);
 		}
 
 		//Add the work to the database

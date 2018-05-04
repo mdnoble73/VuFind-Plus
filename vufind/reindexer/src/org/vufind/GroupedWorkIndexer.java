@@ -41,6 +41,7 @@ public class GroupedWorkIndexer {
 	private Long maxWorksToProcess = -1L;
 
 	private PreparedStatement getRatingStmt;
+	private PreparedStatement getNovelistStmt;
 	private Connection vufindConn;
 
 	private int availableAtLocationBoostValue;
@@ -258,7 +259,8 @@ public class GroupedWorkIndexer {
 		//Setup prepared statements to load local enrichment
 		try {
 			//No need to filter for ratings greater than 0 because the user has to rate from 1-5
-			getRatingStmt = vufindConn.prepareStatement("SELECT AVG(rating) as averageRating, groupedRecordPermanentId from user_work_review where groupedRecordPermanentId = ?");
+			getRatingStmt = vufindConn.prepareStatement("SELECT AVG(rating) as averageRating, groupedRecordPermanentId from user_work_review where groupedRecordPermanentId = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			getNovelistStmt = vufindConn.prepareStatement("SELECT * from novelist_data where groupedRecordPermanentId = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 		} catch (SQLException e) {
 			logger.error("Could not prepare statements to load local enrichment", e);
 		}
@@ -1015,6 +1017,8 @@ public class GroupedWorkIndexer {
 			loadLexileDataForWork(groupedWork);
 			//Load accelerated reader data for the work
 			loadAcceleratedDataForWork(groupedWork);
+			//Load Novelist data
+			loadNovelistInfo(groupedWork);
 
 			//Write the record to Solr.
 			try {
@@ -1028,6 +1032,14 @@ public class GroupedWorkIndexer {
 		}else{
 			//Log that this record did not have primary identifiers after
 			logger.debug("Grouped work " + permanentId + " did not have any primary identifiers for it, suppressing");
+			if (!fullReindex){
+				try {
+					updateServer.deleteById(permanentId);
+				}catch (Exception e){
+					logger.error("Error deleting suppressed record", e);
+				}
+			}
+
 		}
 
 
@@ -1101,6 +1113,28 @@ public class GroupedWorkIndexer {
 			ratingsRS.close();
 		}catch (Exception e){
 			logger.error("Unable to load local enrichment", e);
+		}
+	}
+
+	private void loadNovelistInfo(GroupedWorkSolr groupedWork){
+		try{
+			getNovelistStmt.setString(1, groupedWork.getId());
+			ResultSet novelistRS = getNovelistStmt.executeQuery();
+			if (novelistRS.next()){
+				String series = novelistRS.getString("seriesTitle");
+				if (!novelistRS.wasNull()){
+					groupedWork.clearSeriesData();
+					groupedWork.addSeries(series);
+					String volume = novelistRS.getString("volume");
+					if (novelistRS.wasNull()){
+						volume = "";
+					}
+					groupedWork.addSeriesWithVolume(series + "|" + volume);
+				}
+			}
+			novelistRS.close();
+		}catch (Exception e){
+			logger.error("Unable to load novelist data", e);
 		}
 	}
 

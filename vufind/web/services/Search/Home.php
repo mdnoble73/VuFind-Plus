@@ -52,6 +52,15 @@ class Search_Home extends Action {
 			$browseCategories = $this->getBrowseCategories($library->browseCategories);
 		}
 
+		// Get Browse Categories for default Library if none are set for the Library and Location
+		if (empty($browseCategories)) {
+			$defaultLibrary = new Library();
+			$defaultLibrary->isDefault = true;
+			if ($defaultLibrary->find(true)) {
+				$browseCategories = $this->getBrowseCategories($defaultLibrary->browseCategories);
+			}
+		}
+
 		// Get All Browse Categories if Location & Library had none set
 		if (empty($browseCategories)){
 			$browseCategories = $this->getBrowseCategories();

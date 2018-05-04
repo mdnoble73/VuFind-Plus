@@ -50,7 +50,8 @@
 #####################
 # Export lands on ftp server at 00:10am..  Set the start for right after that.
 # Now setting in the morning to avoid interference with the splitter & marc exports. plb 3-17-2016
-00 08 * * * cd /usr/local/vufind-plus/sites/marmot.test; ./full_update.sh
+# MDN 4-19-2018 running at 8pm to ensure it is done for testing in the morning
+00 20 * * * cd /usr/local/vufind-plus/sites/marmot.test; ./full_update.sh
 
 ################
 # Pika Cleanup #
@@ -70,7 +71,7 @@
 # Hoopla
 0 20 * * * cd /usr/local/vufind-plus/vufind/hoopla_export; java -jar hoopla_export.jar marmot.test
 #Lynda weekly update
-17 9 * * Tue /usr/local/vufind-plus/vufind/cron/fetch_lynda.sh marmot
+23 0 * * Fri /usr/local/vufind-plus/vufind/cron/fetch_lynda.sh marmot
 
 ############################################
 # New York Times Bestseller Lists Updating #

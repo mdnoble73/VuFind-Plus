@@ -238,6 +238,7 @@ class Library extends DB_DataObject
 	// You should be able to add options here without needing to change the database.
 	// set the key to the desired SMARTY template variable name, set the value to the label to show in the library configuration page
 	static $showInMainDetailsOptions = array(
+		'showSeries'               => 'Series',
 		'showPublicationDetails'   => 'Published',
 		'showFormats'              => 'Formats',
 		'showEditions'             => 'Editions',
@@ -501,7 +502,7 @@ class Library extends DB_DataObject
 				'searchBoxSection' => array('property' => 'searchBoxSection', 'type' => 'section', 'label' => 'Search Box', 'hideInLists' => true, 'properties' => array(
 					'horizontalSearchBar'                    => array('property' => 'horizontalSearchBar',      'type'=>'checkbox', 'label' => 'Use Horizontal Search Bar',   'description' => 'Instead of the default sidebar search box, a horizontal search bar is shown below the header that spans the screen.', 'hideInLists' => true, 'default' => false),
 					'systemsToRepeatIn'                      => array('property' => 'systemsToRepeatIn',        'type' => 'text',   'label' => 'Systems To Repeat In',        'description' => 'A list of library codes that you would like to repeat search in separated by pipes |.', 'size'=>'20', 'hideInLists' => true,),
-					'repeatSearchOption'                     => array('property' => 'repeatSearchOption',       'type'=>'enum',     'label' => 'Repeat Search Options',       'description'=>'Where to allow repeating search. Valid options are: none, librarySystem, marmot, all', 'values'=>array('none'=>'None', 'librarySystem'=>'Library System','marmot'=>'Consortium'),),
+					'repeatSearchOption'                     => array('property' => 'repeatSearchOption',       'type'=>'enum',     'label' => 'Repeat Search Options (requires Restrict Search to Library to be ON)',       'description'=>'Where to allow repeating search. Valid options are: none, librarySystem, marmot, all', 'values'=>array('none'=>'None', 'librarySystem'=>'Library System','marmot'=>'Consortium'),),
 					'repeatInOnlineCollection'               => array('property' => 'repeatInOnlineCollection', 'type'=>'checkbox', 'label' => 'Repeat In Online Collection', 'description'=>'Turn on to allow repeat search in the Online Collection.', 'hideInLists' => true, 'default'=>false),
 					'showAdvancedSearchbox'                  => array('property' => 'showAdvancedSearchbox',    'type'=>'checkbox', 'label' => 'Show Advanced Search Link',   'description'=>'Whether or not users should see the advanced search link below the search box.', 'hideInLists' => true, 'default' => 1),
 				)),
@@ -1361,8 +1362,14 @@ class Library extends DB_DataObject
 		if ($return) {
 			if (isset($this->showInMainDetails) && is_string($this->showInMainDetails) && !empty($this->showInMainDetails)) {
 				// convert to array retrieving from database
-				$this->showInMainDetails = unserialize($this->showInMainDetails);
-				if (!$this->showInMainDetails) $this->showInMainDetails = array();
+				try{
+					$this->showInMainDetails = unserialize($this->showInMainDetails);
+					if (!$this->showInMainDetails) $this->showInMainDetails = array();
+				}catch (Exception $e){
+					global $logger;
+					$logger->log("Error loading $this->libraryId $e", PEAR_LOG_DEBUG);
+				}
+
 			}
 			elseif (empty($this->showInMainDetails)) {
 				// when a value is not set, assume set to show all options, eg null = all

@@ -47,6 +47,7 @@ public class SierraExportAPIMain {
 	private static boolean exportItemHolds = true;
 	private static boolean suppressOrderRecordsThatAreReceivedAndCatalogged = false;
 	private static boolean suppressOrderRecordsThatAreCatalogged = false;
+	private static boolean suppressOrderRecordsThatAreReceived = false;
 	private static String orderStatusesToExport;
 
 	private static Long lastSierraExtractTime = null;
@@ -91,6 +92,10 @@ public class SierraExportAPIMain {
 		String suppressOrderRecordsThatAreCataloggedStr = ini.get("Catalog", "suppressOrderRecordsThatAreCatalogged");
 		if (suppressOrderRecordsThatAreCataloggedStr != null){
 			suppressOrderRecordsThatAreCatalogged = suppressOrderRecordsThatAreCataloggedStr.equalsIgnoreCase("true");
+		}
+		String suppressOrderRecordsThatAreReceivedStr = ini.get("Catalog", "suppressOrderRecordsThatAreReceived");
+		if (suppressOrderRecordsThatAreReceivedStr != null){
+			suppressOrderRecordsThatAreReceived = suppressOrderRecordsThatAreReceivedStr.equalsIgnoreCase("true");
 		}
 
 		//Connect to the vufind database
@@ -180,6 +185,15 @@ public class SierraExportAPIMain {
 		}catch(Exception e){
 			System.out.println("Error: " + e.toString());
 			e.printStackTrace();
+		}
+
+		try {
+			PreparedStatement setNumProcessedStmt = vufindConn.prepareStatement("UPDATE sierra_api_export_log SET numRecordsToProcess = ? WHERE id = ?", PreparedStatement.RETURN_GENERATED_KEYS);
+			setNumProcessedStmt.setLong(1, allBibsToUpdate.size());
+			setNumProcessedStmt.setLong(2, exportLogId);
+			setNumProcessedStmt.executeUpdate();
+		}catch (SQLException e) {
+			logger.error("Unable to update log entry with number of records that have changed", e);
 		}
 
 		int numRecordsProcessed = updateBibs(ini);
@@ -384,16 +398,18 @@ public class SierraExportAPIMain {
 				allBibsToUpdate.remove(lastId);
 			}
 			updateMarcAndRegroupRecordIds(ini, idsToProcess.toString(), ids);
-			if (allBibsToUpdate.size() > 0){
+			if (allBibsToUpdate.size() >= 0){
 				numProcessed += maxIndex;
-				if (numProcessed % 250 == 0){
+				if (numProcessed % 250 == 0 || allBibsToUpdate.size() == 0){
 					addNoteToExportLog("Processed " + numProcessed);
 					if ((new Date().getTime() / 1000) - exportStartTime >= 5 * 60){
 						addNoteToExportLog("Stopping export due to time constraints, there are " + allBibsToUpdate.size()  + " bibs remaining to be processed.");
 						break;
 					}
 				}
-				hasMoreIdsToProcess = true;
+				if (allBibsToUpdate.size() > 0) {
+					hasMoreIdsToProcess = true;
+				}
 			}
 		}
 
@@ -865,6 +881,7 @@ public class SierraExportAPIMain {
 				if (marcResults.has("httpStatus")){
 					if (marcResults.getInt("code") == 107){
 						//This record was deleted
+						logger.debug("id " + id + " was deleted");
 						return true;
 					}else{
 						logger.error("Unknown error " + marcResults);
@@ -899,11 +916,21 @@ public class SierraExportAPIMain {
 						}
 					}
 				}
+				logger.debug("Converted JSON to MARC for Bib");
 
 				//Add the identifier
 				marcRecord.addVariableField(marcFactory.newDataField(indexingProfile.recordNumberTag, ' ', ' ',  "a", ".b" + id + getCheckDigit(id)));
+
+				//Load BCode3
+				JSONObject fixedFieldResults = getMarcJSONFromSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/bibs/" + id + "?fields=fixedFields");
+				String bCode3 = fixedFieldResults.getJSONObject("fixedFields").getJSONObject("31").getString("value");
+				DataField bCode3Field = marcFactory.newDataField(indexingProfile.bcode3DestinationField, ' ', ' ');
+				bCode3Field.addSubfield(marcFactory.newSubfield(indexingProfile.bcode3DestinationSubfield, bCode3));
+				marcRecord.addVariableField(bCode3Field);
+
 				//Get Items for the bib record
 				getItemsForBib(ini, id, marcRecord);
+				logger.debug("Processed items for Bib");
 				RecordIdentifier identifier = recordGroupingProcessor.getPrimaryIdentifierFromMarcRecord(marcRecord, indexingProfile.name, indexingProfile.doAutomaticEcontentSuppression);
 				File marcFile = indexingProfile.getFileForIlsRecord(identifier.getIdentifier());
 				if (!marcFile.getParentFile().exists()) {
@@ -914,18 +941,21 @@ public class SierraExportAPIMain {
 				MarcWriter marcWriter = new MarcStreamWriter(new FileOutputStream(marcFile), true);
 				marcWriter.write(marcRecord);
 				marcWriter.close();
+				logger.debug("Wrote marc record for " + identifier.getIdentifier());
 
 				//Setup the grouped work for the record.  This will take care of either adding it to the proper grouped work
 				//or creating a new grouped work
 				if (!recordGroupingProcessor.processMarcRecord(marcRecord, true)) {
 					logger.warn(identifier.getIdentifier() + " was suppressed");
+				}else{
+					logger.debug("Finished record grouping for " + identifier.getIdentifier());
 				}
 			}else{
 				logger.error("Error exporting marc record for " + id + " call returned null");
 				return false;
 			}
 		}catch (Exception e){
-			logger.error("Error processing newly created bibs", e);
+			logger.error("Error in updateMarcAndRegroupRecordId processing bib from Sierra API", e);
 			return false;
 		}
 		return true;
@@ -936,94 +966,139 @@ public class SierraExportAPIMain {
 	private static void getItemsForBib(Ini ini, String id, Record marcRecord) {
 		//Get a list of all items
 		long startTime = new Date().getTime();
-		JSONObject itemIds = callSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/items?limit=1000&deleted=false&suppressed=false&fields=id,updatedDate,createdDate,location,status,barcode,callNumber,itemType,fixedFields,varFields&bibIds=" + id, true);
+		//This will return a 404 error if all items are suppressed or if the record has not items
+		JSONObject itemIds = callSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/items?limit=1000&deleted=false&suppressed=false&fields=id,updatedDate,createdDate,location,status,barcode,callNumber,itemType,fixedFields,varFields&bibIds=" + id, false);
 		if (itemIds != null){
 			try {
-				JSONArray entries = itemIds.getJSONArray("entries");
-				logger.debug("finished getting items for " + id + " elapsed time " + (new Date().getTime() - startTime) + "ms found " + entries.length());
-				for (int i = 0; i < entries.length(); i++) {
-					JSONObject curItem = entries.getJSONObject(i);
-					JSONObject fixedFields = curItem.getJSONObject("fixedFields");
-					JSONArray varFields = curItem.getJSONArray("varFields");
-					String itemId = curItem.getString("id");
-					DataField itemField = marcFactory.newDataField(indexingProfile.itemTag, ' ', ' ');
-					//Record Number
-					if (indexingProfile.itemRecordNumberSubfield != ' '){
-						itemField.addSubfield(marcFactory.newSubfield(indexingProfile.itemRecordNumberSubfield, ".i" + itemId + getCheckDigit(itemId)));
+				if (itemIds.has("code")){
+					if (itemIds.getInt("code") != 404){
+						logger.error("Error getting information about items " + itemIds.toString());
 					}
-					//barcode
-					if (curItem.has("barcode")){
-						itemField.addSubfield(marcFactory.newSubfield(indexingProfile.barcodeSubfield, curItem.getString("barcode")));
-					}
-					//location
-					if (curItem.has("location") && indexingProfile.locationSubfield != ' '){
-						String locationCode = curItem.getJSONObject("location").getString("code");
-						itemField.addSubfield(marcFactory.newSubfield(indexingProfile.locationSubfield, locationCode));
-					}
-					//call number (can we get prestamp cutter, poststamp?
-					if (curItem.has("callNumber") && indexingProfile.callNumberSubfield != ' '){
+				}else{
+					JSONArray entries = itemIds.getJSONArray("entries");
+					logger.debug("finished getting items for " + id + " elapsed time " + (new Date().getTime() - startTime) + "ms found " + entries.length());
+					for (int i = 0; i < entries.length(); i++) {
+						JSONObject curItem = entries.getJSONObject(i);
+						JSONObject fixedFields = curItem.getJSONObject("fixedFields");
+						JSONArray varFields = curItem.getJSONArray("varFields");
+						String itemId = curItem.getString("id");
+						DataField itemField = marcFactory.newDataField(indexingProfile.itemTag, ' ', ' ');
+						//Record Number
+						if (indexingProfile.itemRecordNumberSubfield != ' '){
+							itemField.addSubfield(marcFactory.newSubfield(indexingProfile.itemRecordNumberSubfield, ".i" + itemId + getCheckDigit(itemId)));
+						}
+						//barcode
+						if (curItem.has("barcode")){
+							itemField.addSubfield(marcFactory.newSubfield(indexingProfile.barcodeSubfield, curItem.getString("barcode")));
+						}
+						//location
+						if (curItem.has("location") && indexingProfile.locationSubfield != ' '){
+							String locationCode = curItem.getJSONObject("location").getString("code");
+							itemField.addSubfield(marcFactory.newSubfield(indexingProfile.locationSubfield, locationCode));
+						}
+						//call number (can we get prestamp cutter, poststamp?
+					/*if (curItem.has("callNumber") && indexingProfile.callNumberSubfield != ' '){
 						itemField.addSubfield(marcFactory.newSubfield(indexingProfile.callNumberSubfield, curItem.getString("callNumber")));
-					}
-					//status
-					if (curItem.has("status")){
-						String statusCode = curItem.getJSONObject("status").getString("code");
-						itemField.addSubfield(marcFactory.newSubfield(indexingProfile.itemStatusSubfield, statusCode));
-						if (curItem.getJSONObject("status").has("duedate")){
-							Date createdDate = sierraAPIDateFormatter.parse(curItem.getJSONObject("status").getString("duedate"));
-							itemField.addSubfield(marcFactory.newSubfield(indexingProfile.dueDateSubfield, indexingProfile.dueDateFormatter.format(createdDate)));
+					}*/
+						//status
+						if (curItem.has("status")){
+							String statusCode = curItem.getJSONObject("status").getString("code");
+							itemField.addSubfield(marcFactory.newSubfield(indexingProfile.itemStatusSubfield, statusCode));
+							if (curItem.getJSONObject("status").has("duedate")){
+								Date createdDate = sierraAPIDateFormatter.parse(curItem.getJSONObject("status").getString("duedate"));
+								itemField.addSubfield(marcFactory.newSubfield(indexingProfile.dueDateSubfield, indexingProfile.dueDateFormatter.format(createdDate)));
+							}else{
+								itemField.addSubfield(marcFactory.newSubfield(indexingProfile.dueDateSubfield, ""));
+							}
 						}else{
 							itemField.addSubfield(marcFactory.newSubfield(indexingProfile.dueDateSubfield, ""));
 						}
-					}else{
-						itemField.addSubfield(marcFactory.newSubfield(indexingProfile.dueDateSubfield, ""));
-					}
-					//total checkouts
-					if (fixedFields.has("76") && indexingProfile.totalCheckoutsSubfield != ' '){
-						itemField.addSubfield(marcFactory.newSubfield(indexingProfile.totalCheckoutsSubfield, fixedFields.getJSONObject("76").getString("value")));
-					}
-					//last year checkouts
-					if (fixedFields.has("110") && indexingProfile.lastYearCheckoutsSubfield != ' '){
-						itemField.addSubfield(marcFactory.newSubfield(indexingProfile.lastYearCheckoutsSubfield, fixedFields.getJSONObject("110").getString("value")));
-					}
-					//year to date checkouts
-					if (fixedFields.has("109") && indexingProfile.yearToDateCheckoutsSubfield != ' '){
-						itemField.addSubfield(marcFactory.newSubfield(indexingProfile.yearToDateCheckoutsSubfield, fixedFields.getJSONObject("109").getString("value")));
-					}
-					//total renewals
-					if (fixedFields.has("77") && indexingProfile.totalRenewalsSubfield != ' '){
-						itemField.addSubfield(marcFactory.newSubfield(indexingProfile.totalRenewalsSubfield, fixedFields.getJSONObject("77").getString("value")));
-					}
-					//iType
-					if (fixedFields.has("61") && indexingProfile.iTypeSubfield != ' '){
-						itemField.addSubfield(marcFactory.newSubfield(indexingProfile.iTypeSubfield, fixedFields.getJSONObject("61").getString("value")));
-					}
-					//date created
-					if (curItem.has("createdDate") && indexingProfile.dateCreatedSubfield != ' '){
-						Date createdDate = sierraAPIDateFormatter.parse(curItem.getString("createdDate"));
-						itemField.addSubfield(marcFactory.newSubfield(indexingProfile.dateCreatedSubfield, indexingProfile.dateCreatedFormatter.format(createdDate)));
-					}
-					//last check in date
-					if (fixedFields.has("68") && indexingProfile.lastCheckinDateSubfield != ' '){
-						Date lastCheckin = sierraAPIDateFormatter.parse(fixedFields.getString("68"));
-						itemField.addSubfield(marcFactory.newSubfield(indexingProfile.lastCheckinDateSubfield, indexingProfile.lastCheckinFormatter.format(lastCheckin)));
-					}
-					//icode2
-					if (fixedFields.has("60") && indexingProfile.iCode2Subfield != ' '){
-						itemField.addSubfield(marcFactory.newSubfield(indexingProfile.iCode2Subfield, fixedFields.getJSONObject("60").getString("value")));
-					}
+						//total checkouts
+						if (fixedFields.has("76") && indexingProfile.totalCheckoutsSubfield != ' '){
+							itemField.addSubfield(marcFactory.newSubfield(indexingProfile.totalCheckoutsSubfield, fixedFields.getJSONObject("76").getString("value")));
+						}
+						//last year checkouts
+						if (fixedFields.has("110") && indexingProfile.lastYearCheckoutsSubfield != ' '){
+							itemField.addSubfield(marcFactory.newSubfield(indexingProfile.lastYearCheckoutsSubfield, fixedFields.getJSONObject("110").getString("value")));
+						}
+						//year to date checkouts
+						if (fixedFields.has("109") && indexingProfile.yearToDateCheckoutsSubfield != ' '){
+							itemField.addSubfield(marcFactory.newSubfield(indexingProfile.yearToDateCheckoutsSubfield, fixedFields.getJSONObject("109").getString("value")));
+						}
+						//total renewals
+						if (fixedFields.has("77") && indexingProfile.totalRenewalsSubfield != ' '){
+							itemField.addSubfield(marcFactory.newSubfield(indexingProfile.totalRenewalsSubfield, fixedFields.getJSONObject("77").getString("value")));
+						}
+						//iType
+						if (fixedFields.has("61") && indexingProfile.iTypeSubfield != ' '){
+							itemField.addSubfield(marcFactory.newSubfield(indexingProfile.iTypeSubfield, fixedFields.getJSONObject("61").getString("value")));
+						}
+						//date created
+						if (curItem.has("createdDate") && indexingProfile.dateCreatedSubfield != ' '){
+							Date createdDate = sierraAPIDateFormatter.parse(curItem.getString("createdDate"));
+							itemField.addSubfield(marcFactory.newSubfield(indexingProfile.dateCreatedSubfield, indexingProfile.dateCreatedFormatter.format(createdDate)));
+						}
+						//last check in date
+						if (fixedFields.has("68") && indexingProfile.lastCheckinDateSubfield != ' '){
+							Date lastCheckin = sierraAPIDateFormatter.parse(fixedFields.getString("68"));
+							itemField.addSubfield(marcFactory.newSubfield(indexingProfile.lastCheckinDateSubfield, indexingProfile.lastCheckinFormatter.format(lastCheckin)));
+						}
+						//icode2
+						if (fixedFields.has("60") && indexingProfile.iCode2Subfield != ' '){
+							itemField.addSubfield(marcFactory.newSubfield(indexingProfile.iCode2Subfield, fixedFields.getJSONObject("60").getString("value")));
+						}
 
-					//Process variable fields
-					for (int j = 0; j < varFields.length(); j++){
-						JSONObject curVarField = varFields.getJSONObject(j);
-						String fieldTag = curVarField.getString("fieldTag");
-						//volume
+						//Process variable fields
+						for (int j = 0; j < varFields.length(); j++){
+							JSONObject curVarField = varFields.getJSONObject(j);
+							String fieldTag = curVarField.getString("fieldTag");
+							StringBuilder allFieldContent = new StringBuilder();
+							JSONArray subfields = null;
+							if (curVarField.has("subfields")){
+								subfields = curVarField.getJSONArray("subfields");
+								for (int k = 0; k < subfields.length(); k++){
+									JSONObject subfield = subfields.getJSONObject(k);
+									allFieldContent.append(subfield.getString("content"));
+								}
+							}else{
+								allFieldContent.append(curVarField.getString("content"));
+							}
 
-						//url
-
+							if (fieldTag.equals(indexingProfile.callNumberExportFieldTag)){
+								if (subfields != null){
+									for (int k = 0; k < subfields.length(); k++){
+										JSONObject subfield = subfields.getJSONObject(k);
+										String tag = subfield.getString("tag");
+										String content = subfield.getString("content");
+										if (indexingProfile.callNumberPrestampExportSubfield.length() > 0 && tag.equalsIgnoreCase(indexingProfile.callNumberPrestampExportSubfield)){
+											itemField.addSubfield(marcFactory.newSubfield(indexingProfile.callNumberPrestampSubfield, content));
+										}else if (indexingProfile.callNumberExportSubfield.length() > 0 && tag.equalsIgnoreCase(indexingProfile.callNumberExportSubfield)){
+											itemField.addSubfield(marcFactory.newSubfield(indexingProfile.callNumberSubfield, content));
+										}else if (indexingProfile.callNumberCutterExportSubfield.length() > 0 && tag.equalsIgnoreCase(indexingProfile.callNumberCutterExportSubfield)){
+											itemField.addSubfield(marcFactory.newSubfield(indexingProfile.callNumberCutterSubfield, content));
+										}else if (indexingProfile.callNumberPoststampExportSubfield.length() > 0 && tag.indexOf(indexingProfile.callNumberPoststampExportSubfield) > 0){
+											itemField.addSubfield(marcFactory.newSubfield(indexingProfile.callNumberPoststampSubfield, content));
+											//}else{
+											//logger.debug("Unhandled call number subfield " + tag);
+										}
+									}
+								}else{
+									String content = curVarField.getString("content");
+									itemField.addSubfield(marcFactory.newSubfield(indexingProfile.callNumberSubfield, content));
+								}
+							}else if (indexingProfile.volumeExportFieldTag.length() > 0 && fieldTag.equals(indexingProfile.volumeExportFieldTag)){
+								itemField.addSubfield(marcFactory.newSubfield(indexingProfile.volume, allFieldContent.toString()));
+							}else if (indexingProfile.urlExportFieldTag.length() > 0 && fieldTag.equals(indexingProfile.urlExportFieldTag)){
+								itemField.addSubfield(marcFactory.newSubfield(indexingProfile.itemUrl, allFieldContent.toString()));
+							}else if (indexingProfile.eContentExportFieldTag.length() > 0 && fieldTag.equals(indexingProfile.eContentExportFieldTag)){
+								itemField.addSubfield(marcFactory.newSubfield(indexingProfile.eContentDescriptor, allFieldContent.toString()));
+							//}else{
+								//logger.debug("Unhandled item variable field " + fieldTag);
+							}
+						}
+						marcRecord.addVariableField(itemField);
 					}
-					marcRecord.addVariableField(itemField);
 				}
-
 			}catch (Exception e){
 				logger.error("Error getting information about items", e);
 			}
@@ -1037,12 +1112,15 @@ public class SierraExportAPIMain {
 			JSONObject marcResults = null;
 			if (allowFastExportMethod) {
 				//Don't log errors since we get regular errors if we exceed the export rate.
+				logger.debug("Loading marc records with fast method " + apiBaseUrl + "/bibs/marc?id=" + ids);
 				marcResults = callSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/bibs/marc?id=" + ids, false);
 			}
 			if (marcResults != null && marcResults.has("file")){
+				logger.debug("Got results with fast method");
 				ArrayList<String> processedIds = new ArrayList<>();
 				String dataFileUrl = marcResults.getString("file");
 				String marcData = getMarcFromSierraApiURL(ini, apiBaseUrl, dataFileUrl, false);
+				logger.debug("Got marc record file");
 				MarcReader marcReader = new MarcPermissiveStreamReader(new ByteArrayInputStream(marcData.getBytes(StandardCharsets.UTF_8)), true, true);
 				while (marcReader.hasNext()){
 					try {
@@ -1057,14 +1135,18 @@ public class SierraExportAPIMain {
 						MarcWriter marcWriter = new MarcStreamWriter(new FileOutputStream(marcFile));
 						marcWriter.write(marcRecord);
 						marcWriter.close();
+						logger.debug("Wrote marc record for " + identifier.getIdentifier());
 
 						//Setup the grouped work for the record.  This will take care of either adding it to the proper grouped work
 						//or creating a new grouped work
 						if (!recordGroupingProcessor.processMarcRecord(marcRecord, true)) {
 							logger.warn(identifier.getIdentifier() + " was suppressed");
+						}else{
+							logger.debug("Finished record grouping for " + identifier.getIdentifier());
 						}
 						String shortId = identifier.getIdentifier().substring(2, identifier.getIdentifier().length() - 1);
 						processedIds.add(shortId);
+						logger.debug("Processed " + identifier.getIdentifier());
 					}catch (MarcException mre){
 						logger.info("Error loading marc record from file, will load manually");
 					}
@@ -1076,13 +1158,17 @@ public class SierraExportAPIMain {
 							addNoteToExportLog("Processing " + id + " failed");
 							bibsWithErrors.add(id);
 							//allPass = false;
+						}else{
+							logger.debug("Processed " + id);
 						}
 					}
 				}
 			}else{
+				logger.debug("No results with fast method available, loading with slow method");
 				//Don't need this message since it will happen regularly.
 				//logger.info("Error exporting marc records for " + ids + " marc results did not have a file");
 				for (String id : idArray) {
+					logger.debug("starting to process " + id);
 					if (!updateMarcAndRegroupRecordId(ini, id)){
 						//Don't fail the entire process.  We will just reprocess next time the export runs
 						addNoteToExportLog("Processing " + id + " failed");
@@ -1090,6 +1176,7 @@ public class SierraExportAPIMain {
 						//allPass = false;
 					}
 				}
+				logger.debug("finished processing " + idArray.size() + " records with the slow method");
 			}
 		}catch (Exception e){
 			logger.error("Error processing newly created bibs", e);
@@ -1157,6 +1244,8 @@ public class SierraExportAPIMain {
 			activeOrderSQL += " and (catalog_date_gmt IS NULL or received_date_gmt IS NULL) ";
 		}else if (suppressOrderRecordsThatAreCatalogged){
 			activeOrderSQL += " and (catalog_date_gmt IS NULL) ";
+		}else if (suppressOrderRecordsThatAreReceived){
+			activeOrderSQL += " and (received_date_gmt IS NULL) ";
 		}
 		PreparedStatement getActiveOrdersStmt = conn.prepareStatement(activeOrderSQL, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 		ResultSet activeOrdersRS = null;
@@ -1436,13 +1525,13 @@ public class SierraExportAPIMain {
 				}
 
 			} catch (java.net.SocketTimeoutException e) {
-				logger.error("Socket timeout talking to to sierra API " + e.toString() );
+				logger.error("Socket timeout talking to to sierra API (callSierraApiURL) " + sierraUrl + " - " + e.toString() );
 				lastCallTimedOut = true;
 			} catch (java.net.ConnectException e) {
-				logger.error("Timeout connecting to sierra API " + e.toString() );
+				logger.error("Timeout connecting to sierra API (callSierraApiURL) " + sierraUrl + " - "  + e.toString() );
 				lastCallTimedOut = true;
 			} catch (Exception e) {
-				logger.error("Error loading data from sierra API ", e );
+				logger.error("Error loading data from sierra API (callSierraApiURL) " + sierraUrl + " - " , e );
 			}
 		}
 		return null;
@@ -1502,13 +1591,13 @@ public class SierraExportAPIMain {
 				}
 
 			} catch (java.net.SocketTimeoutException e) {
-				logger.error("Socket timeout talking to to sierra API " + e.toString() );
+				logger.error("Socket timeout talking to to sierra API (getMarcFromSierraApiURL) " + e.toString() );
 				lastCallTimedOut = true;
 			} catch (java.net.ConnectException e) {
-				logger.error("Timeout connecting to sierra API " + e.toString() );
+				logger.error("Timeout connecting to sierra API (getMarcFromSierraApiURL) " + e.toString() );
 				lastCallTimedOut = true;
 			} catch (Exception e) {
-				logger.error("Error loading data from sierra API ", e );
+				logger.error("Error loading data from sierra API (getMarcFromSierraApiURL) ", e );
 			}
 		}
 		return null;
@@ -1570,13 +1659,13 @@ public class SierraExportAPIMain {
 				}
 
 			} catch (java.net.SocketTimeoutException e) {
-				logger.error("Socket timeout talking to to sierra API " + e.toString() );
+				logger.error("Socket timeout talking to to sierra API (getMarcJSONFromSierraApiURL) " + e.toString() );
 				lastCallTimedOut = true;
 			} catch (java.net.ConnectException e) {
-				logger.error("Timeout connecting to sierra API " + e.toString() );
+				logger.error("Timeout connecting to sierra API (getMarcJSONFromSierraApiURL) " + e.toString() );
 				lastCallTimedOut = true;
 			} catch (Exception e) {
-				logger.error("Error loading data from sierra API ", e );
+				logger.error("Error loading data from sierra API (getMarcJSONFromSierraApiURL) ", e );
 			}
 		}
 		return null;

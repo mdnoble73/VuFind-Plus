@@ -1,5 +1,5 @@
 {strip}
-	<div class="jcarousel-wrapper">
+	<div class="jcarousel-wrapper seriesCarousel">
 		<div class="jcarousel">
 			<ul>
 				{foreach from=$titles item=title}

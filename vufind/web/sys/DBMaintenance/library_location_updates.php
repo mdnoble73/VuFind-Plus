@@ -1696,5 +1696,14 @@ function getLibraryLocationUpdates(){
 					),
 			),
 
+			'library_show_series_in_main_details' => array(
+					'title' => 'Default Show Series In Main Details On',
+					'description' => 'Update all libraries to have show series in main details set to on',
+					'continueOnError' => false,
+					'sql' => array(
+							"updateShowSeriesInMainDetails",
+					),
+			),
+
 	);
 }

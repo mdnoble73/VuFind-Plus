@@ -43,7 +43,7 @@
 
 				{assign var=indexedSeries value=$recordDriver->getIndexedSeries()}
 				{assign var=series value=$recordDriver->getSeries()}
-				{if $series || $indexedSeries}
+				{if $showSeries && ($series || $indexedSeries)}
 					<div class="series row">
 						<div class="result-label col-tn-3">{translate text='Series'}:</div>
 						<div class="col-tn-9 result-value">
@@ -55,10 +55,12 @@
 									{assign var=showMoreSeries value="true"}
 								{/if}
 								{foreach from=$indexedSeries item=seriesItem name=loop}
-									<a href="{$path}/Search/Results?basicType=Series&lookfor=%22{$seriesItem.seriesTitle|removeTrailingPunctuation|escape:"url"}%22">{$seriesItem.seriesTitle|removeTrailingPunctuation|escape}</a>{if $seriesItem.volume} volume {$seriesItem.volume}{/if}<br/>
-									{if $showMoreSeries && $smarty.foreach.loop.iteration == 3}
-										<a onclick="$('#moreSeries_{$recordDriver->getPermanentId()}').show();$('#moreSeriesLink_{$recordDriver->getPermanentId()}').hide();" id="moreSeriesLink_{$summId}">More Series...</a>
-										<div id="moreSeries_{$recordDriver->getPermanentId()}" style="display:none">
+									{if !isset($series.seriesTitle) || ((strpos(strtolower($seriesItem.seriesTitle), strtolower($series.seriesTitle)) === false) && (strpos(strtolower($series.seriesTitle), strtolower($seriesItem.seriesTitle)) === false))}
+										<a href="{$path}/Search/Results?basicType=Series&lookfor=%22{$seriesItem.seriesTitle|removeTrailingPunctuation|escape:"url"}%22">{$seriesItem.seriesTitle|removeTrailingPunctuation|escape}</a>{if $seriesItem.volume} volume {$seriesItem.volume}{/if}<br/>
+										{if $showMoreSeries && $smarty.foreach.loop.iteration == 3}
+											<a onclick="$('#moreSeries_{$recordDriver->getPermanentId()}').show();$('#moreSeriesLink_{$recordDriver->getPermanentId()}').hide();" id="moreSeriesLink_{$summId}">More Series...</a>
+											<div id="moreSeries_{$recordDriver->getPermanentId()}" style="display:none">
+										{/if}
 									{/if}
 								{/foreach}
 								{if $showMoreSeries}
