@@ -21,20 +21,19 @@
 	</div>
 	{/if}
 
-	{* Eventually, we will put the series title here*}
+	<div class="clearer">&nbsp;</div>
 
-	<div id="main-content">
-	{* Listing Options *}
-	<div id="searchInfo">
-		{if $recordCount}
-			{translate text="Showing"}
-			<b>{$recordStart}</b> - <b>{$recordEnd}</b>
-			{translate text='of'} <b>{$recordCount}</b>
-		{else}
-			<p>Sorry, we could not find series information for this title.</p>
-		{/if}
+	<div class="result-head">
+		<div id="searchInfo">
+			{if $recordCount}
+				{translate text="Showing"}
+				<b>{$recordStart}</b> - <b>{$recordEnd}</b>
+				{translate text='of'} <b>{$recordCount}</b>
+			{else}
+				<p>Sorry, we could not find series information for this title.</p>
+			{/if}
+		</div>
 	</div>
-	{* End Listing Options *}
 
 	{* Display series information *}
 	<div id="seriesTitles">
@@ -49,4 +48,3 @@
 
 	{if $pageLinks.all}<div class="pagination">{$pageLinks.all}</div>{/if}
 	</div>
-</div>
