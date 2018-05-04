@@ -455,7 +455,7 @@ abstract class HorizonAPI extends Horizon{
 				$createHoldResponse = $this->getWebServiceResponse($createHoldUrl);
 
 				$hold_result = array();
-				if ($createHoldResponse == true){
+				if ($createHoldResponse === true){
 					$hold_result['success'] = true;
 					$hold_result['message'] = 'Your hold was placed successfully.';
 				}else{
